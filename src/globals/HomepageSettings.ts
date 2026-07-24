@@ -1,10 +1,18 @@
 import type { GlobalConfig } from "payload";
+import { revalidatePath } from "next/cache";
 
 export const HomepageSettings: GlobalConfig = {
   slug: "homepage-settings",
   label: "Homepage Settings",
   access: {
     read: () => true,
+  },
+  hooks: {
+    afterChange: [
+      async () => {
+        revalidatePath("/", "layout");
+      },
+    ],
   },
   fields: [
     {

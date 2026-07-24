@@ -104,6 +104,7 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     'homepage-settings': HomepageSettingsGlobal;
+    'site-theme': SiteThemeGlobal;
   };
   globalsSelect: {};
   locale: null;
@@ -273,6 +274,23 @@ export interface HomepageSettingsGlobal {
     dates: string;
     ballotCloses: string;
   };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface SiteThemeGlobal {
+  id: string;
+  colors: {
+    primaryColor: string;
+    accentColor: string;
+  };
+  branding: {
+    logo?: (string | Media) | null;
+    favicon?: (string | Media) | null;
+  };
+  fontPreset: 'fraunces-inter' | 'playfair-source-sans' | 'newsreader-manrope';
   updatedAt?: string | null;
   createdAt?: string | null;
 }

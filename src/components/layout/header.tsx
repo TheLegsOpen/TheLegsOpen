@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, Search, ShoppingBag, User } from "lucide-react";
 
@@ -15,7 +16,7 @@ import { SITE } from "@/constants/site";
 import { useScrollDirection } from "@/hooks/use-scroll-direction";
 import { cn } from "@/lib/utils";
 
-export function Header() {
+export function Header({ logoUrl }: { logoUrl?: string }) {
   const { isScrolled } = useScrollDirection();
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -39,9 +40,13 @@ export function Header() {
         )}
       >
         <Link href="/" className="flex items-center gap-2 font-display text-xl tracking-tight sm:text-2xl">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-primary-foreground/30 text-sm">
-            LO
-          </span>
+          {logoUrl ? (
+            <Image src={logoUrl} alt="" width={36} height={36} className="h-9 w-9 rounded-full object-contain" />
+          ) : (
+            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-primary-foreground/30 text-sm">
+              LO
+            </span>
+          )}
           {SITE.name}
         </Link>
 

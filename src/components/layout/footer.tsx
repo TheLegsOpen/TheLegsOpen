@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { MessageCircle, Camera, Briefcase, AtSign, Video, Music2 } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
@@ -17,12 +18,15 @@ const SOCIAL_ICONS: Record<string, React.ComponentType<{ className?: string }>> 
   TikTok: Music2,
 };
 
-export function Footer() {
+export function Footer({ logoUrl }: { logoUrl?: string }) {
   return (
     <footer className="border-t border-border bg-primary text-primary-foreground">
       <Container className="grid gap-12 py-16 sm:py-20 lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
         <div className="flex flex-col gap-4">
-          <Link href="/" className="font-display font-bold text-2xl">
+          <Link href="/" className="flex items-center gap-2 font-display font-bold text-2xl">
+            {logoUrl ? (
+              <Image src={logoUrl} alt="" width={32} height={32} className="h-8 w-8 rounded-full object-contain" />
+            ) : null}
             {SITE.name}
           </Link>
           <p className="max-w-xs text-sm text-primary-foreground/70">{SITE.description}</p>
