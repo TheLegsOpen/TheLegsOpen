@@ -1,5 +1,7 @@
 import type { CollectionConfig } from "payload";
 
+import { revalidateSite } from "@/lib/revalidate";
+
 export const Championships: CollectionConfig = {
   slug: "championships",
   admin: {
@@ -9,6 +11,10 @@ export const Championships: CollectionConfig = {
   },
   access: {
     read: () => true,
+  },
+  hooks: {
+    afterChange: [revalidateSite],
+    afterDelete: [revalidateSite],
   },
   fields: [
     { name: "year", type: "number", required: true, unique: true },

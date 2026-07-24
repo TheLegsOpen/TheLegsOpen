@@ -1,5 +1,6 @@
 import type { GlobalConfig } from "payload";
-import { revalidatePath } from "next/cache";
+
+import { revalidateSite } from "@/lib/revalidate";
 
 function validateHex(value: string | null | undefined) {
   if (!value) return "Required";
@@ -13,13 +14,7 @@ export const SiteTheme: GlobalConfig = {
     read: () => true,
   },
   hooks: {
-    afterChange: [
-      async () => {
-        // Colors/fonts/logo affect every page via the root layout, so the whole
-        // static cache needs invalidating — not just one route.
-        revalidatePath("/", "layout");
-      },
-    ],
+    afterChange: [revalidateSite],
   },
   fields: [
     {

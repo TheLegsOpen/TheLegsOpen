@@ -1,5 +1,6 @@
 import type { GlobalConfig } from "payload";
-import { revalidatePath } from "next/cache";
+
+import { revalidateSite } from "@/lib/revalidate";
 
 export const HomepageSettings: GlobalConfig = {
   slug: "homepage-settings",
@@ -8,11 +9,7 @@ export const HomepageSettings: GlobalConfig = {
     read: () => true,
   },
   hooks: {
-    afterChange: [
-      async () => {
-        revalidatePath("/", "layout");
-      },
-    ],
+    afterChange: [revalidateSite],
   },
   fields: [
     {
