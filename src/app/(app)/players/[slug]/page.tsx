@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAllPlayerSlugs, getPlayerBySlug } from "@/lib/data/players";
 import { getLeaderboard } from "@/lib/data/leaderboard";
 import { getTeeTimes } from "@/lib/data/tee-times";
+import { getChampionshipHistory } from "@/lib/data/championships";
 import { formatToPar, synthesizePastResults } from "@/lib/leaderboard";
 import { cn } from "@/lib/utils";
 
@@ -44,9 +45,13 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   const player = await getPlayerBySlug(slug);
   if (!player) notFound();
 
-  const [round4, teeTimeRounds] = await Promise.all([getLeaderboard("round4"), getTeeTimes()]);
+  const [round4, teeTimeRounds, championshipHistory] = await Promise.all([
+    getLeaderboard("round4"),
+    getTeeTimes(),
+    getChampionshipHistory(),
+  ]);
   const entry = round4.find((e) => e.player.id === player.id);
-  const pastResults = synthesizePastResults(player);
+  const pastResults = synthesizePastResults(player, championshipHistory);
   const teeTimes = teeTimeRounds.flatMap((round) =>
     round.groups
       .filter((group) => group.players.some((p) => p.id === player.id))

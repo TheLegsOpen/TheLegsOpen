@@ -8,6 +8,7 @@ export interface ChampionshipWinner {
   winnerCountry: string;
   scoreToPar: number;
   margin: string;
+  winnerPlayerSlug?: string;
 }
 
 export interface Product {

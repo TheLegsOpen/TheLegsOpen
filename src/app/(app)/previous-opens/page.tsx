@@ -3,15 +3,15 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
 import { PreviousOpensTimeline } from "@/components/history/previous-opens-timeline";
-import { CHAMPIONSHIP_HISTORY } from "@/data/championships";
+import { getChampionshipHistory } from "@/lib/data/championships";
 
 export const metadata: Metadata = {
   title: "Previous Opens",
   description: "The full roll of honour for The Legs Open, since 1948.",
 };
 
-export default function PreviousOpensPage() {
-  const sorted = [...CHAMPIONSHIP_HISTORY].sort((a, b) => b.year - a.year);
+export default async function PreviousOpensPage() {
+  const history = await getChampionshipHistory();
 
   return (
     <>
@@ -22,7 +22,7 @@ export default function PreviousOpensPage() {
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Previous Opens" }]}
       />
       <Container className="py-16 sm:py-24">
-        <PreviousOpensTimeline history={sorted} />
+        <PreviousOpensTimeline history={history} />
       </Container>
     </>
   );

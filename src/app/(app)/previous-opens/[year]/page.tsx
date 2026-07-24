@@ -5,22 +5,21 @@ import Link from "next/link";
 import { Container } from "@/components/shared/container";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
-import { CHAMPIONSHIP_HISTORY } from "@/data/championships";
-import { PLAYERS } from "@/data/players";
-import { playerSlug } from "@/lib/utils";
+import { getAllChampionshipYears, getChampionshipByYear } from "@/lib/data/championships";
 import { formatToPar } from "@/lib/leaderboard";
 
 interface YearPageProps {
   params: Promise<{ year: string }>;
 }
 
-export function generateStaticParams() {
-  return CHAMPIONSHIP_HISTORY.map((c) => ({ year: String(c.year) }));
+export async function generateStaticParams() {
+  const years = await getAllChampionshipYears();
+  return years.map((year) => ({ year }));
 }
 
 export async function generateMetadata({ params }: YearPageProps): Promise<Metadata> {
   const { year } = await params;
-  const championship = CHAMPIONSHIP_HISTORY.find((c) => String(c.year) === year);
+  const championship = await getChampionshipByYear(Number(year));
   if (!championship) return {};
   return {
     title: `${championship.year} — ${championship.venueName}`,
@@ -30,10 +29,8 @@ export async function generateMetadata({ params }: YearPageProps): Promise<Metad
 
 export default async function PreviousOpenYearPage({ params }: YearPageProps) {
   const { year } = await params;
-  const championship = CHAMPIONSHIP_HISTORY.find((c) => String(c.year) === year);
+  const championship = await getChampionshipByYear(Number(year));
   if (!championship) notFound();
-
-  const winnerPlayer = PLAYERS.find((p) => p.name === championship.winnerName);
 
   return (
     <Container className="flex flex-col gap-10 py-10 sm:py-14">
@@ -51,8 +48,8 @@ export default async function PreviousOpenYearPage({ params }: YearPageProps) {
           <h1 className="font-display font-bold text-display-lg text-balance">{championship.venueName}</h1>
           <p className="text-lg text-muted-foreground">
             Won by{" "}
-            {winnerPlayer ? (
-              <Link href={`/players/${playerSlug(winnerPlayer)}`} className="font-semibold text-primary hover:underline">
+            {championship.winnerPlayerSlug ? (
+              <Link href={`/players/${championship.winnerPlayerSlug}`} className="font-semibold text-primary hover:underline">
                 {championship.winnerName}
               </Link>
             ) : (

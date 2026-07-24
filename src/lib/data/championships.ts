@@ -1,0 +1,51 @@
+import { getPayload } from "payload";
+
+import configPromise from "@/payload.config";
+import { slugify } from "@/lib/utils";
+import type { ChampionshipWinner } from "@/types/championship";
+import type { Championship as PayloadChampionship, Venue as PayloadVenue, Player as PayloadPlayer } from "@/payload-types";
+
+/**
+ * Data-access seam for championship history — backed by the Championships
+ * collection in Payload/Postgres rather than the local fixture. The `venue`
+ * and `winnerPlayer` relationships are populated at the default query depth.
+ */
+
+function mapChampionship(doc: PayloadChampionship): ChampionshipWinner {
+  const venue = doc.venue as PayloadVenue;
+  const winnerPlayer = typeof doc.winnerPlayer === "object" && doc.winnerPlayer ? (doc.winnerPlayer as PayloadPlayer) : undefined;
+
+  return {
+    year: doc.year,
+    venueSlug: venue.slug ?? slugify(venue.name),
+    venueName: venue.name,
+    winnerName: doc.winnerName,
+    winnerCountry: doc.winnerCountry,
+    scoreToPar: doc.scoreToPar,
+    margin: doc.margin,
+    winnerPlayerSlug: winnerPlayer?.slug ?? undefined,
+  };
+}
+
+export async function getChampionshipHistory(): Promise<ChampionshipWinner[]> {
+  const payload = await getPayload({ config: configPromise });
+  const result = await payload.find({ collection: "championships", limit: 100, sort: "-year" });
+  return result.docs.map(mapChampionship);
+}
+
+export async function getChampionshipByYear(year: number): Promise<ChampionshipWinner | undefined> {
+  const payload = await getPayload({ config: configPromise });
+  const result = await payload.find({ collection: "championships", where: { year: { equals: year } }, limit: 1 });
+  return result.docs[0] ? mapChampionship(result.docs[0]) : undefined;
+}
+
+export async function getAllChampionshipYears(): Promise<string[]> {
+  const payload = await getPayload({ config: configPromise });
+  const result = await payload.find({ collection: "championships", limit: 100 });
+  return result.docs.map((doc) => String(doc.year));
+}
+
+export async function getChampionshipsByVenueSlug(slug: string): Promise<ChampionshipWinner[]> {
+  const history = await getChampionshipHistory();
+  return history.filter((c) => c.venueSlug === slug);
+}

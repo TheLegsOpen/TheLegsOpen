@@ -1,7 +1,7 @@
-import { CHAMPIONSHIP_HISTORY } from "@/data/championships";
 import { SITE } from "@/constants/site";
 import { hashSeed, seededRandom } from "@/lib/utils";
 import type { Player } from "@/types/player";
+import type { ChampionshipWinner } from "@/types/championship";
 
 /**
  * Deterministically synthesizes a plausible 18-hole score-relative-to-par
@@ -77,9 +77,10 @@ export interface PastResult {
 /**
  * Deterministically synthesizes `player.previousOpens` past-year results
  * (the data model doesn't track a full results history). Cross-references
- * CHAMPIONSHIP_HISTORY so a player's win, if any, shows up correctly.
+ * the real championship history (passed in, not imported here, so this
+ * module stays free of server-only Payload imports for client components).
  */
-export function synthesizePastResults(player: Player): PastResult[] {
+export function synthesizePastResults(player: Player, championshipHistory: ChampionshipWinner[]): PastResult[] {
   if (player.previousOpens === 0) return [];
 
   const rand = seededRandom(hashSeed(`${player.id}-history`) || 1);
@@ -87,7 +88,7 @@ export function synthesizePastResults(player: Player): PastResult[] {
 
   for (let i = 1; i <= player.previousOpens; i++) {
     const year = SITE.currentYear - i;
-    const historyEntry = CHAMPIONSHIP_HISTORY.find((entry) => entry.year === year);
+    const historyEntry = championshipHistory.find((entry) => entry.year === year);
     const venueName = historyEntry?.venueName ?? ROTATION_VENUES[year % ROTATION_VENUES.length];
 
     let finish: string;

@@ -12,7 +12,7 @@ import { CTASection } from "@/components/shared/cta-section";
 import { Button } from "@/components/ui/button";
 import { UPCOMING_CHAMPIONSHIPS } from "@/data/upcoming-championships";
 import { getVenueBySlug } from "@/lib/data/venues";
-import { CHAMPIONSHIP_HISTORY } from "@/data/championships";
+import { getChampionshipsByVenueSlug } from "@/lib/data/championships";
 import { ordinal } from "@/lib/utils";
 
 interface UpcomingYearPageProps {
@@ -40,7 +40,7 @@ export default async function UpcomingChampionshipPage({ params }: UpcomingYearP
   const venue = championship ? await getVenueBySlug(championship.venueSlug) : undefined;
   if (!championship || !venue) notFound();
 
-  const previousVisits = CHAMPIONSHIP_HISTORY.filter((c) => c.venueSlug === venue.slug);
+  const previousVisits = await getChampionshipsByVenueSlug(venue.slug);
 
   return (
     <>

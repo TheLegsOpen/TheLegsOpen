@@ -9,7 +9,7 @@ import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { StatBlock } from "@/components/venues/stat-block";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAllVenueSlugs, getVenueBySlug } from "@/lib/data/venues";
-import { CHAMPIONSHIP_HISTORY } from "@/data/championships";
+import { getChampionshipsByVenueSlug } from "@/lib/data/championships";
 import { UPCOMING_CHAMPIONSHIPS } from "@/data/upcoming-championships";
 import { ordinal } from "@/lib/utils";
 
@@ -34,7 +34,7 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
   const venue = await getVenueBySlug(slug);
   if (!venue) notFound();
 
-  const championshipsHere = CHAMPIONSHIP_HISTORY.filter((c) => c.venueSlug === venue.slug);
+  const championshipsHere = await getChampionshipsByVenueSlug(venue.slug);
   const upcoming = UPCOMING_CHAMPIONSHIPS.find((c) => c.venueSlug === venue.slug);
 
   return (
