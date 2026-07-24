@@ -5,6 +5,7 @@ import { ChampionshipWeekSwitcher } from "@/components/shared/championship-week-
 import { TeeTimesView } from "@/components/tee-times/tee-times-view";
 import { getTeeTimes } from "@/lib/data/tee-times";
 import { getArticles } from "@/lib/data/articles";
+import { getSponsorClock } from "@/lib/data/sponsor-clock";
 
 export const metadata: Metadata = {
   title: "Tee Times",
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function TeeTimesPage() {
-  const [rounds, articles] = await Promise.all([getTeeTimes(), getArticles()]);
+  const [rounds, articles, clockConfig] = await Promise.all([getTeeTimes(), getArticles(), getSponsorClock()]);
 
   return (
     <>
@@ -25,7 +26,7 @@ export default async function TeeTimesPage() {
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Tee Times" }]}
       />
       <ChampionshipWeekSwitcher />
-      <TeeTimesView rounds={rounds} featuredArticle={articles[0]} />
+      <TeeTimesView rounds={rounds} featuredArticle={articles[0]} clockConfig={clockConfig} />
     </>
   );
 }

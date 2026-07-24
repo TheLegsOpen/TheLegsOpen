@@ -33,14 +33,6 @@ export const LEGAL_PAGES: LegalPage[] = [
     ],
   },
   {
-    slug: "ticket-terms",
-    title: "Ticket & Hospitality Terms",
-    updated: "2026-01-01",
-    body: [
-      "All ticket and hospitality information on this site is placeholder content used to demonstrate a realistic ticketing information architecture, and does not represent a real offer for sale.",
-    ],
-  },
-  {
     slug: "modern-slavery-statement",
     title: "Modern Slavery Statement",
     updated: "2026-01-01",

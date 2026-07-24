@@ -1,10 +1,8 @@
 import type { FooterColumn, NavPanelGroup, NavSection } from "@/types/nav";
 
 export const PRIMARY_NAV: NavSection[] = [
-  { label: "Tickets", href: "/tickets-and-hospitality" },
   { label: "Leaderboard", href: "/leaderboard" },
   { label: "Tee Times", href: "/tee-times" },
-  { label: "Watch", href: "/watch" },
   { label: "Shop", href: "/shop" },
 ];
 
@@ -33,7 +31,7 @@ export const NAV_PANEL: NavPanelGroup[] = [
     heading: "Venues",
     links: [
       { label: "Seabrook Old Course", href: "/venues/seabrook-old-course", description: "154th Legs Open" },
-      { label: "Marram Bay Links", href: "/tickets-and-hospitality/2027", description: "155th Legs Open" },
+      { label: "Marram Bay Links", href: "/venues/marram-bay-links", description: "155th Legs Open" },
     ],
     emphasis: true,
   },
@@ -54,17 +52,9 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
       { label: "Latest News", href: "/latest" },
       { label: "Leaderboard", href: "/leaderboard" },
       { label: "Tee Times", href: "/tee-times" },
-      { label: "Watch", href: "/watch" },
       { label: "Venues", href: "/venues" },
       { label: "Field", href: "/field" },
       { label: "Previous Opens", href: "/previous-opens" },
-    ],
-  },
-  {
-    heading: "Tickets & Hospitality",
-    links: [
-      { label: "Ballot & Tickets", href: "/tickets-and-hospitality" },
-      { label: "Hospitality", href: "/tickets-and-hospitality#premium" },
       { label: "The Clubhouse", href: "/club" },
       { label: "Shop", href: "/shop" },
     ],
@@ -73,7 +63,6 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
     heading: "Support",
     links: [
       { label: "Contact Us", href: "/contact" },
-      { label: "Accessibility Guide", href: "/tickets-and-hospitality#accessibility" },
       { label: "Media Centre", href: "/media" },
       { label: "Patrons & Suppliers", href: "/patrons-and-suppliers" },
       { label: "Careers", href: "/careers" },
@@ -85,7 +74,6 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
       { label: "Privacy Policy", href: "/legal/privacy-policy" },
       { label: "Cookie Policy", href: "/legal/cookie-policy" },
       { label: "Website Terms", href: "/legal/website-terms" },
-      { label: "Ticket Terms", href: "/legal/ticket-terms" },
       { label: "Modern Slavery Statement", href: "/legal/modern-slavery-statement" },
     ],
   },

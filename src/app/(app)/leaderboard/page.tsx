@@ -5,6 +5,7 @@ import { ChampionshipWeekSwitcher } from "@/components/shared/championship-week-
 import { LeaderboardView } from "@/components/leaderboard/leaderboard-view";
 import { getLeaderboard } from "@/lib/data/leaderboard";
 import { getArticles } from "@/lib/data/articles";
+import { getSponsorClock } from "@/lib/data/sponsor-clock";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
@@ -12,10 +13,11 @@ export const metadata: Metadata = {
 };
 
 export default async function LeaderboardPage() {
-  const [round2, round4, articles] = await Promise.all([
+  const [round2, round4, articles, clockConfig] = await Promise.all([
     getLeaderboard("round2"),
     getLeaderboard("round4"),
     getArticles(),
+    getSponsorClock(),
   ]);
 
   return (
@@ -29,7 +31,7 @@ export default async function LeaderboardPage() {
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Leaderboard" }]}
       />
       <ChampionshipWeekSwitcher />
-      <LeaderboardView round2={round2} round4={round4} featuredArticle={articles[0]} />
+      <LeaderboardView round2={round2} round4={round4} featuredArticle={articles[0]} clockConfig={clockConfig} />
     </>
   );
 }

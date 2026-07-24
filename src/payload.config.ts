@@ -17,6 +17,7 @@ import { TeeTimeRounds } from "./collections/TeeTimeRounds";
 import { PlayerStatistics } from "./collections/PlayerStatistics";
 import { HomepageSettings } from "./globals/HomepageSettings";
 import { SiteTheme } from "./globals/SiteTheme";
+import { SponsorClock } from "./globals/SponsorClock";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -39,7 +40,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, Players, Venues, Articles, Championships, LeaderboardEntries, TeeTimeRounds, PlayerStatistics],
-  globals: [HomepageSettings, SiteTheme],
+  globals: [HomepageSettings, SiteTheme, SponsorClock],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "",
   typescript: {

@@ -2,7 +2,6 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { slugify } from "@/lib/utils";
-import type { UpcomingChampionship } from "@/types/championship";
 import type { Article as PayloadArticle, Championship as PayloadChampionship, Venue as PayloadVenue } from "@/payload-types";
 
 /**
@@ -30,20 +29,5 @@ export async function getCurrentChampion(): Promise<CurrentChampion> {
     venueName: venue.name,
     scoreToPar: championship.scoreToPar,
     articleSlug: article.slug ?? slugify(article.title),
-  };
-}
-
-export async function getUpcomingChampionship(): Promise<UpcomingChampionship> {
-  const payload = await getPayload({ config: configPromise });
-  const settings = await payload.findGlobal({ slug: "homepage-settings" });
-
-  const venue = settings.nextBallot.venue as PayloadVenue;
-
-  return {
-    number: settings.nextBallot.number,
-    year: settings.nextBallot.year,
-    venueSlug: venue.slug ?? slugify(venue.name),
-    dates: settings.nextBallot.dates,
-    ballotCloses: settings.nextBallot.ballotCloses,
   };
 }

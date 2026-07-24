@@ -12,11 +12,13 @@ import { useFavorites } from "@/hooks/use-favorites";
 import { cn } from "@/lib/utils";
 import type { LeaderboardEntry } from "@/types/player";
 import type { Article } from "@/types/article";
+import type { SponsorClock } from "@/lib/data/sponsor-clock";
 
 interface LeaderboardViewProps {
   round2: LeaderboardEntry[];
   round4: LeaderboardEntry[];
   featuredArticle: Article;
+  clockConfig: SponsorClock;
 }
 
 function filterEntries(entries: LeaderboardEntry[], query: string): LeaderboardEntry[] {
@@ -31,6 +33,7 @@ export function LeaderboardView({
   round2: LEADERBOARD_ROUND_2,
   round4: LEADERBOARD_ROUND_4,
   featuredArticle,
+  clockConfig,
 }: LeaderboardViewProps) {
   const { favorites, toggleFavorite, hydrated } = useFavorites();
   const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -142,7 +145,7 @@ export function LeaderboardView({
               />
             </TabsContent>
           </div>
-          <ChampionshipSidebar featuredArticle={featuredArticle} tone="dark" />
+          <ChampionshipSidebar featuredArticle={featuredArticle} clockConfig={clockConfig} tone="dark" />
         </Container>
       </div>
 

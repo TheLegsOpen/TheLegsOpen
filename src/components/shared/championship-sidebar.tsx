@@ -3,17 +3,19 @@ import { ShopPromoCard } from "@/components/shared/shop-promo-card";
 import { SponsorTimeWidget } from "@/components/shared/sponsor-time-widget";
 import { cn } from "@/lib/utils";
 import type { Article } from "@/types/article";
+import type { SponsorClock } from "@/lib/data/sponsor-clock";
 
 interface ChampionshipSidebarProps {
   featuredArticle: Article;
+  clockConfig: SponsorClock;
   tone?: "light" | "dark";
 }
 
-export function ChampionshipSidebar({ featuredArticle, tone = "light" }: ChampionshipSidebarProps) {
+export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "light" }: ChampionshipSidebarProps) {
   const isDark = tone === "dark";
   return (
     <aside className="flex flex-col gap-6">
-      <SponsorTimeWidget />
+      <SponsorTimeWidget config={clockConfig} />
       <ShopPromoCard tone={tone} />
       <div className="flex flex-col gap-3">
         <p

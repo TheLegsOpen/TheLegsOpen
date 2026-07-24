@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Ticket, Newspaper, PartyPopper, Gift } from "lucide-react";
+import { Star, Newspaper, PartyPopper, Gift } from "lucide-react";
 
 import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
@@ -10,11 +10,11 @@ import { JoinForm } from "@/components/club/join-form";
 
 export const metadata: Metadata = {
   title: "The Clubhouse",
-  description: "Free membership with priority ballot access, a members' newsletter, and championship week invitations.",
+  description: "Free membership with priority access to news, a members' newsletter, and championship week invitations.",
 };
 
 const BENEFITS = [
-  { icon: Ticket, title: "Priority ballot access", description: "An early-access window before the public ballot opens." },
+  { icon: Star, title: "Priority access", description: "Be first to hear about championship news and events." },
   { icon: Newspaper, title: "Members' newsletter", description: "Monthly stories and course guides, straight to your inbox." },
   { icon: PartyPopper, title: "Championship week invitations", description: "Invitations to member-only events during the championship." },
   { icon: Gift, title: "Shop offers", description: "Early access to new collections and member-only discounts." },
@@ -28,7 +28,7 @@ export default function ClubPage() {
         imageLabel="The Clubhouse terrace at Seabrook"
         eyebrow="Free Membership"
         title="The Clubhouse"
-        description="Join for free in a few minutes and get priority access to tickets, news and championship week events."
+        description="Join for free in a few minutes and get priority access to news and championship week events."
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "The Clubhouse" }]}
       />
 
@@ -47,7 +47,7 @@ export default function ClubPage() {
         </div>
       </Container>
 
-      <Container className="py-16 sm:py-24">
+      <Container id="join" className="scroll-mt-20 py-16 sm:py-24">
         <div className="mx-auto flex max-w-md flex-col gap-6 rounded-xl border border-border p-8">
           <div className="flex flex-col gap-2">
             <h2 className="font-display font-bold text-display-sm">Join for free</h2>
@@ -59,8 +59,8 @@ export default function ClubPage() {
 
       <CTASection
         title="Ready for championship week?"
-        description="Members get first access when the public ballot opens."
-        primaryAction={{ label: "View the ballot", href: "/tickets-and-hospitality" }}
+        description="Membership takes a few minutes and keeps you close to everything happening at The Legs Open."
+        primaryAction={{ label: "Join The Clubhouse", href: "#join" }}
         tone="muted"
       />
     </>

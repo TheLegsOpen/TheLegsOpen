@@ -1,5 +1,4 @@
 import { Hero } from "@/components/home/hero";
-import { FeaturedBallotCard } from "@/components/home/featured-ballot-card";
 import { LeaderboardWidget } from "@/components/home/leaderboard-widget";
 import { InfoBlocks } from "@/components/home/info-blocks";
 import { ProductShowcaseCarousel } from "@/components/home/product-showcase-carousel";
@@ -21,7 +20,6 @@ export default async function HomePage() {
   return (
     <>
       <Hero currentChampion={currentChampion} />
-      <FeaturedBallotCard />
       <LeaderboardWidget entries={leaderboard.slice(0, WIDGET_TOP_COUNT)} />
       <InfoBlocks />
       <ProductShowcaseCarousel />

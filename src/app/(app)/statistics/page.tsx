@@ -7,6 +7,7 @@ import { ChampionshipSidebar } from "@/components/shared/championship-sidebar";
 import { StatCategoryCard } from "@/components/statistics/stat-category-card";
 import { getArticles } from "@/lib/data/articles";
 import { getStatCategories } from "@/lib/data/statistics";
+import { getSponsorClock } from "@/lib/data/sponsor-clock";
 
 export const metadata: Metadata = {
   title: "Statistics",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default async function StatisticsPage() {
-  const [categories, articles] = await Promise.all([getStatCategories(), getArticles()]);
+  const [categories, articles, clockConfig] = await Promise.all([getStatCategories(), getArticles(), getSponsorClock()]);
 
   return (
     <>
@@ -35,7 +36,7 @@ export default async function StatisticsPage() {
               <StatCategoryCard key={category.key} category={category} />
             ))}
           </div>
-          <ChampionshipSidebar featuredArticle={articles[0]} tone="dark" />
+          <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="dark" />
         </Container>
       </div>
     </>

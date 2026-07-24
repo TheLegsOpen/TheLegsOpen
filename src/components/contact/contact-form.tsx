@@ -20,7 +20,7 @@ const contactSchema = z.object({
 
 type ContactFormValues = z.infer<typeof contactSchema>;
 
-const TOPICS = ["Tickets & Hospitality", "Membership", "Media & Press", "Something else"];
+const TOPICS = ["Membership", "Media & Press", "Something else"];
 
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");

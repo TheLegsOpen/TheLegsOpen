@@ -7,22 +7,18 @@ import { SITE } from "@/constants/site";
 import { getArticles } from "@/lib/data/articles";
 import { getVenues } from "@/lib/data/venues";
 import { getChampionshipHistory } from "@/lib/data/championships";
-import { getUpcomingChampionship } from "@/lib/data/homepage-settings";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [ARTICLES, VENUES, CHAMPIONSHIP_HISTORY, upcomingChampionship] = await Promise.all([
+  const [ARTICLES, VENUES, CHAMPIONSHIP_HISTORY] = await Promise.all([
     getArticles(),
     getVenues(),
     getChampionshipHistory(),
-    getUpcomingChampionship(),
   ]);
   const staticRoutes = [
     "",
-    "/tickets-and-hospitality",
     "/leaderboard",
     "/tee-times",
     "/statistics",
-    "/watch",
     "/venues",
     "/field",
     "/previous-opens",
@@ -63,13 +59,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: page.updated,
   }));
 
-  const upcomingChampionshipRoutes = [
-    {
-      url: `${SITE.url}/tickets-and-hospitality/${upcomingChampionship.year}`,
-      lastModified: new Date(),
-    },
-  ];
-
   return [
     ...staticRoutes,
     ...articleRoutes,
@@ -77,6 +66,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...playerRoutes,
     ...previousOpenRoutes,
     ...legalRoutes,
-    ...upcomingChampionshipRoutes,
   ];
 }

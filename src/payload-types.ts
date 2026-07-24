@@ -105,6 +105,7 @@ export interface Config {
   globals: {
     'homepage-settings': HomepageSettingsGlobal;
     'site-theme': SiteThemeGlobal;
+    'sponsor-clock': SponsorClockGlobal;
   };
   globalsSelect: {};
   locale: null;
@@ -267,13 +268,6 @@ export interface HomepageSettingsGlobal {
     championship: string | Championship;
     article: string | Article;
   };
-  nextBallot: {
-    number: number;
-    year: number;
-    venue: string | Venue;
-    dates: string;
-    ballotCloses: string;
-  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -291,6 +285,26 @@ export interface SiteThemeGlobal {
     favicon?: (string | Media) | null;
   };
   fontPreset: 'fraunces-inter' | 'playfair-source-sans' | 'newsreader-manrope';
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface SponsorClockGlobal {
+  id: string;
+  sponsor: {
+    name: string;
+    tagline: string;
+    logo?: (string | Media) | null;
+    faceColor: string;
+  };
+  graphics: {
+    hourHand?: (string | Media) | null;
+    minuteHand?: (string | Media) | null;
+    secondHand?: (string | Media) | null;
+    centerCap?: (string | Media) | null;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }

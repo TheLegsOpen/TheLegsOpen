@@ -11,10 +11,19 @@ import { useFavorites } from "@/hooks/use-favorites";
 import { cn } from "@/lib/utils";
 import type { TeeTimeRound } from "@/types/championship";
 import type { Article } from "@/types/article";
+import type { SponsorClock } from "@/lib/data/sponsor-clock";
 
 const TEE_FILTERS = ["All", "1st", "10th"] as const;
 
-export function TeeTimesView({ rounds: TEE_TIMES, featuredArticle }: { rounds: TeeTimeRound[]; featuredArticle: Article }) {
+export function TeeTimesView({
+  rounds: TEE_TIMES,
+  featuredArticle,
+  clockConfig,
+}: {
+  rounds: TeeTimeRound[];
+  featuredArticle: Article;
+  clockConfig: SponsorClock;
+}) {
   const [teeFilter, setTeeFilter] = useState<(typeof TEE_FILTERS)[number]>("All");
   const [reversed, setReversed] = useState(false);
   const { favorites, hydrated } = useFavorites();
@@ -82,7 +91,7 @@ export function TeeTimesView({ rounds: TEE_TIMES, featuredArticle }: { rounds: T
             })}
           </Accordion>
 
-          <ChampionshipSidebar featuredArticle={featuredArticle} tone="dark" />
+          <ChampionshipSidebar featuredArticle={featuredArticle} clockConfig={clockConfig} tone="dark" />
         </Container>
       </div>
     </>

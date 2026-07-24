@@ -10,16 +10,16 @@ import { SectionHeading } from "@/components/shared/section-heading";
 
 const BLOCKS = [
   {
-    title: "The Ballot",
-    description: "Everything you need to know about applying for tickets to championship week.",
-    href: "/tickets-and-hospitality",
+    title: "The Rotation",
+    description: "Explore every course in the championship rotation, past and future.",
+    href: "/venues",
     imageLabel: "Grandstands at Seabrook",
     tone: "navy" as const,
   },
   {
-    title: "Seabrook, Fifeshire",
-    description: "Plan your trip with ticket-inclusive travel and accommodation packages.",
-    href: "/tickets-and-hospitality#travel",
+    title: "Previous Opens",
+    description: "The full roll of honour for The Legs Open, since 1948.",
+    href: "/previous-opens",
     imageLabel: "Seabrook harbour at dusk",
     tone: "dusk" as const,
   },
