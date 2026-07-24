@@ -26,6 +26,16 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    meta: {
+      titleSuffix: " — The Legs Open Admin",
+      icons: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    },
+    components: {
+      graphics: {
+        Logo: "/components/admin/BrandLogo#BrandLogo",
+        Icon: "/components/admin/BrandIcon#BrandIcon",
+      },
+    },
   },
   collections: [Users, Media, Players, Venues, Articles, Championships, LeaderboardEntries, TeeTimeRounds, PlayerStatistics],
   globals: [HomepageSettings],

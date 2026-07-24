@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+/*
+ * The Legs Open admin theme.
+ * Payload's design system is CSS-variable driven — overriding these here
+ * (rather than fighting component class names, which can change between
+ * versions) is the supported way to reskin the admin panel. Only the base
+ * elevation ramp (navy tint) and the success ramp (brand gold — the ramp
+ * Payload's own components use for focus rings / checked states / primary
+ * accents) are touched; error/warning stay default so real error states
+ * remain unambiguous.
+ */
+:root {
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+
+  --color-base-0: hsl(220, 25%, 99%);
+  --color-base-50: hsl(224, 22%, 97%);
+  --color-base-100: hsl(224, 18%, 94%);
+  --color-base-150: hsl(224, 16%, 89%);
+  --color-base-200: hsl(226, 15%, 84%);
+  --color-base-250: hsl(228, 14%, 78%);
+  --color-base-300: hsl(230, 13%, 72%);
+  --color-base-350: hsl(232, 13%, 67%);
+  --color-base-400: hsl(234, 13%, 61%);
+  --color-base-450: hsl(234, 14%, 56%);
+  --color-base-500: hsl(234, 15%, 51%);
+  --color-base-550: hsl(234, 16%, 46%);
+  --color-base-600: hsl(236, 18%, 40%);
+  --color-base-650: hsl(238, 20%, 35%);
+  --color-base-700: hsl(240, 26%, 29%);
+  --color-base-750: hsl(241, 32%, 23%);
+  --color-base-800: hsl(242, 40%, 17%);
+  --color-base-850: hsl(242, 55%, 12%);
+  --color-base-900: hsl(242, 68%, 8%);
+  --color-base-950: hsl(243, 75%, 4%);
+  --color-base-1000: hsl(240, 45%, 1%);
+
+  --color-success-50: hsl(44, 90%, 96%);
+  --color-success-100: hsl(44, 90%, 92%);
+  --color-success-150: hsl(44, 92%, 86%);
+  --color-success-200: hsl(44, 94%, 80%);
+  --color-success-250: hsl(44, 96%, 74%);
+  --color-success-300: hsl(44, 98%, 67%);
+  --color-success-350: hsl(44, 100%, 60%);
+  --color-success-400: hsl(44, 100%, 55%);
+  --color-success-450: hsl(44, 100%, 52%);
+  --color-success-500: hsl(44, 100%, 50%);
+  --color-success-550: hsl(42, 100%, 45%);
+  --color-success-600: hsl(40, 100%, 40%);
+  --color-success-650: hsl(38, 95%, 35%);
+  --color-success-700: hsl(36, 90%, 30%);
+  --color-success-750: hsl(34, 85%, 25%);
+  --color-success-800: hsl(32, 80%, 20%);
+  --color-success-850: hsl(30, 75%, 16%);
+  --color-success-900: hsl(28, 70%, 12%);
+  --color-success-950: hsl(26, 65%, 8%);
+}
