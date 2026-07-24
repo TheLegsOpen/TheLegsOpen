@@ -8,17 +8,17 @@ import { Container } from "@/components/shared/container";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { SITE } from "@/constants/site";
 import { ordinal } from "@/lib/utils";
-import type { getCurrentChampion } from "@/lib/data/players";
+import type { CurrentChampion } from "@/lib/data/homepage-settings";
 
 interface HeroProps {
-  currentChampion: Awaited<ReturnType<typeof getCurrentChampion>>;
+  currentChampion: CurrentChampion;
 }
 
 export function Hero({ currentChampion: CURRENT_CHAMPION }: HeroProps) {
   return (
     <section className="relative h-[85vh] min-h-[520px] w-full overflow-hidden">
       <PlaceholderArt
-        label={`${CURRENT_CHAMPION.player.name} celebrates at ${CURRENT_CHAMPION.venue}`}
+        label={`${CURRENT_CHAMPION.winnerName} celebrates at ${CURRENT_CHAMPION.venueName}`}
         tone="navy"
         fill
       />
@@ -35,10 +35,10 @@ export function Hero({ currentChampion: CURRENT_CHAMPION }: HeroProps) {
             {ordinal(SITE.currentChampionshipNumber - 1)} {SITE.name} Champion
           </span>
           <h1 className="font-display font-bold text-display-xl text-balance">
-            {CURRENT_CHAMPION.player.name.split(" ")[0]}&rsquo;s coastal masterclass
+            {CURRENT_CHAMPION.winnerName.split(" ")[0]}&rsquo;s coastal masterclass
           </h1>
           <p className="max-w-lg text-lg text-white/85">
-            {CURRENT_CHAMPION.player.name} held off the chasing pack at {CURRENT_CHAMPION.venue} to lift the
+            {CURRENT_CHAMPION.winnerName} held off the chasing pack at {CURRENT_CHAMPION.venueName} to lift the
             Claret Vase for the first time, closing at {Math.abs(CURRENT_CHAMPION.scoreToPar)} under par.
           </p>
           <div className="flex flex-wrap gap-3">

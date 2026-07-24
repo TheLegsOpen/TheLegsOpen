@@ -47,11 +47,3 @@ function buildBio(p: BasePlayer): string[] {
 }
 
 export const PLAYERS: Player[] = BASE_PLAYERS.map((p) => ({ ...p, bio: buildBio(p) }));
-
-export const CURRENT_CHAMPION = {
-  player: PLAYERS[0],
-  year: 2025,
-  venue: "St Brennan's",
-  scoreToPar: -14,
-  articleSlug: "reith-claims-maiden-legs-open-title",
-};

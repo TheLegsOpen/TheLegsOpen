@@ -15,6 +15,7 @@ import { Championships } from "./collections/Championships";
 import { LeaderboardEntries } from "./collections/LeaderboardEntries";
 import { TeeTimeRounds } from "./collections/TeeTimeRounds";
 import { PlayerStatistics } from "./collections/PlayerStatistics";
+import { HomepageSettings } from "./globals/HomepageSettings";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -27,6 +28,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, Players, Venues, Articles, Championships, LeaderboardEntries, TeeTimeRounds, PlayerStatistics],
+  globals: [HomepageSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "",
   typescript: {

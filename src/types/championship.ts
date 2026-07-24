@@ -11,6 +11,14 @@ export interface ChampionshipWinner {
   winnerPlayerSlug?: string;
 }
 
+export interface UpcomingChampionship {
+  number: number;
+  year: number;
+  venueSlug: string;
+  dates: string;
+  ballotCloses: string;
+}
+
 export interface Product {
   id: string;
   name: string;

@@ -10,7 +10,7 @@ import { StatBlock } from "@/components/venues/stat-block";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAllVenueSlugs, getVenueBySlug } from "@/lib/data/venues";
 import { getChampionshipsByVenueSlug } from "@/lib/data/championships";
-import { UPCOMING_CHAMPIONSHIPS } from "@/data/upcoming-championships";
+import { getUpcomingChampionship } from "@/lib/data/homepage-settings";
 import { ordinal } from "@/lib/utils";
 
 interface VenuePageProps {
@@ -34,8 +34,11 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
   const venue = await getVenueBySlug(slug);
   if (!venue) notFound();
 
-  const championshipsHere = await getChampionshipsByVenueSlug(venue.slug);
-  const upcoming = UPCOMING_CHAMPIONSHIPS.find((c) => c.venueSlug === venue.slug);
+  const [championshipsHere, upcomingChampionship] = await Promise.all([
+    getChampionshipsByVenueSlug(venue.slug),
+    getUpcomingChampionship(),
+  ]);
+  const upcoming = upcomingChampionship.venueSlug === venue.slug ? upcomingChampionship : undefined;
 
   return (
     <Container className="flex flex-col gap-10 py-10 sm:py-14">

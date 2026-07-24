@@ -1,16 +1,21 @@
 import type { MetadataRoute } from "next";
 
 import { LEGAL_PAGES } from "@/data/legal";
-import { UPCOMING_CHAMPIONSHIPS } from "@/data/upcoming-championships";
 import { PLAYERS } from "@/data/players";
 import { playerSlug } from "@/lib/utils";
 import { SITE } from "@/constants/site";
 import { getArticles } from "@/lib/data/articles";
 import { getVenues } from "@/lib/data/venues";
 import { getChampionshipHistory } from "@/lib/data/championships";
+import { getUpcomingChampionship } from "@/lib/data/homepage-settings";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [ARTICLES, VENUES, CHAMPIONSHIP_HISTORY] = await Promise.all([getArticles(), getVenues(), getChampionshipHistory()]);
+  const [ARTICLES, VENUES, CHAMPIONSHIP_HISTORY, upcomingChampionship] = await Promise.all([
+    getArticles(),
+    getVenues(),
+    getChampionshipHistory(),
+    getUpcomingChampionship(),
+  ]);
   const staticRoutes = [
     "",
     "/tickets-and-hospitality",
@@ -58,10 +63,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: page.updated,
   }));
 
-  const upcomingChampionshipRoutes = UPCOMING_CHAMPIONSHIPS.map((c) => ({
-    url: `${SITE.url}/tickets-and-hospitality/${c.year}`,
-    lastModified: new Date(),
-  }));
+  const upcomingChampionshipRoutes = [
+    {
+      url: `${SITE.url}/tickets-and-hospitality/${upcomingChampionship.year}`,
+      lastModified: new Date(),
+    },
+  ];
 
   return [
     ...staticRoutes,

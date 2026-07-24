@@ -5,7 +5,7 @@ import { InfoBlocks } from "@/components/home/info-blocks";
 import { ProductShowcaseCarousel } from "@/components/home/product-showcase-carousel";
 import { NewsGrid } from "@/components/home/news-grid";
 import { getArticlesPage } from "@/lib/data/articles";
-import { getCurrentChampion } from "@/lib/data/players";
+import { getCurrentChampion } from "@/lib/data/homepage-settings";
 import { getLeaderboard } from "@/lib/data/leaderboard";
 
 const PAGE_SIZE = 6;

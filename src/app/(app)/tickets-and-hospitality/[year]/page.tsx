@@ -10,24 +10,25 @@ import { Countdown } from "@/components/shared/countdown";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { CTASection } from "@/components/shared/cta-section";
 import { Button } from "@/components/ui/button";
-import { UPCOMING_CHAMPIONSHIPS } from "@/data/upcoming-championships";
 import { getVenueBySlug } from "@/lib/data/venues";
 import { getChampionshipsByVenueSlug } from "@/lib/data/championships";
+import { getUpcomingChampionship } from "@/lib/data/homepage-settings";
 import { ordinal } from "@/lib/utils";
 
 interface UpcomingYearPageProps {
   params: Promise<{ year: string }>;
 }
 
-export function generateStaticParams() {
-  return UPCOMING_CHAMPIONSHIPS.map((c) => ({ year: String(c.year) }));
+export async function generateStaticParams() {
+  const championship = await getUpcomingChampionship();
+  return [{ year: String(championship.year) }];
 }
 
 export async function generateMetadata({ params }: UpcomingYearPageProps): Promise<Metadata> {
   const { year } = await params;
-  const championship = UPCOMING_CHAMPIONSHIPS.find((c) => String(c.year) === year);
-  const venue = championship ? await getVenueBySlug(championship.venueSlug) : undefined;
-  if (!championship || !venue) return {};
+  const championship = await getUpcomingChampionship();
+  const venue = String(championship.year) === year ? await getVenueBySlug(championship.venueSlug) : undefined;
+  if (!venue) return {};
   return {
     title: `${venue.name} ${championship.year}`,
     description: `${ordinal(championship.number)} Legs Open at ${venue.name}, ${championship.dates}.`,
@@ -36,9 +37,9 @@ export async function generateMetadata({ params }: UpcomingYearPageProps): Promi
 
 export default async function UpcomingChampionshipPage({ params }: UpcomingYearPageProps) {
   const { year } = await params;
-  const championship = UPCOMING_CHAMPIONSHIPS.find((c) => String(c.year) === year);
-  const venue = championship ? await getVenueBySlug(championship.venueSlug) : undefined;
-  if (!championship || !venue) notFound();
+  const championship = await getUpcomingChampionship();
+  const venue = String(championship.year) === year ? await getVenueBySlug(championship.venueSlug) : undefined;
+  if (!venue) notFound();
 
   const previousVisits = await getChampionshipsByVenueSlug(venue.slug);
 

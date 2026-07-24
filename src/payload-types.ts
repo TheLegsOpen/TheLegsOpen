@@ -102,7 +102,9 @@ export interface Config {
     defaultIDType: string;
   };
   fallbackLocale: null;
-  globals: {};
+  globals: {
+    'homepage-settings': HomepageSettingsGlobal;
+  };
   globalsSelect: {};
   locale: null;
   widgets: {
@@ -254,6 +256,25 @@ export interface Championship {
   margin: string;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface HomepageSettingsGlobal {
+  id: string;
+  currentChampion: {
+    championship: string | Championship;
+    article: string | Article;
+  };
+  nextBallot: {
+    number: number;
+    year: number;
+    venue: string | Venue;
+    dates: string;
+    ballotCloses: string;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
 }
 /**
  * Hand-added — see note at top of file.

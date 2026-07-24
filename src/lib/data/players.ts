@@ -1,7 +1,6 @@
 import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
-import { CURRENT_CHAMPION } from "@/data/players";
 import { slugify } from "@/lib/utils";
 import { lexicalToPlainParagraphs } from "@/lib/lexical";
 import type { Player } from "@/types/player";
@@ -42,13 +41,4 @@ export async function getAllPlayerSlugs(): Promise<string[]> {
   const payload = await getPayload({ config: configPromise });
   const result = await payload.find({ collection: "players", limit: 200 });
   return result.docs.map((doc) => doc.slug ?? slugify(doc.name)).filter(Boolean);
-}
-
-/**
- * Not yet backed by Payload — there's no collection modelling "this year's
- * champion + their article link" (it's a one-off homepage content need, not
- * repeatable structured data). Still reads from the static fixture.
- */
-export async function getCurrentChampion() {
-  return CURRENT_CHAMPION;
 }
