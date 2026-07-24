@@ -11,7 +11,7 @@ import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { CTASection } from "@/components/shared/cta-section";
 import { Button } from "@/components/ui/button";
 import { UPCOMING_CHAMPIONSHIPS } from "@/data/upcoming-championships";
-import { VENUES } from "@/data/venues";
+import { getVenueBySlug } from "@/lib/data/venues";
 import { CHAMPIONSHIP_HISTORY } from "@/data/championships";
 import { ordinal } from "@/lib/utils";
 
@@ -26,7 +26,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: UpcomingYearPageProps): Promise<Metadata> {
   const { year } = await params;
   const championship = UPCOMING_CHAMPIONSHIPS.find((c) => String(c.year) === year);
-  const venue = championship ? VENUES.find((v) => v.slug === championship.venueSlug) : undefined;
+  const venue = championship ? await getVenueBySlug(championship.venueSlug) : undefined;
   if (!championship || !venue) return {};
   return {
     title: `${venue.name} ${championship.year}`,
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: UpcomingYearPageProps): Promi
 export default async function UpcomingChampionshipPage({ params }: UpcomingYearPageProps) {
   const { year } = await params;
   const championship = UPCOMING_CHAMPIONSHIPS.find((c) => String(c.year) === year);
-  const venue = championship ? VENUES.find((v) => v.slug === championship.venueSlug) : undefined;
+  const venue = championship ? await getVenueBySlug(championship.venueSlug) : undefined;
   if (!championship || !venue) notFound();
 
   const previousVisits = CHAMPIONSHIP_HISTORY.filter((c) => c.venueSlug === venue.slug);

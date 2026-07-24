@@ -8,7 +8,7 @@ import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { StatBlock } from "@/components/venues/stat-block";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { VENUES } from "@/data/venues";
+import { getAllVenueSlugs, getVenueBySlug } from "@/lib/data/venues";
 import { CHAMPIONSHIP_HISTORY } from "@/data/championships";
 import { UPCOMING_CHAMPIONSHIPS } from "@/data/upcoming-championships";
 import { ordinal } from "@/lib/utils";
@@ -17,20 +17,21 @@ interface VenuePageProps {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
-  return VENUES.map((venue) => ({ slug: venue.slug }));
+export async function generateStaticParams() {
+  const slugs = await getAllVenueSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: VenuePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const venue = VENUES.find((v) => v.slug === slug);
+  const venue = await getVenueBySlug(slug);
   if (!venue) return {};
   return { title: venue.name, description: venue.description };
 }
 
 export default async function VenueDetailPage({ params }: VenuePageProps) {
   const { slug } = await params;
-  const venue = VENUES.find((v) => v.slug === slug);
+  const venue = await getVenueBySlug(slug);
   if (!venue) notFound();
 
   const championshipsHere = CHAMPIONSHIP_HISTORY.filter((c) => c.venueSlug === venue.slug);

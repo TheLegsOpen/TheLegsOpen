@@ -3,14 +3,16 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
 import { VenueCard } from "@/components/venues/venue-card";
-import { VENUES } from "@/data/venues";
+import { getVenues } from "@/lib/data/venues";
 
 export const metadata: Metadata = {
   title: "Venues",
   description: "Every course to have hosted The Legs Open.",
 };
 
-export default function VenuesPage() {
+export default async function VenuesPage() {
+  const venues = await getVenues();
+
   return (
     <>
       <PageHero
@@ -23,7 +25,7 @@ export default function VenuesPage() {
       />
       <Container className="py-16 sm:py-24">
         <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-          {VENUES.map((venue) => (
+          {venues.map((venue) => (
             <VenueCard key={venue.slug} venue={venue} />
           ))}
         </div>

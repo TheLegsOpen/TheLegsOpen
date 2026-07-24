@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 
-import { VENUES } from "@/data/venues";
 import { LEGAL_PAGES } from "@/data/legal";
 import { CHAMPIONSHIP_HISTORY } from "@/data/championships";
 import { UPCOMING_CHAMPIONSHIPS } from "@/data/upcoming-championships";
@@ -8,9 +7,10 @@ import { PLAYERS } from "@/data/players";
 import { playerSlug } from "@/lib/utils";
 import { SITE } from "@/constants/site";
 import { getArticles } from "@/lib/data/articles";
+import { getVenues } from "@/lib/data/venues";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const ARTICLES = await getArticles();
+  const [ARTICLES, VENUES] = await Promise.all([getArticles(), getVenues()]);
   const staticRoutes = [
     "",
     "/tickets-and-hospitality",
