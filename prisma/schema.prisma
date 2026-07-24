@@ -1,0 +1,122 @@
+// Starting schema for the players / leaderboard / tee-times domain.
+// Not wired up yet — this project has no database dependency installed and
+// none of the code reads from it. It exists so the shape is decided before
+// a real Postgres instance (e.g. Supabase or Neon) is provisioned.
+//
+// Once DATABASE_URL is set, `npm install -D prisma @prisma/client` and
+// `npx prisma db push` create these tables. The only code that should ever
+// need to change is inside src/lib/data/leaderboard.ts, src/lib/data/tee-times.ts
+// and src/lib/data/players.ts — everything else already reads through that
+// seam, not from `src/data/*.ts` directly.
+//
+// News/editorial content is deliberately NOT modelled here — see
+// src/lib/data/articles.ts, which is intended for headless WordPress instead.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id          String @id @default(cuid())
+  slug        String @unique
+  name        String
+  countryCode String
+  country     String
+  photoUrl    String?
+
+  leaderboardEntries LeaderboardEntry[]
+  teeTimeSlots       TeeTimeSlot[]
+
+  @@map("players")
+}
+
+model Championship {
+  id        String   @id @default(cuid())
+  number    Int
+  year      Int
+  venueName String
+  venueSlug String
+  startDate DateTime
+  endDate   DateTime
+
+  rounds             Round[]
+  leaderboardEntries LeaderboardEntry[]
+  teeTimeGroups      TeeTimeGroup[]
+
+  @@map("championships")
+}
+
+model Round {
+  id             String       @id @default(cuid())
+  championshipId String
+  championship   Championship @relation(fields: [championshipId], references: [id])
+  roundNumber    Int
+  date           DateTime
+
+  roundScores RoundScore[]
+
+  @@unique([championshipId, roundNumber])
+  @@map("rounds")
+}
+
+model LeaderboardEntry {
+  id             String       @id @default(cuid())
+  championshipId String
+  championship   Championship @relation(fields: [championshipId], references: [id])
+  playerId       String
+  player         Player       @relation(fields: [playerId], references: [id])
+  position       Int
+  tied           Boolean      @default(false)
+  scoreToPar     Int
+  thru           String
+  updatedAt      DateTime     @updatedAt
+
+  roundScores RoundScore[]
+
+  @@unique([championshipId, playerId])
+  @@index([championshipId, position])
+  @@map("leaderboard_entries")
+}
+
+// Per-round strokes for a player. Holds a running total today; a HoleScore
+// table (18 rows per RoundScore) is the natural next step if hole-by-hole
+// detail is ever needed beyond the site's decorative score-strip visual.
+model RoundScore {
+  id                 String           @id @default(cuid())
+  leaderboardEntryId String
+  leaderboardEntry   LeaderboardEntry @relation(fields: [leaderboardEntryId], references: [id])
+  roundId            String
+  round              Round            @relation(fields: [roundId], references: [id])
+  strokes            Int
+
+  @@unique([leaderboardEntryId, roundId])
+  @@map("round_scores")
+}
+
+model TeeTimeGroup {
+  id             String       @id @default(cuid())
+  championshipId String
+  championship   Championship @relation(fields: [championshipId], references: [id])
+  roundNumber    Int
+  teeTime        DateTime
+  startingTee    String
+
+  slots TeeTimeSlot[]
+
+  @@map("tee_time_groups")
+}
+
+model TeeTimeSlot {
+  id             String       @id @default(cuid())
+  teeTimeGroupId String
+  teeTimeGroup   TeeTimeGroup @relation(fields: [teeTimeGroupId], references: [id])
+  playerId       String
+  player         Player       @relation(fields: [playerId], references: [id])
+
+  @@map("tee_time_slots")
+}

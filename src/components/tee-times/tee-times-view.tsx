@@ -1,0 +1,90 @@
+"use client";
+
+import { useState } from "react";
+import { ArrowUpDown } from "lucide-react";
+
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Container } from "@/components/shared/container";
+import { ChampionshipSidebar } from "@/components/shared/championship-sidebar";
+import { MatchupCard } from "@/components/tee-times/matchup-card";
+import { useFavorites } from "@/hooks/use-favorites";
+import { cn } from "@/lib/utils";
+import type { TeeTimeRound } from "@/types/championship";
+import type { Article } from "@/types/article";
+
+const TEE_FILTERS = ["All", "1st", "10th"] as const;
+
+export function TeeTimesView({ rounds: TEE_TIMES, featuredArticle }: { rounds: TeeTimeRound[]; featuredArticle: Article }) {
+  const [teeFilter, setTeeFilter] = useState<(typeof TEE_FILTERS)[number]>("All");
+  const [reversed, setReversed] = useState(false);
+  const { favorites, hydrated } = useFavorites();
+
+  return (
+    <>
+      <div className="bg-primary bg-dashboard-pattern py-4 text-primary-foreground">
+        <Container className="flex flex-wrap items-center justify-between gap-4">
+          <div role="tablist" aria-label="Filter by starting tee" className="flex flex-wrap gap-2">
+            {TEE_FILTERS.map((filter) => (
+              <button
+                key={filter}
+                role="tab"
+                type="button"
+                aria-selected={teeFilter === filter}
+                onClick={() => setTeeFilter(filter)}
+                className={cn(
+                  "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                  teeFilter === filter
+                    ? "border-accent bg-accent text-accent-foreground"
+                    : "border-primary-foreground/30 text-primary-foreground hover:border-accent hover:text-accent",
+                )}
+              >
+                {filter === "All" ? "All groups" : `${filter} tee`}
+              </button>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setReversed((prev) => !prev)}
+            aria-pressed={reversed}
+            className="flex h-10 items-center gap-2 rounded-full border border-primary-foreground/30 px-4 text-sm font-medium text-primary-foreground transition-colors hover:border-accent hover:text-accent"
+          >
+            <ArrowUpDown className="h-4 w-4" />
+            Reverse order
+          </button>
+        </Container>
+      </div>
+
+      <div className="bg-surface-dark bg-dashboard-pattern text-surface-dark-foreground">
+        <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_320px] lg:items-start">
+          <Accordion type="single" collapsible defaultValue="round-1" className="flex flex-col">
+            {TEE_TIMES.map((round) => {
+              const groups = round.groups.filter((group) => teeFilter === "All" || group.tee === teeFilter);
+              const ordered = reversed ? [...groups].reverse() : groups;
+              return (
+                <AccordionItem key={round.round} value={`round-${round.round}`} className="border-b border-surface-dark-foreground/15">
+                  <AccordionTrigger className="font-display font-bold text-xl hover:text-accent">
+                    Round {round.round} · {round.day} {round.date}
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    {ordered.length === 0 ? (
+                      <p className="py-4 text-sm text-surface-dark-foreground/60">No groups off the {teeFilter} for this round.</p>
+                    ) : (
+                      <div className="flex flex-col gap-3">
+                        {ordered.map((group, index) => (
+                          <MatchupCard key={index} group={group} favorites={hydrated ? favorites : []} tone="dark" />
+                        ))}
+                      </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
+
+          <ChampionshipSidebar featuredArticle={featuredArticle} tone="dark" />
+        </Container>
+      </div>
+    </>
+  );
+}
