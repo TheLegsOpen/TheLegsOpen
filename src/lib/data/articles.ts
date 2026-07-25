@@ -25,9 +25,14 @@ function mapArticle(doc: PayloadArticle): Article {
   };
 }
 
+// Drafts are enabled on this collection so editors can save work-in-progress
+// without it going live — `find`/`findByID` return documents of any status
+// unless explicitly filtered, so every site-facing query below excludes drafts.
+const PUBLISHED: { _status: { equals: "published" } } = { _status: { equals: "published" } };
+
 export async function getArticles(): Promise<Article[]> {
   const payload = await getPayload({ config: configPromise });
-  const result = await payload.find({ collection: "articles", limit: 200, sort: "-publishedAt" });
+  const result = await payload.find({ collection: "articles", where: PUBLISHED, limit: 200, sort: "-publishedAt" });
   return result.docs.map(mapArticle);
 }
 
@@ -37,7 +42,10 @@ export async function getArticlesPage(options: {
   category?: ArticleCategory | "All";
 }): Promise<{ items: Article[]; hasMore: boolean; total: number }> {
   const payload = await getPayload({ config: configPromise });
-  const where = options.category && options.category !== "All" ? { category: { equals: options.category } } : undefined;
+  const where =
+    options.category && options.category !== "All"
+      ? { and: [PUBLISHED, { category: { equals: options.category } }] }
+      : PUBLISHED;
   const result = await payload.find({
     collection: "articles",
     where,
@@ -50,7 +58,11 @@ export async function getArticlesPage(options: {
 
 export async function getArticleBySlug(slug: string): Promise<Article | undefined> {
   const payload = await getPayload({ config: configPromise });
-  const result = await payload.find({ collection: "articles", where: { slug: { equals: slug } }, limit: 1 });
+  const result = await payload.find({
+    collection: "articles",
+    where: { and: [PUBLISHED, { slug: { equals: slug } }] },
+    limit: 1,
+  });
   return result.docs[0] ? mapArticle(result.docs[0]) : undefined;
 }
 
@@ -58,7 +70,7 @@ export async function getRelatedArticles(article: Article, limit = 3): Promise<A
   const payload = await getPayload({ config: configPromise });
   const result = await payload.find({
     collection: "articles",
-    where: { and: [{ category: { equals: article.category } }, { slug: { not_equals: article.slug } }] },
+    where: { and: [PUBLISHED, { category: { equals: article.category } }, { slug: { not_equals: article.slug } }] },
     limit,
   });
   return result.docs.map(mapArticle);
@@ -66,6 +78,6 @@ export async function getRelatedArticles(article: Article, limit = 3): Promise<A
 
 export async function getAllArticleSlugs(): Promise<string[]> {
   const payload = await getPayload({ config: configPromise });
-  const result = await payload.find({ collection: "articles", limit: 200 });
+  const result = await payload.find({ collection: "articles", where: PUBLISHED, limit: 200 });
   return result.docs.map((doc) => doc.slug ?? slugify(doc.title));
 }

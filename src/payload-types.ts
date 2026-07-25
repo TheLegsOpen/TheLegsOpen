@@ -247,6 +247,7 @@ export interface Article {
   body: unknown;
   updatedAt: string;
   createdAt: string;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * Hand-added — see note at top of file.

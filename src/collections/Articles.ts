@@ -11,10 +11,14 @@ export const Articles: CollectionConfig = {
   slug: "articles",
   admin: {
     useAsTitle: "title",
-    defaultColumns: ["title", "category", "publishedAt"],
+    defaultColumns: ["title", "_status", "category", "publishedAt"],
   },
   access: {
     read: () => true,
+    readVersions: ({ req }) => Boolean(req.user),
+  },
+  versions: {
+    drafts: true,
   },
   fields: [
     { name: "title", type: "text", required: true },
