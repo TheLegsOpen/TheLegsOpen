@@ -52,12 +52,64 @@ export const Venues: CollectionConfig = {
           "Shown on the venues grid and at the top of the venue page. Falls back to a placeholder when not set. Recommended: landscape, at least 1200×900px (4:3).",
       },
     },
+    {
+      type: "collapsible",
+      label: "Hole Setup",
+      admin: {
+        description:
+          "Par, yardage and stroke index for each hole. For future use in the leaderboard and scoring automation — not shown on the public site yet.",
+      },
+      fields: [
+        {
+          name: "holes",
+          type: "array",
+          labels: { singular: "Hole", plural: "Holes" },
+          fields: [
+            { name: "holeNumber", label: "Hole", type: "number", required: true, min: 1, max: 18, admin: { width: "25%" } },
+            { name: "par", type: "number", required: true, min: 3, max: 6, admin: { width: "25%" } },
+            { name: "yards", type: "number", required: true, admin: { width: "25%" } },
+            {
+              name: "si",
+              label: "SI",
+              type: "number",
+              required: true,
+              min: 1,
+              max: 18,
+              admin: { width: "25%", description: "Stroke Index (1–18)." },
+            },
+          ],
+        },
+        {
+          type: "row",
+          fields: [
+            { name: "outPar", label: "OUT (Par)", type: "number", admin: { readOnly: true, width: "16%" } },
+            { name: "outYards", label: "OUT (Yards)", type: "number", admin: { readOnly: true, width: "16%" } },
+            { name: "inPar", label: "IN (Par)", type: "number", admin: { readOnly: true, width: "16%" } },
+            { name: "inYards", label: "IN (Yards)", type: "number", admin: { readOnly: true, width: "16%" } },
+            { name: "totalPar", label: "TOTAL (Par)", type: "number", admin: { readOnly: true, width: "16%" } },
+            { name: "totalYards", label: "TOTAL (Yards)", type: "number", admin: { readOnly: true, width: "16%" } },
+          ],
+        },
+      ],
+    },
   ],
   hooks: {
     beforeValidate: [
       ({ data }) => {
         if (data && !data.slug && data.name) {
           data.slug = slugify(data.name);
+        }
+        if (data && Array.isArray(data.holes)) {
+          const out = data.holes.filter((h: { holeNumber?: number }) => (h.holeNumber ?? 0) <= 9);
+          const inHoles = data.holes.filter((h: { holeNumber?: number }) => (h.holeNumber ?? 0) >= 10);
+          const sum = (rows: { par?: number; yards?: number }[], key: "par" | "yards") =>
+            rows.reduce((total, row) => total + (row[key] ?? 0), 0);
+          data.outPar = sum(out, "par");
+          data.outYards = sum(out, "yards");
+          data.inPar = sum(inHoles, "par");
+          data.inYards = sum(inHoles, "yards");
+          data.totalPar = data.outPar + data.inPar;
+          data.totalYards = data.outYards + data.inYards;
         }
         return data;
       },

@@ -230,6 +230,21 @@ export interface Venue {
     | null;
   imageLabel: string;
   image?: (string | Media) | null;
+  holes?:
+    | {
+        holeNumber: number;
+        par: number;
+        yards: number;
+        si: number;
+        id?: string | null;
+      }[]
+    | null;
+  outPar?: number | null;
+  outYards?: number | null;
+  inPar?: number | null;
+  inYards?: number | null;
+  totalPar?: number | null;
+  totalYards?: number | null;
   updatedAt: string;
   createdAt: string;
 }
