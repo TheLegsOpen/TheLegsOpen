@@ -27,7 +27,7 @@ export interface TeeTimeEntry {
 }
 
 export interface TeeTimeRound {
-  round: number;
+  round: "Practice" | "Championship";
   day: string;
   date: string;
   groups: TeeTimeEntry[];

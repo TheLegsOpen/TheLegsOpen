@@ -3,10 +3,8 @@ export interface Player {
   name: string;
   country: string;
   countryCode: string;
-  isAmateur?: boolean;
   age: number;
-  /** Omitted for amateurs, who haven't turned professional yet. */
-  turnedPro?: number;
+  championshipHandicap?: number;
   previousOpens: number;
   photoUrl?: string;
   bio: string[];

@@ -9,6 +9,17 @@ function slugify(value: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
+function calculateAge(dateOfBirth: string): number {
+  const dob = new Date(dateOfBirth);
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const monthDiff = today.getMonth() - dob.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 export const Players: CollectionConfig = {
   slug: "players",
   admin: {
@@ -34,10 +45,47 @@ export const Players: CollectionConfig = {
       required: true,
       admin: { readOnly: true, description: "Set automatically from the Country field above." },
     },
-    { name: "isAmateur", type: "checkbox", defaultValue: false },
-    { name: "age", type: "number", required: true },
-    { name: "turnedPro", type: "number", admin: { description: "Leave blank for amateurs." } },
+    {
+      name: "dateOfBirth",
+      label: "Date of Birth",
+      type: "date",
+      admin: {
+        date: { pickerAppearance: "dayOnly", displayFormat: "dd/MM/yyyy" },
+        description: "UK format (DD/MM/YYYY). When set, Age below is calculated automatically and can't be hand-edited. Admin-only — never shown on the public site.",
+      },
+      access: {
+        read: ({ req }) => Boolean(req.user),
+      },
+    },
+    {
+      name: "age",
+      type: "number",
+      required: true,
+      admin: { description: "Calculated automatically once Date of Birth is set. Enter manually only while Date of Birth is blank." },
+    },
+    {
+      name: "championshipHandicap",
+      label: "Championship Handicap",
+      type: "number",
+      admin: { description: "The player's championship handicap. Leave blank if not applicable." },
+    },
     { name: "previousOpens", type: "number", required: true, defaultValue: 0 },
+    {
+      name: "cdhNumber",
+      label: "CDH Number",
+      type: "text",
+      maxLength: 12,
+      validate: (value: unknown) => {
+        if (!value) return true;
+        return /^\d{1,12}$/.test(String(value)) || "Numeric only, up to 12 digits.";
+      },
+      admin: {
+        description: "Up to 12 numeric digits. For future handicap-database integration — admin-only, never shown on the public site.",
+      },
+      access: {
+        read: ({ req }) => Boolean(req.user),
+      },
+    },
     {
       name: "photo",
       type: "upload",
@@ -57,6 +105,9 @@ export const Players: CollectionConfig = {
         }
         if (data && data.countryCode) {
           data.country = countryName(data.countryCode);
+        }
+        if (data && data.dateOfBirth) {
+          data.age = calculateAge(data.dateOfBirth);
         }
         return data;
       },

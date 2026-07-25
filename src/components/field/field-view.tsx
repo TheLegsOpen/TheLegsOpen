@@ -11,12 +11,11 @@ import { cn, playerSlug } from "@/lib/utils";
 import type { Player } from "@/types/player";
 import type { ChampionshipWinner } from "@/types/championship";
 
-type Chip = "all" | "champions" | "amateurs" | "debutants";
+type Chip = "all" | "champions" | "debutants";
 
 const CHIPS: { id: Chip; label: string }[] = [
   { id: "all", label: "All" },
   { id: "champions", label: "Past Champions" },
-  { id: "amateurs", label: "Amateurs" },
   { id: "debutants", label: "Debutants" },
 ];
 
@@ -54,7 +53,6 @@ export function FieldView({ players, championshipHistory, championLogoUrl }: Fie
     if (q && !player.name.toLowerCase().includes(q) && !player.country.toLowerCase().includes(q)) return false;
     if (country !== "All" && player.countryCode !== country) return false;
     if (chip === "champions" && !championSlugs.has(playerSlug(player))) return false;
-    if (chip === "amateurs" && !player.isAmateur) return false;
     if (chip === "debutants" && player.previousOpens !== 0) return false;
     return true;
   });

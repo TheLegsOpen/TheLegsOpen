@@ -129,31 +129,31 @@ export function SponsorTimeWidget({ config }: { config: SponsorClock }) {
   const localTime = now ? new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(now) : "--:--";
 
   return (
-    <div className="flex h-full items-center gap-4 px-5 py-5 text-white" style={{ background: config.faceColor }}>
+    <div className="flex h-full items-center justify-between gap-3 px-5 py-5 text-white" style={{ background: config.faceColor }}>
+      <div className="flex min-w-0 flex-col items-center gap-1 text-center">
+        {config.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={config.logoUrl} alt={config.name} className="h-8 w-20 object-contain" />
+        ) : (
+          <p className="font-display text-sm font-bold uppercase tracking-wide">{config.name}</p>
+        )}
+        <p className="text-[9px] uppercase tracking-[0.14em] text-white/50">{config.tagline}</p>
+      </div>
+
       <AnalogClock date={now} config={config} />
-      <div className="flex min-w-0 flex-1 flex-col gap-3">
-        <div className="flex flex-col gap-0.5">
-          {config.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={config.logoUrl} alt={config.name} className="h-6 w-24 object-contain object-left" />
-          ) : (
-            <p className="font-display text-sm font-bold uppercase tracking-wide">{config.name}</p>
-          )}
-          <p className="text-[9px] uppercase tracking-[0.14em] text-white/50">{config.tagline}</p>
+
+      <div className="flex shrink-0 flex-col gap-1.5">
+        <div>
+          <p className="text-[10px] uppercase tracking-wide" style={{ color: "#E8B04B" }}>
+            {SITE.nextVenue}
+          </p>
+          <p className="font-display text-base font-bold tabular-nums leading-tight">{venueTime}</p>
         </div>
-        <div className="flex flex-col gap-1.5">
-          <div>
-            <p className="text-[10px] uppercase tracking-wide" style={{ color: "#E8B04B" }}>
-              {SITE.nextVenue}
-            </p>
-            <p className="font-display text-base font-bold tabular-nums leading-tight">{venueTime}</p>
-          </div>
-          <div>
-            <p className="text-[10px] uppercase tracking-wide" style={{ color: "#E8B04B" }}>
-              Your time
-            </p>
-            <p className="font-display text-base font-bold tabular-nums leading-tight">{localTime}</p>
-          </div>
+        <div>
+          <p className="text-[10px] uppercase tracking-wide" style={{ color: "#E8B04B" }}>
+            Your time
+          </p>
+          <p className="font-display text-base font-bold tabular-nums leading-tight">{localTime}</p>
         </div>
       </div>
     </div>

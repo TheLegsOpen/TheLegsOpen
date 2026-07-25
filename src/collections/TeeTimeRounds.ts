@@ -3,15 +3,23 @@ import type { CollectionConfig } from "payload";
 export const TeeTimeRounds: CollectionConfig = {
   slug: "tee-time-rounds",
   admin: {
-    defaultColumns: ["round", "day", "date"],
+    defaultColumns: ["round", "day", "date", "archived"],
   },
   access: {
     read: () => true,
   },
   fields: [
-    { name: "round", type: "number", required: true, unique: true },
+    { name: "round", type: "select", required: true, options: ["Practice", "Championship"] },
     { name: "day", type: "text", required: true, admin: { description: "e.g. \"Thursday\"" } },
     { name: "date", type: "text", required: true, admin: { description: "e.g. \"16 July 2026\"" } },
+    {
+      name: "archived",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        description: "Hides these tee times from the live site while keeping the record for reference when building future tee groups.",
+      },
+    },
     {
       name: "groups",
       type: "array",

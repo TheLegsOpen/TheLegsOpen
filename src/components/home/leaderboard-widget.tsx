@@ -82,7 +82,6 @@ export function LeaderboardWidget({ entries: top, statCategories, articles, comp
                       >
                         {displayName}
                       </button>
-                      {entry.player.isAmateur ? <span className="ml-1.5 text-xs text-accent-foreground/70">(a)</span> : null}
                       <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
                     </td>
                     <td className="px-2 py-3 text-right">

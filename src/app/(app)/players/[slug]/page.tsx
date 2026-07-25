@@ -93,7 +93,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           <div className="grid gap-8 lg:grid-cols-[1fr_320px] lg:items-center">
             <div className="flex gap-6 sm:gap-10">
               <StatCell label="Age" value={player.age} first />
-              <StatCell label="Turned Pro" value={player.turnedPro ?? "Amateur"} />
+              <StatCell label="Championship Handicap" value={player.championshipHandicap ?? "—"} />
               <StatCell label="Previous Opens" value={player.previousOpens} />
             </div>
             <PlaceholderArt
@@ -114,7 +114,6 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <CountryFlag code={player.countryCode} className="h-3 w-4" />
             {player.country}
-            {player.isAmateur ? " · Amateur" : ""}
           </p>
         </Container>
       </section>
@@ -155,10 +154,10 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
               <div>
                 <p className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Tee times</p>
                 <ul className="flex flex-col divide-y divide-border border-y border-border">
-                  {teeTimes.map((t) => (
-                    <li key={t.round} className="flex items-center justify-between px-1 py-3 text-sm">
+                  {teeTimes.map((t, index) => (
+                    <li key={index} className="flex items-center justify-between px-1 py-3 text-sm">
                       <span className="font-medium">
-                        Round {t.round} · {t.day}
+                        {t.round} Round · {t.day}
                       </span>
                       <span className="tabular-nums text-muted-foreground">
                         {t.time} · {t.tee} tee

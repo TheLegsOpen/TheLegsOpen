@@ -48,10 +48,7 @@ export function PlayerCard({ player, championYears, championLogoUrl }: PlayerCar
         ) : null}
       </div>
       <div>
-        <p className="font-display font-bold leading-tight group-hover:text-primary">
-          {player.name}
-          {player.isAmateur ? <span className="ml-1 text-xs font-normal text-muted-foreground">(a)</span> : null}
-        </p>
+        <p className="font-display font-bold leading-tight group-hover:text-primary">{player.name}</p>
         <p className="text-xs uppercase tracking-wide text-muted-foreground">{player.country}</p>
       </div>
     </Link>

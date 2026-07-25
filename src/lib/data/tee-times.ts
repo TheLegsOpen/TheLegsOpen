@@ -11,7 +11,13 @@ import type { Player as PayloadPlayer } from "@/payload-types";
  */
 export async function getTeeTimes(): Promise<TeeTimeRound[]> {
   const payload = await getPayload({ config: configPromise });
-  const result = await payload.find({ collection: "tee-time-rounds", sort: "round", depth: 1, limit: 50 });
+  const result = await payload.find({
+    collection: "tee-time-rounds",
+    where: { archived: { not_equals: true } },
+    sort: "id",
+    depth: 1,
+    limit: 50,
+  });
 
   return result.docs.map((doc) => ({
     round: doc.round,

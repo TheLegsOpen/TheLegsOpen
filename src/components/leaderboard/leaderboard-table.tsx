@@ -189,7 +189,6 @@ export function LeaderboardTable({
                     >
                       {displayName}
                     </button>
-                    {entry.player.isAmateur ? <span className="ml-1.5 text-xs text-accent-foreground/70">(a)</span> : null}
                     <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
                   </td>
                   {entry.rounds.map((round, i) => (

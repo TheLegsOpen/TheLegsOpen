@@ -65,7 +65,6 @@ export function PlayerPopup({ entry, leaderScoreToPar, statCategories, articles,
             <p className="flex items-center gap-1.5 text-sm text-primary-foreground/70">
               <CountryFlag code={player.countryCode} className="h-3 w-4" />
               {player.country}
-              {player.isAmateur ? " · Amateur" : ""}
             </p>
           </div>
           <div className="text-sm text-primary-foreground/80 sm:ml-auto sm:text-right">

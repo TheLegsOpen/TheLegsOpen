@@ -66,14 +66,14 @@ export function TeeTimesView({
 
       <div className="bg-surface-dark bg-dashboard-pattern text-surface-dark-foreground">
         <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_320px] lg:items-start">
-          <Accordion type="single" collapsible defaultValue="round-1" className="flex flex-col">
-            {TEE_TIMES.map((round) => {
+          <Accordion type="single" collapsible defaultValue="round-0" className="flex flex-col">
+            {TEE_TIMES.map((round, roundIndex) => {
               const groups = round.groups.filter((group) => teeFilter === "All" || group.tee === teeFilter);
               const ordered = reversed ? [...groups].reverse() : groups;
               return (
-                <AccordionItem key={round.round} value={`round-${round.round}`} className="border-b border-surface-dark-foreground/15">
+                <AccordionItem key={roundIndex} value={`round-${roundIndex}`} className="border-b border-surface-dark-foreground/15">
                   <AccordionTrigger className="font-display font-bold text-xl hover:text-accent">
-                    Round {round.round} · {round.day} {round.date}
+                    {round.round} Round · {round.day} {round.date}
                   </AccordionTrigger>
                   <AccordionContent>
                     {ordered.length === 0 ? (

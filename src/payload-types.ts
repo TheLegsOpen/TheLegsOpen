@@ -191,10 +191,11 @@ export interface Player {
   slug?: string | null;
   country: string;
   countryCode: string;
-  isAmateur?: boolean | null;
+  dateOfBirth?: string | null;
   age: number;
-  turnedPro?: number | null;
+  championshipHandicap?: number | null;
   previousOpens: number;
+  cdhNumber?: string | null;
   photo?: (string | Media) | null;
   bio?: unknown;
   updatedAt: string;
@@ -375,9 +376,10 @@ export interface LeaderboardEntry {
  */
 export interface TeeTimeRound {
   id: string;
-  round: number;
+  round: 'Practice' | 'Championship';
   day: string;
   date: string;
+  archived?: boolean | null;
   groups?:
     | {
         time: string;

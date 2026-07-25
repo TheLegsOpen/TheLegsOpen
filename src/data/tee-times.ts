@@ -4,7 +4,7 @@ import { PLAYERS } from "@/data/players";
 
 export const TEE_TIMES: TeeTimeRound[] = [
   {
-    round: 1,
+    round: "Championship",
     day: "Thursday",
     date: "16 July 2026",
     groups: [
@@ -18,7 +18,7 @@ export const TEE_TIMES: TeeTimeRound[] = [
     ],
   },
   {
-    round: 2,
+    round: "Championship",
     day: "Friday",
     date: "17 July 2026",
     groups: [
@@ -29,7 +29,7 @@ export const TEE_TIMES: TeeTimeRound[] = [
     ],
   },
   {
-    round: 3,
+    round: "Championship",
     day: "Saturday",
     date: "18 July 2026",
     groups: [
@@ -40,7 +40,7 @@ export const TEE_TIMES: TeeTimeRound[] = [
     ],
   },
   {
-    round: 4,
+    round: "Championship",
     day: "Sunday",
     date: "19 July 2026",
     groups: [

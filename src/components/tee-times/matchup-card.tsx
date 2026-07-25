@@ -24,11 +24,6 @@ function PlayerChip({ player, isFavorite, isDark }: { player: Player; isFavorite
         >
           {isFavorite ? <Star className="h-3.5 w-3.5 shrink-0 fill-accent text-accent" aria-hidden="true" /> : null}
           {player.name}
-          {player.isAmateur ? (
-            <span className={cn("ml-1 text-xs font-normal", isDark ? "text-surface-dark-foreground/60" : "text-muted-foreground")}>
-              (a)
-            </span>
-          ) : null}
         </Link>
         <p
           className={cn(
