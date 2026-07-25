@@ -332,9 +332,20 @@ export interface TournamentStatusGlobal {
 export interface PageBannersGlobal {
   id: string;
   leaderboard?: (string | Media) | null;
+  leaderboardEyebrow?: string | null;
+  leaderboardTitle?: string | null;
+  leaderboardDescription?: string | null;
   teeTimes?: (string | Media) | null;
+  teeTimesEyebrow?: string | null;
+  teeTimesTitle?: string | null;
+  teeTimesDescription?: string | null;
   venues?: (string | Media) | null;
+  venuesEyebrow?: string | null;
+  venuesTitle?: string | null;
+  venuesDescription?: string | null;
   field?: (string | Media) | null;
+  fieldEyebrow?: string | null;
+  fieldTitle?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }

@@ -20,9 +20,9 @@ export default async function VenuesPage() {
         variant="photo"
         imageLabel="Aerial view of a links course in the rotation"
         imageUrl={banners.venuesUrl}
-        eyebrow="The Rotation"
-        title="Venues"
-        description="The links courses that make up The Legs Open rotation, past and future."
+        eyebrow={banners.venuesEyebrow}
+        title={banners.venuesTitle}
+        description={banners.venuesDescription}
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Venues" }]}
       />
       <Container className="py-16 sm:py-24">

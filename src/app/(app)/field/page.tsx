@@ -31,8 +31,8 @@ export default async function FieldPage() {
         variant="photo"
         imageLabel="The field walking down the 1st fairway"
         imageUrl={banners.fieldUrl}
-        eyebrow="Championship Week"
-        title="The Field"
+        eyebrow={banners.fieldEyebrow}
+        title={banners.fieldTitle}
         description={`${sorted.length} players competing at Seabrook Old Course this week.`}
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Field" }]}
       />

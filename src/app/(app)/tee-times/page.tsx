@@ -27,9 +27,9 @@ export default async function TeeTimesPage() {
         variant="photo"
         imageLabel="Practice range at first light"
         imageUrl={banners.teeTimesUrl}
-        eyebrow="Championship Week"
-        title="Tee times"
-        description="Starting times for every round, grouped by day. Star a player on the leaderboard to see them highlighted here."
+        eyebrow={banners.teeTimesEyebrow}
+        title={banners.teeTimesTitle}
+        description={banners.teeTimesDescription}
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Tee Times" }]}
       />
       <ChampionshipWeekSwitcher />

@@ -32,10 +32,9 @@ export default async function LeaderboardPage() {
         variant="photo"
         imageLabel="Callum Reith celebrates on the 18th green"
         imageUrl={banners.leaderboardUrl}
-        eyebrow="Championship Week"
-        title="Leaderboard"
-        description="Live scoring from Seabrook Old Course. Star a player to follow them throughout the week."
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Leaderboard" }]}
+        eyebrow={banners.leaderboardEyebrow}
+        title={banners.leaderboardTitle}
+        description={banners.leaderboardDescription}
       />
       <ChampionshipWeekSwitcher />
       <LeaderboardView
