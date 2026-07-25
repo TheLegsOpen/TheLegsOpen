@@ -301,6 +301,8 @@ export interface SponsorClockGlobal {
     faceColor: string;
   };
   graphics: {
+    faceImage?: (string | Media) | null;
+    faceImageRetina?: (string | Media) | null;
     hourHand?: (string | Media) | null;
     minuteHand?: (string | Media) | null;
     secondHand?: (string | Media) | null;

@@ -68,14 +68,25 @@ function AnalogClock({ date, config }: { date: Date | null; config: SponsorClock
       }}
     >
       <div className="relative h-full w-full">
-        <svg viewBox="0 0 64 64" className="absolute inset-0 h-full w-full" aria-hidden="true">
-          <circle cx="32" cy="32" r="30" fill="white" stroke={config.faceColor} strokeWidth="2" />
-          {Array.from({ length: 12 }).map((_, i) => {
-            const outer = tickPoint(i * 30, 27);
-            const inner = tickPoint(i * 30, 24);
-            return <line key={i} x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y} stroke={config.faceColor} strokeWidth="1.5" />;
-          })}
-        </svg>
+        {config.faceImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={config.faceImageUrl}
+            srcSet={config.faceImageRetinaUrl ? `${config.faceImageUrl} 1x, ${config.faceImageRetinaUrl} 2x` : undefined}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full rounded-full object-cover"
+          />
+        ) : (
+          <svg viewBox="0 0 64 64" className="absolute inset-0 h-full w-full" aria-hidden="true">
+            <circle cx="32" cy="32" r="30" fill="white" stroke={config.faceColor} strokeWidth="2" />
+            {Array.from({ length: 12 }).map((_, i) => {
+              const outer = tickPoint(i * 30, 27);
+              const inner = tickPoint(i * 30, 24);
+              return <line key={i} x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y} stroke={config.faceColor} strokeWidth="1.5" />;
+            })}
+          </svg>
+        )}
 
         <Hand angleDeg={hourAngle} imageUrl={config.hourHandUrl} length={24} thickness={6} color={config.faceColor} />
         <Hand angleDeg={minuteAngle} imageUrl={config.minuteHandUrl} length={36} thickness={4} color={config.faceColor} />

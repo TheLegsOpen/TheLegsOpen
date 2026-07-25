@@ -48,6 +48,18 @@ export const SponsorClock: GlobalConfig = {
           "All optional — each hand falls back to the default drawn clock face when not set. Upload a tall, narrow image with the pivot point at the bottom-center (it's rotated around that point).",
       },
       fields: [
+        {
+          name: "faceImage",
+          type: "upload",
+          relationTo: "media",
+          admin: { description: "The clock dial/face artwork, shown behind the hands. Falls back to a plain drawn face when not set." },
+        },
+        {
+          name: "faceImageRetina",
+          type: "upload",
+          relationTo: "media",
+          admin: { description: "Optional 2x version of the face artwork for sharper rendering on high-density (retina) screens." },
+        },
         { name: "hourHand", type: "upload", relationTo: "media" },
         { name: "minuteHand", type: "upload", relationTo: "media" },
         { name: "secondHand", type: "upload", relationTo: "media" },

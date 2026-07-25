@@ -8,6 +8,8 @@ export interface SponsorClock {
   tagline: string;
   logoUrl?: string;
   faceColor: string;
+  faceImageUrl?: string;
+  faceImageRetinaUrl?: string;
   hourHandUrl?: string;
   minuteHandUrl?: string;
   secondHandUrl?: string;
@@ -33,6 +35,8 @@ export async function getSponsorClock(): Promise<SponsorClock> {
     tagline: settings.sponsor?.tagline || DEFAULTS.tagline,
     logoUrl: mediaUrl(settings.sponsor?.logo),
     faceColor: settings.sponsor?.faceColor || DEFAULTS.faceColor,
+    faceImageUrl: mediaUrl(settings.graphics?.faceImage),
+    faceImageRetinaUrl: mediaUrl(settings.graphics?.faceImageRetina),
     hourHandUrl: mediaUrl(settings.graphics?.hourHand),
     minuteHandUrl: mediaUrl(settings.graphics?.minuteHand),
     secondHandUrl: mediaUrl(settings.graphics?.secondHand),
