@@ -64,18 +64,33 @@ export const Venues: CollectionConfig = {
           name: "holes",
           type: "array",
           labels: { singular: "Hole", plural: "Holes" },
+          maxRows: 18,
+          defaultValue: Array.from({ length: 18 }, (_, i) => ({ holeNumber: i + 1 })),
+          admin: {
+            description: "Hole number fills in automatically based on position — just enter Par, Yards and SI for each row, in order.",
+          },
           fields: [
-            { name: "holeNumber", label: "Hole", type: "number", required: true, min: 1, max: 18, admin: { width: "25%" } },
-            { name: "par", type: "number", required: true, min: 3, max: 6, admin: { width: "25%" } },
-            { name: "yards", type: "number", required: true, admin: { width: "25%" } },
             {
-              name: "si",
-              label: "SI",
-              type: "number",
-              required: true,
-              min: 1,
-              max: 18,
-              admin: { width: "25%", description: "Stroke Index (1–18)." },
+              type: "row",
+              fields: [
+                {
+                  name: "holeNumber",
+                  label: "Hole",
+                  type: "number",
+                  admin: { readOnly: true, width: "20%", description: "Set automatically from the row's position." },
+                },
+                { name: "par", type: "number", required: true, min: 3, max: 6, admin: { width: "25%" } },
+                { name: "yards", type: "number", required: true, admin: { width: "25%" } },
+                {
+                  name: "si",
+                  label: "SI",
+                  type: "number",
+                  required: true,
+                  min: 1,
+                  max: 18,
+                  admin: { width: "25%", description: "Stroke Index (1–18)." },
+                },
+              ],
             },
           ],
         },
@@ -100,8 +115,9 @@ export const Venues: CollectionConfig = {
           data.slug = slugify(data.name);
         }
         if (data && Array.isArray(data.holes)) {
-          const out = data.holes.filter((h: { holeNumber?: number }) => (h.holeNumber ?? 0) <= 9);
-          const inHoles = data.holes.filter((h: { holeNumber?: number }) => (h.holeNumber ?? 0) >= 10);
+          data.holes = data.holes.map((hole: Record<string, unknown>, index: number) => ({ ...hole, holeNumber: index + 1 }));
+          const out = data.holes.slice(0, 9);
+          const inHoles = data.holes.slice(9, 18);
           const sum = (rows: { par?: number; yards?: number }[], key: "par" | "yards") =>
             rows.reduce((total, row) => total + (row[key] ?? 0), 0);
           data.outPar = sum(out, "par");
