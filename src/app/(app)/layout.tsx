@@ -10,6 +10,7 @@ import { getSiteTheme, type FontPreset } from "@/lib/data/site-theme";
 import { hexToHslTriplet } from "@/lib/utils";
 
 import "./globals.css";
+import "flag-icons/css/flag-icons.min.css";
 
 const fraunces = Fraunces({
   subsets: ["latin"],

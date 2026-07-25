@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
+import { CountryFlag } from "@/components/shared/country-flag";
 import { playerSlug } from "@/lib/utils";
 import type { Player } from "@/types/player";
 
@@ -15,8 +16,8 @@ export function PlayerCard({ player }: { player: Player }) {
           ratio="3/4"
           className="transition-transform duration-300 ease-standard group-hover:scale-[1.02]"
         />
-        <span className="absolute right-2 top-2 rounded bg-black/60 px-1.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
-          {player.countryCode}
+        <span className="absolute right-2 top-2 flex items-center gap-1 rounded bg-black/60 px-1.5 py-1 text-white">
+          <CountryFlag code={player.countryCode} className="h-2.5 w-4" />
         </span>
       </div>
       <div>

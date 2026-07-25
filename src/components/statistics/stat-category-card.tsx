@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { CountryFlag } from "@/components/shared/country-flag";
 import { playerSlug, surnameFirst } from "@/lib/utils";
 import type { StatCategory } from "@/lib/statistics";
 
@@ -20,7 +21,7 @@ export function StatCategoryCard({ category }: { category: StatCategory }) {
       <div className="flex items-center justify-between gap-4 bg-primary px-4 py-5 text-primary-foreground">
         <div className="flex items-center gap-3">
           <span className="font-display text-lg font-bold">1st</span>
-          <span className="text-xs text-primary-foreground/60">{leader.player.countryCode}</span>
+          <CountryFlag code={leader.player.countryCode} className="h-3 w-4" />
           <Link href={`/players/${playerSlug(leader.player)}`} className="font-display text-lg font-bold hover:underline">
             {leader.player.name}
           </Link>
@@ -34,7 +35,7 @@ export function StatCategoryCard({ category }: { category: StatCategory }) {
         <div key={row.player.id} className="flex items-center justify-between gap-4 bg-accent/90 px-4 py-3 text-accent-foreground">
           <div className="flex items-center gap-3 text-sm">
             <span className="w-5 tabular-nums">{index + 2}</span>
-            <span className="text-xs text-accent-foreground/70">{row.player.countryCode}</span>
+            <CountryFlag code={row.player.countryCode} className="h-3 w-4" />
             <Link href={`/players/${playerSlug(row.player)}`} className="font-medium hover:underline">
               {surnameFirst(row.player.name)}
             </Link>

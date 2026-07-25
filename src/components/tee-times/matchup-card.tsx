@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
+import { CountryFlag } from "@/components/shared/country-flag";
 import { cn, playerSlug } from "@/lib/utils";
 import type { TeeTimeEntry } from "@/types/championship";
 import type { Player } from "@/types/player";
@@ -11,6 +12,7 @@ function PlayerChip({ player, isFavorite, isDark }: { player: Player; isFavorite
     <div className="flex flex-1 flex-col items-center gap-2 text-center sm:flex-row sm:text-left">
       <PlaceholderArt
         label={`${player.name} portrait`}
+        imageUrl={player.photoUrl}
         tone="slate"
         ratio="1/1"
         className="h-14 w-14 shrink-0 rounded-full"
@@ -28,7 +30,13 @@ function PlayerChip({ player, isFavorite, isDark }: { player: Player; isFavorite
             </span>
           ) : null}
         </Link>
-        <p className={cn("text-xs uppercase tracking-wide", isDark ? "text-surface-dark-foreground/60" : "text-muted-foreground")}>
+        <p
+          className={cn(
+            "flex items-center justify-center gap-1.5 text-xs uppercase tracking-wide sm:justify-start",
+            isDark ? "text-surface-dark-foreground/60" : "text-muted-foreground",
+          )}
+        >
+          <CountryFlag code={player.countryCode} className="h-2.5 w-3.5" />
           {player.country}
         </p>
       </div>

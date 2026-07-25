@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar, holeScoreClass, synthesizeHoleScores, synthesizeMovement } from "@/lib/leaderboard";
 import { cn, playerSlug } from "@/lib/utils";
 import type { LeaderboardEntry } from "@/types/player";
@@ -61,7 +62,8 @@ export function PlayerPopup({ entry, leaderScoreToPar, statCategories, articles,
           <div>
             <p className="font-display text-lg">{firstName}</p>
             <h2 className="-mt-1 font-display text-3xl font-bold uppercase">{surname}</h2>
-            <p className="text-sm text-primary-foreground/70">
+            <p className="flex items-center gap-1.5 text-sm text-primary-foreground/70">
+              <CountryFlag code={player.countryCode} className="h-3 w-4" />
               {player.country}
               {player.isAmateur ? " · Amateur" : ""}
             </p>

@@ -8,6 +8,7 @@ import { getArticles } from "@/lib/data/articles";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getStatCategories } from "@/lib/data/statistics";
 import { getCompetitionComplete } from "@/lib/data/tournament-status";
+import { getPageBanners } from "@/lib/data/page-banners";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
@@ -15,13 +16,14 @@ export const metadata: Metadata = {
 };
 
 export default async function LeaderboardPage() {
-  const [round2, round4, articles, clockConfig, statCategories, competitionComplete] = await Promise.all([
+  const [round2, round4, articles, clockConfig, statCategories, competitionComplete, banners] = await Promise.all([
     getLeaderboard("round2"),
     getLeaderboard("round4"),
     getArticles(),
     getSponsorClock(),
     getStatCategories(),
     getCompetitionComplete(),
+    getPageBanners(),
   ]);
 
   return (
@@ -29,6 +31,7 @@ export default async function LeaderboardPage() {
       <PageHero
         variant="photo"
         imageLabel="Callum Reith celebrates on the 18th green"
+        imageUrl={banners.leaderboardUrl}
         eyebrow="Championship Week"
         title="Leaderboard"
         description="Live scoring from Seabrook Old Course. Star a player to follow them throughout the week."

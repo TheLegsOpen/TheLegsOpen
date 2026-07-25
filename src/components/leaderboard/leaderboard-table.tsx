@@ -7,6 +7,7 @@ import { cn, ordinal, surnameFirst } from "@/lib/utils";
 import { formatToPar, holeScoreClass, synthesizeHoleScores, synthesizeMovement } from "@/lib/leaderboard";
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
+import { CountryFlag } from "@/components/shared/country-flag";
 import { SITE } from "@/constants/site";
 import type { LeaderboardEntry } from "@/types/player";
 import type { StatCategory } from "@/lib/statistics";
@@ -131,7 +132,10 @@ export function LeaderboardTable({
                               {entry.player.name.split(" ").slice(1).join(" ")}
                             </span>
                           </button>
-                          <span className="text-sm text-primary/70">{entry.player.country}</span>
+                          <span className="flex items-center gap-1.5 text-sm text-primary/70">
+                            <CountryFlag code={entry.player.countryCode} className="h-3 w-4" />
+                            {entry.player.country}
+                          </span>
                           <div className="mt-1 flex flex-wrap gap-1">
                             {synthesizeHoleScores(todayToPar, `${entry.player.id}-${roundCount}`).map((score, holeIndex) => (
                               <span
@@ -186,7 +190,7 @@ export function LeaderboardTable({
                       {displayName}
                     </button>
                     {entry.player.isAmateur ? <span className="ml-1.5 text-xs text-accent-foreground/70">(a)</span> : null}
-                    <span className="ml-2 text-xs text-accent-foreground/70">{entry.player.countryCode}</span>
+                    <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
                   </td>
                   {entry.rounds.map((round, i) => (
                     <td key={i} className="px-2 py-3 text-right tabular-nums text-accent-foreground/80">

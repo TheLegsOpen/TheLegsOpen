@@ -107,6 +107,7 @@ export interface Config {
     'site-theme': SiteThemeGlobal;
     'sponsor-clock': SponsorClockGlobal;
     'tournament-status': TournamentStatusGlobal;
+    'page-banners': PageBannersGlobal;
   };
   globalsSelect: {};
   locale: null;
@@ -321,6 +322,18 @@ export interface SponsorClockGlobal {
 export interface TournamentStatusGlobal {
   id: string;
   competitionComplete?: boolean | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface PageBannersGlobal {
+  id: string;
+  leaderboard?: (string | Media) | null;
+  teeTimes?: (string | Media) | null;
+  venues?: (string | Media) | null;
+  field?: (string | Media) | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }

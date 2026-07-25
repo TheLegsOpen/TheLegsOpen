@@ -15,13 +15,14 @@ interface PageHeroProps {
   /** "photo" gives landing-style pages the same full-bleed image treatment as the homepage hero. */
   variant?: "light" | "photo";
   imageLabel?: string;
+  imageUrl?: string;
 }
 
-export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "light", imageLabel }: PageHeroProps) {
+export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "light", imageLabel, imageUrl }: PageHeroProps) {
   if (variant === "photo") {
     return (
       <section className="relative h-[60vh] min-h-[420px] w-full overflow-hidden">
-        <PlaceholderArt label={imageLabel ?? title} tone="navy" fill />
+        <PlaceholderArt label={imageLabel ?? title} imageUrl={imageUrl} tone="navy" fill />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/10" />
 
         <Container className="relative z-10 flex h-full flex-col justify-end gap-5 pb-10 text-white sm:pb-14">

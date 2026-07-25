@@ -7,6 +7,7 @@ import { ArrowRight } from "lucide-react";
 import { Container } from "@/components/shared/container";
 import { SectionHeading } from "@/components/shared/section-heading";
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
+import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
 import { cn, surnameFirst } from "@/lib/utils";
 import type { LeaderboardEntry } from "@/types/player";
@@ -82,7 +83,7 @@ export function LeaderboardWidget({ entries: top, statCategories, articles, comp
                         {displayName}
                       </button>
                       {entry.player.isAmateur ? <span className="ml-1.5 text-xs text-accent-foreground/70">(a)</span> : null}
-                      <span className="ml-2 text-xs text-accent-foreground/70">{entry.player.countryCode}</span>
+                      <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
                     </td>
                     <td className="px-2 py-3 text-right">
                       <span

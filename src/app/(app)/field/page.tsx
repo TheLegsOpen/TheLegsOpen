@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 
 import { PageHero } from "@/components/shared/page-hero";
-import { Container } from "@/components/shared/container";
-import { PlayerCard } from "@/components/field/player-card";
+import { FieldView } from "@/components/field/field-view";
 import { getPlayers } from "@/lib/data/players";
+import { getChampionshipHistory } from "@/lib/data/championships";
+import { getPageBanners } from "@/lib/data/page-banners";
 
 export const metadata: Metadata = {
   title: "Field",
@@ -11,7 +12,11 @@ export const metadata: Metadata = {
 };
 
 export default async function FieldPage() {
-  const players = await getPlayers();
+  const [players, championshipHistory, banners] = await Promise.all([
+    getPlayers(),
+    getChampionshipHistory(),
+    getPageBanners(),
+  ]);
   const sorted = [...players].sort((a, b) => {
     const aSurname = a.name.split(" ").slice(-1)[0];
     const bSurname = b.name.split(" ").slice(-1)[0];
@@ -21,18 +26,15 @@ export default async function FieldPage() {
   return (
     <>
       <PageHero
+        variant="photo"
+        imageLabel="The field walking down the 1st fairway"
+        imageUrl={banners.fieldUrl}
         eyebrow="Championship Week"
         title="The Field"
         description={`${sorted.length} players competing at Seabrook Old Course this week.`}
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Field" }]}
       />
-      <Container className="py-16 sm:py-24">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-5">
-          {sorted.map((player) => (
-            <PlayerCard key={player.id} player={player} />
-          ))}
-        </div>
-      </Container>
+      <FieldView players={sorted} championshipHistory={championshipHistory} />
     </>
   );
 }

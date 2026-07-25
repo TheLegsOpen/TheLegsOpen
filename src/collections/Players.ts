@@ -1,5 +1,7 @@
 import type { CollectionConfig } from "payload";
 
+import { COUNTRIES, countryName } from "@/data/countries";
+
 function slugify(value: string): string {
   return value
     .toLowerCase()
@@ -19,8 +21,19 @@ export const Players: CollectionConfig = {
   fields: [
     { name: "name", type: "text", required: true },
     { name: "slug", type: "text", unique: true, index: true, admin: { position: "sidebar" } },
-    { name: "country", type: "text", required: true },
-    { name: "countryCode", type: "text", required: true },
+    {
+      name: "countryCode",
+      label: "Country",
+      type: "select",
+      required: true,
+      options: COUNTRIES.map((c) => ({ label: c.name, value: c.code })),
+    },
+    {
+      name: "country",
+      type: "text",
+      required: true,
+      admin: { readOnly: true, description: "Set automatically from the Country field above." },
+    },
     { name: "isAmateur", type: "checkbox", defaultValue: false },
     { name: "age", type: "number", required: true },
     { name: "turnedPro", type: "number", admin: { description: "Leave blank for amateurs." } },
@@ -41,6 +54,9 @@ export const Players: CollectionConfig = {
       ({ data }) => {
         if (data && !data.slug && data.name) {
           data.slug = slugify(data.name);
+        }
+        if (data && data.countryCode) {
+          data.country = countryName(data.countryCode);
         }
         return data;
       },

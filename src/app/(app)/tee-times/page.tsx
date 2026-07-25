@@ -6,6 +6,7 @@ import { TeeTimesView } from "@/components/tee-times/tee-times-view";
 import { getTeeTimes } from "@/lib/data/tee-times";
 import { getArticles } from "@/lib/data/articles";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
+import { getPageBanners } from "@/lib/data/page-banners";
 
 export const metadata: Metadata = {
   title: "Tee Times",
@@ -13,13 +14,19 @@ export const metadata: Metadata = {
 };
 
 export default async function TeeTimesPage() {
-  const [rounds, articles, clockConfig] = await Promise.all([getTeeTimes(), getArticles(), getSponsorClock()]);
+  const [rounds, articles, clockConfig, banners] = await Promise.all([
+    getTeeTimes(),
+    getArticles(),
+    getSponsorClock(),
+    getPageBanners(),
+  ]);
 
   return (
     <>
       <PageHero
         variant="photo"
         imageLabel="Practice range at first light"
+        imageUrl={banners.teeTimesUrl}
         eyebrow="Championship Week"
         title="Tee times"
         description="Starting times for every round, grouped by day. Star a player on the leaderboard to see them highlighted here."

@@ -4,6 +4,7 @@ import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
 import { VenueCard } from "@/components/venues/venue-card";
 import { getVenues } from "@/lib/data/venues";
+import { getPageBanners } from "@/lib/data/page-banners";
 
 export const metadata: Metadata = {
   title: "Venues",
@@ -11,13 +12,14 @@ export const metadata: Metadata = {
 };
 
 export default async function VenuesPage() {
-  const venues = await getVenues();
+  const [venues, banners] = await Promise.all([getVenues(), getPageBanners()]);
 
   return (
     <>
       <PageHero
         variant="photo"
         imageLabel="Aerial view of a links course in the rotation"
+        imageUrl={banners.venuesUrl}
         eyebrow="The Rotation"
         title="Venues"
         description="The links courses that make up The Legs Open rotation, past and future."

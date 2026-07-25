@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { Container } from "@/components/shared/container";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
+import { CountryFlag } from "@/components/shared/country-flag";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAllPlayerSlugs, getPlayerBySlug } from "@/lib/data/players";
 import { getLeaderboard } from "@/lib/data/leaderboard";
@@ -89,7 +90,8 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         <Container className="flex flex-col gap-2 py-8">
           <p className="font-display text-2xl">{firstName}</p>
           <h1 className="-mt-3 font-display font-bold text-display-xl">{surname.toUpperCase()}</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <CountryFlag code={player.countryCode} className="h-3 w-4" />
             {player.country}
             {player.isAmateur ? " · Amateur" : ""}
           </p>
