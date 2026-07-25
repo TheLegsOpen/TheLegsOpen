@@ -1,18 +1,22 @@
 "use client";
 
-import { Fragment } from "react";
-import Link from "next/link";
+import { Fragment, useState } from "react";
 import { Star, ChevronUp, ChevronDown } from "lucide-react";
 
-import { cn, playerSlug, surnameFirst } from "@/lib/utils";
+import { cn, surnameFirst } from "@/lib/utils";
 import { formatToPar, holeScoreClass, synthesizeHoleScores, synthesizeMovement } from "@/lib/leaderboard";
+import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import type { LeaderboardEntry } from "@/types/player";
+import type { StatCategory } from "@/lib/statistics";
+import type { Article } from "@/types/article";
 
 interface LeaderboardTableProps {
   entries: LeaderboardEntry[];
   favorites: string[];
   onToggleFavorite: (playerId: string) => void;
   favoritesOnly: boolean;
+  statCategories: StatCategory[];
+  articles: Article[];
 }
 
 const TOP_BAND_SIZE = 3;
@@ -35,10 +39,13 @@ function scorePillClass(scoreToPar: number): string {
   return "bg-surface-dark-foreground/15 text-surface-dark-foreground";
 }
 
-export function LeaderboardTable({ entries, favorites, onToggleFavorite, favoritesOnly }: LeaderboardTableProps) {
+export function LeaderboardTable({ entries, favorites, onToggleFavorite, favoritesOnly, statCategories, articles }: LeaderboardTableProps) {
   const visible = favoritesOnly ? entries.filter((entry) => favorites.includes(entry.player.id)) : entries;
   const roundCount = entries[0]?.rounds.length ?? 0;
   const columnCount = roundCount + 6;
+  const leaderScoreToPar = entries.find((e) => e.position === 1)?.scoreToPar ?? 0;
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const selectedEntry = entries.find((e) => e.player.id === selectedPlayerId);
 
   if (visible.length === 0) {
     return (
@@ -101,12 +108,13 @@ export function LeaderboardTable({ entries, favorites, onToggleFavorite, favorit
                     </div>
                   </td>
                   <td className="px-2 py-3">
-                    <Link
-                      href={`/players/${playerSlug(entry.player)}`}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPlayerId(entry.player.id)}
                       className={cn("hover:underline", isTopBand ? "font-display font-bold" : "font-medium")}
                     >
                       {displayName}
-                    </Link>
+                    </button>
                     {entry.player.isAmateur ? <span className="ml-1.5 text-xs text-accent-foreground/70">(a)</span> : null}
                     <span className="ml-2 text-xs text-accent-foreground/70">{entry.player.countryCode}</span>
                   </td>
@@ -155,6 +163,16 @@ export function LeaderboardTable({ entries, favorites, onToggleFavorite, favorit
           })}
         </tbody>
       </table>
+      <PlayerPopup
+        entry={selectedEntry}
+        leaderScoreToPar={leaderScoreToPar}
+        statCategories={statCategories}
+        articles={articles}
+        open={!!selectedEntry}
+        onOpenChange={(next) => {
+          if (!next) setSelectedPlayerId(null);
+        }}
+      />
     </div>
   );
 }

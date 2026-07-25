@@ -13,11 +13,14 @@ import { cn } from "@/lib/utils";
 import type { LeaderboardEntry } from "@/types/player";
 import type { Article } from "@/types/article";
 import type { SponsorClock } from "@/lib/data/sponsor-clock";
+import type { StatCategory } from "@/lib/statistics";
 
 interface LeaderboardViewProps {
   round2: LeaderboardEntry[];
   round4: LeaderboardEntry[];
   featuredArticle: Article;
+  articles: Article[];
+  statCategories: StatCategory[];
   clockConfig: SponsorClock;
 }
 
@@ -33,6 +36,8 @@ export function LeaderboardView({
   round2: LEADERBOARD_ROUND_2,
   round4: LEADERBOARD_ROUND_4,
   featuredArticle,
+  articles,
+  statCategories,
   clockConfig,
 }: LeaderboardViewProps) {
   const { favorites, toggleFavorite, hydrated } = useFavorites();
@@ -134,6 +139,8 @@ export function LeaderboardView({
                 favorites={hydrated ? favorites : []}
                 onToggleFavorite={toggleFavorite}
                 favoritesOnly={favoritesOnly}
+                statCategories={statCategories}
+                articles={articles}
               />
             </TabsContent>
             <TabsContent value="round4" className="mt-0">
@@ -142,6 +149,8 @@ export function LeaderboardView({
                 favorites={hydrated ? favorites : []}
                 onToggleFavorite={toggleFavorite}
                 favoritesOnly={favoritesOnly}
+                statCategories={statCategories}
+                articles={articles}
               />
             </TabsContent>
           </div>
