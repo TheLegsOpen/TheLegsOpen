@@ -30,7 +30,6 @@ export default async function TeeTimesPage() {
         eyebrow={banners.teeTimesEyebrow}
         title={banners.teeTimesTitle}
         description={banners.teeTimesDescription}
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Tee Times" }]}
       />
       <ChampionshipWeekSwitcher />
       <TeeTimesView rounds={rounds} featuredArticle={articles[0]} clockConfig={clockConfig} />

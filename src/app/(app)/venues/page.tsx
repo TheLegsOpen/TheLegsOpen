@@ -23,7 +23,6 @@ export default async function VenuesPage() {
         eyebrow={banners.venuesEyebrow}
         title={banners.venuesTitle}
         description={banners.venuesDescription}
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Venues" }]}
       />
       <Container className="py-16 sm:py-24">
         <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">

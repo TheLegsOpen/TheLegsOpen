@@ -34,7 +34,6 @@ export default async function FieldPage() {
         eyebrow={banners.fieldEyebrow}
         title={banners.fieldTitle}
         description={`${sorted.length} players competing at Seabrook Old Course this week.`}
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Field" }]}
       />
       <FieldView players={sorted} championshipHistory={championshipHistory} championLogoUrl={theme.championBadgeUrl} />
     </>

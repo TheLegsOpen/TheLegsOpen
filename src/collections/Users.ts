@@ -8,6 +8,13 @@ export const Users: CollectionConfig = {
   auth: true,
   fields: [
     // Email added by default
-    // Add more fields as needed
+    {
+      name: 'avatar',
+      type: 'upload',
+      relationTo: 'media',
+      admin: {
+        description: 'Optional profile photo shown on your account.',
+      },
+    },
   ],
 }
