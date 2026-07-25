@@ -25,6 +25,15 @@ export const Players: CollectionConfig = {
     { name: "age", type: "number", required: true },
     { name: "turnedPro", type: "number", admin: { description: "Leave blank for amateurs." } },
     { name: "previousOpens", type: "number", required: true, defaultValue: 0 },
+    {
+      name: "photo",
+      type: "upload",
+      relationTo: "media",
+      admin: {
+        description:
+          "Shown on the roster grid and profile page. Falls back to a placeholder when not set. Recommended: at least 1200×1200px — it's cropped to both a 3:4 portrait card and a 4:3 profile image, so keep the subject centred.",
+      },
+    },
     { name: "bio", type: "richText" },
   ],
   hooks: {

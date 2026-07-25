@@ -43,7 +43,7 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
           <p className="text-muted-foreground">{venue.location}</p>
           <p className="text-lg text-muted-foreground">{venue.description}</p>
         </div>
-        <PlaceholderArt label={venue.imageLabel} tone="dusk" ratio="4/3" showCaption />
+        <PlaceholderArt label={venue.imageLabel} imageUrl={venue.imageUrl} tone="dusk" ratio="4/3" showCaption />
       </div>
 
       <Tabs defaultValue="overview">

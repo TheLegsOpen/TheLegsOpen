@@ -19,6 +19,8 @@ function hashSeed(value: string): number {
 
 interface PlaceholderArtProps {
   label: string;
+  /** Real uploaded photo. When set, this is rendered instead of the generated placeholder. */
+  imageUrl?: string;
   tone?: Tone;
   ratio?: "16/9" | "4/3" | "3/4" | "1/1" | "21/9";
   className?: string;
@@ -32,8 +34,9 @@ interface PlaceholderArtProps {
  * (sky gradient, horizon, sun) rendered as inline SVG so no external image
  * asset is fetched or copied. Deterministic per-label seed keeps repeat
  * renders of the same card stable across the server/client boundary.
+ * Renders an admin-uploaded `imageUrl` instead when one is set.
  */
-export function PlaceholderArt({ label, tone = "navy", ratio = "4/3", className, showCaption = false, fill = false }: PlaceholderArtProps) {
+export function PlaceholderArt({ label, imageUrl, tone = "navy", ratio = "4/3", className, showCaption = false, fill = false }: PlaceholderArtProps) {
   const seed = hashSeed(label);
   const [dark, mid, light] = TONES[tone];
   const horizon = 55 + (seed % 15);
@@ -47,25 +50,30 @@ export function PlaceholderArt({ label, tone = "navy", ratio = "4/3", className,
       role="img"
       aria-label={label}
     >
-      <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        <defs>
-          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={dark} />
-            <stop offset="100%" stopColor={mid} />
-          </linearGradient>
-        </defs>
-        <rect width="400" height="300" fill={`url(#${gradientId})`} />
-        <circle cx={sunX * 4} cy={horizon * 2.2} r="26" fill={light} opacity="0.85" />
-        <path
-          d={`M0 ${horizon * 3} Q100 ${horizon * 3 - 20} 200 ${horizon * 3 - 5} T400 ${horizon * 3 - 10} V300 H0 Z`}
-          fill={dark}
-          opacity="0.9"
-        />
-        <path
-          d={`M0 ${horizon * 3 + 20} Q120 ${horizon * 3} 240 ${horizon * 3 + 15} T400 ${horizon * 3 + 5} V300 H0 Z`}
-          fill={dark}
-        />
-      </svg>
+      {imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={imageUrl} alt={label} className="h-full w-full object-cover" />
+      ) : (
+        <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={dark} />
+              <stop offset="100%" stopColor={mid} />
+            </linearGradient>
+          </defs>
+          <rect width="400" height="300" fill={`url(#${gradientId})`} />
+          <circle cx={sunX * 4} cy={horizon * 2.2} r="26" fill={light} opacity="0.85" />
+          <path
+            d={`M0 ${horizon * 3} Q100 ${horizon * 3 - 20} 200 ${horizon * 3 - 5} T400 ${horizon * 3 - 10} V300 H0 Z`}
+            fill={dark}
+            opacity="0.9"
+          />
+          <path
+            d={`M0 ${horizon * 3 + 20} Q120 ${horizon * 3} 240 ${horizon * 3 + 15} T400 ${horizon * 3 + 5} V300 H0 Z`}
+            fill={dark}
+          />
+        </svg>
+      )}
       {showCaption ? (
         <span className="absolute bottom-2 left-2 rounded bg-primary/70 px-2 py-1 text-[11px] font-medium text-primary-foreground backdrop-blur-sm">
           {label}

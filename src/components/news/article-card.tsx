@@ -20,6 +20,7 @@ export function ArticleCard({
     <Link href={`/latest/${article.slug}`} className="group flex flex-col gap-3">
       <PlaceholderArt
         label={article.heroLabel}
+        imageUrl={article.imageUrl}
         tone="navy"
         ratio="4/3"
         className="transition-transform duration-300 ease-standard group-hover:scale-[1.02]"

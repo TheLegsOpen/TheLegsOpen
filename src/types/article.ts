@@ -13,5 +13,6 @@ export interface Article {
   publishedAt: string;
   readTimeMinutes: number;
   heroLabel: string;
+  imageUrl?: string;
   body: string[];
 }

@@ -194,6 +194,7 @@ export interface Player {
   age: number;
   turnedPro?: number | null;
   previousOpens: number;
+  photo?: (string | Media) | null;
   bio?: unknown;
   updatedAt: string;
   createdAt: string;
@@ -226,6 +227,7 @@ export interface Venue {
       }[]
     | null;
   imageLabel: string;
+  image?: (string | Media) | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -241,6 +243,7 @@ export interface Article {
   publishedAt: string;
   readTimeMinutes: number;
   heroLabel: string;
+  image?: (string | Media) | null;
   body: unknown;
   updatedAt: string;
   createdAt: string;

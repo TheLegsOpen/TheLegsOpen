@@ -10,6 +10,7 @@ export function PlayerCard({ player }: { player: Player }) {
       <div className="relative">
         <PlaceholderArt
           label={`${player.name} portrait`}
+          imageUrl={player.photoUrl}
           tone="slate"
           ratio="3/4"
           className="transition-transform duration-300 ease-standard group-hover:scale-[1.02]"

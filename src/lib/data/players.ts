@@ -1,7 +1,7 @@
 import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
-import { slugify } from "@/lib/utils";
+import { mediaUrl, slugify } from "@/lib/utils";
 import { lexicalToPlainParagraphs } from "@/lib/lexical";
 import type { Player } from "@/types/player";
 import type { Player as PayloadPlayer } from "@/payload-types";
@@ -21,6 +21,7 @@ export function mapPlayer(doc: PayloadPlayer): Player {
     age: doc.age,
     turnedPro: doc.turnedPro ?? undefined,
     previousOpens: doc.previousOpens,
+    photoUrl: mediaUrl(doc.photo),
     bio: lexicalToPlainParagraphs(doc.bio),
   };
 }

@@ -28,7 +28,16 @@ export const Articles: CollectionConfig = {
     },
     { name: "publishedAt", type: "date", required: true, admin: { date: { pickerAppearance: "dayOnly" } } },
     { name: "readTimeMinutes", type: "number", required: true, defaultValue: 4 },
-    { name: "heroLabel", type: "text", required: true, admin: { description: "Caption used for the placeholder hero photo." } },
+    { name: "heroLabel", type: "text", required: true, admin: { description: "Caption used when no image is uploaded, and as alt text when one is." } },
+    {
+      name: "image",
+      type: "upload",
+      relationTo: "media",
+      admin: {
+        description:
+          "Shown on article cards and at the top of the article. Falls back to a placeholder when not set. Recommended: landscape, at least 1600×900px — it's cropped to both a 4:3 card and a 21:9 banner, so keep the subject centred.",
+      },
+    },
     { name: "body", type: "richText", required: true },
   ],
   hooks: {

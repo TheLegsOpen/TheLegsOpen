@@ -2,7 +2,7 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { lexicalToPlainParagraphs } from "@/lib/lexical";
-import { slugify } from "@/lib/utils";
+import { mediaUrl, slugify } from "@/lib/utils";
 import type { Article, ArticleCategory } from "@/types/article";
 import type { Article as PayloadArticle } from "@/payload-types";
 
@@ -20,6 +20,7 @@ function mapArticle(doc: PayloadArticle): Article {
     publishedAt: doc.publishedAt,
     readTimeMinutes: doc.readTimeMinutes,
     heroLabel: doc.heroLabel,
+    imageUrl: mediaUrl(doc.image),
     body: lexicalToPlainParagraphs(doc.body),
   };
 }

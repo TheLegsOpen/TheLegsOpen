@@ -8,6 +8,7 @@ export interface Player {
   /** Omitted for amateurs, who haven't turned professional yet. */
   turnedPro?: number;
   previousOpens: number;
+  photoUrl?: string;
   bio: string[];
 }
 

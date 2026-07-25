@@ -42,7 +42,16 @@ export const Venues: CollectionConfig = {
         { name: "value", type: "text", required: true },
       ],
     },
-    { name: "imageLabel", type: "text", required: true, admin: { description: "Caption used for the placeholder course photo." } },
+    { name: "imageLabel", type: "text", required: true, admin: { description: "Caption used when no image is uploaded, and as alt text when one is." } },
+    {
+      name: "image",
+      type: "upload",
+      relationTo: "media",
+      admin: {
+        description:
+          "Shown on the venues grid and at the top of the venue page. Falls back to a placeholder when not set. Recommended: landscape, at least 1200×900px (4:3).",
+      },
+    },
   ],
   hooks: {
     beforeValidate: [

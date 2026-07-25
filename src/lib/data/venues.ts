@@ -1,7 +1,7 @@
 import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
-import { slugify } from "@/lib/utils";
+import { mediaUrl, slugify } from "@/lib/utils";
 import type { Venue } from "@/types/venue";
 import type { Venue as PayloadVenue } from "@/payload-types";
 
@@ -24,6 +24,7 @@ export function mapVenue(doc: PayloadVenue): Venue {
     overview: (doc.overview ?? []).map((entry) => entry.paragraph),
     stats: (doc.stats ?? []).map((stat) => ({ label: stat.label, value: stat.value })),
     imageLabel: doc.imageLabel,
+    imageUrl: mediaUrl(doc.image),
   };
 }
 

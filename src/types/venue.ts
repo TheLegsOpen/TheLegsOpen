@@ -16,4 +16,5 @@ export interface Venue {
   overview: string[];
   stats: VenueStat[];
   imageLabel: string;
+  imageUrl?: string;
 }

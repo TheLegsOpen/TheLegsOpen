@@ -68,7 +68,14 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </p>
         </div>
 
-        <PlaceholderArt label={article.heroLabel} tone="navy" ratio="21/9" className="mx-auto w-full max-w-4xl" showCaption />
+        <PlaceholderArt
+          label={article.heroLabel}
+          imageUrl={article.imageUrl}
+          tone="navy"
+          ratio="21/9"
+          className="mx-auto w-full max-w-4xl"
+          showCaption
+        />
 
         <div className="mx-auto flex max-w-2xl flex-col gap-5 text-base leading-relaxed">
           {(article.body ?? []).map((paragraph, index) => (

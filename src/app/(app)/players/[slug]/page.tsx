@@ -76,6 +76,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             </div>
             <PlaceholderArt
               label={`${player.name} portrait`}
+              imageUrl={player.photoUrl}
               tone="slate"
               ratio="4/3"
               className="lg:justify-self-end"

@@ -28,7 +28,10 @@ export const SponsorClock: GlobalConfig = {
           name: "logo",
           type: "upload",
           relationTo: "media",
-          admin: { description: "Optional. Shown next to the sponsor name instead of relying on text alone." },
+          admin: {
+            description:
+              "Optional. Shown next to the sponsor name instead of relying on text alone. Recommended: transparent PNG or SVG, roughly 400×100px landscape wordmark.",
+          },
         },
         {
           name: "faceColor",
@@ -42,28 +45,53 @@ export const SponsorClock: GlobalConfig = {
     {
       type: "group",
       name: "graphics",
-      label: "Clock Hand Graphics",
+      label: "Clock Face & Hand Graphics",
       admin: {
-        description:
-          "All optional — each hand falls back to the default drawn clock face when not set. Upload a tall, narrow image with the pivot point at the bottom-center (it's rotated around that point).",
+        description: "All optional — anything left unset falls back to the default drawn clock face.",
       },
       fields: [
         {
           name: "faceImage",
           type: "upload",
           relationTo: "media",
-          admin: { description: "The clock dial/face artwork, shown behind the hands. Falls back to a plain drawn face when not set." },
+          admin: {
+            description:
+              "The clock dial/face artwork, shown behind the hands. Falls back to a plain drawn face when not set. Recommended: square, at least 300×300px.",
+          },
         },
         {
           name: "faceImageRetina",
           type: "upload",
           relationTo: "media",
-          admin: { description: "Optional 2x version of the face artwork for sharper rendering on high-density (retina) screens." },
+          admin: {
+            description:
+              "Optional 2x version of the face artwork for sharper rendering on high-density (retina) screens. Recommended: square, double the base image's dimensions (e.g. 600×600px if the base is 300×300px).",
+          },
         },
-        { name: "hourHand", type: "upload", relationTo: "media" },
-        { name: "minuteHand", type: "upload", relationTo: "media" },
-        { name: "secondHand", type: "upload", relationTo: "media" },
-        { name: "centerCap", type: "upload", relationTo: "media", admin: { description: "Small image covering the pivot point." } },
+        {
+          name: "hourHand",
+          type: "upload",
+          relationTo: "media",
+          admin: { description: "Recommended: tall and narrow, e.g. 40×260px, pointing straight up with the pivot at the bottom edge." },
+        },
+        {
+          name: "minuteHand",
+          type: "upload",
+          relationTo: "media",
+          admin: { description: "Recommended: tall and narrow, e.g. 30×320px, pointing straight up with the pivot at the bottom edge." },
+        },
+        {
+          name: "secondHand",
+          type: "upload",
+          relationTo: "media",
+          admin: { description: "Recommended: tall and narrow, e.g. 16×340px, pointing straight up with the pivot at the bottom edge." },
+        },
+        {
+          name: "centerCap",
+          type: "upload",
+          relationTo: "media",
+          admin: { description: "Small image covering the pivot point. Recommended: square, around 64×64px." },
+        },
       ],
     },
   ],
