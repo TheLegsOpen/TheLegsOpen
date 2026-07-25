@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Trophy } from "lucide-react";
 
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { Container } from "@/components/shared/container";
@@ -10,8 +11,9 @@ import { getAllPlayerSlugs, getPlayerBySlug } from "@/lib/data/players";
 import { getLeaderboard } from "@/lib/data/leaderboard";
 import { getTeeTimes } from "@/lib/data/tee-times";
 import { getChampionshipHistory } from "@/lib/data/championships";
+import { getSiteTheme } from "@/lib/data/site-theme";
 import { formatToPar, synthesizePastResults } from "@/lib/leaderboard";
-import { cn } from "@/lib/utils";
+import { cn, playerSlug } from "@/lib/utils";
 
 interface PlayerPageProps {
   params: Promise<{ slug: string }>;
@@ -46,13 +48,18 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   const player = await getPlayerBySlug(slug);
   if (!player) notFound();
 
-  const [round4, teeTimeRounds, championshipHistory] = await Promise.all([
+  const [round4, teeTimeRounds, championshipHistory, theme] = await Promise.all([
     getLeaderboard("round4"),
     getTeeTimes(),
     getChampionshipHistory(),
+    getSiteTheme(),
   ]);
   const entry = round4.find((e) => e.player.id === player.id);
   const pastResults = synthesizePastResults(player, championshipHistory);
+  const winYears = championshipHistory
+    .filter((c) => c.winnerPlayerSlug === playerSlug(player))
+    .map((c) => c.year)
+    .sort((a, b) => a - b);
   const teeTimes = teeTimeRounds.flatMap((round) =>
     round.groups
       .filter((group) => group.players.some((p) => p.id === player.id))
@@ -69,6 +76,20 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           <Breadcrumbs
             items={[{ label: "Home", href: "/" }, { label: "Leaderboard", href: "/leaderboard" }, { label: player.name }]}
           />
+          {winYears.length > 0 ? (
+            <div className="flex w-fit items-center gap-3 border-l-4 border-accent bg-primary-foreground/5 py-2 pl-4 pr-6">
+              {theme.championBadgeUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={theme.championBadgeUrl} alt="" aria-hidden="true" className="h-6 w-6 shrink-0 object-contain" />
+              ) : (
+                <Trophy className="h-6 w-6 shrink-0 text-accent" aria-hidden="true" />
+              )}
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">Champion Golfer of the Year</p>
+                <p className="font-display text-2xl font-bold text-white sm:text-3xl">{winYears.join(" & ")}</p>
+              </div>
+            </div>
+          ) : null}
           <div className="grid gap-8 lg:grid-cols-[1fr_320px] lg:items-center">
             <div className="flex gap-6 sm:gap-10">
               <StatCell label="Age" value={player.age} first />

@@ -1,7 +1,7 @@
 import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
-import type { Media } from "@/payload-types";
+import { mediaUrl } from "@/lib/utils";
 
 export type FontPreset = "fraunces-inter" | "playfair-source-sans" | "newsreader-manrope";
 
@@ -10,6 +10,7 @@ export interface SiteTheme {
   accentColor: string;
   logoUrl?: string;
   faviconUrl?: string;
+  championBadgeUrl?: string;
   fontPreset: FontPreset;
 }
 
@@ -23,14 +24,12 @@ export async function getSiteTheme(): Promise<SiteTheme> {
   const payload = await getPayload({ config: configPromise });
   const settings = await payload.findGlobal({ slug: "site-theme" });
 
-  const logo = typeof settings.branding?.logo === "object" ? (settings.branding.logo as Media) : undefined;
-  const favicon = typeof settings.branding?.favicon === "object" ? (settings.branding.favicon as Media) : undefined;
-
   return {
     primaryColor: settings.colors?.primaryColor || DEFAULTS.primaryColor,
     accentColor: settings.colors?.accentColor || DEFAULTS.accentColor,
-    logoUrl: logo?.url ?? undefined,
-    faviconUrl: favicon?.url ?? undefined,
+    logoUrl: mediaUrl(settings.branding?.logo),
+    faviconUrl: mediaUrl(settings.branding?.favicon),
+    championBadgeUrl: mediaUrl(settings.branding?.championBadge),
     fontPreset: settings.fontPreset || DEFAULTS.fontPreset,
   };
 }

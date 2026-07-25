@@ -5,6 +5,7 @@ import { FieldView } from "@/components/field/field-view";
 import { getPlayers } from "@/lib/data/players";
 import { getChampionshipHistory } from "@/lib/data/championships";
 import { getPageBanners } from "@/lib/data/page-banners";
+import { getSiteTheme } from "@/lib/data/site-theme";
 
 export const metadata: Metadata = {
   title: "Field",
@@ -12,10 +13,11 @@ export const metadata: Metadata = {
 };
 
 export default async function FieldPage() {
-  const [players, championshipHistory, banners] = await Promise.all([
+  const [players, championshipHistory, banners, theme] = await Promise.all([
     getPlayers(),
     getChampionshipHistory(),
     getPageBanners(),
+    getSiteTheme(),
   ]);
   const sorted = [...players].sort((a, b) => {
     const aSurname = a.name.split(" ").slice(-1)[0];
@@ -34,7 +36,7 @@ export default async function FieldPage() {
         description={`${sorted.length} players competing at Seabrook Old Course this week.`}
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Field" }]}
       />
-      <FieldView players={sorted} championshipHistory={championshipHistory} />
+      <FieldView players={sorted} championshipHistory={championshipHistory} championLogoUrl={theme.championBadgeUrl} />
     </>
   );
 }

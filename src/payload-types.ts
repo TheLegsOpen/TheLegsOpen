@@ -289,6 +289,7 @@ export interface SiteThemeGlobal {
   branding: {
     logo?: (string | Media) | null;
     favicon?: (string | Media) | null;
+    championBadge?: (string | Media) | null;
   };
   fontPreset: 'fraunces-inter' | 'playfair-source-sans' | 'newsreader-manrope';
   updatedAt?: string | null;

@@ -55,6 +55,16 @@ export const SiteTheme: GlobalConfig = {
           relationTo: "media",
           admin: { description: "Optional. Replaces the browser tab icon when set. A square image works best." },
         },
+        {
+          name: "championBadge",
+          type: "upload",
+          relationTo: "media",
+          label: "Champion Badge",
+          admin: {
+            description:
+              "Shown next to the year(s) won on a champion's Field card and profile page. Falls back to a trophy icon when not set. Recommended: square, transparent background, at least 200×200px.",
+          },
+        },
       ],
     },
     {

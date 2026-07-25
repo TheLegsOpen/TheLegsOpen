@@ -23,17 +23,26 @@ const CHIPS: { id: Chip; label: string }[] = [
 interface FieldViewProps {
   players: Player[];
   championshipHistory: ChampionshipWinner[];
+  championLogoUrl?: string;
 }
 
-export function FieldView({ players, championshipHistory }: FieldViewProps) {
+export function FieldView({ players, championshipHistory, championLogoUrl }: FieldViewProps) {
   const [query, setQuery] = useState("");
   const [country, setCountry] = useState("All");
   const [chip, setChip] = useState<Chip>("all");
 
-  const championSlugs = useMemo(
-    () => new Set(championshipHistory.map((c) => c.winnerPlayerSlug).filter((slug): slug is string => Boolean(slug))),
-    [championshipHistory],
-  );
+  const championYearsBySlug = useMemo(() => {
+    const map = new Map<string, number[]>();
+    for (const c of championshipHistory) {
+      if (!c.winnerPlayerSlug) continue;
+      const years = map.get(c.winnerPlayerSlug) ?? [];
+      years.push(c.year);
+      map.set(c.winnerPlayerSlug, years.sort((a, b) => a - b));
+    }
+    return map;
+  }, [championshipHistory]);
+
+  const championSlugs = useMemo(() => new Set(championYearsBySlug.keys()), [championYearsBySlug]);
 
   const availableCountries = useMemo(() => {
     const codes = new Set(players.map((p) => p.countryCode));
@@ -115,7 +124,12 @@ export function FieldView({ players, championshipHistory }: FieldViewProps) {
       ) : (
         <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-5">
           {filtered.map((player) => (
-            <PlayerCard key={player.id} player={player} />
+            <PlayerCard
+              key={player.id}
+              player={player}
+              championYears={championYearsBySlug.get(playerSlug(player))}
+              championLogoUrl={championLogoUrl}
+            />
           ))}
         </div>
       )}
