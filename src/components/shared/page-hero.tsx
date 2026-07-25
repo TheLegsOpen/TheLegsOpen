@@ -23,7 +23,7 @@ export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "
     return (
       <section className="relative h-[60vh] min-h-[420px] w-full overflow-hidden">
         <PlaceholderArt label={imageLabel ?? title} imageUrl={imageUrl} tone="navy" fill />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/10" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.8)_45%,rgba(0,0,0,0.25)_75%,rgba(0,0,0,0.05)_100%)]" />
 
         <Container className="relative z-10 flex h-full flex-col justify-end gap-5 pb-10 text-white sm:pb-14">
           <div className="[&_a]:text-white/70 [&_a:hover]:text-accent [&_span]:text-white">
