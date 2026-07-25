@@ -22,6 +22,7 @@ interface LeaderboardViewProps {
   articles: Article[];
   statCategories: StatCategory[];
   clockConfig: SponsorClock;
+  competitionComplete: boolean;
 }
 
 function filterEntries(entries: LeaderboardEntry[], query: string): LeaderboardEntry[] {
@@ -39,6 +40,7 @@ export function LeaderboardView({
   articles,
   statCategories,
   clockConfig,
+  competitionComplete,
 }: LeaderboardViewProps) {
   const { favorites, toggleFavorite, hydrated } = useFavorites();
   const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -141,6 +143,7 @@ export function LeaderboardView({
                 favoritesOnly={favoritesOnly}
                 statCategories={statCategories}
                 articles={articles}
+                competitionComplete={competitionComplete}
               />
             </TabsContent>
             <TabsContent value="round4" className="mt-0">
@@ -151,6 +154,7 @@ export function LeaderboardView({
                 favoritesOnly={favoritesOnly}
                 statCategories={statCategories}
                 articles={articles}
+                competitionComplete={competitionComplete}
               />
             </TabsContent>
           </div>

@@ -25,9 +25,10 @@ interface LeaderboardWidgetProps {
   entries: LeaderboardEntry[];
   statCategories: StatCategory[];
   articles: Article[];
+  competitionComplete: boolean;
 }
 
-export function LeaderboardWidget({ entries: top, statCategories, articles }: LeaderboardWidgetProps) {
+export function LeaderboardWidget({ entries: top, statCategories, articles, competitionComplete }: LeaderboardWidgetProps) {
   const leaderScoreToPar = top.find((e) => e.position === 1)?.scoreToPar ?? 0;
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const selectedEntry = top.find((e) => e.player.id === selectedPlayerId);
@@ -58,7 +59,7 @@ export function LeaderboardWidget({ entries: top, statCategories, articles }: Le
             </thead>
             <tbody>
               {top.map((entry, index) => {
-                const isTopBand = index < TOP_BAND_SIZE;
+                const isTopBand = competitionComplete && index < TOP_BAND_SIZE;
                 const displayName = isTopBand ? entry.player.name : surnameFirst(entry.player.name);
                 return (
                   <tr

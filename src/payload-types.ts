@@ -106,6 +106,7 @@ export interface Config {
     'homepage-settings': HomepageSettingsGlobal;
     'site-theme': SiteThemeGlobal;
     'sponsor-clock': SponsorClockGlobal;
+    'tournament-status': TournamentStatusGlobal;
   };
   globalsSelect: {};
   locale: null;
@@ -305,6 +306,15 @@ export interface SponsorClockGlobal {
     secondHand?: (string | Media) | null;
     centerCap?: (string | Media) | null;
   };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface TournamentStatusGlobal {
+  id: string;
+  competitionComplete?: boolean | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }

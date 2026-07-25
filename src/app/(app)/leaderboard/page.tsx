@@ -7,6 +7,7 @@ import { getLeaderboard } from "@/lib/data/leaderboard";
 import { getArticles } from "@/lib/data/articles";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getStatCategories } from "@/lib/data/statistics";
+import { getCompetitionComplete } from "@/lib/data/tournament-status";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
@@ -14,12 +15,13 @@ export const metadata: Metadata = {
 };
 
 export default async function LeaderboardPage() {
-  const [round2, round4, articles, clockConfig, statCategories] = await Promise.all([
+  const [round2, round4, articles, clockConfig, statCategories, competitionComplete] = await Promise.all([
     getLeaderboard("round2"),
     getLeaderboard("round4"),
     getArticles(),
     getSponsorClock(),
     getStatCategories(),
+    getCompetitionComplete(),
   ]);
 
   return (
@@ -40,6 +42,7 @@ export default async function LeaderboardPage() {
         articles={articles}
         statCategories={statCategories}
         clockConfig={clockConfig}
+        competitionComplete={competitionComplete}
       />
     </>
   );
