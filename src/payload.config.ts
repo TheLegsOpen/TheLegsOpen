@@ -15,6 +15,7 @@ import { Championships } from "./collections/Championships";
 import { LeaderboardEntries } from "./collections/LeaderboardEntries";
 import { TeeTimeRounds } from "./collections/TeeTimeRounds";
 import { PlayerStatistics } from "./collections/PlayerStatistics";
+import { LegalPages } from "./collections/LegalPages";
 import { HomepageSettings } from "./globals/HomepageSettings";
 import { SiteTheme } from "./globals/SiteTheme";
 import { SponsorClock } from "./globals/SponsorClock";
@@ -22,6 +23,9 @@ import { TournamentStatus } from "./globals/TournamentStatus";
 import { PageBanners } from "./globals/PageBanners";
 import { Sponsors } from "./globals/Sponsors";
 import { SocialLinks } from "./globals/SocialLinks";
+import { ContactPageSettings } from "./globals/ContactPageSettings";
+import { MediaPageSettings } from "./globals/MediaPageSettings";
+import { CareersPageSettings } from "./globals/CareersPageSettings";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -43,8 +47,19 @@ export default buildConfig({
       },
     },
   },
-  collections: [Users, Media, Players, Venues, Articles, Championships, LeaderboardEntries, TeeTimeRounds, PlayerStatistics],
-  globals: [HomepageSettings, SiteTheme, SponsorClock, TournamentStatus, PageBanners, Sponsors, SocialLinks],
+  collections: [Users, Media, Players, Venues, Articles, Championships, LeaderboardEntries, TeeTimeRounds, PlayerStatistics, LegalPages],
+  globals: [
+    HomepageSettings,
+    SiteTheme,
+    SponsorClock,
+    TournamentStatus,
+    PageBanners,
+    Sponsors,
+    SocialLinks,
+    ContactPageSettings,
+    MediaPageSettings,
+    CareersPageSettings,
+  ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "",
   typescript: {

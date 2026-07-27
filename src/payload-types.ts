@@ -84,6 +84,7 @@ export interface Config {
     'leaderboard-entries': LeaderboardEntry;
     'tee-time-rounds': TeeTimeRound;
     'player-statistics': PlayerStatistic;
+    'legal-pages': LegalPage;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -110,6 +111,9 @@ export interface Config {
     'page-banners': PageBannersGlobal;
     'sponsors': SponsorsGlobal;
     'social-links': SocialLinksGlobal;
+    'contact-page': ContactPageSettingsGlobal;
+    'media-page': MediaPageSettingsGlobal;
+    'careers-page': CareersPageSettingsGlobal;
   };
   globalsSelect: {};
   locale: null;
@@ -407,6 +411,9 @@ export interface PageBannersGlobal {
  */
 export interface SponsorsGlobal {
   id: string;
+  pageEyebrow?: string | null;
+  pageTitle: string;
+  pageDescription: string;
   patrons?:
     | {
         name: string;
@@ -438,6 +445,75 @@ export interface SocialLinksGlobal {
         id?: string | null;
       }[]
     | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface ContactPageSettingsGlobal {
+  id: string;
+  heroEyebrow?: string | null;
+  heroTitle: string;
+  heroDescription: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface MediaPageSettingsGlobal {
+  id: string;
+  heroEyebrow?: string | null;
+  heroTitle: string;
+  heroDescription: string;
+  resourcesEyebrow?: string | null;
+  resourcesTitle: string;
+  resources?:
+    | {
+        icon: 'Trophy' | 'Compass' | 'HeartHandshake' | 'FileText' | 'Image' | 'Mail' | 'Shield' | 'Star' | 'Users' | 'Megaphone';
+        title: string;
+        description: string;
+        id?: string | null;
+      }[]
+    | null;
+  ctaTitle: string;
+  ctaDescription: string;
+  ctaButtonLabel: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface CareersPageSettingsGlobal {
+  id: string;
+  heroEyebrow?: string | null;
+  heroTitle: string;
+  heroDescription: string;
+  valuesEyebrow?: string | null;
+  valuesTitle: string;
+  values?:
+    | {
+        icon: 'Trophy' | 'Compass' | 'HeartHandshake' | 'FileText' | 'Image' | 'Mail' | 'Shield' | 'Star' | 'Users' | 'Megaphone';
+        title: string;
+        description: string;
+        id?: string | null;
+      }[]
+    | null;
+  rolesEyebrow?: string | null;
+  rolesTitle: string;
+  openRoles?:
+    | {
+        title: string;
+        location: string;
+        type: string;
+        id?: string | null;
+      }[]
+    | null;
+  ctaTitle: string;
+  ctaDescription: string;
+  ctaButtonLabel: string;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -493,6 +569,17 @@ export interface PlayerStatistic {
   totalPutts: number;
   par5ScoringToPar: number;
   scramblingPercent: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface LegalPage {
+  id: string;
+  title: string;
+  slug: string;
+  body: unknown;
   updatedAt: string;
   createdAt: string;
 }

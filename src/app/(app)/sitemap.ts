@@ -1,18 +1,19 @@
 import type { MetadataRoute } from "next";
 
-import { LEGAL_PAGES } from "@/data/legal";
 import { PLAYERS } from "@/data/players";
 import { playerSlug } from "@/lib/utils";
 import { SITE } from "@/constants/site";
 import { getArticles } from "@/lib/data/articles";
 import { getVenues } from "@/lib/data/venues";
 import { getChampionshipHistory } from "@/lib/data/championships";
+import { getLegalPages } from "@/lib/data/legal";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [ARTICLES, VENUES, CHAMPIONSHIP_HISTORY] = await Promise.all([
+  const [ARTICLES, VENUES, CHAMPIONSHIP_HISTORY, LEGAL_PAGES] = await Promise.all([
     getArticles(),
     getVenues(),
     getChampionshipHistory(),
+    getLegalPages(),
   ]);
   const staticRoutes = [
     "",

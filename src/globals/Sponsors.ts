@@ -20,9 +20,24 @@ export const Sponsors: GlobalConfig = {
     afterChange: [revalidateSite],
   },
   admin: {
-    description: "Logos shown in the site footer. Falls back to the previous plain-text list for any entry with no logo uploaded yet.",
+    description: "Logos shown in the site footer and on the Patrons & Suppliers page. Falls back to the previous plain-text list for any entry with no logo uploaded yet.",
   },
   fields: [
+    {
+      type: "collapsible",
+      label: "Patrons & Suppliers Page Text",
+      fields: [
+        { name: "pageEyebrow", label: "Eyebrow", type: "text", defaultValue: "Thank You" },
+        { name: "pageTitle", label: "Title", type: "text", required: true, defaultValue: "Patrons & suppliers" },
+        {
+          name: "pageDescription",
+          label: "Description",
+          type: "textarea",
+          required: true,
+          defaultValue: "The Legs Open would not be possible without the support of our patrons and official suppliers.",
+        },
+      ],
+    },
     {
       name: "patrons",
       type: "array",

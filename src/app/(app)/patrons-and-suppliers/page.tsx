@@ -31,14 +31,14 @@ function BrandWall({ entries }: { entries: SponsorEntry[] }) {
 }
 
 export default async function PatronsAndSuppliersPage() {
-  const { patrons, officialSuppliers } = await getSponsors();
+  const { pageEyebrow, pageTitle, pageDescription, patrons, officialSuppliers } = await getSponsors();
 
   return (
     <>
       <PageHero
-        eyebrow="Thank You"
-        title="Patrons & suppliers"
-        description="The Legs Open would not be possible without the support of our patrons and official suppliers."
+        eyebrow={pageEyebrow}
+        title={pageTitle}
+        description={pageDescription}
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Patrons & Suppliers" }]}
       />
 

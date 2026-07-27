@@ -10,6 +10,9 @@ export interface SponsorEntry {
 }
 
 export interface Sponsors {
+  pageEyebrow?: string;
+  pageTitle: string;
+  pageDescription: string;
   patrons: SponsorEntry[];
   officialSuppliers: SponsorEntry[];
 }
@@ -26,5 +29,11 @@ export async function getSponsors(): Promise<Sponsors> {
     ? settings.officialSuppliers.map((entry) => ({ name: entry.name, logoUrl: mediaUrl(entry.logo) }))
     : OFFICIAL_SUPPLIERS.map((name) => ({ name }));
 
-  return { patrons, officialSuppliers };
+  return {
+    pageEyebrow: settings.pageEyebrow ?? undefined,
+    pageTitle: settings.pageTitle,
+    pageDescription: settings.pageDescription,
+    patrons,
+    officialSuppliers,
+  };
 }

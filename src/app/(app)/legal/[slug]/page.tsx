@@ -3,26 +3,27 @@ import { notFound } from "next/navigation";
 
 import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
-import { LEGAL_PAGES } from "@/data/legal";
+import { getLegalPages, getLegalPage } from "@/lib/data/legal";
 import { formatDate } from "@/lib/utils";
 
 interface LegalPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export function generateStaticParams() {
-  return LEGAL_PAGES.map((page) => ({ slug: page.slug }));
+export async function generateStaticParams() {
+  const pages = await getLegalPages();
+  return pages.map((page) => ({ slug: page.slug }));
 }
 
 export async function generateMetadata({ params }: LegalPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const page = LEGAL_PAGES.find((p) => p.slug === slug);
+  const page = await getLegalPage(slug);
   return page ? { title: page.title } : {};
 }
 
 export default async function LegalDetailPage({ params }: LegalPageProps) {
   const { slug } = await params;
-  const page = LEGAL_PAGES.find((p) => p.slug === slug);
+  const page = await getLegalPage(slug);
   if (!page) notFound();
 
   return (
