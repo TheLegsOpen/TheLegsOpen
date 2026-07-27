@@ -14,8 +14,3 @@ export interface NavPanelGroup {
   links: NavLink[];
   emphasis?: boolean;
 }
-
-export interface FooterColumn {
-  heading: string;
-  links: NavLink[];
-}

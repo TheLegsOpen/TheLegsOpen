@@ -1,4 +1,4 @@
-import type { FooterColumn, NavPanelGroup, NavSection } from "@/types/nav";
+import type { NavLink, NavPanelGroup, NavSection } from "@/types/nav";
 
 export const PRIMARY_NAV: NavSection[] = [
   { label: "Leaderboard", href: "/leaderboard" },
@@ -45,36 +45,14 @@ export const NAV_PANEL: NavPanelGroup[] = [
   },
 ];
 
-export const FOOTER_COLUMNS: FooterColumn[] = [
-  {
-    heading: "The Championship",
-    links: [
-      { label: "Latest News", href: "/latest" },
-      { label: "Leaderboard", href: "/leaderboard" },
-      { label: "Tee Times", href: "/tee-times" },
-      { label: "Venues", href: "/venues" },
-      { label: "Field", href: "/field" },
-      { label: "Previous Opens", href: "/previous-opens" },
-      { label: "The Clubhouse", href: "/club" },
-      { label: "Shop", href: "/shop" },
-    ],
-  },
-  {
-    heading: "Support",
-    links: [
-      { label: "Contact Us", href: "/contact" },
-      { label: "Media Centre", href: "/media" },
-      { label: "Patrons & Suppliers", href: "/patrons-and-suppliers" },
-      { label: "Careers", href: "/careers" },
-    ],
-  },
-  {
-    heading: "Legal",
-    links: [
-      { label: "Privacy Policy", href: "/legal/privacy-policy" },
-      { label: "Cookie Policy", href: "/legal/cookie-policy" },
-      { label: "Website Terms", href: "/legal/website-terms" },
-      { label: "Modern Slavery Statement", href: "/legal/modern-slavery-statement" },
-    ],
-  },
+/** Support + legal links shown as a single side-by-side row in the footer's bottom bar. */
+export const FOOTER_LINKS: NavLink[] = [
+  { label: "Contact Us", href: "/contact" },
+  { label: "Media Centre", href: "/media" },
+  { label: "Patrons & Suppliers", href: "/patrons-and-suppliers" },
+  { label: "Careers", href: "/careers" },
+  { label: "Privacy Policy", href: "/legal/privacy-policy" },
+  { label: "Cookie Policy", href: "/legal/cookie-policy" },
+  { label: "Website Terms", href: "/legal/website-terms" },
+  { label: "Modern Slavery Statement", href: "/legal/modern-slavery-statement" },
 ];

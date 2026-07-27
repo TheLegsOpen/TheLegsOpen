@@ -3,7 +3,7 @@ import type { GlobalConfig } from "payload";
 import { revalidateSite } from "@/lib/revalidate";
 
 const LOGO_DESCRIPTION =
-  "Shown in the footer's monochrome logo wall (rendered white regardless of the source colours, matching the rest of the row). Recommended: transparent PNG or SVG, landscape, at least 400×220px.";
+  "Shown in the footer's logo wall in its real, uploaded colours. Recommended: transparent PNG or SVG, landscape, at least 400×220px.";
 
 const entryFields = (label: string) => [
   { name: "name", type: "text" as const, required: true, admin: { description: `${label} name — also used as alt text.` } },
