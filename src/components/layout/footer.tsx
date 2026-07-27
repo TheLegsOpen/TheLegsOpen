@@ -4,8 +4,8 @@ import { MessageCircle, Camera, Briefcase, AtSign, Video, Music2 } from "lucide-
 
 import { Container } from "@/components/shared/container";
 import { FOOTER_COLUMNS } from "@/data/navigation";
-import { PATRONS, OFFICIAL_SUPPLIERS } from "@/data/sponsors";
 import { SITE, SOCIAL_LINKS } from "@/constants/site";
+import type { SponsorEntry } from "@/lib/data/sponsors";
 
 // Generic stand-in icons (Lucide's brand/logo marks are intentionally not
 // used here, since those are third-party trademarks).
@@ -18,7 +18,35 @@ const SOCIAL_ICONS: Record<string, React.ComponentType<{ className?: string }>> 
   TikTok: Music2,
 };
 
-export function Footer({ logoUrl }: { logoUrl?: string }) {
+function LogoWall({ entries }: { entries: SponsorEntry[] }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
+      {entries.map((entry) =>
+        entry.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={entry.name}
+            src={entry.logoUrl}
+            alt={entry.name}
+            className="h-8 w-[100px] object-contain opacity-70 brightness-0 invert transition-opacity hover:opacity-100"
+          />
+        ) : (
+          <span key={entry.name} className="text-sm">
+            {entry.name}
+          </span>
+        ),
+      )}
+    </div>
+  );
+}
+
+interface FooterProps {
+  logoUrl?: string;
+  patrons: SponsorEntry[];
+  officialSuppliers: SponsorEntry[];
+}
+
+export function Footer({ logoUrl, patrons, officialSuppliers }: FooterProps) {
   return (
     <footer className="border-t border-border bg-primary text-primary-foreground">
       <Container className="grid gap-12 py-16 sm:py-20 lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
@@ -30,22 +58,6 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
             {SITE.name}
           </Link>
           <p className="max-w-xs text-sm text-primary-foreground/70">{SITE.description}</p>
-          <ul className="flex gap-3 pt-2">
-            {SOCIAL_LINKS.map((social) => {
-              const Icon = SOCIAL_ICONS[social.label] ?? MessageCircle;
-              return (
-                <li key={social.label}>
-                  <Link
-                    href={social.href}
-                    aria-label={social.label}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-primary-foreground/20 transition-colors hover:bg-primary-foreground/10"
-                  >
-                    <Icon className="h-4 w-4" aria-hidden="true" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
         </div>
 
         {FOOTER_COLUMNS.map((column) => (
@@ -67,28 +79,39 @@ export function Footer({ logoUrl }: { logoUrl?: string }) {
       </Container>
 
       <div className="border-t border-primary-foreground/10">
-        <Container className="flex flex-col gap-6 py-10 text-xs text-primary-foreground/60">
+        <Container className="flex flex-col gap-8 py-10 text-xs text-primary-foreground/60">
           <div className="flex flex-col gap-3">
             <span className="font-semibold uppercase tracking-wide text-primary-foreground/50">Patrons</span>
-            <div className="flex flex-wrap gap-x-6 gap-y-2">
-              {PATRONS.map((name) => (
-                <span key={name}>{name}</span>
-              ))}
-            </div>
+            <LogoWall entries={patrons} />
           </div>
           <div className="flex flex-col gap-3">
             <span className="font-semibold uppercase tracking-wide text-primary-foreground/50">Official Suppliers</span>
-            <div className="flex flex-wrap gap-x-6 gap-y-2">
-              {OFFICIAL_SUPPLIERS.map((name) => (
-                <span key={name}>{name}</span>
-              ))}
-            </div>
+            <LogoWall entries={officialSuppliers} />
           </div>
-          <p>
-            © {new Date().getFullYear()} Legs Open Championships Ltd. Registered in Fifeshire. The Beach House,
-            Seabrook, Fifeshire. This is a fictional, educational recreation and is not affiliated with any real
-            golf championship.
-          </p>
+
+          <div className="flex flex-col gap-6 border-t border-primary-foreground/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
+            <ul className="flex gap-3">
+              {SOCIAL_LINKS.map((social) => {
+                const Icon = SOCIAL_ICONS[social.label] ?? MessageCircle;
+                return (
+                  <li key={social.label}>
+                    <Link
+                      href={social.href}
+                      aria-label={social.label}
+                      className="flex h-9 w-9 items-center justify-center rounded-full border border-primary-foreground/20 transition-colors hover:bg-primary-foreground/10"
+                    >
+                      <Icon className="h-4 w-4" aria-hidden="true" />
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+            <p>
+              © {new Date().getFullYear()} Legs Open Championships Ltd. Registered in Fifeshire. The Beach House,
+              Seabrook, Fifeshire. This is a fictional, educational recreation and is not affiliated with any real
+              golf championship.
+            </p>
+          </div>
         </Container>
       </div>
     </footer>

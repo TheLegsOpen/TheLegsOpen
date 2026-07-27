@@ -7,6 +7,7 @@ import { CookieBanner } from "@/components/layout/cookie-banner";
 import { MotionProvider } from "@/components/providers/motion-provider";
 import { SITE } from "@/constants/site";
 import { getSiteTheme, type FontPreset } from "@/lib/data/site-theme";
+import { getSponsors } from "@/lib/data/sponsors";
 import { hexToHslTriplet } from "@/lib/utils";
 
 import "./globals.css";
@@ -86,7 +87,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const theme = await getSiteTheme();
+  const [theme, sponsors] = await Promise.all([getSiteTheme(), getSponsors()]);
   const fontVars = FONT_PRESET_VARS[theme.fontPreset];
 
   const themeStyle = `:root {
@@ -113,7 +114,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <main id="main-content" className="flex-1">
             {children}
           </main>
-          <Footer logoUrl={theme.logoUrl} />
+          <Footer
+            logoUrl={theme.logoUrl}
+            patrons={sponsors.patrons}
+            officialSuppliers={sponsors.officialSuppliers}
+          />
           <CookieBanner />
         </MotionProvider>
       </body>

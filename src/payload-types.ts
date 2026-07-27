@@ -108,6 +108,7 @@ export interface Config {
     'sponsor-clock': SponsorClockGlobal;
     'tournament-status': TournamentStatusGlobal;
     'page-banners': PageBannersGlobal;
+    'sponsors': SponsorsGlobal;
   };
   globalsSelect: {};
   locale: null;
@@ -397,6 +398,28 @@ export interface PageBannersGlobal {
   field?: (string | Media) | null;
   fieldEyebrow?: string | null;
   fieldTitle?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface SponsorsGlobal {
+  id: string;
+  patrons?:
+    | {
+        name: string;
+        logo: string | Media;
+        id?: string | null;
+      }[]
+    | null;
+  officialSuppliers?:
+    | {
+        name: string;
+        logo: string | Media;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
