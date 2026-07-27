@@ -90,10 +90,10 @@ export function Footer({ logoUrl, patrons, officialSuppliers, socialLinks }: Foo
                     aria-label={social.label}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-primary-foreground/20 transition-colors hover:bg-primary-foreground/10"
+                    className="flex h-12 w-12 items-center justify-center rounded-full border border-primary-foreground/20 transition-colors hover:bg-primary-foreground/10"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={social.iconUrl} alt="" className="h-4 w-4 object-contain" />
+                    <img src={social.iconUrl} alt="" className="h-6 w-6 object-contain" />
                   </Link>
                 </li>
               ))}
