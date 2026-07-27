@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 
 import { revalidateSite } from "@/lib/revalidate";
+import { COUNTRIES, countryName } from "@/data/countries";
 
 function slugify(value: string): string {
   return value
@@ -23,6 +24,18 @@ export const Venues: CollectionConfig = {
     { name: "slug", type: "text", unique: true, index: true, admin: { position: "sidebar" } },
     { name: "location", type: "text", required: true },
     { name: "region", type: "text", required: true },
+    {
+      name: "countryCode",
+      label: "Country",
+      type: "select",
+      options: COUNTRIES.map((c) => ({ label: c.name, value: c.code })),
+      admin: { description: "Shown as a flag badge on the venue's image." },
+    },
+    {
+      name: "country",
+      type: "text",
+      admin: { readOnly: true, description: "Set automatically from the Country field above." },
+    },
     { name: "parYardage", type: "text", required: true },
     { name: "timesHosted", type: "number", required: true },
     { name: "firstHosted", type: "number", required: true },
@@ -135,6 +148,9 @@ export const Venues: CollectionConfig = {
       ({ data }) => {
         if (data && !data.slug && data.name) {
           data.slug = slugify(data.name);
+        }
+        if (data && data.countryCode) {
+          data.country = countryName(data.countryCode);
         }
         if (data && Array.isArray(data.holes)) {
           data.holes = data.holes.map((hole: Record<string, unknown>, index: number) => ({ ...hole, holeNumber: index + 1 }));

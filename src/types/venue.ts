@@ -8,6 +8,8 @@ export interface Venue {
   name: string;
   location: string;
   region: string;
+  countryCode?: string;
+  country?: string;
   parYardage: string;
   timesHosted: number;
   firstHosted: number;

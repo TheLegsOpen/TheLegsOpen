@@ -216,6 +216,8 @@ export interface Venue {
   slug?: string | null;
   location: string;
   region: string;
+  countryCode?: string | null;
+  country?: string | null;
   parYardage: string;
   timesHosted: number;
   firstHosted: number;

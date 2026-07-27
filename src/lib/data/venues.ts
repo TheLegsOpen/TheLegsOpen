@@ -16,6 +16,8 @@ export function mapVenue(doc: PayloadVenue): Venue {
     name: doc.name,
     location: doc.location,
     region: doc.region,
+    countryCode: doc.countryCode ?? undefined,
+    country: doc.country ?? undefined,
     parYardage: doc.parYardage,
     timesHosted: doc.timesHosted,
     firstHosted: doc.firstHosted,

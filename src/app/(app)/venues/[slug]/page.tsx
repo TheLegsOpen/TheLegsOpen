@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Container } from "@/components/shared/container";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
+import { CountryFlag } from "@/components/shared/country-flag";
 import { StatBlock } from "@/components/venues/stat-block";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAllVenueSlugs, getVenueBySlug } from "@/lib/data/venues";
@@ -43,7 +44,14 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
           <p className="text-muted-foreground">{venue.location}</p>
           <p className="text-lg text-muted-foreground">{venue.description}</p>
         </div>
-        <PlaceholderArt label={venue.imageLabel} imageUrl={venue.imageUrl} tone="dusk" ratio="4/3" showCaption />
+        <div className="relative">
+          <PlaceholderArt label={venue.imageLabel} imageUrl={venue.imageUrl} tone="dusk" ratio="4/3" showCaption />
+          {venue.countryCode ? (
+            <span className="absolute right-2 top-2 flex items-center gap-1 rounded bg-black/60 px-1.5 py-1 text-white">
+              <CountryFlag code={venue.countryCode} className="h-2.5 w-4" />
+            </span>
+          ) : null}
+        </div>
       </div>
 
       <Tabs defaultValue="overview">
