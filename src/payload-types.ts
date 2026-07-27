@@ -282,6 +282,7 @@ export interface Article {
 export interface Championship {
   id: string;
   year: number;
+  date?: string | null;
   venue: string | Venue;
   winnerName: string;
   winnerCountry: string;

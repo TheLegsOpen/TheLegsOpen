@@ -7,6 +7,7 @@ import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { getAllChampionshipYears, getChampionshipByYear } from "@/lib/data/championships";
 import { formatToPar } from "@/lib/leaderboard";
+import { formatDate } from "@/lib/utils";
 
 interface YearPageProps {
   params: Promise<{ year: string }>;
@@ -44,7 +45,9 @@ export default async function PreviousOpenYearPage({ params }: YearPageProps) {
 
       <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
         <div className="flex flex-col gap-3">
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">{championship.year}</span>
+          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
+            {championship.date ? formatDate(championship.date) : championship.year}
+          </span>
           <h1 className="font-display font-bold text-display-lg text-balance">{championship.venueName}</h1>
           <p className="text-lg text-muted-foreground">
             Won by{" "}

@@ -18,6 +18,15 @@ export const Championships: CollectionConfig = {
   },
   fields: [
     { name: "year", type: "number", required: true, unique: true },
+    {
+      name: "date",
+      label: "Championship Date",
+      type: "date",
+      admin: {
+        date: { pickerAppearance: "dayOnly", displayFormat: "dd/MM/yyyy" },
+        description: "The final round date (or scheduled date for an upcoming championship). UK format (DD/MM/YYYY).",
+      },
+    },
     { name: "venue", type: "relationship", relationTo: "venues", required: true },
     { name: "winnerName", type: "text", required: true },
     { name: "winnerCountry", type: "text", required: true },

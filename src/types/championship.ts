@@ -2,6 +2,7 @@ import type { Player } from "@/types/player";
 
 export interface ChampionshipWinner {
   year: number;
+  date?: string;
   venueSlug: string;
   venueName: string;
   winnerName: string;

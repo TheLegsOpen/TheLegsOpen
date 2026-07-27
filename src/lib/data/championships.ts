@@ -17,6 +17,7 @@ function mapChampionship(doc: PayloadChampionship): ChampionshipWinner {
 
   return {
     year: doc.year,
+    date: doc.date ?? undefined,
     venueSlug: venue.slug ?? slugify(venue.name),
     venueName: venue.name,
     winnerName: doc.winnerName,
