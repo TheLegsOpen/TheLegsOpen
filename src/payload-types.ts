@@ -418,6 +418,7 @@ export interface SponsorsGlobal {
     | {
         name: string;
         logo: string | Media;
+        websiteUrl?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -425,6 +426,7 @@ export interface SponsorsGlobal {
     | {
         name: string;
         logo: string | Media;
+        websiteUrl?: string | null;
         id?: string | null;
       }[]
     | null;

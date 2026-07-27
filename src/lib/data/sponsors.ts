@@ -7,6 +7,7 @@ import { PATRONS, OFFICIAL_SUPPLIERS } from "@/data/sponsors";
 export interface SponsorEntry {
   name: string;
   logoUrl?: string;
+  websiteUrl?: string;
 }
 
 export interface Sponsors {
@@ -22,11 +23,19 @@ export async function getSponsors(): Promise<Sponsors> {
   const settings = await payload.findGlobal({ slug: "sponsors" });
 
   const patrons = settings.patrons?.length
-    ? settings.patrons.map((entry) => ({ name: entry.name, logoUrl: mediaUrl(entry.logo) }))
+    ? settings.patrons.map((entry) => ({
+        name: entry.name,
+        logoUrl: mediaUrl(entry.logo),
+        websiteUrl: entry.websiteUrl ?? undefined,
+      }))
     : PATRONS.map((name) => ({ name }));
 
   const officialSuppliers = settings.officialSuppliers?.length
-    ? settings.officialSuppliers.map((entry) => ({ name: entry.name, logoUrl: mediaUrl(entry.logo) }))
+    ? settings.officialSuppliers.map((entry) => ({
+        name: entry.name,
+        logoUrl: mediaUrl(entry.logo),
+        websiteUrl: entry.websiteUrl ?? undefined,
+      }))
     : OFFICIAL_SUPPLIERS.map((name) => ({ name }));
 
   return {

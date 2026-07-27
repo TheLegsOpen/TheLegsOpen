@@ -10,21 +10,32 @@ import type { SocialLink } from "@/lib/data/social-links";
 function LogoWall({ entries }: { entries: SponsorEntry[] }) {
   return (
     <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-6">
-      {entries.map((entry) =>
-        entry.logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+      {entries.map((entry) => {
+        if (!entry.logoUrl) {
+          return (
+            <span key={entry.name} className="text-sm">
+              {entry.name}
+            </span>
+          );
+        }
+
+        // eslint-disable-next-line @next/next/no-img-element
+        const logo = <img src={entry.logoUrl} alt={entry.name} className="h-[55px] w-[100px] object-contain" />;
+
+        return entry.websiteUrl ? (
+          <a
             key={entry.name}
-            src={entry.logoUrl}
-            alt={entry.name}
-            className="h-[55px] w-[100px] object-contain"
-          />
+            href={entry.websiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="transition-opacity hover:opacity-80"
+          >
+            {logo}
+          </a>
         ) : (
-          <span key={entry.name} className="text-sm">
-            {entry.name}
-          </span>
-        ),
-      )}
+          <span key={entry.name}>{logo}</span>
+        );
+      })}
     </div>
   );
 }

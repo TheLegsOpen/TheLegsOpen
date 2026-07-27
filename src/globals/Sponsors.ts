@@ -8,6 +8,12 @@ const LOGO_DESCRIPTION =
 const entryFields = (label: string) => [
   { name: "name", type: "text" as const, required: true, admin: { description: `${label} name — also used as alt text.` } },
   { name: "logo", type: "upload" as const, relationTo: "media" as const, required: true, admin: { description: LOGO_DESCRIPTION } },
+  {
+    name: "websiteUrl",
+    label: "Website URL",
+    type: "text" as const,
+    admin: { description: `Optional — if set, the logo links out to the ${label.toLowerCase()}'s website in a new tab.` },
+  },
 ];
 
 export const Sponsors: GlobalConfig = {

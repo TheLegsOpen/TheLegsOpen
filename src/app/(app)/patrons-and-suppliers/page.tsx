@@ -13,19 +13,26 @@ export const metadata: Metadata = {
 function BrandWall({ entries }: { entries: SponsorEntry[] }) {
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-      {entries.map((entry) => (
-        <div
-          key={entry.name}
-          className="flex h-24 items-center justify-center border border-border px-4 text-center transition-colors hover:border-primary/30 hover:bg-secondary"
-        >
-          {entry.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={entry.logoUrl} alt={entry.name} className="h-16 max-w-full object-contain" />
-          ) : (
-            <span className="font-display text-lg font-bold">{entry.name}</span>
-          )}
-        </div>
-      ))}
+      {entries.map((entry) => {
+        const content = entry.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={entry.logoUrl} alt={entry.name} className="h-16 max-w-full object-contain" />
+        ) : (
+          <span className="font-display text-lg font-bold">{entry.name}</span>
+        );
+        const tileClassName =
+          "flex h-24 items-center justify-center border border-border px-4 text-center transition-colors hover:border-primary/30 hover:bg-secondary";
+
+        return entry.websiteUrl ? (
+          <a key={entry.name} href={entry.websiteUrl} target="_blank" rel="noopener noreferrer" className={tileClassName}>
+            {content}
+          </a>
+        ) : (
+          <div key={entry.name} className={tileClassName}>
+            {content}
+          </div>
+        );
+      })}
     </div>
   );
 }
