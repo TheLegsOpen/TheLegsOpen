@@ -30,10 +30,10 @@ function mapChampionship(doc: PayloadChampionship): ChampionshipWinner {
     date: doc.date ?? undefined,
     venueSlug: venue.slug ?? slugify(venue.name),
     venueName: venue.name,
-    winnerName: doc.winnerName,
-    winnerCountry: doc.winnerCountry,
-    scoreToPar: doc.scoreToPar,
-    margin: doc.margin,
+    winnerName: doc.winnerName ?? undefined,
+    winnerCountry: doc.winnerCountry ?? undefined,
+    scoreToPar: doc.scoreToPar ?? undefined,
+    margin: doc.margin ?? undefined,
     winnerPlayerSlug: winnerPlayer?.slug ?? undefined,
   };
 }

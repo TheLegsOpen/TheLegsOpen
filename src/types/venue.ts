@@ -10,7 +10,7 @@ export interface Venue {
   region: string;
   countryCode?: string;
   country?: string;
-  parYardage: string;
+  parYardage?: string;
   timesHosted: number;
   firstHosted: number;
   lastHosted: number;

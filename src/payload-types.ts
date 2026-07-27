@@ -218,7 +218,7 @@ export interface Venue {
   region: string;
   countryCode?: string | null;
   country?: string | null;
-  parYardage: string;
+  parYardage?: string | null;
   timesHosted: number;
   firstHosted: number;
   lastHosted: number;
@@ -284,11 +284,11 @@ export interface Championship {
   year: number;
   date?: string | null;
   venue: string | Venue;
-  winnerName: string;
-  winnerCountry: string;
+  winnerName?: string | null;
+  winnerCountry?: string | null;
   winnerPlayer?: (string | Player) | null;
-  scoreToPar: number;
-  margin: string;
+  scoreToPar?: number | null;
+  margin?: string | null;
   updatedAt: string;
   createdAt: string;
 }

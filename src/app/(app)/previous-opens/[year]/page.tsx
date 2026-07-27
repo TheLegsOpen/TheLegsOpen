@@ -24,7 +24,9 @@ export async function generateMetadata({ params }: YearPageProps): Promise<Metad
   if (!championship) return {};
   return {
     title: `${championship.year} — ${championship.venueName}`,
-    description: `${championship.winnerName} won the ${championship.year} Legs Open at ${championship.venueName}.`,
+    description: championship.winnerName
+      ? `${championship.winnerName} won the ${championship.year} Legs Open at ${championship.venueName}.`
+      : `The ${championship.year} Legs Open at ${championship.venueName}.`,
   };
 }
 
@@ -50,19 +52,25 @@ export default async function PreviousOpenYearPage({ params }: YearPageProps) {
           </span>
           <h1 className="font-display font-bold text-display-lg text-balance">{championship.venueName}</h1>
           <p className="text-lg text-muted-foreground">
-            Won by{" "}
-            {championship.winnerPlayerSlug ? (
-              <Link href={`/players/${championship.winnerPlayerSlug}`} className="font-semibold text-primary hover:underline">
-                {championship.winnerName}
-              </Link>
+            {championship.winnerName ? (
+              <>
+                Won by{" "}
+                {championship.winnerPlayerSlug ? (
+                  <Link href={`/players/${championship.winnerPlayerSlug}`} className="font-semibold text-primary hover:underline">
+                    {championship.winnerName}
+                  </Link>
+                ) : (
+                  <span className="font-semibold text-foreground">{championship.winnerName}</span>
+                )}
+                {championship.winnerCountry ? ` of ${championship.winnerCountry}` : null}
+              </>
             ) : (
-              <span className="font-semibold text-foreground">{championship.winnerName}</span>
-            )}{" "}
-            of {championship.winnerCountry}
+              "Championship not yet played."
+            )}
           </p>
         </div>
         <PlaceholderArt
-          label={`${championship.winnerName} at ${championship.venueName}`}
+          label={championship.winnerName ? `${championship.winnerName} at ${championship.venueName}` : championship.venueName}
           tone="navy"
           ratio="4/3"
           showCaption
@@ -71,9 +79,9 @@ export default async function PreviousOpenYearPage({ params }: YearPageProps) {
 
       <dl className="grid grid-cols-2 gap-6 sm:grid-cols-4">
         {[
-          { label: "Champion", value: championship.winnerName },
-          { label: "Score", value: formatToPar(championship.scoreToPar) },
-          { label: "Margin", value: championship.margin },
+          { label: "Champion", value: championship.winnerName ?? "TBD" },
+          { label: "Score", value: championship.scoreToPar !== undefined ? formatToPar(championship.scoreToPar) : "—" },
+          { label: "Margin", value: championship.margin ?? "—" },
           { label: "Venue", value: championship.venueName },
         ].map((stat) => (
           <div key={stat.label} className="flex flex-col gap-1 border border-border p-4">

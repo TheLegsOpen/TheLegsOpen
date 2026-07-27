@@ -28,15 +28,19 @@ export const Championships: CollectionConfig = {
       },
     },
     { name: "venue", type: "relationship", relationTo: "venues", required: true },
-    { name: "winnerName", type: "text", required: true },
-    { name: "winnerCountry", type: "text", required: true },
+    {
+      name: "winnerName",
+      type: "text",
+      admin: { description: "Leave blank for a championship that hasn't been played yet." },
+    },
+    { name: "winnerCountry", type: "text" },
     {
       name: "winnerPlayer",
       type: "relationship",
       relationTo: "players",
       admin: { description: "Optional — only set if this winner is also in the current Players collection." },
     },
-    { name: "scoreToPar", type: "number", required: true },
-    { name: "margin", type: "text", required: true, admin: { description: "e.g. \"2 shots\" or \"Playoff\"" } },
+    { name: "scoreToPar", type: "number" },
+    { name: "margin", type: "text", admin: { description: "e.g. \"2 shots\" or \"Playoff\"" } },
   ],
 };

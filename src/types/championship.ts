@@ -5,10 +5,10 @@ export interface ChampionshipWinner {
   date?: string;
   venueSlug: string;
   venueName: string;
-  winnerName: string;
-  winnerCountry: string;
-  scoreToPar: number;
-  margin: string;
+  winnerName?: string;
+  winnerCountry?: string;
+  scoreToPar?: number;
+  margin?: string;
   winnerPlayerSlug?: string;
 }
 

@@ -51,7 +51,7 @@ export function PreviousOpensTimeline({ history }: { history: ChampionshipWinner
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">{c.venueName}</p>
-                  <p className="font-display text-xl font-bold">{c.winnerName}</p>
+                  <p className="font-display text-xl font-bold">{c.winnerName ?? "TBD"}</p>
                 </div>
                 <Link
                   href={`/previous-opens/${c.year}`}

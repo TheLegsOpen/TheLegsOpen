@@ -27,9 +27,9 @@ export async function getCurrentChampion(): Promise<CurrentChampion> {
   const venue = championship.venue as PayloadVenue;
 
   return {
-    winnerName: championship.winnerName,
+    winnerName: championship.winnerName ?? "",
     venueName: venue.name,
-    scoreToPar: championship.scoreToPar,
+    scoreToPar: championship.scoreToPar ?? 0,
     articleSlug: article.slug ?? slugify(article.title),
   };
 }

@@ -84,8 +84,8 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
               {championshipsHere.map((c) => (
                 <li key={c.year} className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
                   <span className="font-medium">{c.year}</span>
-                  <span>{c.winnerName}</span>
-                  <span className="text-muted-foreground">{c.margin}</span>
+                  <span>{c.winnerName ?? "TBD"}</span>
+                  <span className="text-muted-foreground">{c.margin ?? "—"}</span>
                 </li>
               ))}
             </ul>

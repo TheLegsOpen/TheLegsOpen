@@ -36,7 +36,14 @@ export const Venues: CollectionConfig = {
       type: "text",
       admin: { readOnly: true, description: "Set automatically from the Country field above." },
     },
-    { name: "parYardage", type: "text", required: true },
+    {
+      name: "parYardage",
+      type: "text",
+      admin: {
+        readOnly: true,
+        description: "Automatically calculated from Hole Setup below once all 18 holes have Par and Yards entered.",
+      },
+    },
     { name: "timesHosted", type: "number", required: true },
     { name: "firstHosted", type: "number", required: true },
     { name: "lastHosted", type: "number", required: true },
@@ -164,6 +171,12 @@ export const Venues: CollectionConfig = {
           data.inYards = sum(inHoles, "yards");
           data.totalPar = data.outPar + data.inPar;
           data.totalYards = data.outYards + data.inYards;
+
+          const holesComplete =
+            data.holes.length === 18 && data.holes.every((hole: { par?: number; yards?: number }) => hole.par && hole.yards);
+          if (holesComplete) {
+            data.parYardage = `Par ${data.totalPar} · ${data.totalYards.toLocaleString()} yards`;
+          }
         }
         return data;
       },
