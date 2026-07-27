@@ -57,9 +57,28 @@ export const Venues: CollectionConfig = {
       label: "Hole Setup",
       admin: {
         description:
-          "Par, yardage and stroke index for each hole. For future use in the leaderboard and scoring automation — not shown on the public site yet.",
+          "Course rating, slope, and par/yardage/stroke index for each hole. For future use in the leaderboard and scoring automation — not shown on the public site yet.",
       },
       fields: [
+        {
+          type: "row",
+          fields: [
+            {
+              name: "courseRating",
+              label: "Course Rating™",
+              type: "number",
+              admin: { width: "50%", step: 0.1, description: "e.g. 71.0" },
+            },
+            {
+              name: "slopeRating",
+              label: "SLOPE®",
+              type: "number",
+              min: 55,
+              max: 155,
+              admin: { width: "50%", description: "USGA scale, 55–155." },
+            },
+          ],
+        },
         {
           name: "holes",
           type: "array",
@@ -67,7 +86,10 @@ export const Venues: CollectionConfig = {
           maxRows: 18,
           defaultValue: Array.from({ length: 18 }, (_, i) => ({ holeNumber: i + 1 })),
           admin: {
-            description: "Hole number fills in automatically based on position — just enter Par, Yards and SI for each row, in order.",
+            description: "Hole number fills in automatically based on position — just enter Yards, Par and SI for each hole.",
+            components: {
+              Field: "/components/admin/HolesTableField#HolesTableField",
+            },
           },
           fields: [
             {
@@ -97,12 +119,12 @@ export const Venues: CollectionConfig = {
         {
           type: "row",
           fields: [
-            { name: "outPar", label: "OUT (Par)", type: "number", admin: { readOnly: true, width: "16%" } },
-            { name: "outYards", label: "OUT (Yards)", type: "number", admin: { readOnly: true, width: "16%" } },
-            { name: "inPar", label: "IN (Par)", type: "number", admin: { readOnly: true, width: "16%" } },
-            { name: "inYards", label: "IN (Yards)", type: "number", admin: { readOnly: true, width: "16%" } },
-            { name: "totalPar", label: "TOTAL (Par)", type: "number", admin: { readOnly: true, width: "16%" } },
-            { name: "totalYards", label: "TOTAL (Yards)", type: "number", admin: { readOnly: true, width: "16%" } },
+            { name: "outPar", label: "OUT (Par)", type: "number", admin: { readOnly: true, hidden: true, width: "16%" } },
+            { name: "outYards", label: "OUT (Yards)", type: "number", admin: { readOnly: true, hidden: true, width: "16%" } },
+            { name: "inPar", label: "IN (Par)", type: "number", admin: { readOnly: true, hidden: true, width: "16%" } },
+            { name: "inYards", label: "IN (Yards)", type: "number", admin: { readOnly: true, hidden: true, width: "16%" } },
+            { name: "totalPar", label: "TOTAL (Par)", type: "number", admin: { readOnly: true, hidden: true, width: "16%" } },
+            { name: "totalYards", label: "TOTAL (Yards)", type: "number", admin: { readOnly: true, hidden: true, width: "16%" } },
           ],
         },
       ],

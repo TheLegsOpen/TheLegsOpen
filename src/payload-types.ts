@@ -236,6 +236,8 @@ export interface Venue {
     | null;
   imageLabel: string;
   image?: (string | Media) | null;
+  courseRating?: number | null;
+  slopeRating?: number | null;
   holes?:
     | {
         holeNumber: number;
