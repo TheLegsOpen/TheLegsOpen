@@ -41,7 +41,10 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
         <div className="flex flex-col gap-3">
           <span className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">{venue.region}</span>
           <h1 className="font-display font-bold text-display-lg text-balance">{venue.name}</h1>
-          <p className="text-muted-foreground">{venue.location}</p>
+          <p className="flex items-center gap-2 text-muted-foreground">
+            {venue.countryCode ? <CountryFlag code={venue.countryCode} className="h-3 w-[18px] shrink-0" /> : null}
+            <span>{[venue.location, venue.region, venue.country].filter(Boolean).join(", ")}</span>
+          </p>
           <p className="text-lg text-muted-foreground">{venue.description}</p>
         </div>
         <div className="relative">
