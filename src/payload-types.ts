@@ -284,12 +284,47 @@ export interface Championship {
 /**
  * Hand-added — see note at top of file.
  */
+export interface InfoCardGroupBlock {
+  eyebrow?: string | null;
+  heading: string;
+  cards: {
+    image?: (string | Media) | null;
+    tone?: ('navy' | 'gold' | 'dusk' | 'slate') | null;
+    title: string;
+    description?: string | null;
+    linkLabel?: string | null;
+    linkHref: string;
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'infoCardGroup';
+}
+export interface CtaBannerBlock {
+  eyebrow?: string | null;
+  heading: string;
+  description?: string | null;
+  buttonLabel: string;
+  buttonHref: string;
+  tone?: ('light' | 'dark' | 'gold') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'ctaBanner';
+}
+export interface RichTextBlock {
+  heading?: string | null;
+  content: unknown;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'richText';
+}
 export interface HomepageSettingsGlobal {
   id: string;
   currentChampion: {
     championship: string | Championship;
     article: string | Article;
   };
+  sections?: (InfoCardGroupBlock | CtaBannerBlock | RichTextBlock)[] | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }

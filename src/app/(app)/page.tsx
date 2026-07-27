@@ -1,10 +1,10 @@
 import { Hero } from "@/components/home/hero";
 import { LeaderboardWidget } from "@/components/home/leaderboard-widget";
-import { InfoBlocks } from "@/components/home/info-blocks";
+import { HomepageSections } from "@/components/home/sections/homepage-sections";
 import { ProductShowcaseCarousel } from "@/components/home/product-showcase-carousel";
 import { NewsGrid } from "@/components/home/news-grid";
 import { getArticles, getArticlesPage } from "@/lib/data/articles";
-import { getCurrentChampion } from "@/lib/data/homepage-settings";
+import { getCurrentChampion, getHomepageSections } from "@/lib/data/homepage-settings";
 import { getLeaderboard } from "@/lib/data/leaderboard";
 import { getStatCategories } from "@/lib/data/statistics";
 import { getCompetitionComplete } from "@/lib/data/tournament-status";
@@ -20,6 +20,7 @@ export default async function HomePage() {
     articles,
     statCategories,
     competitionComplete,
+    sections,
   ] = await Promise.all([
     getArticlesPage({ page: 1, pageSize: PAGE_SIZE }),
     getCurrentChampion(),
@@ -27,6 +28,7 @@ export default async function HomePage() {
     getArticles(),
     getStatCategories(),
     getCompetitionComplete(),
+    getHomepageSections(),
   ]);
 
   return (
@@ -38,7 +40,7 @@ export default async function HomePage() {
         articles={articles}
         competitionComplete={competitionComplete}
       />
-      <InfoBlocks />
+      <HomepageSections sections={sections} />
       <ProductShowcaseCarousel />
       <NewsGrid initialArticles={initialArticles} initialHasMore={initialHasMore} />
     </>
