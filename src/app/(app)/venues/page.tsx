@@ -3,9 +3,10 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
 import { SectionHeading } from "@/components/shared/section-heading";
-import { FeaturedVenueCard } from "@/components/venues/featured-venue-card";
+import { UpcomingVenues } from "@/components/venues/upcoming-venues";
 import { VenueListItem } from "@/components/venues/venue-list-item";
 import { getVenues } from "@/lib/data/venues";
+import { getUpcomingChampionships } from "@/lib/data/championships";
 import { getPageBanners } from "@/lib/data/page-banners";
 
 export const metadata: Metadata = {
@@ -14,13 +15,11 @@ export const metadata: Metadata = {
 };
 
 export default async function VenuesPage() {
-  const [venues, banners] = await Promise.all([getVenues(), getPageBanners()]);
-
-  const featured = venues.reduce<(typeof venues)[number] | undefined>(
-    (mostHosted, venue) => (!mostHosted || venue.timesHosted > mostHosted.timesHosted ? venue : mostHosted),
-    undefined,
-  );
-  const rest = venues.filter((venue) => venue.slug !== featured?.slug);
+  const [venues, upcomingChampionships, banners] = await Promise.all([
+    getVenues(),
+    getUpcomingChampionships(),
+    getPageBanners(),
+  ]);
 
   return (
     <>
@@ -33,11 +32,11 @@ export default async function VenuesPage() {
         description={banners.venuesDescription}
       />
       <Container className="flex flex-col gap-16 py-16 sm:py-24">
-        {featured ? (
+        {upcomingChampionships.length > 0 ? (
           <div>
-            <SectionHeading eyebrow="Home Venue" title="Where it all began" />
+            <SectionHeading eyebrow="Upcoming" title="Upcoming Venues" />
             <div className="mt-8">
-              <FeaturedVenueCard venue={featured} />
+              <UpcomingVenues championships={upcomingChampionships} />
             </div>
           </div>
         ) : null}
@@ -45,7 +44,7 @@ export default async function VenuesPage() {
         <div>
           <SectionHeading eyebrow="The Rotation" title="Venues past and present" />
           <div className="mt-8 flex flex-col divide-y divide-border border-y border-border">
-            {rest.map((venue) => (
+            {venues.map((venue) => (
               <VenueListItem key={venue.slug} venue={venue} />
             ))}
           </div>
