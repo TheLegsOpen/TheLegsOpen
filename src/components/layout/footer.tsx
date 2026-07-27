@@ -1,22 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
-import { MessageCircle, Camera, Briefcase, AtSign, Video, Music2 } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
 import { FOOTER_COLUMNS } from "@/data/navigation";
-import { SITE, SOCIAL_LINKS } from "@/constants/site";
+import { SITE } from "@/constants/site";
 import type { SponsorEntry } from "@/lib/data/sponsors";
-
-// Generic stand-in icons (Lucide's brand/logo marks are intentionally not
-// used here, since those are third-party trademarks).
-const SOCIAL_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  Facebook: MessageCircle,
-  Instagram: Camera,
-  LinkedIn: Briefcase,
-  X: AtSign,
-  YouTube: Video,
-  TikTok: Music2,
-};
+import type { SocialLink } from "@/lib/data/social-links";
 
 function LogoWall({ entries }: { entries: SponsorEntry[] }) {
   return (
@@ -44,9 +33,10 @@ interface FooterProps {
   logoUrl?: string;
   patrons: SponsorEntry[];
   officialSuppliers: SponsorEntry[];
+  socialLinks: SocialLink[];
 }
 
-export function Footer({ logoUrl, patrons, officialSuppliers }: FooterProps) {
+export function Footer({ logoUrl, patrons, officialSuppliers, socialLinks }: FooterProps) {
   return (
     <footer className="border-t border-border bg-primary text-primary-foreground">
       <Container className="grid gap-12 py-16 sm:py-20 lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
@@ -90,22 +80,24 @@ export function Footer({ logoUrl, patrons, officialSuppliers }: FooterProps) {
           </div>
 
           <div className="flex flex-col gap-6 border-t border-primary-foreground/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
-            <ul className="flex gap-3">
-              {SOCIAL_LINKS.map((social) => {
-                const Icon = SOCIAL_ICONS[social.label] ?? MessageCircle;
-                return (
-                  <li key={social.label}>
+            {socialLinks.length ? (
+              <ul className="flex gap-3">
+                {socialLinks.map((social) => (
+                  <li key={social.platform}>
                     <Link
-                      href={social.href}
+                      href={social.url}
                       aria-label={social.label}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex h-9 w-9 items-center justify-center rounded-full border border-primary-foreground/20 transition-colors hover:bg-primary-foreground/10"
                     >
-                      <Icon className="h-4 w-4" aria-hidden="true" />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={social.iconUrl} alt="" className="h-4 w-4 object-contain" />
                     </Link>
                   </li>
-                );
-              })}
-            </ul>
+                ))}
+              </ul>
+            ) : null}
             <p>
               © {new Date().getFullYear()} Legs Open Championships Ltd. Registered in Fifeshire. The Beach House,
               Seabrook, Fifeshire. This is a fictional, educational recreation and is not affiliated with any real

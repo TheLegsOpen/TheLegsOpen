@@ -9,12 +9,3 @@ export const SITE = {
   currentYear: 2026,
   nextVenue: "Seabrook Old Course",
 } as const;
-
-export const SOCIAL_LINKS = [
-  { label: "Facebook", href: "#" },
-  { label: "Instagram", href: "#" },
-  { label: "LinkedIn", href: "#" },
-  { label: "X", href: "#" },
-  { label: "YouTube", href: "#" },
-  { label: "TikTok", href: "#" },
-] as const;

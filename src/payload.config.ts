@@ -21,6 +21,7 @@ import { SponsorClock } from "./globals/SponsorClock";
 import { TournamentStatus } from "./globals/TournamentStatus";
 import { PageBanners } from "./globals/PageBanners";
 import { Sponsors } from "./globals/Sponsors";
+import { SocialLinks } from "./globals/SocialLinks";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -43,7 +44,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, Players, Venues, Articles, Championships, LeaderboardEntries, TeeTimeRounds, PlayerStatistics],
-  globals: [HomepageSettings, SiteTheme, SponsorClock, TournamentStatus, PageBanners, Sponsors],
+  globals: [HomepageSettings, SiteTheme, SponsorClock, TournamentStatus, PageBanners, Sponsors, SocialLinks],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "",
   typescript: {

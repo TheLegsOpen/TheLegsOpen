@@ -109,6 +109,7 @@ export interface Config {
     'tournament-status': TournamentStatusGlobal;
     'page-banners': PageBannersGlobal;
     'sponsors': SponsorsGlobal;
+    'social-links': SocialLinksGlobal;
   };
   globalsSelect: {};
   locale: null;
@@ -417,6 +418,23 @@ export interface SponsorsGlobal {
     | {
         name: string;
         logo: string | Media;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface SocialLinksGlobal {
+  id: string;
+  links?:
+    | {
+        platform: 'Facebook' | 'Instagram' | 'LinkedIn' | 'X' | 'YouTube' | 'TikTok' | 'Other';
+        label?: string | null;
+        icon?: string | Media | null;
+        url?: string | null;
         id?: string | null;
       }[]
     | null;
