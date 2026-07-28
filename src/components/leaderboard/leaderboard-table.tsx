@@ -86,7 +86,7 @@ function LeaderboardRow({
       onLayoutAnimationStart={() => setIsMoving(true)}
       onLayoutAnimationComplete={() => setIsMoving(false)}
       className={cn(
-        "relative border-b border-surface-dark-foreground/15 bg-accent/90 text-accent-foreground last:border-0 hover:bg-accent",
+        "relative bg-accent/90 text-accent-foreground hover:bg-accent",
         isMoving && "z-10 shadow-[0_10px_24px_-6px_rgba(0,0,0,0.45)]",
       )}
       style={{ position: "relative" }}

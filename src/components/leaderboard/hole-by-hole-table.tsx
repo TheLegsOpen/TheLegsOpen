@@ -55,7 +55,7 @@ export function HoleByHoleTable({ entries }: HoleByHoleTableProps) {
           {entries.map((entry) => {
             const { surname, firstName } = splitSurnameFirst(entry.player.name);
             return (
-              <tr key={entry.player.id} className="border-b border-surface-dark-foreground/15 bg-accent/90 text-accent-foreground last:border-0 hover:bg-accent">
+              <tr key={entry.player.id} className="bg-accent/90 text-accent-foreground hover:bg-accent">
                 <td className="px-2 py-3 tabular-nums">
                   {entry.tied ? "T" : ""}
                   {entry.position}
