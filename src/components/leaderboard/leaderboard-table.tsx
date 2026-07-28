@@ -41,8 +41,8 @@ const COMPETITION_LABEL: Record<Competition, string> = {
 
 const ROW_TRANSITION = { type: "spring" as const, stiffness: 380, damping: 34, mass: 0.9 };
 
-/** Flat, square-cornered, shadow-free tiles for Par/Hole/Score — matches theopen.com's leaderboard cell styling exactly (no radius, no shadow, top border on the value tile itself). */
-export const TILE_CLASS = "inline-block min-w-[2.75rem] px-2 py-1 text-xs font-bold tabular-nums border-t-2 border-accent";
+/** Flat, square-cornered, shadow-free tiles for Par/Hole/Score — matches theopen.com's leaderboard cell styling exactly (no radius, no shadow). Top edge replicates their .score-cell--has-border:before: a 3px solid-black line at 15% opacity, not a bordered colour. */
+export const TILE_CLASS = "inline-block min-w-[2.75rem] px-2 py-1 text-xs font-bold tabular-nums border-t-[3px] border-black/15";
 export const NEUTRAL_TILE_CLASS = "bg-[#FFD062] text-black";
 
 /** Fades/pops a value in whenever it changes, so an updated score or position catches the eye. */
