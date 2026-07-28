@@ -20,9 +20,9 @@ interface LeaderboardTableProps {
 
 /** Aggregate (round-total) Par pill — 3-tier, since a multi-hole total doesn't have a meaningful "eagle" case. */
 export function scorePillClass(relativeToPar: number): string {
-  if (relativeToPar < 0) return "bg-[#CB333B] text-white";
+  if (relativeToPar < 0) return "bg-white text-[#CB333B]";
   if (relativeToPar === 0) return "bg-[#0E3D2C] text-white";
-  return "bg-[#08325A] text-white";
+  return "bg-white text-[#08325A]";
 }
 
 /** Per-hole colours — full eagle/birdie/par/bogey-or-worse scale, only meaningful at the single-hole level. */

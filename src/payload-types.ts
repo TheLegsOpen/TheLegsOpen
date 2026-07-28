@@ -601,6 +601,7 @@ export interface Scorecard {
   player: string | Player;
   championship: string | Championship;
   teeTime?: string | null;
+  scoreUpdatedAt?: string | null;
   holes?:
     | {
         holeNumber: number;

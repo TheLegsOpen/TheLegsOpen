@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Flag, Info, Search, Star, X } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,6 +24,9 @@ interface LeaderboardViewProps {
   clockConfig: SponsorClock;
 }
 
+/** Matches the ~10s live-score polling cadence measured on theopen.com/leaderboard. */
+const AUTO_REFRESH_INTERVAL_MS = 10_000;
+
 function filterEntries(entries: CompetitionEntry[], query: string): CompetitionEntry[] {
   const q = query.trim().toLowerCase();
   if (!q) return entries;
@@ -32,12 +36,22 @@ function filterEntries(entries: CompetitionEntry[], query: string): CompetitionE
 }
 
 export function LeaderboardView({ main, stableford, scratch, featuredArticle, clockConfig }: LeaderboardViewProps) {
+  const router = useRouter();
   const { favorites, toggleFavorite, hydrated } = useFavorites();
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [infoOpen, setInfoOpen] = useState(false);
   const [holeByHole, setHoleByHole] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        router.refresh();
+      }
+    }, AUTO_REFRESH_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [router]);
 
   const mainEntries = useMemo(() => filterEntries(main, query), [main, query]);
   const stablefordEntries = useMemo(() => filterEntries(stableford, query), [stableford, query]);

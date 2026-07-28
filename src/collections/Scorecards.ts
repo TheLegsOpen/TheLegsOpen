@@ -9,7 +9,7 @@ export const Scorecards: CollectionConfig = {
   labels: { singular: "Scorecard", plural: "Scorecards" },
   admin: {
     useAsTitle: "id",
-    defaultColumns: ["player", "teeTime", "championship", "grossTotal", "nettTotal", "stablefordTotal", "holesCompleted"],
+    defaultColumns: ["player", "teeTime", "championship", "grossTotal", "nettTotal", "stablefordTotal", "holesCompleted", "scoreUpdatedAt"],
     description:
       "One scorecard per player per championship. Enter gross strokes hole by hole — Nett Strokeplay (Main), Stableford (Secondary) and Gross Strokeplay (Third) are all calculated automatically from this single entry. Sort by Tee Time to cluster players from the same group together.",
   },
@@ -55,6 +55,16 @@ export const Scorecards: CollectionConfig = {
       ],
     },
     {
+      name: "scoreUpdatedAt",
+      label: "Score Last Saved",
+      type: "date",
+      admin: {
+        readOnly: true,
+        date: { pickerAppearance: "dayAndTime", displayFormat: "dd/MM/yyyy HH:mm:ss" },
+        description: "Set automatically whenever this player's hole-by-hole strokes actually change — not touched by unrelated edits (e.g. tee time updates).",
+      },
+    },
+    {
       type: "row",
       fields: [
         { name: "holesCompleted", label: "Thru", type: "number", admin: { readOnly: true, hidden: true, width: "16%" } },
@@ -73,6 +83,15 @@ export const Scorecards: CollectionConfig = {
 
         if (Array.isArray(data.holes)) {
           data.holes = data.holes.map((hole: Record<string, unknown>, index: number) => ({ ...hole, holeNumber: index + 1 }));
+
+          const incomingStrokes = data.holes.map((hole: { strokes?: number }) => hole.strokes ?? null);
+          const originalStrokes = (originalDoc?.holes ?? []).map((hole: { strokes?: number | null }) => hole.strokes ?? null);
+          const strokesChanged =
+            incomingStrokes.length !== originalStrokes.length ||
+            incomingStrokes.some((value: number | null, index: number) => value !== originalStrokes[index]);
+          if (strokesChanged) {
+            data.scoreUpdatedAt = new Date().toISOString();
+          }
         }
 
         const playerId = typeof data.player === "object" ? (data.player as { id?: string })?.id : data.player;
