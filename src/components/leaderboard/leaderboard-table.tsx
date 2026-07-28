@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Star } from "lucide-react";
 
-import { cn, playerSlug } from "@/lib/utils";
+import { cn, playerSlug, surnameFirst } from "@/lib/utils";
 import { formatToPar } from "@/lib/leaderboard";
 import { CountryFlag } from "@/components/shared/country-flag";
 import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
@@ -17,9 +17,9 @@ interface LeaderboardTableProps {
 }
 
 function scorePillClass(toPar: number): string {
-  if (toPar < 0) return "bg-destructive text-white";
-  if (toPar === 0) return "bg-primary text-primary-foreground";
-  return "bg-surface-dark-foreground/15 text-surface-dark-foreground";
+  if (toPar < 0) return "bg-white text-destructive";
+  if (toPar === 0) return "bg-[#66907b] text-white";
+  return "bg-white text-blue-600";
 }
 
 const COMPETITION_LABEL: Record<Competition, string> = {
@@ -84,7 +84,7 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
                 </td>
                 <td className="px-2 py-3">
                   <Link href={`/players/${playerSlug(entry.player)}`} className="font-medium hover:underline">
-                    {entry.player.name}
+                    {surnameFirst(entry.player.name)}
                   </Link>
                   <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
                 </td>
