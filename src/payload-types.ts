@@ -627,6 +627,7 @@ export interface LiveBlogPost {
   category: "eagle" | "birdie" | "bogey" | "leader" | "round-complete" | "championship";
   headline: string;
   body: string;
+  competition?: ("main" | "stableford" | "scratch") | null;
   championship: string | Championship;
   player?: (string | Player) | null;
   holeNumber?: number | null;

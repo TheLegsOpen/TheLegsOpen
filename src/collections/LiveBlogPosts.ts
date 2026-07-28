@@ -30,6 +30,16 @@ export const LiveBlogPosts: CollectionConfig = {
     },
     { name: "headline", type: "text", required: true },
     { name: "body", type: "textarea", required: true },
+    {
+      name: "competition",
+      type: "select",
+      options: [
+        { label: "Main", value: "main" },
+        { label: "Stableford", value: "stableford" },
+        { label: "Scratch", value: "scratch" },
+      ],
+      admin: { description: "Which competition this relates to -- set on Leader posts so the site can say which board it's about." },
+    },
     { name: "championship", type: "relationship", relationTo: "championships", required: true },
     { name: "player", type: "relationship", relationTo: "players" },
     { name: "holeNumber", type: "number", admin: { description: "Which hole this post relates to, if any." } },

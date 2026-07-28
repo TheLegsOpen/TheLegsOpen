@@ -5,7 +5,7 @@ import { ArrowDownCircle, ArrowUpCircle, Crown, Flag, Star, Trophy } from "lucid
 
 import { CountryFlag } from "@/components/shared/country-flag";
 import { cn, playerSlug } from "@/lib/utils";
-import type { LiveBlogCategory, LiveBlogEntry } from "@/lib/data/live-blog";
+import type { LiveBlogCategory, LiveBlogCompetition, LiveBlogEntry } from "@/lib/data/live-blog";
 
 const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: typeof Star; chipClass: string }> = {
   eagle: { label: "Eagle", icon: Star, chipClass: "bg-[#910149] text-white" },
@@ -14,6 +14,12 @@ const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: typeof Star
   leader: { label: "Leader", icon: Crown, chipClass: "bg-[#0E3D2C] text-white" },
   "round-complete": { label: "Round complete", icon: Flag, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
   championship: { label: "Championship", icon: Trophy, chipClass: "bg-accent text-accent-foreground" },
+};
+
+const COMPETITION_LABEL: Record<LiveBlogCompetition, string> = {
+  main: "Main",
+  stableford: "Stableford",
+  scratch: "Scratch",
 };
 
 function formatTime(iso: string): string {
@@ -49,6 +55,7 @@ export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
               <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wide", meta.chipClass)}>
                 <Icon className="h-3.5 w-3.5" />
                 {meta.label}
+                {entry.competition ? ` · ${COMPETITION_LABEL[entry.competition]}` : ""}
               </span>
               <span className="text-xs text-surface-dark-foreground/50 tabular-nums">
                 {formatTime(entry.postedAt)} · {formatDate(entry.postedAt)}

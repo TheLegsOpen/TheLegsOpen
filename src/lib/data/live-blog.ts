@@ -7,10 +7,12 @@ import type { Player } from "@/types/player";
 import type { Player as PayloadPlayer } from "@/payload-types";
 
 export type LiveBlogCategory = "eagle" | "birdie" | "bogey" | "leader" | "round-complete" | "championship";
+export type LiveBlogCompetition = "main" | "stableford" | "scratch";
 
 export interface LiveBlogEntry {
   id: string;
   category: LiveBlogCategory;
+  competition?: LiveBlogCompetition;
   headline: string;
   body: string;
   player?: Player;
@@ -34,6 +36,7 @@ export async function getLiveBlogPosts(): Promise<LiveBlogEntry[]> {
   return result.docs.map((doc) => ({
     id: String(doc.id),
     category: doc.category,
+    competition: doc.competition ?? undefined,
     headline: doc.headline,
     body: doc.body,
     player: typeof doc.player === "object" && doc.player ? mapPlayer(doc.player as PayloadPlayer) : undefined,

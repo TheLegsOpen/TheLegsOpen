@@ -53,12 +53,22 @@ export function bogeyCommentary(playerName: string, holeNumber: number, relative
   return { headline, body };
 }
 
-export function leaderCommentary(playerName: string, toPar: number, competitionLabel: string): Commentary {
+export function leaderCommentary(playerName: string, scoreLabel: string, competitionLabel: string): Commentary {
   const headline = pick(["New leader", `${playerName.split(" ").slice(-1)[0]} takes control`]);
   const body = pick([
-    `${playerName} moves to the top of the ${competitionLabel} leaderboard at ${formatToPar(toPar)}.`,
-    `${playerName} now holds the outright lead in the ${competitionLabel} standings on ${formatToPar(toPar)}.`,
-    `A new name at the top — ${playerName} leads the ${competitionLabel} competition at ${formatToPar(toPar)}.`,
+    `${playerName} moves to the top of the ${competitionLabel} leaderboard at ${scoreLabel}.`,
+    `${playerName} now holds the outright lead in the ${competitionLabel} standings on ${scoreLabel}.`,
+    `A new name at the top — ${playerName} leads the ${competitionLabel} competition at ${scoreLabel}.`,
+  ]);
+  return { headline, body };
+}
+
+export function competitionUnderwayCommentary(year: number, venueName: string): Commentary {
+  const headline = pick(["Under way", "First balls down the fairway"]);
+  const body = pick([
+    `The first scores are on the board. The ${year} Legs Open is under way at ${venueName}.`,
+    `First balls are down the fairway — the ${year} Legs Open gets under way at ${venueName}.`,
+    `And we're off. The ${year} Legs Open begins at ${venueName}.`,
   ]);
   return { headline, body };
 }

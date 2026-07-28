@@ -5,7 +5,7 @@ import { mapPlayer } from "@/lib/data/players";
 import { allocateStrokes, stablefordPoints } from "@/lib/scoring";
 import type { Player } from "@/types/player";
 import type { Player as PayloadPlayer, Championship as PayloadChampionship, Venue as PayloadVenue } from "@/payload-types";
-import type { Payload } from "payload";
+import type { Payload, PayloadRequest } from "payload";
 
 export type Competition = "main" | "stableford" | "scratch";
 
@@ -29,11 +29,15 @@ export interface CompetitionEntry {
   holes: HoleScore[];
 }
 
-/** Whichever championship is flagged "Currently Being Scored" — falls back to the most recent by year. */
-export async function getActiveChampionship(payload: Payload): Promise<PayloadChampionship | undefined> {
-  const active = await payload.find({ collection: "championships", where: { isActive: { equals: true } }, limit: 1 });
+/**
+ * Whichever championship is flagged "Currently Being Scored" — falls back to the most recent by year.
+ * Pass `req` when calling from inside a hook so this reads within the same in-flight transaction
+ * (e.g. the very write that triggered the hook) instead of a separate connection that can't see it yet.
+ */
+export async function getActiveChampionship(payload: Payload, req?: PayloadRequest): Promise<PayloadChampionship | undefined> {
+  const active = await payload.find({ collection: "championships", where: { isActive: { equals: true } }, limit: 1, req });
   if (active.docs[0]) return active.docs[0];
-  const latest = await payload.find({ collection: "championships", sort: "-year", limit: 1 });
+  const latest = await payload.find({ collection: "championships", sort: "-year", limit: 1, req });
   return latest.docs[0];
 }
 
@@ -50,9 +54,15 @@ function parseTeeTimeMinutes(time: string): number {
   return Number(match[1]) * 60 + Number(match[2]);
 }
 
-export async function getCompetitionLeaderboard(competition: Competition): Promise<CompetitionEntry[]> {
-  const payload = await getPayload({ config: configPromise });
-  const championship = await getActiveChampionship(payload);
+/**
+ * Pass `req` when calling from inside a hook (e.g. the Scorecards afterChange hook that
+ * generates live blog posts) so this reads within the same in-flight transaction as the
+ * write that triggered it -- otherwise it queries a separate connection that can't see
+ * that write until the outer transaction commits, one hook invocation late.
+ */
+export async function getCompetitionLeaderboard(competition: Competition, req?: PayloadRequest): Promise<CompetitionEntry[]> {
+  const payload = req?.payload ?? (await getPayload({ config: configPromise }));
+  const championship = await getActiveChampionship(payload, req);
   if (!championship) return [];
 
   const venue = typeof championship.venue === "object" ? (championship.venue as PayloadVenue) : undefined;
@@ -67,12 +77,14 @@ export async function getCompetitionLeaderboard(competition: Competition): Promi
       where: { championship: { equals: championship.id } },
       limit: 300,
       depth: 1,
+      req,
     }),
     payload.find({
       collection: "tee-time-rounds",
       where: { and: [{ championship: { equals: championship.id } }, { round: { equals: "Championship" } }] },
       limit: 50,
       depth: 0,
+      req,
     }),
   ]);
 
