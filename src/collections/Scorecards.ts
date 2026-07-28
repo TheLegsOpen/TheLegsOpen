@@ -9,9 +9,9 @@ export const Scorecards: CollectionConfig = {
   labels: { singular: "Scorecard", plural: "Scorecards" },
   admin: {
     useAsTitle: "id",
-    defaultColumns: ["player", "championship", "grossTotal", "nettTotal", "stablefordTotal", "holesCompleted"],
+    defaultColumns: ["player", "teeTime", "championship", "grossTotal", "nettTotal", "stablefordTotal", "holesCompleted"],
     description:
-      "One scorecard per player per championship. Enter gross strokes hole by hole — Nett Strokeplay (Main), Stableford (Secondary) and Gross Strokeplay (Third) are all calculated automatically from this single entry.",
+      "One scorecard per player per championship. Enter gross strokes hole by hole — Nett Strokeplay (Main), Stableford (Secondary) and Gross Strokeplay (Third) are all calculated automatically from this single entry. Sort by Tee Time to cluster players from the same group together.",
   },
   access: {
     read: () => true,
@@ -19,6 +19,14 @@ export const Scorecards: CollectionConfig = {
   fields: [
     { name: "player", type: "relationship", relationTo: "players", required: true },
     { name: "championship", type: "relationship", relationTo: "championships", required: true },
+    {
+      name: "teeTime",
+      type: "text",
+      admin: {
+        readOnly: true,
+        description: "Set automatically from the player's Championship-round tee time. Sort this column to group players by tee time.",
+      },
+    },
     {
       name: "holes",
       type: "array",
@@ -81,6 +89,25 @@ export const Scorecards: CollectionConfig = {
           if (conflict) {
             throw new Error("This player already has a scorecard for this championship.");
           }
+
+          const teeTimeRounds = await req.payload.find({
+            collection: "tee-time-rounds",
+            where: { and: [{ championship: { equals: championshipId } }, { round: { equals: "Championship" } }] },
+            limit: 50,
+            depth: 0,
+          });
+          let teeTime = "";
+          for (const round of teeTimeRounds.docs) {
+            for (const group of round.groups ?? []) {
+              const inGroup = (group.players ?? []).some((p) => (typeof p === "object" ? p.id : p) == playerId);
+              if (inGroup) {
+                teeTime = group.time;
+                break;
+              }
+            }
+            if (teeTime) break;
+          }
+          data.teeTime = teeTime;
         }
 
         if (playerId && championshipId && Array.isArray(data.holes)) {
