@@ -30,7 +30,7 @@ export interface CompetitionEntry {
 }
 
 /** Whichever championship is flagged "Currently Being Scored" — falls back to the most recent by year. */
-async function getActiveChampionship(payload: Payload): Promise<PayloadChampionship | undefined> {
+export async function getActiveChampionship(payload: Payload): Promise<PayloadChampionship | undefined> {
   const active = await payload.find({ collection: "championships", where: { isActive: { equals: true } }, limit: 1 });
   if (active.docs[0]) return active.docs[0];
   const latest = await payload.find({ collection: "championships", sort: "-year", limit: 1 });

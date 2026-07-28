@@ -600,6 +600,7 @@ export interface Scorecard {
   id: string;
   player: string | Player;
   championship: string | Championship;
+  teeTime?: string | null;
   holes?:
     | {
         holeNumber: number;
