@@ -202,6 +202,7 @@ export interface Player {
   age?: number | null;
   championshipHandicap?: number | null;
   previousOpens: number;
+  inField?: boolean | null;
   cdhNumber?: string | null;
   photo?: (string | Media) | null;
   bio?: unknown;
@@ -553,6 +554,7 @@ export interface LeaderboardEntry {
 export interface TeeTimeRound {
   id: string;
   round: 'Practice' | 'Championship';
+  championship?: (string | Championship) | null;
   day: string;
   date: string;
   archived?: boolean | null;

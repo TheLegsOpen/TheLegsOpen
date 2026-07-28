@@ -70,6 +70,16 @@ export const Players: CollectionConfig = {
     },
     { name: "previousOpens", type: "number", required: true, defaultValue: 0 },
     {
+      name: "inField",
+      label: "In Current Field",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        description: "Tick for players competing in the current championship — narrows the player picker when building tee times.",
+        position: "sidebar",
+      },
+    },
+    {
       name: "cdhNumber",
       label: "CDH Number",
       type: "text",
