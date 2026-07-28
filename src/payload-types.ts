@@ -86,6 +86,7 @@ export interface Config {
     'player-statistics': PlayerStatistic;
     'legal-pages': LegalPage;
     scorecards: Scorecard;
+    'live-blog-posts': LiveBlogPost;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -615,6 +616,21 @@ export interface Scorecard {
   stablefordTotal?: number | null;
   toParGross?: number | null;
   toParNett?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface LiveBlogPost {
+  id: string;
+  category: "eagle" | "birdie" | "bogey" | "leader" | "round-complete" | "championship";
+  headline: string;
+  body: string;
+  championship: string | Championship;
+  player?: (string | Player) | null;
+  holeNumber?: number | null;
+  postedAt: string;
   updatedAt: string;
   createdAt: string;
 }

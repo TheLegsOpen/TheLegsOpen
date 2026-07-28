@@ -17,6 +17,7 @@ import { TeeTimeRounds } from "./collections/TeeTimeRounds";
 import { PlayerStatistics } from "./collections/PlayerStatistics";
 import { LegalPages } from "./collections/LegalPages";
 import { Scorecards } from "./collections/Scorecards";
+import { LiveBlogPosts } from "./collections/LiveBlogPosts";
 import { HomepageSettings } from "./globals/HomepageSettings";
 import { SiteTheme } from "./globals/SiteTheme";
 import { SponsorClock } from "./globals/SponsorClock";
@@ -60,6 +61,7 @@ export default buildConfig({
     PlayerStatistics,
     LegalPages,
     Scorecards,
+    LiveBlogPosts,
   ],
   globals: [
     HomepageSettings,

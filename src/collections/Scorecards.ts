@@ -2,6 +2,7 @@ import type { CollectionConfig } from "payload";
 
 import { revalidateSite } from "@/lib/revalidate";
 import { computeScorecardTotals } from "@/lib/scoring";
+import { generateLiveBlogPosts } from "@/lib/live-blog/generate";
 import type { Venue, Player, Championship } from "@/payload-types";
 
 export const Scorecards: CollectionConfig = {
@@ -157,7 +158,7 @@ export const Scorecards: CollectionConfig = {
         return data;
       },
     ],
-    afterChange: [revalidateSite],
+    afterChange: [generateLiveBlogPosts, revalidateSite],
     afterDelete: [revalidateSite],
   },
 };
