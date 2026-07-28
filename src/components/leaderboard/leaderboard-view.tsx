@@ -47,7 +47,12 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
     <Tabs defaultValue="main">
       <div className="bg-surface-dark bg-dashboard-pattern text-surface-dark-foreground">
         <Container className="py-12 sm:py-16">
-          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px] lg:items-start">
+          <div
+            className={cn(
+              "grid grid-cols-1 gap-10 lg:items-start",
+              holeByHole ? "lg:grid-cols-1" : "lg:grid-cols-[1fr_320px]",
+            )}
+          >
             <div>
               <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
                 <TabsList className="border border-surface-dark-foreground/15 bg-surface-dark-foreground/10">
@@ -187,7 +192,7 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
                 )}
               </TabsContent>
             </div>
-            <ChampionshipSidebar featuredArticle={featuredArticle} clockConfig={clockConfig} tone="dark" />
+            {!holeByHole && <ChampionshipSidebar featuredArticle={featuredArticle} clockConfig={clockConfig} tone="dark" />}
           </div>
         </Container>
       </div>
