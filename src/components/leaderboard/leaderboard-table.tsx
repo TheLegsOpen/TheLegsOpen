@@ -18,9 +18,9 @@ interface LeaderboardTableProps {
   favoritesOnly: boolean;
 }
 
-function scorePillClass(toPar: number): string {
-  if (toPar < 0) return "bg-white text-destructive";
-  if (toPar === 0) return "bg-[#0E3D2C] text-white";
+export function scorePillClass(relativeToPar: number): string {
+  if (relativeToPar < 0) return "bg-white text-destructive";
+  if (relativeToPar === 0) return "bg-[#0E3D2C] text-white";
   return "bg-white text-blue-600";
 }
 
@@ -33,11 +33,13 @@ const COMPETITION_LABEL: Record<Competition, string> = {
 const ROW_TRANSITION = { type: "spring" as const, stiffness: 380, damping: 34, mass: 0.9 };
 
 /** Flat, square-cornered, shadow-free tiles for Par/Hole/Score — matches theopen.com's leaderboard cell styling exactly (no radius, no shadow). */
-const TILE_CLASS = "inline-block min-w-[2.75rem] px-2 py-1 text-xs font-bold tabular-nums";
-const NEUTRAL_TILE_CLASS = "bg-[#FFD062] text-black";
+export const TILE_CLASS = "inline-block min-w-[2.75rem] px-2 py-1 text-xs font-bold tabular-nums";
+export const NEUTRAL_TILE_CLASS = "bg-[#FFD062] text-black";
+/** Top border shared by the Par/Hole/Score header cells, matching theopen.com's stat-column framing — deliberately no vertical dividers between them. */
+const HEADER_TOP_BORDER = "border-t-2 border-accent";
 
 /** Fades/pops a value in whenever it changes, so an updated score or position catches the eye. */
-function AnimatedValue({ value }: { value: string | number }) {
+export function AnimatedValue({ value }: { value: string | number }) {
   return (
     <AnimatePresence mode="popLayout" initial={false}>
       <motion.span
@@ -116,13 +118,9 @@ function LeaderboardRow({
         </span>
       </td>
       <td className="px-4 py-3 text-right tabular-nums" title={COMPETITION_LABEL[competition]}>
-        {entry.score !== undefined ? (
-          <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
-            <AnimatedValue value={entry.score} />
-          </span>
-        ) : (
-          <span className="text-accent-foreground/50">—</span>
-        )}
+        <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
+          <AnimatedValue value={entry.score ?? ""} />
+        </span>
       </td>
     </motion.tr>
   );
@@ -157,9 +155,9 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
             <th className="w-10 px-4 py-3" aria-label="Favorite" />
             <th className="px-2 py-3">Pos</th>
             <th className="px-2 py-3">Player</th>
-            <th className="px-2 py-3 text-right">Par</th>
-            <th className="px-2 py-3 text-right">Hole</th>
-            <th className="px-4 py-3 text-right">Score</th>
+            <th className={cn("px-2 py-3 text-right", HEADER_TOP_BORDER)}>Par</th>
+            <th className={cn("px-2 py-3 text-right", HEADER_TOP_BORDER)}>Hole</th>
+            <th className={cn("px-4 py-3 text-right", HEADER_TOP_BORDER)}>Score</th>
           </tr>
         </thead>
         <tbody>

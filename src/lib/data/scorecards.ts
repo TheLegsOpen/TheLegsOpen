@@ -2,11 +2,21 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { mapPlayer } from "@/lib/data/players";
+import { allocateStrokes, stablefordPoints } from "@/lib/scoring";
 import type { Player } from "@/types/player";
-import type { Player as PayloadPlayer, Championship as PayloadChampionship } from "@/payload-types";
+import type { Player as PayloadPlayer, Championship as PayloadChampionship, Venue as PayloadVenue } from "@/payload-types";
 import type { Payload } from "payload";
 
 export type Competition = "main" | "stableford" | "scratch";
+
+export interface HoleScore {
+  holeNumber: number;
+  par: number;
+  /** Nett score (Main), gross score (Scratch), or points (Stableford) for this hole — undefined if not yet played. */
+  value?: number;
+  /** value relative to "expected" (par for Main/Scratch, 2pts for Stableford) — drives the under/level/over colour. */
+  relative: number;
+}
 
 export interface CompetitionEntry {
   position: number;
@@ -16,6 +26,7 @@ export interface CompetitionEntry {
   score?: number;
   toPar?: number;
   thru: string;
+  holes: HoleScore[];
 }
 
 /** Whichever championship is flagged "Currently Being Scored" — falls back to the most recent by year. */
@@ -43,6 +54,12 @@ export async function getCompetitionLeaderboard(competition: Competition): Promi
   const payload = await getPayload({ config: configPromise });
   const championship = await getActiveChampionship(payload);
   if (!championship) return [];
+
+  const venue = typeof championship.venue === "object" ? (championship.venue as PayloadVenue) : undefined;
+  const holeInfos = Array.from({ length: 18 }, (_, i) => ({
+    par: venue?.holes?.[i]?.par ?? 4,
+    si: venue?.holes?.[i]?.si ?? i + 1,
+  }));
 
   const [result, teeTimeRounds] = await Promise.all([
     payload.find({
@@ -79,6 +96,23 @@ export async function getCompetitionLeaderboard(competition: Competition): Promi
     const thru = started ? (finished ? "F" : String(holesCompleted)) : teeTime || "—";
     const teeTimeMinutes = parseTeeTimeMinutes(teeTime);
 
+    const strokesReceived = allocateStrokes(player.championshipHandicap ?? 0, holeInfos);
+    const holes: HoleScore[] = holeInfos.map((info, i) => {
+      const strokes = doc.holes?.[i]?.strokes ?? undefined;
+      if (strokes == null) {
+        return { holeNumber: i + 1, par: info.par, value: undefined, relative: 0 };
+      }
+      if (competition === "scratch") {
+        return { holeNumber: i + 1, par: info.par, value: strokes, relative: strokes - info.par };
+      }
+      const nett = strokes - strokesReceived[i];
+      if (competition === "main") {
+        return { holeNumber: i + 1, par: info.par, value: nett, relative: nett - info.par };
+      }
+      const points = stablefordPoints(nett, info.par);
+      return { holeNumber: i + 1, par: info.par, value: points, relative: points - 2 };
+    });
+
     // tieKey groups players into the same standing — lower is better for main/scratch (to-par),
     // negated Stableford points so the same ascending comparator works for both.
     if (competition === "main") {
@@ -88,6 +122,7 @@ export async function getCompetitionLeaderboard(competition: Competition): Promi
         started,
         teeTimeMinutes,
         thru,
+        holes,
         score: finished ? (doc.nettTotal ?? 0) : undefined,
         toPar: started ? (doc.toParNett ?? 0) : 0,
         tieKey: doc.toParNett ?? 0,
@@ -100,6 +135,7 @@ export async function getCompetitionLeaderboard(competition: Competition): Promi
         started,
         teeTimeMinutes,
         thru,
+        holes,
         score: finished ? (doc.grossTotal ?? 0) : undefined,
         toPar: started ? (doc.toParGross ?? 0) : 0,
         tieKey: doc.toParGross ?? 0,
@@ -111,6 +147,7 @@ export async function getCompetitionLeaderboard(competition: Competition): Promi
       started,
       teeTimeMinutes,
       thru,
+      holes,
       // Stableford points show live from 0 rather than waiting for the round to start, unlike Main/Scratch.
       score: doc.stablefordTotal ?? 0,
       toPar: started ? (doc.toParNett ?? 0) : 0,
@@ -135,7 +172,7 @@ export async function getCompetitionLeaderboard(competition: Competition): Promi
       position = index + 1;
     }
     const tied = rows.filter((r) => (r.started ? `started:${r.tieKey}` : "not-started") === groupKey).length > 1;
-    entries.push({ position, tied, player: row.player, score: row.score, toPar: row.toPar, thru: row.thru });
+    entries.push({ position, tied, player: row.player, score: row.score, toPar: row.toPar, thru: row.thru, holes: row.holes });
     previousGroupKey = groupKey;
   });
 
