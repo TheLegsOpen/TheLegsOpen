@@ -200,16 +200,20 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
           <div className="mt-2 flex flex-col gap-3">
             <div className="flex flex-col gap-2 text-sm">
               <div className="flex items-center gap-3">
-                <span className="h-3 w-3 shrink-0 rounded-full bg-destructive" />
-                Score is under par
+                <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: "#910149" }} />
+                Eagle or better (Hole by hole only)
               </div>
               <div className="flex items-center gap-3">
-                <span className="h-3 w-3 shrink-0 rounded-full bg-primary" />
-                Score is level par
+                <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: "#CB333B" }} />
+                Under par / Birdie
               </div>
               <div className="flex items-center gap-3">
-                <span className="h-3 w-3 shrink-0 rounded-full bg-muted-foreground/50" />
-                Score is over par
+                <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: "#758973" }} />
+                Level par
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: "#08325A" }} />
+                Over par / Bogey or worse
               </div>
             </div>
           </div>

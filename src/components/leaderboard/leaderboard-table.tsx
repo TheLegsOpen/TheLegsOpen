@@ -18,10 +18,19 @@ interface LeaderboardTableProps {
   favoritesOnly: boolean;
 }
 
+/** Aggregate (round-total) Par pill — 3-tier, since a multi-hole total doesn't have a meaningful "eagle" case. */
 export function scorePillClass(relativeToPar: number): string {
-  if (relativeToPar < 0) return "bg-white text-destructive";
-  if (relativeToPar === 0) return "bg-[#0E3D2C] text-white";
-  return "bg-white text-blue-600";
+  if (relativeToPar < 0) return "bg-[#CB333B] text-white";
+  if (relativeToPar === 0) return "bg-[#758973] text-white";
+  return "bg-[#08325A] text-white";
+}
+
+/** Per-hole colours — full eagle/birdie/par/bogey-or-worse scale, only meaningful at the single-hole level. */
+export function holeScorePillClass(relativeToPar: number): string {
+  if (relativeToPar <= -2) return "bg-[#910149] text-white";
+  if (relativeToPar === -1) return "bg-[#CB333B] text-white";
+  if (relativeToPar === 0) return "bg-[#758973] text-white";
+  return "bg-[#08325A] text-white";
 }
 
 const COMPETITION_LABEL: Record<Competition, string> = {
@@ -35,8 +44,8 @@ const ROW_TRANSITION = { type: "spring" as const, stiffness: 380, damping: 34, m
 /** Flat, square-cornered, shadow-free tiles for Par/Hole/Score — matches theopen.com's leaderboard cell styling exactly (no radius, no shadow). */
 export const TILE_CLASS = "inline-block min-w-[2.75rem] px-2 py-1 text-xs font-bold tabular-nums";
 export const NEUTRAL_TILE_CLASS = "bg-[#FFD062] text-black";
-/** Top border shared by the Par/Hole/Score header cells, matching theopen.com's stat-column framing — deliberately no vertical dividers between them. */
-const HEADER_TOP_BORDER = "border-t-2 border-accent";
+/** Top border repeated on every player row's Par/Hole/Score cells, matching theopen.com's per-row stat framing. */
+export const ROW_TOP_BORDER = "border-t-2 border-accent";
 
 /** Fades/pops a value in whenever it changes, so an updated score or position catches the eye. */
 export function AnimatedValue({ value }: { value: string | number }) {
@@ -103,7 +112,7 @@ function LeaderboardRow({
         </Link>
         <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
       </td>
-      <td className="px-2 py-3 text-right">
+      <td className={cn("px-2 py-3 text-right", ROW_TOP_BORDER)}>
         {entry.toPar !== undefined ? (
           <span className={cn(TILE_CLASS, scorePillClass(entry.toPar))}>
             <AnimatedValue value={formatToPar(entry.toPar)} />
@@ -112,12 +121,12 @@ function LeaderboardRow({
           <span className="text-accent-foreground/50">—</span>
         )}
       </td>
-      <td className="px-2 py-3 text-right tabular-nums">
+      <td className={cn("px-2 py-3 text-right tabular-nums", ROW_TOP_BORDER)}>
         <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
           <AnimatedValue value={entry.thru} />
         </span>
       </td>
-      <td className="px-4 py-3 text-right tabular-nums" title={COMPETITION_LABEL[competition]}>
+      <td className={cn("px-4 py-3 text-right tabular-nums", ROW_TOP_BORDER)} title={COMPETITION_LABEL[competition]}>
         <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
           <AnimatedValue value={entry.score ?? ""} />
         </span>
@@ -155,9 +164,9 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
             <th className="w-10 px-4 py-3" aria-label="Favorite" />
             <th className="px-2 py-3">Pos</th>
             <th className="px-2 py-3">Player</th>
-            <th className={cn("px-2 py-3 text-right", HEADER_TOP_BORDER)}>Par</th>
-            <th className={cn("px-2 py-3 text-right", HEADER_TOP_BORDER)}>Hole</th>
-            <th className={cn("px-4 py-3 text-right", HEADER_TOP_BORDER)}>Score</th>
+            <th className="px-2 py-3 text-right">Par</th>
+            <th className="px-2 py-3 text-right">Hole</th>
+            <th className="px-4 py-3 text-right">Score</th>
           </tr>
         </thead>
         <tbody>

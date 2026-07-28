@@ -5,7 +5,14 @@ import Link from "next/link";
 import { cn, playerSlug, splitSurnameFirst } from "@/lib/utils";
 import { formatToPar } from "@/lib/leaderboard";
 import { CountryFlag } from "@/components/shared/country-flag";
-import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS, AnimatedValue } from "@/components/leaderboard/leaderboard-table";
+import {
+  scorePillClass,
+  holeScorePillClass,
+  TILE_CLASS,
+  NEUTRAL_TILE_CLASS,
+  ROW_TOP_BORDER,
+  AnimatedValue,
+} from "@/components/leaderboard/leaderboard-table";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 
 interface HoleByHoleTableProps {
@@ -24,19 +31,24 @@ export function HoleByHoleTable({ entries }: HoleByHoleTableProps) {
     );
   }
 
+  // Every player shares the same venue holes, so the first entry's par-per-hole stands in for the course.
+  const coursePars = entries[0].holes;
+
   return (
     <div className="overflow-x-auto border border-surface-dark-foreground/15">
-      <table className="w-full min-w-[1200px] border-collapse text-sm">
+      <table className="w-full min-w-[1300px] border-collapse text-sm">
         <thead>
           <tr className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 text-left text-xs uppercase tracking-wide text-surface-dark-foreground/60">
             <th className="px-2 py-3">Pos</th>
             <th className="px-2 py-3">Player</th>
-            <th className="border-t-2 border-accent px-2 py-3 text-right">Par</th>
+            <th className="px-2 py-3 text-right">Par</th>
             {HOLE_INDICES.map((i) => (
-              <th key={i} className="border-t-2 border-accent px-1 py-1 text-center">
+              <th key={i} className="px-1 py-1 text-center">
                 <span className="block">{i + 1}</span>
+                <span className="block font-normal normal-case text-surface-dark-foreground/40">{coursePars[i]?.par ?? "—"}</span>
               </th>
             ))}
+            <th className="px-4 py-3 text-right">Round</th>
           </tr>
         </thead>
         <tbody>
@@ -55,7 +67,7 @@ export function HoleByHoleTable({ entries }: HoleByHoleTableProps) {
                   </Link>
                   <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
                 </td>
-                <td className="px-2 py-3 text-right">
+                <td className={cn("px-2 py-3 text-right", ROW_TOP_BORDER)}>
                   {entry.toPar !== undefined ? (
                     <span className={cn(TILE_CLASS, scorePillClass(entry.toPar))}>
                       <AnimatedValue value={formatToPar(entry.toPar)} />
@@ -65,12 +77,17 @@ export function HoleByHoleTable({ entries }: HoleByHoleTableProps) {
                   )}
                 </td>
                 {entry.holes.map((hole) => (
-                  <td key={hole.holeNumber} className="px-1 py-1 text-center">
-                    <span className={cn(TILE_CLASS, "min-w-0 w-9", hole.value !== undefined ? scorePillClass(hole.relative) : NEUTRAL_TILE_CLASS)}>
+                  <td key={hole.holeNumber} className={cn("px-1 py-1 text-center", ROW_TOP_BORDER)}>
+                    <span className={cn(TILE_CLASS, "min-w-0 w-9", hole.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS)}>
                       <AnimatedValue value={hole.value ?? ""} />
                     </span>
                   </td>
                 ))}
+                <td className={cn("px-4 py-3 text-right tabular-nums", ROW_TOP_BORDER)}>
+                  <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
+                    <AnimatedValue value={entry.score ?? ""} />
+                  </span>
+                </td>
               </tr>
             );
           })}
