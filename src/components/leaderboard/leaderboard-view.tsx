@@ -10,22 +10,19 @@ import { ChampionshipSidebar } from "@/components/shared/championship-sidebar";
 import { LeaderboardTable } from "@/components/leaderboard/leaderboard-table";
 import { useFavorites } from "@/hooks/use-favorites";
 import { cn } from "@/lib/utils";
-import type { LeaderboardEntry } from "@/types/player";
+import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { Article } from "@/types/article";
 import type { SponsorClock } from "@/lib/data/sponsor-clock";
-import type { StatCategory } from "@/lib/statistics";
 
 interface LeaderboardViewProps {
-  round2: LeaderboardEntry[];
-  round4: LeaderboardEntry[];
+  main: CompetitionEntry[];
+  stableford: CompetitionEntry[];
+  scratch: CompetitionEntry[];
   featuredArticle: Article;
-  articles: Article[];
-  statCategories: StatCategory[];
   clockConfig: SponsorClock;
-  competitionComplete: boolean;
 }
 
-function filterEntries(entries: LeaderboardEntry[], query: string): LeaderboardEntry[] {
+function filterEntries(entries: CompetitionEntry[], query: string): CompetitionEntry[] {
   const q = query.trim().toLowerCase();
   if (!q) return entries;
   return entries.filter(
@@ -33,40 +30,39 @@ function filterEntries(entries: LeaderboardEntry[], query: string): LeaderboardE
   );
 }
 
-export function LeaderboardView({
-  round2: LEADERBOARD_ROUND_2,
-  round4: LEADERBOARD_ROUND_4,
-  featuredArticle,
-  articles,
-  statCategories,
-  clockConfig,
-  competitionComplete,
-}: LeaderboardViewProps) {
+export function LeaderboardView({ main, stableford, scratch, featuredArticle, clockConfig }: LeaderboardViewProps) {
   const { favorites, toggleFavorite, hydrated } = useFavorites();
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [infoOpen, setInfoOpen] = useState(false);
 
-  const round2Entries = useMemo(() => filterEntries(LEADERBOARD_ROUND_2, query), [LEADERBOARD_ROUND_2, query]);
-  const round4Entries = useMemo(() => filterEntries(LEADERBOARD_ROUND_4, query), [LEADERBOARD_ROUND_4, query]);
+  const mainEntries = useMemo(() => filterEntries(main, query), [main, query]);
+  const stablefordEntries = useMemo(() => filterEntries(stableford, query), [stableford, query]);
+  const scratchEntries = useMemo(() => filterEntries(scratch, query), [scratch, query]);
 
   return (
-    <Tabs defaultValue="round4">
+    <Tabs defaultValue="main">
       <div className="bg-primary bg-dashboard-pattern py-4 text-primary-foreground">
         <Container className="flex flex-wrap items-center justify-between gap-4">
           <TabsList className="border border-primary-foreground/15 bg-primary-foreground/10">
             <TabsTrigger
-              value="round2"
+              value="main"
               className="text-primary-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-none"
             >
-              After Round 2
+              Main
             </TabsTrigger>
             <TabsTrigger
-              value="round4"
+              value="stableford"
               className="text-primary-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-none"
             >
-              Final Round
+              Stableford
+            </TabsTrigger>
+            <TabsTrigger
+              value="scratch"
+              className="text-primary-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-none"
+            >
+              Scratch
             </TabsTrigger>
           </TabsList>
 
@@ -135,26 +131,31 @@ export function LeaderboardView({
       <div className="bg-surface-dark bg-dashboard-pattern text-surface-dark-foreground">
         <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_320px] lg:items-start">
           <div>
-            <TabsContent value="round2" className="mt-0">
+            <TabsContent value="main" className="mt-0">
               <LeaderboardTable
-                entries={round2Entries}
+                entries={mainEntries}
+                competition="main"
                 favorites={hydrated ? favorites : []}
                 onToggleFavorite={toggleFavorite}
                 favoritesOnly={favoritesOnly}
-                statCategories={statCategories}
-                articles={articles}
-                competitionComplete={competitionComplete}
               />
             </TabsContent>
-            <TabsContent value="round4" className="mt-0">
+            <TabsContent value="stableford" className="mt-0">
               <LeaderboardTable
-                entries={round4Entries}
+                entries={stablefordEntries}
+                competition="stableford"
                 favorites={hydrated ? favorites : []}
                 onToggleFavorite={toggleFavorite}
                 favoritesOnly={favoritesOnly}
-                statCategories={statCategories}
-                articles={articles}
-                competitionComplete={competitionComplete}
+              />
+            </TabsContent>
+            <TabsContent value="scratch" className="mt-0">
+              <LeaderboardTable
+                entries={scratchEntries}
+                competition="scratch"
+                favorites={hydrated ? favorites : []}
+                onToggleFavorite={toggleFavorite}
+                favoritesOnly={favoritesOnly}
               />
             </TabsContent>
           </div>
@@ -165,10 +166,9 @@ export function LeaderboardView({
       <Dialog open={infoOpen} onOpenChange={setInfoOpen}>
         <DialogContent className="max-w-md">
           <DialogTitle>Scoring indicators</DialogTitle>
-          <p className="text-sm text-muted-foreground">What the colours and codes mean.</p>
+          <p className="text-sm text-muted-foreground">What the colours mean on the Main and Scratch leaderboards.</p>
 
           <div className="mt-2 flex flex-col gap-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Colours</p>
             <div className="flex flex-col gap-2 text-sm">
               <div className="flex items-center gap-3">
                 <span className="h-3 w-3 shrink-0 rounded-full bg-destructive" />
@@ -184,14 +184,9 @@ export function LeaderboardView({
               </div>
             </div>
           </div>
-
-          <div className="mt-4 flex flex-col gap-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Codes</p>
-            <div className="flex items-center gap-3 text-sm">
-              <span className="font-mono font-semibold">(a)</span>
-              Amateur
-            </div>
-          </div>
+          <p className="text-xs text-muted-foreground">
+            Stableford points aren&apos;t shown relative to par, so this doesn&apos;t apply on that tab.
+          </p>
         </DialogContent>
       </Dialog>
     </Tabs>

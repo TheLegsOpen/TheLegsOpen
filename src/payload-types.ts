@@ -85,6 +85,7 @@ export interface Config {
     'tee-time-rounds': TeeTimeRound;
     'player-statistics': PlayerStatistic;
     'legal-pages': LegalPage;
+    scorecards: Scorecard;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -282,6 +283,7 @@ export interface Article {
 export interface Championship {
   id: string;
   year: number;
+  isActive?: boolean | null;
   date?: string | null;
   venue: string | Venue;
   winnerName?: string | null;
@@ -587,6 +589,29 @@ export interface LegalPage {
   title: string;
   slug: string;
   body: unknown;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface Scorecard {
+  id: string;
+  player: string | Player;
+  championship: string | Championship;
+  holes?:
+    | {
+        holeNumber: number;
+        strokes?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  holesCompleted?: number | null;
+  grossTotal?: number | null;
+  nettTotal?: number | null;
+  stablefordTotal?: number | null;
+  toParGross?: number | null;
+  toParNett?: number | null;
   updatedAt: string;
   createdAt: string;
 }

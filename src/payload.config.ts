@@ -16,6 +16,7 @@ import { LeaderboardEntries } from "./collections/LeaderboardEntries";
 import { TeeTimeRounds } from "./collections/TeeTimeRounds";
 import { PlayerStatistics } from "./collections/PlayerStatistics";
 import { LegalPages } from "./collections/LegalPages";
+import { Scorecards } from "./collections/Scorecards";
 import { HomepageSettings } from "./globals/HomepageSettings";
 import { SiteTheme } from "./globals/SiteTheme";
 import { SponsorClock } from "./globals/SponsorClock";
@@ -47,7 +48,19 @@ export default buildConfig({
       },
     },
   },
-  collections: [Users, Media, Players, Venues, Articles, Championships, LeaderboardEntries, TeeTimeRounds, PlayerStatistics, LegalPages],
+  collections: [
+    Users,
+    Media,
+    Players,
+    Venues,
+    Articles,
+    Championships,
+    LeaderboardEntries,
+    TeeTimeRounds,
+    PlayerStatistics,
+    LegalPages,
+    Scorecards,
+  ],
   globals: [
     HomepageSettings,
     SiteTheme,

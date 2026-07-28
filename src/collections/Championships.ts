@@ -19,6 +19,15 @@ export const Championships: CollectionConfig = {
   fields: [
     { name: "year", type: "number", required: true, unique: true },
     {
+      name: "isActive",
+      label: "Currently Being Scored",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        description: "Tick this for whichever championship is on today — the live leaderboard reads scores for this event.",
+      },
+    },
+    {
       name: "date",
       label: "Championship Date",
       type: "date",
