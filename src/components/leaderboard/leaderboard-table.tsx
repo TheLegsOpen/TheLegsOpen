@@ -21,7 +21,7 @@ interface LeaderboardTableProps {
 /** Aggregate (round-total) Par pill — 3-tier, since a multi-hole total doesn't have a meaningful "eagle" case. */
 export function scorePillClass(relativeToPar: number): string {
   if (relativeToPar < 0) return "bg-[#CB333B] text-white";
-  if (relativeToPar === 0) return "bg-[#758973] text-white";
+  if (relativeToPar === 0) return "bg-[#0E3D2C] text-white";
   return "bg-[#08325A] text-white";
 }
 
@@ -41,11 +41,9 @@ const COMPETITION_LABEL: Record<Competition, string> = {
 
 const ROW_TRANSITION = { type: "spring" as const, stiffness: 380, damping: 34, mass: 0.9 };
 
-/** Flat, square-cornered, shadow-free tiles for Par/Hole/Score — matches theopen.com's leaderboard cell styling exactly (no radius, no shadow). */
-export const TILE_CLASS = "inline-block min-w-[2.75rem] px-2 py-1 text-xs font-bold tabular-nums";
+/** Flat, square-cornered, shadow-free tiles for Par/Hole/Score — matches theopen.com's leaderboard cell styling exactly (no radius, no shadow, top border on the value tile itself). */
+export const TILE_CLASS = "inline-block min-w-[2.75rem] px-2 py-1 text-xs font-bold tabular-nums border-t-2 border-accent";
 export const NEUTRAL_TILE_CLASS = "bg-[#FFD062] text-black";
-/** Top border repeated on every player row's Par/Hole/Score cells, matching theopen.com's per-row stat framing. */
-export const ROW_TOP_BORDER = "border-t-2 border-accent";
 
 /** Fades/pops a value in whenever it changes, so an updated score or position catches the eye. */
 export function AnimatedValue({ value }: { value: string | number }) {
@@ -112,7 +110,7 @@ function LeaderboardRow({
         </Link>
         <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
       </td>
-      <td className={cn("px-2 py-3 text-right", ROW_TOP_BORDER)}>
+      <td className="px-2 py-3 text-right">
         {entry.toPar !== undefined ? (
           <span className={cn(TILE_CLASS, scorePillClass(entry.toPar))}>
             <AnimatedValue value={formatToPar(entry.toPar)} />
@@ -121,12 +119,12 @@ function LeaderboardRow({
           <span className="text-accent-foreground/50">—</span>
         )}
       </td>
-      <td className={cn("px-2 py-3 text-right tabular-nums", ROW_TOP_BORDER)}>
+      <td className="px-2 py-3 text-right tabular-nums">
         <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
           <AnimatedValue value={entry.thru} />
         </span>
       </td>
-      <td className={cn("px-4 py-3 text-right tabular-nums", ROW_TOP_BORDER)} title={COMPETITION_LABEL[competition]}>
+      <td className="px-4 py-3 text-right tabular-nums" title={COMPETITION_LABEL[competition]}>
         <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
           <AnimatedValue value={entry.score ?? ""} />
         </span>
