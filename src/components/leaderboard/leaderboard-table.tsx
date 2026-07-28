@@ -32,9 +32,9 @@ const COMPETITION_LABEL: Record<Competition, string> = {
 
 const ROW_TRANSITION = { type: "spring" as const, stiffness: 380, damping: 34, mass: 0.9 };
 
-/** Shared "inserted plate" look for the Par/Hole/Score tiles — a raised box with a drop shadow, echoing the physical scoreboard's slotted score plates. */
-const TILE_CLASS = "inline-block min-w-[2.75rem] rounded px-2 py-1 text-xs font-bold tabular-nums shadow-[0_3px_6px_rgba(0,0,0,0.35)]";
-const NEUTRAL_TILE_CLASS = "bg-white/95 text-foreground";
+/** Flat, square-cornered, shadow-free tiles for Par/Hole/Score — matches theopen.com's leaderboard cell styling exactly (no radius, no shadow). */
+const TILE_CLASS = "inline-block min-w-[2.75rem] px-2 py-1 text-xs font-bold tabular-nums";
+const NEUTRAL_TILE_CLASS = "bg-[#FFD062] text-black";
 
 /** Fades/pops a value in whenever it changes, so an updated score or position catches the eye. */
 function AnimatedValue({ value }: { value: string | number }) {
