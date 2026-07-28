@@ -12,7 +12,8 @@ export interface CompetitionEntry {
   position: number;
   tied: boolean;
   player: Player;
-  score: number;
+  /** Undefined until the player has posted at least one hole. */
+  score?: number;
   toPar?: number;
   thru: string;
 }
@@ -43,20 +44,38 @@ export async function getCompetitionLeaderboard(competition: Competition): Promi
     depth: 1,
   });
 
-  const rows = result.docs
-    .filter((doc) => (doc.holesCompleted ?? 0) > 0)
-    .map((doc) => {
-      const player = mapPlayer(doc.player as PayloadPlayer);
-      const thru = (doc.holesCompleted ?? 0) >= 18 ? "F" : String(doc.holesCompleted ?? 0);
+  const rows = result.docs.map((doc) => {
+    const player = mapPlayer(doc.player as PayloadPlayer);
+    const holesCompleted = doc.holesCompleted ?? 0;
+    const started = holesCompleted > 0;
+    const thru = holesCompleted >= 18 ? "F" : String(holesCompleted);
 
-      if (competition === "main") {
-        return { player, score: doc.nettTotal ?? 0, toPar: doc.toParNett ?? undefined, thru, sortValue: doc.nettTotal ?? 0 };
-      }
-      if (competition === "scratch") {
-        return { player, score: doc.grossTotal ?? 0, toPar: doc.toParGross ?? undefined, thru, sortValue: doc.grossTotal ?? 0 };
-      }
-      return { player, score: doc.stablefordTotal ?? 0, toPar: undefined, thru, sortValue: -(doc.stablefordTotal ?? 0) };
-    });
+    if (competition === "main") {
+      return {
+        player,
+        score: started ? (doc.nettTotal ?? 0) : undefined,
+        toPar: started ? (doc.toParNett ?? undefined) : undefined,
+        thru,
+        sortValue: doc.nettTotal ?? 0,
+      };
+    }
+    if (competition === "scratch") {
+      return {
+        player,
+        score: started ? (doc.grossTotal ?? 0) : undefined,
+        toPar: started ? (doc.toParGross ?? undefined) : undefined,
+        thru,
+        sortValue: doc.grossTotal ?? 0,
+      };
+    }
+    return {
+      player,
+      score: started ? (doc.stablefordTotal ?? 0) : undefined,
+      toPar: undefined,
+      thru,
+      sortValue: -(doc.stablefordTotal ?? 0),
+    };
+  });
 
   rows.sort((a, b) => a.sortValue - b.sortValue);
 

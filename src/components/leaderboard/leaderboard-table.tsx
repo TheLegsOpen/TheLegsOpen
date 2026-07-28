@@ -34,8 +34,8 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-surface-dark-foreground/20 py-16 text-center">
-        <p className="font-display font-bold text-lg">No scores yet</p>
-        <p className="text-sm text-surface-dark-foreground/60">This competition's leaderboard will fill in as scorecards are entered.</p>
+        <p className="font-display font-bold text-lg">Field not yet set</p>
+        <p className="text-sm text-surface-dark-foreground/60">The field will appear here once tee times are generated for this championship.</p>
       </div>
     );
   }
@@ -99,7 +99,7 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
                 </td>
                 <td className="px-2 py-3 text-right tabular-nums text-accent-foreground/80">{entry.thru}</td>
                 <td className="px-4 py-3 text-right font-medium tabular-nums" title={COMPETITION_LABEL[competition]}>
-                  {entry.score}
+                  {entry.score ?? "—"}
                 </td>
               </tr>
             );
