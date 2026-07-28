@@ -37,24 +37,44 @@ export async function getCompetitionLeaderboard(competition: Competition): Promi
   const championship = await getActiveChampionship(payload);
   if (!championship) return [];
 
-  const result = await payload.find({
-    collection: "scorecards",
-    where: { championship: { equals: championship.id } },
-    limit: 300,
-    depth: 1,
-  });
+  const [result, teeTimeRounds] = await Promise.all([
+    payload.find({
+      collection: "scorecards",
+      where: { championship: { equals: championship.id } },
+      limit: 300,
+      depth: 1,
+    }),
+    payload.find({
+      collection: "tee-time-rounds",
+      where: { and: [{ championship: { equals: championship.id } }, { round: { equals: "Championship" } }] },
+      limit: 50,
+      depth: 0,
+    }),
+  ]);
+
+  const teeTimeByPlayer = new Map<string, string>();
+  for (const round of teeTimeRounds.docs) {
+    for (const group of round.groups ?? []) {
+      for (const player of group.players ?? []) {
+        const playerId = typeof player === "object" ? player.id : player;
+        if (playerId != null) teeTimeByPlayer.set(String(playerId), group.time);
+      }
+    }
+  }
 
   const rows = result.docs.map((doc) => {
     const player = mapPlayer(doc.player as PayloadPlayer);
     const holesCompleted = doc.holesCompleted ?? 0;
     const started = holesCompleted > 0;
-    const thru = holesCompleted >= 18 ? "F" : String(holesCompleted);
+    const playerId = typeof doc.player === "object" ? doc.player.id : doc.player;
+    const teeTime = teeTimeByPlayer.get(String(playerId));
+    const thru = started ? (holesCompleted >= 18 ? "F" : String(holesCompleted)) : (teeTime ?? "—");
 
     if (competition === "main") {
       return {
         player,
         score: started ? (doc.nettTotal ?? 0) : undefined,
-        toPar: started ? (doc.toParNett ?? undefined) : undefined,
+        toPar: started ? (doc.toParNett ?? undefined) : 0,
         thru,
         sortValue: doc.nettTotal ?? 0,
       };
@@ -63,7 +83,7 @@ export async function getCompetitionLeaderboard(competition: Competition): Promi
       return {
         player,
         score: started ? (doc.grossTotal ?? 0) : undefined,
-        toPar: started ? (doc.toParGross ?? undefined) : undefined,
+        toPar: started ? (doc.toParGross ?? undefined) : 0,
         thru,
         sortValue: doc.grossTotal ?? 0,
       };
