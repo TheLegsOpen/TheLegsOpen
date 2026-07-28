@@ -12,7 +12,7 @@ export interface CompetitionEntry {
   position: number;
   tied: boolean;
   player: Player;
-  /** Undefined until the player has posted at least one hole. */
+  /** Main/Scratch: undefined until all 18 holes are posted. Stableford: always populated, starting at 0. */
   score?: number;
   toPar?: number;
   thru: string;
@@ -111,7 +111,8 @@ export async function getCompetitionLeaderboard(competition: Competition): Promi
       started,
       teeTimeMinutes,
       thru,
-      score: started ? (doc.stablefordTotal ?? 0) : undefined,
+      // Stableford points show live from 0 rather than waiting for the round to start, unlike Main/Scratch.
+      score: doc.stablefordTotal ?? 0,
       toPar: started ? (doc.toParNett ?? 0) : 0,
       tieKey: -(doc.stablefordTotal ?? 0),
     };

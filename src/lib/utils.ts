@@ -55,11 +55,11 @@ export function playerSlug(player: { name: string }): string {
 const SURNAME_PREFIXES = new Set(["van", "von", "der", "de", "la", "le", "du"]);
 
 /**
- * "Callum Reith" -> "REITH, Callum" — the compact leaderboard-row name
- * format. Keeps compound surname prefixes ("Van Aardt", "De Klerk") attached
- * to the surname rather than splitting on the last space alone.
+ * "Callum Reith" -> { surname: "REITH", firstName: "Callum" }. Keeps compound
+ * surname prefixes ("Van Aardt", "De Klerk") attached to the surname rather
+ * than splitting on the last space alone.
  */
-export function surnameFirst(name: string): string {
+export function splitSurnameFirst(name: string): { surname: string; firstName: string } {
   const parts = name.trim().split(" ");
   let splitIndex = parts.length - 1;
   while (splitIndex > 0 && SURNAME_PREFIXES.has(parts[splitIndex - 1].toLowerCase())) {
@@ -67,7 +67,13 @@ export function surnameFirst(name: string): string {
   }
   const surname = parts.slice(splitIndex).join(" ");
   const firstName = parts.slice(0, splitIndex).join(" ");
-  return `${surname.toUpperCase()}, ${firstName}`;
+  return { surname: surname.toUpperCase(), firstName };
+}
+
+/** "Callum Reith" -> "REITH, Callum" — the compact leaderboard-row name format. */
+export function surnameFirst(name: string): string {
+  const { surname, firstName } = splitSurnameFirst(name);
+  return `${surname}, ${firstName}`;
 }
 
 export function hashSeed(value: string): number {

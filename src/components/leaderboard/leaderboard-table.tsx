@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star } from "lucide-react";
 
-import { cn, playerSlug, surnameFirst } from "@/lib/utils";
+import { cn, playerSlug, splitSurnameFirst } from "@/lib/utils";
 import { formatToPar } from "@/lib/leaderboard";
 import { CountryFlag } from "@/components/shared/country-flag";
 import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
@@ -20,7 +20,7 @@ interface LeaderboardTableProps {
 
 function scorePillClass(toPar: number): string {
   if (toPar < 0) return "bg-white text-destructive";
-  if (toPar === 0) return "bg-[#66907b] text-white";
+  if (toPar === 0) return "bg-[#0E3D2C] text-white";
   return "bg-white text-blue-600";
 }
 
@@ -31,6 +31,10 @@ const COMPETITION_LABEL: Record<Competition, string> = {
 };
 
 const ROW_TRANSITION = { type: "spring" as const, stiffness: 380, damping: 34, mass: 0.9 };
+
+/** Shared "inserted plate" look for the Par/Hole/Score tiles — a raised box with a drop shadow, echoing the physical scoreboard's slotted score plates. */
+const TILE_CLASS = "inline-block min-w-[2.75rem] rounded px-2 py-1 text-xs font-bold tabular-nums shadow-[0_3px_6px_rgba(0,0,0,0.35)]";
+const NEUTRAL_TILE_CLASS = "bg-white/95 text-foreground";
 
 /** Fades/pops a value in whenever it changes, so an updated score or position catches the eye. */
 function AnimatedValue({ value }: { value: string | number }) {
@@ -62,6 +66,7 @@ function LeaderboardRow({
   competition: Competition;
 }) {
   const [isMoving, setIsMoving] = useState(false);
+  const { surname, firstName } = splitSurnameFirst(entry.player.name);
 
   return (
     <motion.tr
@@ -90,25 +95,34 @@ function LeaderboardRow({
         <AnimatedValue value={`${entry.tied ? "T" : ""}${entry.position}`} />
       </td>
       <td className="px-2 py-3">
-        <Link href={`/players/${playerSlug(entry.player)}`} className="font-medium hover:underline">
-          {surnameFirst(entry.player.name)}
+        <Link href={`/players/${playerSlug(entry.player)}`} className="hover:underline">
+          <span className="font-bold">{surname}</span>
+          <span className="font-normal">, {firstName}</span>
         </Link>
         <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
       </td>
       <td className="px-2 py-3 text-right">
         {entry.toPar !== undefined ? (
-          <span className={cn("inline-block min-w-[2.75rem] rounded px-2 py-1 text-xs font-bold tabular-nums", scorePillClass(entry.toPar))}>
+          <span className={cn(TILE_CLASS, scorePillClass(entry.toPar))}>
             <AnimatedValue value={formatToPar(entry.toPar)} />
           </span>
         ) : (
           <span className="text-accent-foreground/50">—</span>
         )}
       </td>
-      <td className="px-2 py-3 text-right tabular-nums text-accent-foreground/80">
-        <AnimatedValue value={entry.thru} />
+      <td className="px-2 py-3 text-right tabular-nums">
+        <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
+          <AnimatedValue value={entry.thru} />
+        </span>
       </td>
-      <td className="px-4 py-3 text-right font-medium tabular-nums" title={COMPETITION_LABEL[competition]}>
-        <AnimatedValue value={entry.score ?? "—"} />
+      <td className="px-4 py-3 text-right tabular-nums" title={COMPETITION_LABEL[competition]}>
+        {entry.score !== undefined ? (
+          <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
+            <AnimatedValue value={entry.score} />
+          </span>
+        ) : (
+          <span className="text-accent-foreground/50">—</span>
+        )}
       </td>
     </motion.tr>
   );
