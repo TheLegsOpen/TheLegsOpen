@@ -3,7 +3,7 @@ import type { CollectionConfig } from "payload";
 export const TeeTimeRounds: CollectionConfig = {
   slug: "tee-time-rounds",
   admin: {
-    defaultColumns: ["round", "day", "date", "championship", "archived"],
+    defaultColumns: ["round", "date", "championship", "archived"],
   },
   access: {
     read: () => true,
@@ -19,8 +19,15 @@ export const TeeTimeRounds: CollectionConfig = {
           "Which championship this round belongs to. For a Championship round, saving with players in the groups automatically creates a blank Scorecard for each player, ready for scores to be entered.",
       },
     },
-    { name: "day", type: "text", required: true, admin: { description: "e.g. \"Thursday\"" } },
-    { name: "date", type: "text", required: true, admin: { description: "e.g. \"16 July 2026\"" } },
+    {
+      name: "date",
+      type: "date",
+      required: true,
+      admin: {
+        date: { pickerAppearance: "dayOnly", displayFormat: "dd/MM/yyyy" },
+        description: "UK format (DD/MM/YYYY). The weekday shown on the site is derived from this automatically.",
+      },
+    },
     {
       name: "archived",
       type: "checkbox",

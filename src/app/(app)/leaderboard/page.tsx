@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { PageHero } from "@/components/shared/page-hero";
+import { ChampionshipWeekSwitcher } from "@/components/shared/championship-week-switcher";
 import { LeaderboardView } from "@/components/leaderboard/leaderboard-view";
 import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
 import { getArticles } from "@/lib/data/articles";
@@ -32,6 +33,7 @@ export default async function LeaderboardPage() {
         title={banners.leaderboardTitle}
         description={banners.leaderboardDescription}
       />
+      <ChampionshipWeekSwitcher />
       <LeaderboardView
         main={main}
         stableford={stableford}

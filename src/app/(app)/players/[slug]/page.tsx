@@ -63,7 +63,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   const teeTimes = teeTimeRounds.flatMap((round) =>
     round.groups
       .filter((group) => group.players.some((p) => p.id === player.id))
-      .map((group) => ({ round: round.round, day: round.day, time: group.time, tee: group.tee })),
+      .map((group) => ({ round: round.round, date: round.date, time: group.time, tee: group.tee })),
   );
 
   const [firstName, ...rest] = player.name.split(" ");
@@ -157,7 +157,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                   {teeTimes.map((t, index) => (
                     <li key={index} className="flex items-center justify-between px-1 py-3 text-sm">
                       <span className="font-medium">
-                        {t.round} Round · {t.day}
+                        {t.round} Round · {t.date}
                       </span>
                       <span className="tabular-nums text-muted-foreground">
                         {t.time} · {t.tee} tee

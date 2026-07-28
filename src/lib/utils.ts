@@ -19,6 +19,14 @@ export function formatDate(iso: string): string {
   });
 }
 
+/** "2026-07-19T00:00:00.000Z" -> "Sunday 19th July 2026" */
+export function formatWeekdayDate(iso: string): string {
+  const date = new Date(iso);
+  const weekday = date.toLocaleDateString("en-GB", { weekday: "long" });
+  const month = date.toLocaleDateString("en-GB", { month: "long" });
+  return `${weekday} ${ordinal(date.getDate())} ${month} ${date.getFullYear()}`;
+}
+
 export function ordinal(value: number): string {
   const remainder10 = value % 10;
   const remainder100 = value % 100;

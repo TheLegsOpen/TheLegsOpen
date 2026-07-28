@@ -73,7 +73,7 @@ export function TeeTimesView({
               return (
                 <AccordionItem key={roundIndex} value={`round-${roundIndex}`} className="border-b border-surface-dark-foreground/15">
                   <AccordionTrigger className="font-display font-bold text-xl hover:text-accent">
-                    {round.round} Round · {round.day} {round.date}
+                    {round.round} Round · {round.date}
                   </AccordionTrigger>
                   <AccordionContent>
                     {ordered.length === 0 ? (

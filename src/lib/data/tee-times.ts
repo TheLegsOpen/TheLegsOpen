@@ -2,6 +2,7 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { mapPlayer } from "@/lib/data/players";
+import { formatWeekdayDate } from "@/lib/utils";
 import type { TeeTimeRound } from "@/types/championship";
 import type { Player as PayloadPlayer } from "@/payload-types";
 
@@ -21,8 +22,7 @@ export async function getTeeTimes(): Promise<TeeTimeRound[]> {
 
   return result.docs.map((doc) => ({
     round: doc.round,
-    day: doc.day,
-    date: doc.date,
+    date: doc.date ? formatWeekdayDate(doc.date) : "",
     groups: (doc.groups ?? []).map((group) => ({
       time: group.time,
       tee: group.tee,

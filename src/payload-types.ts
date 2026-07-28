@@ -555,7 +555,6 @@ export interface TeeTimeRound {
   id: string;
   round: 'Practice' | 'Championship';
   championship?: (string | Championship) | null;
-  day: string;
   date: string;
   archived?: boolean | null;
   groups?:

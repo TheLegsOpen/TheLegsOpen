@@ -29,7 +29,7 @@ export interface TeeTimeEntry {
 
 export interface TeeTimeRound {
   round: "Practice" | "Championship";
-  day: string;
+  /** Formatted for display, e.g. "Sunday 19th July 2026". */
   date: string;
   groups: TeeTimeEntry[];
 }

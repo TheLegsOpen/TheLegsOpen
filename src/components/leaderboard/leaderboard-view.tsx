@@ -43,123 +43,123 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
 
   return (
     <Tabs defaultValue="main">
-      <div className="bg-primary bg-dashboard-pattern py-4 text-primary-foreground">
-        <Container className="flex flex-wrap items-center justify-between gap-4">
-          <TabsList className="border border-primary-foreground/15 bg-primary-foreground/10">
-            <TabsTrigger
-              value="main"
-              className="text-primary-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-none"
-            >
-              Main
-            </TabsTrigger>
-            <TabsTrigger
-              value="stableford"
-              className="text-primary-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-none"
-            >
-              Stableford
-            </TabsTrigger>
-            <TabsTrigger
-              value="scratch"
-              className="text-primary-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-none"
-            >
-              Scratch
-            </TabsTrigger>
-          </TabsList>
+      <div className="bg-surface-dark bg-dashboard-pattern text-surface-dark-foreground">
+        <Container className="py-12 sm:py-16">
+          <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+            <TabsList className="border border-surface-dark-foreground/15 bg-surface-dark-foreground/10">
+              <TabsTrigger
+                value="main"
+                className="text-surface-dark-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-none"
+              >
+                Main
+              </TabsTrigger>
+              <TabsTrigger
+                value="stableford"
+                className="text-surface-dark-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-none"
+              >
+                Stableford
+              </TabsTrigger>
+              <TabsTrigger
+                value="scratch"
+                className="text-surface-dark-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-none"
+              >
+                Scratch
+              </TabsTrigger>
+            </TabsList>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {searchOpen ? (
-              <div className="flex h-10 items-center gap-2 rounded-full border border-primary-foreground/30 bg-primary-foreground/10 px-4">
-                <Search className="h-4 w-4 text-primary-foreground/60" aria-hidden="true" />
-                <input
-                  autoFocus
-                  type="search"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Player name or nationality"
-                  className="w-48 bg-transparent text-sm text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none"
-                />
+            <div className="flex flex-wrap items-center gap-2">
+              {searchOpen ? (
+                <div className="flex h-10 items-center gap-2 rounded-full border border-surface-dark-foreground/30 bg-surface-dark-foreground/10 px-4">
+                  <Search className="h-4 w-4 text-surface-dark-foreground/60" aria-hidden="true" />
+                  <input
+                    autoFocus
+                    type="search"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Player name or nationality"
+                    className="w-48 bg-transparent text-sm text-surface-dark-foreground placeholder:text-surface-dark-foreground/50 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchOpen(false);
+                      setQuery("");
+                    }}
+                    aria-label="Close search"
+                    className="text-surface-dark-foreground/60 hover:text-accent"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
                 <button
                   type="button"
-                  onClick={() => {
-                    setSearchOpen(false);
-                    setQuery("");
-                  }}
-                  aria-label="Close search"
-                  className="text-primary-foreground/60 hover:text-accent"
+                  onClick={() => setSearchOpen(true)}
+                  aria-label="Search the leaderboard"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-surface-dark-foreground/30 text-surface-dark-foreground transition-colors hover:border-accent hover:text-accent"
                 >
-                  <X className="h-4 w-4" />
+                  <Search className="h-4 w-4" />
                 </button>
-              </div>
-            ) : (
+              )}
+
               <button
                 type="button"
-                onClick={() => setSearchOpen(true)}
-                aria-label="Search the leaderboard"
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-primary-foreground/30 text-primary-foreground transition-colors hover:border-accent hover:text-accent"
+                onClick={() => setFavoritesOnly((prev) => !prev)}
+                aria-pressed={favoritesOnly}
+                className={cn(
+                  "flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors",
+                  favoritesOnly
+                    ? "border-accent bg-accent text-accent-foreground"
+                    : "border-surface-dark-foreground/30 text-surface-dark-foreground hover:border-accent hover:text-accent",
+                )}
               >
-                <Search className="h-4 w-4" />
+                <Star className={cn("h-4 w-4", favoritesOnly && "fill-current")} />
+                Favorites only
               </button>
-            )}
 
-            <button
-              type="button"
-              onClick={() => setFavoritesOnly((prev) => !prev)}
-              aria-pressed={favoritesOnly}
-              className={cn(
-                "flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors",
-                favoritesOnly
-                  ? "border-accent bg-accent text-accent-foreground"
-                  : "border-primary-foreground/30 text-primary-foreground hover:border-accent hover:text-accent",
-              )}
-            >
-              <Star className={cn("h-4 w-4", favoritesOnly && "fill-current")} />
-              Favorites only
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setInfoOpen(true)}
-              aria-label="Scoring indicators"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-primary-foreground/30 text-primary-foreground transition-colors hover:border-accent hover:text-accent"
-            >
-              <Info className="h-4 w-4" />
-            </button>
+              <button
+                type="button"
+                onClick={() => setInfoOpen(true)}
+                aria-label="Scoring indicators"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-surface-dark-foreground/30 text-surface-dark-foreground transition-colors hover:border-accent hover:text-accent"
+              >
+                <Info className="h-4 w-4" />
+              </button>
+            </div>
           </div>
-        </Container>
-      </div>
 
-      <div className="bg-surface-dark bg-dashboard-pattern text-surface-dark-foreground">
-        <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_320px] lg:items-start">
-          <div>
-            <TabsContent value="main" className="mt-0">
-              <LeaderboardTable
-                entries={mainEntries}
-                competition="main"
-                favorites={hydrated ? favorites : []}
-                onToggleFavorite={toggleFavorite}
-                favoritesOnly={favoritesOnly}
-              />
-            </TabsContent>
-            <TabsContent value="stableford" className="mt-0">
-              <LeaderboardTable
-                entries={stablefordEntries}
-                competition="stableford"
-                favorites={hydrated ? favorites : []}
-                onToggleFavorite={toggleFavorite}
-                favoritesOnly={favoritesOnly}
-              />
-            </TabsContent>
-            <TabsContent value="scratch" className="mt-0">
-              <LeaderboardTable
-                entries={scratchEntries}
-                competition="scratch"
-                favorites={hydrated ? favorites : []}
-                onToggleFavorite={toggleFavorite}
-                favoritesOnly={favoritesOnly}
-              />
-            </TabsContent>
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px] lg:items-start">
+            <div>
+              <TabsContent value="main" className="mt-0">
+                <LeaderboardTable
+                  entries={mainEntries}
+                  competition="main"
+                  favorites={hydrated ? favorites : []}
+                  onToggleFavorite={toggleFavorite}
+                  favoritesOnly={favoritesOnly}
+                />
+              </TabsContent>
+              <TabsContent value="stableford" className="mt-0">
+                <LeaderboardTable
+                  entries={stablefordEntries}
+                  competition="stableford"
+                  favorites={hydrated ? favorites : []}
+                  onToggleFavorite={toggleFavorite}
+                  favoritesOnly={favoritesOnly}
+                />
+              </TabsContent>
+              <TabsContent value="scratch" className="mt-0">
+                <LeaderboardTable
+                  entries={scratchEntries}
+                  competition="scratch"
+                  favorites={hydrated ? favorites : []}
+                  onToggleFavorite={toggleFavorite}
+                  favoritesOnly={favoritesOnly}
+                />
+              </TabsContent>
+            </div>
+            <ChampionshipSidebar featuredArticle={featuredArticle} clockConfig={clockConfig} tone="dark" />
           </div>
-          <ChampionshipSidebar featuredArticle={featuredArticle} clockConfig={clockConfig} tone="dark" />
         </Container>
       </div>
 
