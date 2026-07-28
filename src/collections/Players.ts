@@ -60,8 +60,7 @@ export const Players: CollectionConfig = {
     {
       name: "age",
       type: "number",
-      required: true,
-      admin: { description: "Calculated automatically once Date of Birth is set. Enter manually only while Date of Birth is blank." },
+      admin: { description: "Calculated automatically once Date of Birth is set. Enter manually only while Date of Birth is blank — leave blank if unknown." },
     },
     {
       name: "championshipHandicap",

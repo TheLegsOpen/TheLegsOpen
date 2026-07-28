@@ -3,7 +3,7 @@ export interface Player {
   name: string;
   country: string;
   countryCode: string;
-  age: number;
+  age?: number;
   championshipHandicap?: number;
   previousOpens: number;
   photoUrl?: string;

@@ -92,7 +92,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           ) : null}
           <div className="grid gap-8 lg:grid-cols-[1fr_320px] lg:items-center">
             <div className="flex gap-6 sm:gap-10">
-              <StatCell label="Age" value={player.age} first />
+              <StatCell label="Age" value={player.age ?? "—"} first />
               <StatCell label="Championship Handicap" value={player.championshipHandicap ?? "—"} />
               <StatCell label="Previous Opens" value={player.previousOpens} />
             </div>

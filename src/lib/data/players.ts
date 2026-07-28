@@ -17,7 +17,7 @@ export function mapPlayer(doc: PayloadPlayer): Player {
     name: doc.name,
     country: doc.country,
     countryCode: doc.countryCode,
-    age: doc.age,
+    age: doc.age ?? undefined,
     championshipHandicap: doc.championshipHandicap ?? undefined,
     previousOpens: doc.previousOpens,
     photoUrl: mediaUrl(doc.photo),

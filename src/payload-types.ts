@@ -199,7 +199,7 @@ export interface Player {
   country: string;
   countryCode: string;
   dateOfBirth?: string | null;
-  age: number;
+  age?: number | null;
   championshipHandicap?: number | null;
   previousOpens: number;
   cdhNumber?: string | null;
