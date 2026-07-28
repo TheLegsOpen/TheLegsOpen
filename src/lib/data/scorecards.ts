@@ -155,11 +155,15 @@ export async function getCompetitionLeaderboard(competition: Competition): Promi
     };
   });
 
+  // Not-started players carry the same baseline tieKey (level par / 0 points) as a genuinely
+  // level-scoring started player, so they sort into the field by that value first — a player
+  // who's actually over par outranks nobody just because someone else hasn't teed off yet.
+  // Holes played breaks ties within a score group, then tee-time breaks ties among players who
+  // are still level on both (chiefly the not-yet-started group).
   rows.sort((a, b) => {
-    if (a.started !== b.started) return a.started ? -1 : 1;
-    if (!a.started) return a.teeTimeMinutes - b.teeTimeMinutes;
     if (a.tieKey !== b.tieKey) return a.tieKey - b.tieKey;
-    return b.holesCompleted - a.holesCompleted;
+    if (a.holesCompleted !== b.holesCompleted) return b.holesCompleted - a.holesCompleted;
+    return a.teeTimeMinutes - b.teeTimeMinutes;
   });
 
   const entries: CompetitionEntry[] = [];
@@ -167,11 +171,11 @@ export async function getCompetitionLeaderboard(competition: Competition): Promi
   let previousGroupKey: string | undefined;
 
   rows.forEach((row, index) => {
-    const groupKey = row.started ? `started:${row.tieKey}` : "not-started";
+    const groupKey = String(row.tieKey);
     if (groupKey !== previousGroupKey) {
       position = index + 1;
     }
-    const tied = rows.filter((r) => (r.started ? `started:${r.tieKey}` : "not-started") === groupKey).length > 1;
+    const tied = rows.filter((r) => String(r.tieKey) === groupKey).length > 1;
     entries.push({ position, tied, player: row.player, score: row.score, toPar: row.toPar, thru: row.thru, holes: row.holes });
     previousGroupKey = groupKey;
   });
