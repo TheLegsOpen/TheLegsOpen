@@ -9,6 +9,8 @@ import type { StatCategory, StatRow } from "@/lib/statistics";
 import type { Player } from "@/types/player";
 import type { Player as PayloadPlayer, Venue } from "@/payload-types";
 
+export type ScoringMode = "nett" | "scratch";
+
 /** Strokes Gained is the only stat here with genuine fractional values (field averages are rarely whole numbers). */
 function formatDecimalToPar(value: number): string {
   const rounded = Math.round(value * 100) / 100;
@@ -30,9 +32,10 @@ function assignPositions(rows: StatRow[]): void {
 /**
  * Real scoring statistics computed directly from Scorecards -- the first family of
  * statistics backed by real data, replacing the old placeholder driving-distance/GIR/putts
- * stats that were never wired to anything.
+ * stats that were never wired to anything. `mode` picks whether the underlying per-hole
+ * score is nett (gross minus handicap strokes) or scratch (raw gross, no handicap).
  */
-export async function getNettScoringCategories(): Promise<StatCategory[]> {
+async function getScoringCategories(mode: ScoringMode): Promise<StatCategory[]> {
   const payload = await getPayload({ config: configPromise });
   const championship = await getActiveChampionship(payload);
   if (!championship) return [];
@@ -50,21 +53,21 @@ export async function getNettScoringCategories(): Promise<StatCategory[]> {
     limit: 300,
   });
 
-  // First pass: nett score per player per hole, so we can compute each hole's field average
-  // before working out any individual player's Strokes Gained.
-  const playerNetts: { player: Player; nettByHole: (number | undefined)[] }[] = scorecards.docs.map((doc) => {
+  // First pass: nett/scratch score per player per hole, so we can compute each hole's
+  // field average before working out any individual player's Strokes Gained.
+  const playerScores: { player: Player; scoreByHole: (number | undefined)[] }[] = scorecards.docs.map((doc) => {
     const player = mapPlayer(doc.player as PayloadPlayer);
-    const handicap = (doc.player as PayloadPlayer).championshipHandicap ?? 0;
+    const handicap = mode === "nett" ? ((doc.player as PayloadPlayer).championshipHandicap ?? 0) : 0;
     const strokesReceived = allocateStrokes(handicap, holeInfos);
-    const nettByHole = holeInfos.map((_, i) => {
+    const scoreByHole = holeInfos.map((_, i) => {
       const strokes = doc.holes?.[i]?.strokes;
       return strokes == null ? undefined : strokes - strokesReceived[i];
     });
-    return { player, nettByHole };
+    return { player, scoreByHole };
   });
 
   const holeFieldAverage = holeInfos.map((_, i) => {
-    const values = playerNetts.map((p) => p.nettByHole[i]).filter((v): v is number => v !== undefined);
+    const values = playerScores.map((p) => p.scoreByHole[i]).filter((v): v is number => v !== undefined);
     if (values.length === 0) return undefined;
     return values.reduce((a, b) => a + b, 0) / values.length;
   });
@@ -75,7 +78,7 @@ export async function getNettScoringCategories(): Promise<StatCategory[]> {
   const bogeyOrWorseRows: StatRow[] = [];
   const strokesGainedRows: StatRow[] = [];
 
-  for (const { player, nettByHole } of playerNetts) {
+  for (const { player, scoreByHole } of playerScores) {
     const parTotals: Record<3 | 4 | 5, { sum: number; count: number }> = {
       3: { sum: 0, count: 0 },
       4: { sum: 0, count: 0 },
@@ -88,11 +91,11 @@ export async function getNettScoringCategories(): Promise<StatCategory[]> {
     let holesPlayed = 0;
 
     holeInfos.forEach((info, i) => {
-      const nett = nettByHole[i];
-      if (nett == null) return;
+      const score = scoreByHole[i];
+      if (score == null) return;
       holesPlayed += 1;
 
-      const relative = nett - info.par;
+      const relative = score - info.par;
       const par = info.par as 3 | 4 | 5;
       if (par === 3 || par === 4 || par === 5) {
         parTotals[par].sum += relative;
@@ -104,7 +107,7 @@ export async function getNettScoringCategories(): Promise<StatCategory[]> {
       else bogeyOrWorseCount += 1;
 
       const fieldAverage = holeFieldAverage[i];
-      if (fieldAverage !== undefined) strokesGainedTotal += fieldAverage - nett;
+      if (fieldAverage !== undefined) strokesGainedTotal += fieldAverage - score;
     });
 
     ([3, 4, 5] as const).forEach((par) => {
@@ -137,13 +140,22 @@ export async function getNettScoringCategories(): Promise<StatCategory[]> {
   strokesGainedRows.sort((a, b) => a.value - b.value);
   assignPositions(strokesGainedRows);
 
+  const label = mode === "nett" ? "Nett" : "Scratch";
   return [
-    { key: "par-3-scoring-nett", title: "Par 3 Scoring - Nett", columnLabel: "TOTAL", rows: parBuckets[3], useParColoring: true },
-    { key: "par-4-scoring-nett", title: "Par 4 Scoring - Nett", columnLabel: "TOTAL", rows: parBuckets[4], useParColoring: true },
-    { key: "par-5-scoring-nett", title: "Par 5 Scoring - Nett", columnLabel: "TOTAL", rows: parBuckets[5], useParColoring: true },
-    { key: "most-birdies-or-better", title: "Most Birdies or Better", columnLabel: "TOTAL", rows: birdieOrBetterRows },
-    { key: "most-pars", title: "Most Pars", columnLabel: "TOTAL", rows: parCountRows },
-    { key: "most-bogeys-or-worse", title: "Most Bogeys or Worse", columnLabel: "TOTAL", rows: bogeyOrWorseRows },
-    { key: "strokes-gained", title: "Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
+    { key: `par-3-scoring-${mode}`, title: `Par 3 Scoring - ${label}`, columnLabel: "TOTAL", rows: parBuckets[3], useParColoring: true },
+    { key: `par-4-scoring-${mode}`, title: `Par 4 Scoring - ${label}`, columnLabel: "TOTAL", rows: parBuckets[4], useParColoring: true },
+    { key: `par-5-scoring-${mode}`, title: `Par 5 Scoring - ${label}`, columnLabel: "TOTAL", rows: parBuckets[5], useParColoring: true },
+    { key: `most-birdies-or-better-${mode}`, title: "Most Birdies or Better", columnLabel: "TOTAL", rows: birdieOrBetterRows },
+    { key: `most-pars-${mode}`, title: "Most Pars", columnLabel: "TOTAL", rows: parCountRows },
+    { key: `most-bogeys-or-worse-${mode}`, title: "Most Bogeys or Worse", columnLabel: "TOTAL", rows: bogeyOrWorseRows },
+    { key: `strokes-gained-${mode}`, title: "Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
   ];
+}
+
+export async function getNettScoringCategories(): Promise<StatCategory[]> {
+  return getScoringCategories("nett");
+}
+
+export async function getScratchScoringCategories(): Promise<StatCategory[]> {
+  return getScoringCategories("scratch");
 }
