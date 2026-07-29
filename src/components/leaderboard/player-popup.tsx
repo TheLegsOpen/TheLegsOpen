@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight, ChevronDown, Star } from "lucide-react";
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { CountryFlag } from "@/components/shared/country-flag";
@@ -75,7 +75,7 @@ export function PlayerPopup({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] w-full max-w-3xl overflow-y-auto border-none bg-surface-dark p-0 text-surface-dark-foreground">
+      <DialogContent className="max-h-[85vh] w-full max-w-5xl overflow-y-auto border-none bg-surface-dark p-0 text-surface-dark-foreground">
         <DialogTitle className="sr-only">{player.name}</DialogTitle>
 
         <div className="relative flex flex-col gap-4 bg-primary p-6 text-primary-foreground sm:flex-row sm:items-start">
@@ -127,12 +127,12 @@ export function PlayerPopup({
         </div>
 
         <div className="p-6">
-          <label className="mb-3 flex items-center justify-between gap-3 bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-accent-foreground">
+          <label className="relative mb-3 flex items-center justify-between gap-3 bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-accent-foreground">
             <span className="sr-only">Select competition</span>
             <select
               value={competition}
               onChange={(e) => setCompetition(e.target.value as Competition)}
-              className="w-full appearance-none bg-transparent focus:outline-none"
+              className="w-full cursor-pointer appearance-none bg-transparent pr-6 focus:outline-none"
             >
               {COMPETITION_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value} className="text-black">
@@ -140,28 +140,29 @@ export function PlayerPopup({
                 </option>
               ))}
             </select>
+            <ChevronDown className="pointer-events-none absolute right-4 h-4 w-4" />
           </label>
 
           {activeEntry ? (
             <div className="overflow-x-auto border border-surface-dark-foreground/15">
-              <table className="w-full min-w-[900px] border-collapse text-sm">
+              <table className="w-full border-collapse text-sm">
                 <thead>
                   <tr className="bg-surface-dark-foreground/5 text-center text-xs uppercase tracking-wide text-surface-dark-foreground/60">
                     {FRONT_NINE.map((i) => (
-                      <th key={i} className="px-1 py-1">
+                      <th key={i} className="px-0.5 py-1">
                         <span className="block">{i + 1}</span>
                         <span className="block font-normal normal-case text-surface-dark-foreground/40">{activeEntry.holes[i]?.par}</span>
                       </th>
                     ))}
-                    <th className="px-2 py-1">Out</th>
+                    <th className="px-0.5 py-1">Out</th>
                     {BACK_NINE.map((i) => (
-                      <th key={i} className="px-1 py-1">
+                      <th key={i} className="px-0.5 py-1">
                         <span className="block">{i + 1}</span>
                         <span className="block font-normal normal-case text-surface-dark-foreground/40">{activeEntry.holes[i]?.par}</span>
                       </th>
                     ))}
-                    <th className="px-2 py-1">In</th>
-                    <th className="px-2 py-1">Tot</th>
+                    <th className="px-0.5 py-1">In</th>
+                    <th className="px-0.5 py-1">Tot</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -169,31 +170,31 @@ export function PlayerPopup({
                     {FRONT_NINE.map((i) => {
                       const hole = activeEntry.holes[i];
                       return (
-                        <td key={i} className="px-1 py-1 text-center">
-                          <span className={cn(TILE_CLASS, "min-w-0 w-9", hole?.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS)}>
+                        <td key={i} className="px-0.5 py-1 text-center">
+                          <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hole?.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS)}>
                             {hole?.value ?? ""}
                           </span>
                         </td>
                       );
                     })}
-                    <td className="px-2 py-1 text-center">
-                      <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>{sumHoles(activeEntry, FRONT_NINE) ?? "—"}</span>
+                    <td className="px-0.5 py-1 text-center">
+                      <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", NEUTRAL_TILE_CLASS)}>{sumHoles(activeEntry, FRONT_NINE) ?? "—"}</span>
                     </td>
                     {BACK_NINE.map((i) => {
                       const hole = activeEntry.holes[i];
                       return (
-                        <td key={i} className="px-1 py-1 text-center">
-                          <span className={cn(TILE_CLASS, "min-w-0 w-9", hole?.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS)}>
+                        <td key={i} className="px-0.5 py-1 text-center">
+                          <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hole?.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS)}>
                             {hole?.value ?? ""}
                           </span>
                         </td>
                       );
                     })}
-                    <td className="px-2 py-1 text-center">
-                      <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>{sumHoles(activeEntry, BACK_NINE) ?? "—"}</span>
+                    <td className="px-0.5 py-1 text-center">
+                      <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", NEUTRAL_TILE_CLASS)}>{sumHoles(activeEntry, BACK_NINE) ?? "—"}</span>
                     </td>
-                    <td className="px-2 py-1 text-center">
-                      <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
+                    <td className="px-0.5 py-1 text-center">
+                      <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", NEUTRAL_TILE_CLASS)}>
                         {isStableford ? (activeEntry.score ?? 0) : (activeEntry.score ?? "—")}
                       </span>
                     </td>
