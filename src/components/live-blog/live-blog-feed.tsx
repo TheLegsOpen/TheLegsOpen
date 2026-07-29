@@ -1,18 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDownCircle, ArrowUpCircle, Crown, Flag, Star, Trophy } from "lucide-react";
+import {
+  ArrowDownCircle,
+  ArrowUpCircle,
+  AlertTriangle,
+  Award,
+  Crown,
+  Flag,
+  Flame,
+  Navigation,
+  Star,
+  TrendingDown,
+  TrendingUp,
+  Trophy,
+  Users,
+} from "lucide-react";
 
 import { CountryFlag } from "@/components/shared/country-flag";
+import { formatToPar } from "@/lib/leaderboard";
 import { cn, playerSlug } from "@/lib/utils";
+import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { LiveBlogCategory, LiveBlogCompetition, LiveBlogEntry } from "@/lib/data/live-blog";
 
 const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: typeof Star; chipClass: string }> = {
   eagle: { label: "Eagle", icon: Star, chipClass: "bg-[#910149] text-white" },
   birdie: { label: "Birdie", icon: ArrowDownCircle, chipClass: "bg-[#CB333B] text-white" },
+  "moving-up": { label: "Moving up", icon: TrendingUp, chipClass: "bg-[#CB333B] text-white" },
+  charge: { label: "Making a charge", icon: Flame, chipClass: "bg-[#910149] text-white" },
   bogey: { label: "Bogey", icon: ArrowUpCircle, chipClass: "bg-[#08325A] text-white" },
+  "moving-down": { label: "Moving down", icon: TrendingDown, chipClass: "bg-[#08325A] text-white" },
+  trouble: { label: "Trouble", icon: AlertTriangle, chipClass: "bg-[#08325A] text-white" },
   leader: { label: "Leader", icon: Crown, chipClass: "bg-[#0E3D2C] text-white" },
-  "round-complete": { label: "Round complete", icon: Flag, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
+  through: { label: "Through", icon: Navigation, chipClass: "bg-[#0E3D2C] text-white" },
+  "clubhouse-leader": { label: "Clubhouse leader", icon: Award, chipClass: "bg-[#0E3D2C] text-white" },
+  "round-complete": { label: "In the clubhouse", icon: Flag, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
+  "last-group": { label: "Last group out", icon: Users, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
   championship: { label: "Championship", icon: Trophy, chipClass: "bg-accent text-accent-foreground" },
 };
 
@@ -49,6 +72,7 @@ export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
       {entries.map((entry) => {
         const meta = CATEGORY_META[entry.category];
         const Icon = meta.icon;
+        const isStableford = entry.competition === "stableford";
         return (
           <article key={entry.id} className="border border-surface-dark-foreground/15 bg-surface-dark-foreground/5 p-5">
             <div className="mb-3 flex items-center justify-between gap-4">
@@ -63,15 +87,27 @@ export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
             </div>
             <h3 className="mb-1.5 font-display text-lg font-bold">{entry.headline}</h3>
             <p className="text-base leading-relaxed text-surface-dark-foreground/80">{entry.body}</p>
-            {entry.player ? (
-              <Link
-                href={`/players/${playerSlug(entry.player)}`}
-                className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:underline"
-              >
-                <CountryFlag code={entry.player.countryCode} className="h-3 w-4" />
-                {entry.player.name}
-              </Link>
-            ) : null}
+            <div className="mt-3 flex items-center gap-3">
+              {entry.player ? (
+                <Link
+                  href={`/players/${playerSlug(entry.player)}`}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:underline"
+                >
+                  <CountryFlag code={entry.player.countryCode} className="h-3 w-4" />
+                  {entry.player.name}
+                </Link>
+              ) : null}
+              {entry.scoreRelative !== undefined ? (
+                <span
+                  className={cn(
+                    TILE_CLASS,
+                    isStableford ? NEUTRAL_TILE_CLASS : scorePillClass(entry.scoreRelative),
+                  )}
+                >
+                  {isStableford ? `${entry.scoreRelative} pts` : formatToPar(entry.scoreRelative)}
+                </span>
+              ) : null}
+            </div>
           </article>
         );
       })}

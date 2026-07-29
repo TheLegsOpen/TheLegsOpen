@@ -23,8 +23,15 @@ export const LiveBlogPosts: CollectionConfig = {
         { label: "Eagle or better", value: "eagle" },
         { label: "Birdie", value: "birdie" },
         { label: "Bogey or worse", value: "bogey" },
+        { label: "Moving up", value: "moving-up" },
+        { label: "Making a charge", value: "charge" },
+        { label: "Moving down", value: "moving-down" },
+        { label: "Trouble", value: "trouble" },
         { label: "Leader", value: "leader" },
-        { label: "Round complete", value: "round-complete" },
+        { label: "Through", value: "through" },
+        { label: "Clubhouse leader", value: "clubhouse-leader" },
+        { label: "In the clubhouse", value: "round-complete" },
+        { label: "Last group out", value: "last-group" },
         { label: "Championship", value: "championship" },
       ],
     },
@@ -43,6 +50,14 @@ export const LiveBlogPosts: CollectionConfig = {
     { name: "championship", type: "relationship", relationTo: "championships", required: true },
     { name: "player", type: "relationship", relationTo: "players" },
     { name: "holeNumber", type: "number", admin: { description: "Which hole this post relates to, if any." } },
+    {
+      name: "scoreRelative",
+      type: "number",
+      admin: {
+        description:
+          "The player's live score at the time of this post -- to-par for Main/Scratch, points for Stableford (see competition). Shown as a tile on the live blog.",
+      },
+    },
     {
       name: "postedAt",
       type: "date",

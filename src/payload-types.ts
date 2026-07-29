@@ -624,13 +624,27 @@ export interface Scorecard {
  */
 export interface LiveBlogPost {
   id: string;
-  category: "eagle" | "birdie" | "bogey" | "leader" | "round-complete" | "championship";
+  category:
+    | "eagle"
+    | "birdie"
+    | "bogey"
+    | "moving-up"
+    | "charge"
+    | "moving-down"
+    | "trouble"
+    | "leader"
+    | "through"
+    | "clubhouse-leader"
+    | "round-complete"
+    | "last-group"
+    | "championship";
   headline: string;
   body: string;
   competition?: ("main" | "stableford" | "scratch") | null;
   championship: string | Championship;
   player?: (string | Player) | null;
   holeNumber?: number | null;
+  scoreRelative?: number | null;
   postedAt: string;
   updatedAt: string;
   createdAt: string;

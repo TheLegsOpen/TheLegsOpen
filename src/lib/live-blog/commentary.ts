@@ -75,11 +75,81 @@ export function competitionUnderwayCommentary(year: number, venueName: string): 
 
 export function roundCompleteCommentary(playerName: string, toPar: number, position: number, tied: boolean): Commentary {
   const posLabel = `${tied ? "T" : ""}${position}`;
-  const headline = pick(["Round complete", `${playerName.split(" ").slice(-1)[0]} signs for the card`]);
+  const headline = pick(["In the clubhouse", `${playerName.split(" ").slice(-1)[0]} signs for the card`]);
   const body = pick([
-    `${playerName} completes the round at ${formatToPar(toPar)}, sitting ${posLabel} on the leaderboard.`,
+    `${playerName} is in the clubhouse at ${formatToPar(toPar)}, sitting ${posLabel} on the leaderboard.`,
     `That's the card signed for ${playerName} — ${formatToPar(toPar)} for the round, currently ${posLabel}.`,
     `${playerName} finishes their round at ${formatToPar(toPar)} and moves to ${posLabel}.`,
+  ]);
+  return { headline, body };
+}
+
+export function lastGroupOutCommentary(venueName: string): Commentary {
+  const headline = pick(["Last group out", "The whole field is out"]);
+  const body = pick([
+    `The final group has played their first hole — the entire field is now out on the course at ${venueName}.`,
+    `Last tee time away and under way — every player is now out on the course.`,
+    `The day's last group is off and running at ${venueName}. The whole field is in play.`,
+  ]);
+  return { headline, body };
+}
+
+export function movingUpCommentary(playerName: string): Commentary {
+  const headline = pick(["Moving up", `${playerName.split(" ").slice(-1)[0]} on the move`]);
+  const body = pick([
+    `${playerName} has gone under par on two straight holes — climbing the leaderboard.`,
+    `Back-to-back birdies for ${playerName}, who's moving up the leaderboard.`,
+    `Two in a row for ${playerName} — a real move up the standings.`,
+  ]);
+  return { headline, body };
+}
+
+export function chargeCommentary(playerName: string, streak: number): Commentary {
+  const headline = pick(["Making a charge", `${playerName.split(" ").slice(-1)[0]} is charging`]);
+  const body = pick([
+    `${playerName} has gone under par on ${streak} holes in a row — this is a real charge up the leaderboard.`,
+    `${streak} straight holes under par for ${playerName}. They're making a serious charge.`,
+    `${playerName} can't miss right now — ${streak} in a row and charging up the board.`,
+  ]);
+  return { headline, body };
+}
+
+export function movingDownCommentary(playerName: string): Commentary {
+  const headline = pick(["Moving down", `${playerName.split(" ").slice(-1)[0]} slips`]);
+  const body = pick([
+    `${playerName} has dropped shots on two straight holes — sliding back down the leaderboard.`,
+    `Back-to-back bogeys for ${playerName}, who's slipping down the standings.`,
+    `Two dropped in a row for ${playerName} — a costly spell.`,
+  ]);
+  return { headline, body };
+}
+
+export function troubleCommentary(playerName: string, streak: number): Commentary {
+  const headline = pick(["Trouble", `${playerName.split(" ").slice(-1)[0]} in trouble`]);
+  const body = pick([
+    `${playerName} has dropped shots on ${streak} holes in a row — real trouble for them now.`,
+    `${streak} straight holes over par for ${playerName}. This is turning into a difficult spell.`,
+    `A tough stretch for ${playerName} — ${streak} in a row dropped.`,
+  ]);
+  return { headline, body };
+}
+
+export function leaderThroughCommentary(playerName: string, holesCompleted: number, toPar: number, tied: boolean): Commentary {
+  const headline = pick(["Through", `${playerName.split(" ").slice(-1)[0]} leads`]);
+  const shareWord = tied ? "shares the lead" : "leads";
+  const body = pick([
+    `${playerName} ${shareWord} through ${holesCompleted} at ${formatToPar(toPar)}.`,
+    `Through ${holesCompleted} holes, ${playerName} ${shareWord} at ${formatToPar(toPar)}.`,
+  ]);
+  return { headline, body };
+}
+
+export function clubhouseLeaderCommentary(playerName: string, toPar: number): Commentary {
+  const headline = pick(["Clubhouse leader", `${playerName.split(" ").slice(-1)[0]} sets the target`]);
+  const body = pick([
+    `${playerName} is the new clubhouse leader at ${formatToPar(toPar)} — the target for those still out on the course.`,
+    `${playerName} posts ${formatToPar(toPar)} to take over as clubhouse leader.`,
+    `That's the new mark to beat — ${playerName} leads the clubhouse at ${formatToPar(toPar)}.`,
   ]);
   return { headline, body };
 }

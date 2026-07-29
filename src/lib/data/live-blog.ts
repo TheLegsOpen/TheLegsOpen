@@ -6,7 +6,20 @@ import { mapPlayer } from "@/lib/data/players";
 import type { Player } from "@/types/player";
 import type { Player as PayloadPlayer } from "@/payload-types";
 
-export type LiveBlogCategory = "eagle" | "birdie" | "bogey" | "leader" | "round-complete" | "championship";
+export type LiveBlogCategory =
+  | "eagle"
+  | "birdie"
+  | "bogey"
+  | "moving-up"
+  | "charge"
+  | "moving-down"
+  | "trouble"
+  | "leader"
+  | "through"
+  | "clubhouse-leader"
+  | "round-complete"
+  | "last-group"
+  | "championship";
 export type LiveBlogCompetition = "main" | "stableford" | "scratch";
 
 export interface LiveBlogEntry {
@@ -17,6 +30,7 @@ export interface LiveBlogEntry {
   body: string;
   player?: Player;
   holeNumber?: number;
+  scoreRelative?: number;
   postedAt: string;
 }
 
@@ -41,6 +55,7 @@ export async function getLiveBlogPosts(): Promise<LiveBlogEntry[]> {
     body: doc.body,
     player: typeof doc.player === "object" && doc.player ? mapPlayer(doc.player as PayloadPlayer) : undefined,
     holeNumber: doc.holeNumber ?? undefined,
+    scoreRelative: doc.scoreRelative ?? undefined,
     postedAt: doc.postedAt,
   }));
 }

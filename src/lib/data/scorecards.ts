@@ -48,7 +48,7 @@ export async function getActiveChampionshipId(): Promise<string | undefined> {
 }
 
 /** "12.00" or "08:12" -> minutes since midnight, for sorting not-yet-started players by tee time. Unparsable sorts last. */
-function parseTeeTimeMinutes(time: string): number {
+export function parseTeeTimeMinutes(time: string): number {
   const match = time.match(/(\d{1,2})[.:](\d{2})/);
   if (!match) return Number.POSITIVE_INFINITY;
   return Number(match[1]) * 60 + Number(match[2]);
