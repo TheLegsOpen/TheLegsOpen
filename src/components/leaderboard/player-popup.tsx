@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Star } from "lucide-react";
 
@@ -31,6 +31,8 @@ interface PlayerPopupProps {
   main?: CompetitionEntry;
   stableford?: CompetitionEntry;
   scratch?: CompetitionEntry;
+  /** Which tab the popup was opened from -- the dropdown defaults here, then can be freely changed. */
+  initialCompetition: Competition;
   leaderToPar: number;
   isFav: boolean;
   onToggleFavorite: () => void;
@@ -38,8 +40,22 @@ interface PlayerPopupProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function PlayerPopup({ main, stableford, scratch, leaderToPar, isFav, onToggleFavorite, open, onOpenChange }: PlayerPopupProps) {
-  const [competition, setCompetition] = useState<Competition>("main");
+export function PlayerPopup({
+  main,
+  stableford,
+  scratch,
+  initialCompetition,
+  leaderToPar,
+  isFav,
+  onToggleFavorite,
+  open,
+  onOpenChange,
+}: PlayerPopupProps) {
+  const [competition, setCompetition] = useState<Competition>(initialCompetition);
+
+  useEffect(() => {
+    if (open) setCompetition(initialCompetition);
+  }, [open, initialCompetition]);
 
   if (!main) return null;
   const { player } = main;

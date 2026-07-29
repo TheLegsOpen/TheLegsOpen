@@ -13,7 +13,7 @@ import { HoleByHoleTable } from "@/components/leaderboard/hole-by-hole-table";
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { useFavorites } from "@/hooks/use-favorites";
 import { cn } from "@/lib/utils";
-import type { CompetitionEntry } from "@/lib/data/scorecards";
+import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
 import type { Article } from "@/types/article";
 import type { SponsorClock } from "@/lib/data/sponsor-clock";
 
@@ -45,6 +45,12 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
   const [infoOpen, setInfoOpen] = useState(false);
   const [holeByHole, setHoleByHole] = useState(false);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [popupCompetition, setPopupCompetition] = useState<Competition>("main");
+
+  function selectPlayer(playerId: string, competition: Competition) {
+    setSelectedPlayerId(playerId);
+    setPopupCompetition(competition);
+  }
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -175,7 +181,7 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
 
               <TabsContent value="main" className="mt-0">
                 {holeByHole ? (
-                  <HoleByHoleTable entries={mainEntries} onSelectPlayer={setSelectedPlayerId} />
+                  <HoleByHoleTable entries={mainEntries} onSelectPlayer={(id) => selectPlayer(id, "main")} />
                 ) : (
                   <LeaderboardTable
                     entries={mainEntries}
@@ -183,13 +189,13 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
                     favorites={hydrated ? favorites : []}
                     onToggleFavorite={toggleFavorite}
                     favoritesOnly={favoritesOnly}
-                    onSelectPlayer={setSelectedPlayerId}
+                    onSelectPlayer={(id) => selectPlayer(id, "main")}
                   />
                 )}
               </TabsContent>
               <TabsContent value="stableford" className="mt-0">
                 {holeByHole ? (
-                  <HoleByHoleTable entries={stablefordEntries} onSelectPlayer={setSelectedPlayerId} />
+                  <HoleByHoleTable entries={stablefordEntries} onSelectPlayer={(id) => selectPlayer(id, "stableford")} />
                 ) : (
                   <LeaderboardTable
                     entries={stablefordEntries}
@@ -197,13 +203,13 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
                     favorites={hydrated ? favorites : []}
                     onToggleFavorite={toggleFavorite}
                     favoritesOnly={favoritesOnly}
-                    onSelectPlayer={setSelectedPlayerId}
+                    onSelectPlayer={(id) => selectPlayer(id, "stableford")}
                   />
                 )}
               </TabsContent>
               <TabsContent value="scratch" className="mt-0">
                 {holeByHole ? (
-                  <HoleByHoleTable entries={scratchEntries} onSelectPlayer={setSelectedPlayerId} />
+                  <HoleByHoleTable entries={scratchEntries} onSelectPlayer={(id) => selectPlayer(id, "scratch")} />
                 ) : (
                   <LeaderboardTable
                     entries={scratchEntries}
@@ -211,7 +217,7 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
                     favorites={hydrated ? favorites : []}
                     onToggleFavorite={toggleFavorite}
                     favoritesOnly={favoritesOnly}
-                    onSelectPlayer={setSelectedPlayerId}
+                    onSelectPlayer={(id) => selectPlayer(id, "scratch")}
                   />
                 )}
               </TabsContent>
@@ -256,6 +262,7 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
         main={selectedMain}
         stableford={selectedStableford}
         scratch={selectedScratch}
+        initialCompetition={popupCompetition}
         leaderToPar={leaderToPar}
         isFav={selectedPlayerId ? favorites.includes(selectedPlayerId) : false}
         onToggleFavorite={() => selectedPlayerId && toggleFavorite(selectedPlayerId)}
