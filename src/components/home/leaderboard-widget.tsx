@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { SectionHeading } from "@/components/shared/section-heading";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
 import { cn, playerSlug, splitSurnameFirst } from "@/lib/utils";
@@ -22,15 +21,15 @@ export function LeaderboardWidget({ entries }: LeaderboardWidgetProps) {
   const top = entries.slice(0, WIDGET_ROW_COUNT);
 
   return (
-    <div>
-      <div className="mb-6 flex items-end justify-between gap-6">
-        <SectionHeading tone="dark" eyebrow="Championship Week" title="Leaderboard" />
+    <div className="border border-surface-dark-foreground/15">
+      <div className="bg-primary px-5 py-3">
+        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-primary-foreground">Leaderboard</h2>
       </div>
 
       {top.length === 0 ? (
-        <p className="text-sm text-surface-dark-foreground/60">The field will appear here once tee times are generated.</p>
+        <p className="p-5 text-sm text-surface-dark-foreground/60">The field will appear here once tee times are generated.</p>
       ) : (
-        <div className="overflow-x-auto border border-surface-dark-foreground/15">
+        <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 text-left text-xs uppercase tracking-wide text-surface-dark-foreground/60">
@@ -78,7 +77,7 @@ export function LeaderboardWidget({ entries }: LeaderboardWidgetProps) {
 
       <Link
         href="/leaderboard"
-        className="mt-4 flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-accent transition-colors hover:text-accent/80"
+        className="flex items-center justify-between bg-primary px-5 py-3 text-sm font-bold uppercase tracking-wide text-accent transition-colors hover:text-accent/80"
       >
         Full leaderboard
         <ArrowRight className="h-4 w-4" />

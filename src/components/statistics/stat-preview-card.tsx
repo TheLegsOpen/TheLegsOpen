@@ -14,12 +14,12 @@ export function StatPreviewCard({ category }: { category: StatCategory }) {
   const top = category.rows.slice(0, PREVIEW_COUNT);
 
   return (
-    <div className="flex flex-col gap-px overflow-hidden">
-      <div className="flex items-center justify-between gap-4 bg-surface-dark-foreground/5 px-4 py-3">
-        <h3 className="font-display text-lg font-bold uppercase tracking-wide">{category.title}</h3>
+    <div className="flex flex-col gap-px overflow-hidden border border-surface-dark-foreground/15">
+      <div className="flex items-center justify-between gap-4 bg-primary px-4 py-3">
+        <h3 className="font-display text-lg font-bold uppercase tracking-wide text-primary-foreground">{category.title}</h3>
         <Link
           href={`/statistics/${category.key}`}
-          className="inline-flex shrink-0 items-center gap-1 rounded-full border border-surface-dark-foreground/30 px-4 py-2 text-sm font-bold uppercase tracking-wide text-surface-dark-foreground transition-colors hover:border-accent"
+          className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary-foreground/30 px-4 py-2 text-sm font-bold uppercase tracking-wide text-primary-foreground transition-colors hover:border-accent hover:text-accent"
         >
           Full rankings <ChevronRight className="h-4 w-4" />
         </Link>
