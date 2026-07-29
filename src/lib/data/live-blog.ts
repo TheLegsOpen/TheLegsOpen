@@ -19,7 +19,8 @@ export type LiveBlogCategory =
   | "clubhouse-leader"
   | "round-complete"
   | "last-group"
-  | "championship";
+  | "championship"
+  | "instagram";
 export type LiveBlogCompetition = "main" | "stableford" | "scratch";
 
 export interface LiveBlogEntry {
@@ -28,6 +29,7 @@ export interface LiveBlogEntry {
   competition?: LiveBlogCompetition;
   headline: string;
   body: string;
+  instagramUrl?: string;
   player?: Player;
   holeNumber?: number;
   scoreRelative?: number;
@@ -53,6 +55,7 @@ export async function getLiveBlogPosts(): Promise<LiveBlogEntry[]> {
     competition: doc.competition ?? undefined,
     headline: doc.headline,
     body: doc.body,
+    instagramUrl: doc.instagramUrl ?? undefined,
     player: typeof doc.player === "object" && doc.player ? mapPlayer(doc.player as PayloadPlayer) : undefined,
     holeNumber: doc.holeNumber ?? undefined,
     scoreRelative: doc.scoreRelative ?? undefined,

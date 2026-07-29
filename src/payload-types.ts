@@ -637,9 +637,11 @@ export interface LiveBlogPost {
     | "clubhouse-leader"
     | "round-complete"
     | "last-group"
-    | "championship";
+    | "championship"
+    | "instagram";
   headline: string;
   body: string;
+  instagramUrl?: string | null;
   competition?: ("main" | "stableford" | "scratch") | null;
   championship: string | Championship;
   player?: (string | Player) | null;

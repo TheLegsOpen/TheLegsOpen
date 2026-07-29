@@ -33,10 +33,19 @@ export const LiveBlogPosts: CollectionConfig = {
         { label: "In the clubhouse", value: "round-complete" },
         { label: "Last group out", value: "last-group" },
         { label: "Championship", value: "championship" },
+        { label: "Instagram", value: "instagram" },
       ],
     },
     { name: "headline", type: "text", required: true },
     { name: "body", type: "textarea", required: true },
+    {
+      name: "instagramUrl",
+      type: "text",
+      admin: {
+        description: "Only used for the Instagram category. Paste the post URL (e.g. https://www.instagram.com/p/XXXXXXXXX/) to embed it on the live blog.",
+        condition: (_, siblingData) => siblingData?.category === "instagram",
+      },
+    },
     {
       name: "competition",
       type: "select",

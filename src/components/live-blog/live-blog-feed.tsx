@@ -6,6 +6,7 @@ import {
   ArrowUpCircle,
   AlertTriangle,
   Award,
+  Camera,
   Crown,
   Flag,
   Flame,
@@ -21,6 +22,7 @@ import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
 import { cn, playerSlug } from "@/lib/utils";
 import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
+import { InstagramEmbed } from "@/components/live-blog/instagram-embed";
 import type { LiveBlogCategory, LiveBlogCompetition, LiveBlogEntry } from "@/lib/data/live-blog";
 
 const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: typeof Star; chipClass: string }> = {
@@ -37,6 +39,11 @@ const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: typeof Star
   "round-complete": { label: "In the clubhouse", icon: Flag, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
   "last-group": { label: "Last group out", icon: Users, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
   championship: { label: "Championship", icon: Trophy, chipClass: "bg-accent text-accent-foreground" },
+  instagram: {
+    label: "Instagram",
+    icon: Camera,
+    chipClass: "bg-gradient-to-tr from-[#FEDA75] via-[#D62976] to-[#4F5BD5] text-white",
+  },
 };
 
 const COMPETITION_LABEL: Record<LiveBlogCompetition, string> = {
@@ -86,7 +93,12 @@ export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
               </span>
             </div>
             <h3 className="mb-1.5 font-display text-lg font-bold">{entry.headline}</h3>
-            <p className="text-base leading-relaxed text-surface-dark-foreground/80">{entry.body}</p>
+            {entry.body ? <p className="text-base leading-relaxed text-surface-dark-foreground/80">{entry.body}</p> : null}
+            {entry.category === "instagram" && entry.instagramUrl ? (
+              <div className="mt-3 flex justify-center overflow-hidden [&_iframe]:!max-w-full">
+                <InstagramEmbed url={entry.instagramUrl} />
+              </div>
+            ) : null}
             <div className="mt-3 flex items-center gap-3">
               {entry.player ? (
                 <Link
