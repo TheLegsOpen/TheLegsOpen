@@ -25,7 +25,7 @@ import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/lea
 import { InstagramEmbed } from "@/components/live-blog/instagram-embed";
 import type { LiveBlogCategory, LiveBlogCompetition, LiveBlogEntry } from "@/lib/data/live-blog";
 
-const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: typeof Star; chipClass: string }> = {
+export const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: typeof Star; chipClass: string }> = {
   eagle: { label: "Eagle", icon: Star, chipClass: "bg-[#910149] text-white" },
   birdie: { label: "Birdie", icon: ArrowDownCircle, chipClass: "bg-[#CB333B] text-white" },
   "moving-up": { label: "Moving up", icon: TrendingUp, chipClass: "bg-[#CB333B] text-white" },
@@ -52,11 +52,11 @@ const COMPETITION_LABEL: Record<LiveBlogCompetition, string> = {
   scratch: "Scratch",
 };
 
-function formatTime(iso: string): string {
+export function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
-function formatDate(iso: string): string {
+export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
 }
 
