@@ -4,6 +4,8 @@ export interface StatRow {
   player: Player;
   value: number;
   display: string;
+  position?: number;
+  tied?: boolean;
 }
 
 export interface StatCategory {
