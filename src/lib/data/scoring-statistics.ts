@@ -14,6 +14,23 @@ export type ScoringMode = "nett" | "scratch";
 interface HoleInfo {
   par: number;
   si: number;
+  yards?: number;
+}
+
+export interface HoleToughnessRow {
+  holeNumber: number;
+  par: number;
+  yards?: number;
+  average?: number;
+  relativeToPar?: number;
+  eagleOrBetter: number;
+  birdie: number;
+  parCount: number;
+  bogey: number;
+  doubleBogey: number;
+  doubleBogeyPlus: number;
+  position?: number;
+  tied?: boolean;
 }
 
 interface PlayerHoleScores {
@@ -49,6 +66,7 @@ async function getPlayerScoresByMode(mode: ScoringMode): Promise<{ holeInfos: Ho
   const holeInfos = Array.from({ length: 18 }, (_, i) => ({
     par: venue?.holes?.[i]?.par ?? 4,
     si: venue?.holes?.[i]?.si ?? i + 1,
+    yards: venue?.holes?.[i]?.yards ?? undefined,
   }));
 
   const scorecards = await payload.find({
@@ -233,4 +251,62 @@ async function getStreakCategoriesForMode(mode: ScoringMode): Promise<StatCatego
 export async function getStreakCategories(): Promise<StatCategory[]> {
   const [nett, scratch] = await Promise.all([getStreakCategoriesForMode("nett"), getStreakCategoriesForMode("scratch")]);
   return [...nett, ...scratch];
+}
+
+/**
+ * Toughest Holes, modelled on the PGA Tour's course stats page -- one row per hole (not per
+ * player), ranked by average score relative to par. Holes nobody has played yet still show up
+ * (with the course setup data) but sort to the bottom, unranked, until scores start coming in.
+ */
+export async function getToughestHoles(mode: ScoringMode): Promise<HoleToughnessRow[]> {
+  const { holeInfos, playerScores } = await getPlayerScoresByMode(mode);
+  if (holeInfos.length === 0) return [];
+
+  const rows: HoleToughnessRow[] = holeInfos.map((info, i) => {
+    const scores = playerScores.map((p) => p.scoreByHole[i]).filter((v): v is number => v !== undefined);
+    let eagleOrBetter = 0;
+    let birdie = 0;
+    let parCount = 0;
+    let bogey = 0;
+    let doubleBogey = 0;
+    let doubleBogeyPlus = 0;
+
+    scores.forEach((score) => {
+      const relative = score - info.par;
+      if (relative <= -2) eagleOrBetter += 1;
+      else if (relative === -1) birdie += 1;
+      else if (relative === 0) parCount += 1;
+      else if (relative === 1) bogey += 1;
+      else if (relative === 2) doubleBogey += 1;
+      else doubleBogeyPlus += 1;
+    });
+
+    const average = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : undefined;
+
+    return {
+      holeNumber: i + 1,
+      par: info.par,
+      yards: info.yards,
+      average,
+      relativeToPar: average !== undefined ? average - info.par : undefined,
+      eagleOrBetter,
+      birdie,
+      parCount,
+      bogey,
+      doubleBogey,
+      doubleBogeyPlus,
+    };
+  });
+
+  const played = rows.filter((r) => r.relativeToPar !== undefined).sort((a, b) => (b.relativeToPar ?? 0) - (a.relativeToPar ?? 0));
+  const unplayed = rows.filter((r) => r.relativeToPar === undefined).sort((a, b) => a.holeNumber - b.holeNumber);
+
+  let position = 0;
+  played.forEach((row, index) => {
+    if (index === 0 || row.relativeToPar !== played[index - 1].relativeToPar) position = index + 1;
+    row.position = position;
+    row.tied = played.filter((r) => r.relativeToPar === row.relativeToPar).length > 1;
+  });
+
+  return [...played, ...unplayed];
 }

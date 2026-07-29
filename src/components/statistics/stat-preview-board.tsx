@@ -4,17 +4,27 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 import { StatPreviewCard } from "@/components/statistics/stat-preview-card";
+import { ToughestHolesBoard } from "@/components/statistics/toughest-holes-board";
 import type { StatCategory } from "@/lib/statistics";
+import type { HoleToughnessRow } from "@/lib/data/scoring-statistics";
 
-type StatSection = "nett" | "scratch" | "streaks";
+type StatSection = "nett" | "scratch" | "streaks" | "course";
 
 interface StatPreviewBoardProps {
   nettCategories: StatCategory[];
   scratchCategories: StatCategory[];
   streakCategories: StatCategory[];
+  toughestHolesNett: HoleToughnessRow[];
+  toughestHolesScratch: HoleToughnessRow[];
 }
 
-export function StatPreviewBoard({ nettCategories, scratchCategories, streakCategories }: StatPreviewBoardProps) {
+export function StatPreviewBoard({
+  nettCategories,
+  scratchCategories,
+  streakCategories,
+  toughestHolesNett,
+  toughestHolesScratch,
+}: StatPreviewBoardProps) {
   const [section, setSection] = useState<StatSection>("nett");
   const categories = section === "nett" ? nettCategories : section === "scratch" ? scratchCategories : streakCategories;
 
@@ -37,16 +47,26 @@ export function StatPreviewBoard({ nettCategories, scratchCategories, streakCate
             <option value="streaks" className="text-black">
               STREAKS
             </option>
+            <option value="course" className="text-black">
+              COURSE SCORING
+            </option>
           </select>
           <ChevronDown className="pointer-events-none absolute right-4 h-4 w-4" />
         </label>
       </div>
 
-      <div className="flex flex-col gap-8">
-        {categories.map((category) => (
-          <StatPreviewCard key={category.key} category={category} />
-        ))}
-      </div>
+      {section === "course" ? (
+        <div className="flex flex-col gap-8">
+          <ToughestHolesBoard title="Toughest Holes - Nett" rows={toughestHolesNett} />
+          <ToughestHolesBoard title="Toughest Holes - Scratch" rows={toughestHolesScratch} />
+        </div>
+      ) : (
+        <div className="flex flex-col gap-8">
+          {categories.map((category) => (
+            <StatPreviewCard key={category.key} category={category} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
