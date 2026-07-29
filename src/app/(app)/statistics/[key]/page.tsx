@@ -9,6 +9,7 @@ import { StatExplorer } from "@/components/statistics/stat-explorer";
 import { getArticles } from "@/lib/data/articles";
 import { getNettScoringCategories, getScratchScoringCategories, getStreakCategories } from "@/lib/data/scoring-statistics";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
+import { getPageBanners } from "@/lib/data/page-banners";
 
 interface StatDetailPageProps {
   params: Promise<{ key: string }>;
@@ -30,12 +31,13 @@ export async function generateMetadata({ params }: StatDetailPageProps): Promise
 
 export default async function StatDetailPage({ params }: StatDetailPageProps) {
   const { key } = await params;
-  const [nettScoring, scratchScoring, streaks, articles, clockConfig] = await Promise.all([
+  const [nettScoring, scratchScoring, streaks, articles, clockConfig, banners] = await Promise.all([
     getNettScoringCategories(),
     getScratchScoringCategories(),
     getStreakCategories(),
     getArticles(),
     getSponsorClock(),
+    getPageBanners(),
   ]);
 
   const category = [...nettScoring, ...scratchScoring, ...streaks].find((c) => c.key === key);
@@ -46,9 +48,10 @@ export default async function StatDetailPage({ params }: StatDetailPageProps) {
       <PageHero
         variant="photo"
         imageLabel="Practice range at Seabrook Old Course"
-        eyebrow="Championship Week"
-        title="Statistics"
-        description="Scoring statistics computed live from every player's scorecard."
+        imageUrl={banners.statisticsUrl}
+        eyebrow={banners.statisticsEyebrow}
+        title={banners.statisticsTitle}
+        description={banners.statisticsDescription}
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Statistics", href: "/statistics" }, { label: "Full rankings" }]}
       />
       <ChampionshipWeekSwitcher />

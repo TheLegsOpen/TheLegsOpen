@@ -62,5 +62,15 @@ export const PageBanners: GlobalConfig = {
         },
       ],
     },
+    {
+      type: "collapsible",
+      label: "Statistics",
+      fields: [
+        { name: "statistics", type: "upload", relationTo: "media", label: "Banner Image", admin: { description: RECOMMENDED } },
+        { name: "statisticsEyebrow", type: "text", label: "Eyebrow" },
+        { name: "statisticsTitle", type: "text", label: "Title" },
+        { name: "statisticsDescription", type: "textarea", label: "Description" },
+      ],
+    },
   ],
 };

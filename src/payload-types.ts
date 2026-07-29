@@ -412,6 +412,10 @@ export interface PageBannersGlobal {
   field?: (string | Media) | null;
   fieldEyebrow?: string | null;
   fieldTitle?: string | null;
+  statistics?: (string | Media) | null;
+  statisticsEyebrow?: string | null;
+  statisticsTitle?: string | null;
+  statisticsDescription?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }

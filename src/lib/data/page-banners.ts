@@ -19,6 +19,10 @@ export interface PageBanners {
   fieldUrl?: string;
   fieldEyebrow: string;
   fieldTitle: string;
+  statisticsUrl?: string;
+  statisticsEyebrow: string;
+  statisticsTitle: string;
+  statisticsDescription: string;
 }
 
 const DEFAULTS = {
@@ -33,6 +37,9 @@ const DEFAULTS = {
   venuesDescription: "The links courses that make up The Legs Open rotation, past and future.",
   fieldEyebrow: "Championship Week",
   fieldTitle: "The Field",
+  statisticsEyebrow: "Championship Week",
+  statisticsTitle: "Statistics",
+  statisticsDescription: "Scoring statistics computed live from every player's scorecard.",
 } as const;
 
 export async function getPageBanners(): Promise<PageBanners> {
@@ -55,5 +62,9 @@ export async function getPageBanners(): Promise<PageBanners> {
     fieldUrl: mediaUrl(settings.field),
     fieldEyebrow: settings.fieldEyebrow || DEFAULTS.fieldEyebrow,
     fieldTitle: settings.fieldTitle || DEFAULTS.fieldTitle,
+    statisticsUrl: mediaUrl(settings.statistics),
+    statisticsEyebrow: settings.statisticsEyebrow || DEFAULTS.statisticsEyebrow,
+    statisticsTitle: settings.statisticsTitle || DEFAULTS.statisticsTitle,
+    statisticsDescription: settings.statisticsDescription || DEFAULTS.statisticsDescription,
   };
 }

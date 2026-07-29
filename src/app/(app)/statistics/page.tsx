@@ -8,6 +8,7 @@ import { StatPreviewBoard } from "@/components/statistics/stat-preview-board";
 import { getArticles } from "@/lib/data/articles";
 import { getNettScoringCategories, getScratchScoringCategories, getStreakCategories } from "@/lib/data/scoring-statistics";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
+import { getPageBanners } from "@/lib/data/page-banners";
 
 export const metadata: Metadata = {
   title: "Statistics",
@@ -15,12 +16,13 @@ export const metadata: Metadata = {
 };
 
 export default async function StatisticsPage() {
-  const [nettScoring, scratchScoring, streaks, articles, clockConfig] = await Promise.all([
+  const [nettScoring, scratchScoring, streaks, articles, clockConfig, banners] = await Promise.all([
     getNettScoringCategories(),
     getScratchScoringCategories(),
     getStreakCategories(),
     getArticles(),
     getSponsorClock(),
+    getPageBanners(),
   ]);
 
   return (
@@ -28,9 +30,10 @@ export default async function StatisticsPage() {
       <PageHero
         variant="photo"
         imageLabel="Practice range at Seabrook Old Course"
-        eyebrow="Championship Week"
-        title="Statistics"
-        description="Scoring statistics computed live from every player's scorecard."
+        imageUrl={banners.statisticsUrl}
+        eyebrow={banners.statisticsEyebrow}
+        title={banners.statisticsTitle}
+        description={banners.statisticsDescription}
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Statistics" }]}
       />
       <ChampionshipWeekSwitcher />
