@@ -127,12 +127,12 @@ export function PlayerPopup({
         </div>
 
         <div className="p-6">
-          <label className="relative mb-3 flex items-center justify-between gap-3 bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-accent-foreground">
+          <label className="relative mb-4 inline-flex items-center gap-2 rounded-full border border-surface-dark-foreground/30 px-4 py-2 text-sm font-bold uppercase tracking-wide text-surface-dark-foreground transition-colors hover:border-accent">
             <span className="sr-only">Select competition</span>
             <select
               value={competition}
               onChange={(e) => setCompetition(e.target.value as Competition)}
-              className="w-full cursor-pointer appearance-none bg-transparent pr-6 focus:outline-none"
+              className="cursor-pointer appearance-none bg-transparent pr-5 focus:outline-none"
             >
               {COMPETITION_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value} className="text-black">
