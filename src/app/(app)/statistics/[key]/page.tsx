@@ -52,7 +52,6 @@ export default async function StatDetailPage({ params }: StatDetailPageProps) {
         eyebrow={banners.statisticsEyebrow}
         title={banners.statisticsTitle}
         description={banners.statisticsDescription}
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Statistics", href: "/statistics" }, { label: "Full rankings" }]}
       />
       <ChampionshipWeekSwitcher />
 

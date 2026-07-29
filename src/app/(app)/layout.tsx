@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter, Playfair_Display, Source_Sans_3, Newsreader, Manrope } from "next/font/google";
+import localFont from "next/font/local";
 
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -55,6 +56,13 @@ const manrope = Manrope({
   display: "swap",
 });
 
+/** Optional alternate face for the sponsor clock widget's course/local time display -- selected per the Sponsor Clock Widget global. */
+const timekeeper = localFont({
+  src: "../../fonts/timekeeper.woff",
+  variable: "--font-timekeeper",
+  display: "swap",
+});
+
 const FONT_PRESET_VARS: Record<FontPreset, { display: string; sans: string }> = {
   "fraunces-inter": { display: "var(--font-fraunces)", sans: "var(--font-inter)" },
   "playfair-source-sans": { display: "var(--font-playfair)", sans: "var(--font-source-sans)" },
@@ -101,7 +109,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${inter.variable} ${playfair.variable} ${sourceSans.variable} ${newsreader.variable} ${manrope.variable}`}
+      className={`${fraunces.variable} ${inter.variable} ${playfair.variable} ${sourceSans.variable} ${newsreader.variable} ${manrope.variable} ${timekeeper.variable}`}
     >
       <head>
         <style dangerouslySetInnerHTML={{ __html: themeStyle }} />

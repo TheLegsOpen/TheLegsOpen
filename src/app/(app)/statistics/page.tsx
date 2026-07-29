@@ -34,7 +34,6 @@ export default async function StatisticsPage() {
         eyebrow={banners.statisticsEyebrow}
         title={banners.statisticsTitle}
         description={banners.statisticsDescription}
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Statistics" }]}
       />
       <ChampionshipWeekSwitcher />
 

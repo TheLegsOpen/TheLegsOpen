@@ -3,7 +3,7 @@
 import type { CSSProperties } from "react";
 
 import { useLiveClock } from "@/hooks/use-live-clock";
-import { SITE } from "@/constants/site";
+import { cn } from "@/lib/utils";
 import type { SponsorClock } from "@/lib/data/sponsor-clock";
 
 const VENUE_TIME_ZONE = "Europe/London";
@@ -142,18 +142,25 @@ export function SponsorTimeWidget({ config }: { config: SponsorClock }) {
 
       <AnalogClock date={now} config={config} />
 
-      <div className="flex shrink-0 flex-col gap-1.5">
+      <div
+        className="flex shrink-0 flex-col gap-1.5"
+        style={config.clockFont === "timekeeper" ? { fontFamily: "var(--font-timekeeper)" } : undefined}
+      >
         <div>
           <p className="text-[10px] uppercase tracking-wide" style={{ color: "#E8B04B" }}>
-            {SITE.nextVenue}
+            {config.venueName}
           </p>
-          <p className="font-display text-base font-bold tabular-nums leading-tight">{venueTime}</p>
+          <p className={cn("text-base font-bold tabular-nums leading-tight", config.clockFont !== "timekeeper" && "font-display")}>
+            {venueTime}
+          </p>
         </div>
         <div>
           <p className="text-[10px] uppercase tracking-wide" style={{ color: "#E8B04B" }}>
             Your time
           </p>
-          <p className="font-display text-base font-bold tabular-nums leading-tight">{localTime}</p>
+          <p className={cn("text-base font-bold tabular-nums leading-tight", config.clockFont !== "timekeeper" && "font-display")}>
+            {localTime}
+          </p>
         </div>
       </div>
     </div>

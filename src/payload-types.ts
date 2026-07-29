@@ -371,6 +371,7 @@ export interface SponsorClockGlobal {
     tagline: string;
     logo?: (string | Media) | null;
     faceColor: string;
+    clockFont?: ("display" | "timekeeper") | null;
   };
   graphics: {
     faceImage?: (string | Media) | null;

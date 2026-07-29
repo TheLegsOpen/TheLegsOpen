@@ -40,6 +40,18 @@ export const SponsorClock: GlobalConfig = {
           validate: validateHex,
           admin: { description: "Hex color, e.g. #0E3D2C. The widget's background." },
         },
+        {
+          name: "clockFont",
+          type: "select",
+          defaultValue: "display",
+          options: [
+            { label: "Site display font", value: "display" },
+            { label: "Timekeeper", value: "timekeeper" },
+          ],
+          admin: {
+            description: "Font used for the course name/\"Your time\" labels and the time values themselves.",
+          },
+        },
       ],
     },
     {
