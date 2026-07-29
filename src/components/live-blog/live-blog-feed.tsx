@@ -67,7 +67,7 @@ interface LiveBlogFeedProps {
 export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
   if (entries.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-surface-dark-foreground/20 py-16 text-center">
+      <div className="flex flex-col items-center gap-2 border border-dashed border-surface-dark-foreground/20 py-16 text-center">
         <p className="font-display font-bold text-lg">No updates yet</p>
         <p className="text-sm text-surface-dark-foreground/60">Posts will appear here automatically as notable scores come in.</p>
       </div>
@@ -75,20 +75,28 @@ export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      {entries.map((entry) => {
+    <div className="relative border border-surface-dark-foreground/15">
+      {/* Timeline spine running behind every entry's marker dot. */}
+      <div className="pointer-events-none absolute bottom-8 left-6 top-8 w-px bg-surface-dark-foreground/15" aria-hidden="true" />
+
+      {entries.map((entry, index) => {
         const meta = CATEGORY_META[entry.category];
         const Icon = meta.icon;
         const isStableford = entry.competition === "stableford";
         return (
-          <article key={entry.id} className="border border-surface-dark-foreground/15 bg-surface-dark-foreground/5 p-5">
-            <div className="mb-3 flex items-center justify-between gap-4">
+          <article
+            key={entry.id}
+            className={cn("relative py-6 pl-14 pr-5", index % 2 === 1 && "bg-surface-dark-foreground/[0.03]")}
+          >
+            <span className="absolute left-4 top-7 h-4 w-4 rounded-full border-2 border-surface-dark bg-surface-dark-foreground/30" aria-hidden="true" />
+
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
               <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wide", meta.chipClass)}>
                 <Icon className="h-3.5 w-3.5" />
                 {meta.label}
                 {entry.competition ? ` · ${COMPETITION_LABEL[entry.competition]}` : ""}
               </span>
-              <span className="text-xs text-surface-dark-foreground/50 tabular-nums">
+              <span className="font-display text-sm text-surface-dark-foreground/50 tabular-nums">
                 {formatTime(entry.postedAt)} · {formatDate(entry.postedAt)}
               </span>
             </div>
