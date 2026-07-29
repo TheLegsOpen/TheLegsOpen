@@ -6,7 +6,7 @@ import { Container } from "@/components/shared/container";
 import { ChampionshipSidebar } from "@/components/shared/championship-sidebar";
 import { StatPreviewBoard } from "@/components/statistics/stat-preview-board";
 import { getArticles } from "@/lib/data/articles";
-import { getNettScoringCategories, getScratchScoringCategories } from "@/lib/data/scoring-statistics";
+import { getNettScoringCategories, getScratchScoringCategories, getStreakCategories } from "@/lib/data/scoring-statistics";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 
 export const metadata: Metadata = {
@@ -15,9 +15,10 @@ export const metadata: Metadata = {
 };
 
 export default async function StatisticsPage() {
-  const [nettScoring, scratchScoring, articles, clockConfig] = await Promise.all([
+  const [nettScoring, scratchScoring, streaks, articles, clockConfig] = await Promise.all([
     getNettScoringCategories(),
     getScratchScoringCategories(),
+    getStreakCategories(),
     getArticles(),
     getSponsorClock(),
   ]);
@@ -36,7 +37,7 @@ export default async function StatisticsPage() {
 
       <div className="bg-surface-dark bg-dashboard-pattern text-surface-dark-foreground">
         <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_320px] lg:items-start">
-          <StatPreviewBoard nettCategories={nettScoring} scratchCategories={scratchScoring} />
+          <StatPreviewBoard nettCategories={nettScoring} scratchCategories={scratchScoring} streakCategories={streaks} />
           <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="dark" />
         </Container>
       </div>

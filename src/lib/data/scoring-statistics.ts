@@ -11,6 +11,16 @@ import type { Player as PayloadPlayer, Venue } from "@/payload-types";
 
 export type ScoringMode = "nett" | "scratch";
 
+interface HoleInfo {
+  par: number;
+  si: number;
+}
+
+interface PlayerHoleScores {
+  player: Player;
+  scoreByHole: (number | undefined)[];
+}
+
 /** Strokes Gained is the only stat here with genuine fractional values (field averages are rarely whole numbers). */
 function formatDecimalToPar(value: number): string {
   const rounded = Math.round(value * 100) / 100;
@@ -29,16 +39,11 @@ function assignPositions(rows: StatRow[]): void {
   });
 }
 
-/**
- * Real scoring statistics computed directly from Scorecards -- the first family of
- * statistics backed by real data, replacing the old placeholder driving-distance/GIR/putts
- * stats that were never wired to anything. `mode` picks whether the underlying per-hole
- * score is nett (gross minus handicap strokes) or scratch (raw gross, no handicap).
- */
-async function getScoringCategories(mode: ScoringMode): Promise<StatCategory[]> {
+/** Fetches every scorecard for the active championship and reduces it to each player's per-hole nett or scratch score. */
+async function getPlayerScoresByMode(mode: ScoringMode): Promise<{ holeInfos: HoleInfo[]; playerScores: PlayerHoleScores[] }> {
   const payload = await getPayload({ config: configPromise });
   const championship = await getActiveChampionship(payload);
-  if (!championship) return [];
+  if (!championship) return { holeInfos: [], playerScores: [] };
 
   const venue = typeof championship.venue === "object" ? (championship.venue as Venue) : undefined;
   const holeInfos = Array.from({ length: 18 }, (_, i) => ({
@@ -53,9 +58,7 @@ async function getScoringCategories(mode: ScoringMode): Promise<StatCategory[]> 
     limit: 300,
   });
 
-  // First pass: nett/scratch score per player per hole, so we can compute each hole's
-  // field average before working out any individual player's Strokes Gained.
-  const playerScores: { player: Player; scoreByHole: (number | undefined)[] }[] = scorecards.docs.map((doc) => {
+  const playerScores: PlayerHoleScores[] = scorecards.docs.map((doc) => {
     const player = mapPlayer(doc.player as PayloadPlayer);
     const handicap = mode === "nett" ? ((doc.player as PayloadPlayer).championshipHandicap ?? 0) : 0;
     const strokesReceived = allocateStrokes(handicap, holeInfos);
@@ -65,6 +68,19 @@ async function getScoringCategories(mode: ScoringMode): Promise<StatCategory[]> 
     });
     return { player, scoreByHole };
   });
+
+  return { holeInfos, playerScores };
+}
+
+/**
+ * Real scoring statistics computed directly from Scorecards -- the first family of
+ * statistics backed by real data, replacing the old placeholder driving-distance/GIR/putts
+ * stats that were never wired to anything. `mode` picks whether the underlying per-hole
+ * score is nett (gross minus handicap strokes) or scratch (raw gross, no handicap).
+ */
+async function getScoringCategories(mode: ScoringMode): Promise<StatCategory[]> {
+  const { holeInfos, playerScores } = await getPlayerScoresByMode(mode);
+  if (holeInfos.length === 0) return [];
 
   const holeFieldAverage = holeInfos.map((_, i) => {
     const values = playerScores.map((p) => p.scoreByHole[i]).filter((v): v is number => v !== undefined);
@@ -158,4 +174,63 @@ export async function getNettScoringCategories(): Promise<StatCategory[]> {
 
 export async function getScratchScoringCategories(): Promise<StatCategory[]> {
   return getScoringCategories("scratch");
+}
+
+type StreakKind = "par-or-better" | "par" | "bogey-or-worse";
+
+/** Longest run of consecutive played holes (in hole order) matching the streak's condition. */
+function longestStreak(scoreByHole: (number | undefined)[], holeInfos: HoleInfo[], kind: StreakKind): number {
+  let longest = 0;
+  let current = 0;
+  holeInfos.forEach((info, i) => {
+    const score = scoreByHole[i];
+    if (score == null) {
+      current = 0;
+      return;
+    }
+    const relative = score - info.par;
+    const matches = kind === "par-or-better" ? relative <= 0 : kind === "par" ? relative === 0 : relative >= 1;
+    current = matches ? current + 1 : 0;
+    if (current > longest) longest = current;
+  });
+  return longest;
+}
+
+async function getStreakCategoriesForMode(mode: ScoringMode): Promise<StatCategory[]> {
+  const { holeInfos, playerScores } = await getPlayerScoresByMode(mode);
+  if (holeInfos.length === 0) return [];
+
+  const parOrBetterRows: StatRow[] = [];
+  const parRows: StatRow[] = [];
+  const bogeyOrWorseRows: StatRow[] = [];
+
+  for (const { player, scoreByHole } of playerScores) {
+    const holesPlayed = scoreByHole.filter((s) => s != null).length;
+    if (holesPlayed === 0) continue;
+
+    const parOrBetter = longestStreak(scoreByHole, holeInfos, "par-or-better");
+    const parStreak = longestStreak(scoreByHole, holeInfos, "par");
+    const bogeyOrWorse = longestStreak(scoreByHole, holeInfos, "bogey-or-worse");
+
+    parOrBetterRows.push({ player, value: parOrBetter, display: String(parOrBetter) });
+    parRows.push({ player, value: parStreak, display: String(parStreak) });
+    bogeyOrWorseRows.push({ player, value: bogeyOrWorse, display: String(bogeyOrWorse) });
+  }
+
+  [parOrBetterRows, parRows, bogeyOrWorseRows].forEach((rows) => {
+    rows.sort((a, b) => b.value - a.value);
+    assignPositions(rows);
+  });
+
+  const label = mode === "nett" ? "Nett" : "Scratch";
+  return [
+    { key: `longest-par-or-better-streak-${mode}`, title: `Longest ${label} Par or Better Streak`, columnLabel: "TOTAL", rows: parOrBetterRows },
+    { key: `longest-par-streak-${mode}`, title: `Longest ${label} Par Streak`, columnLabel: "TOTAL", rows: parRows },
+    { key: `longest-bogey-or-worse-streak-${mode}`, title: `Longest ${label} Bogey or Worse Streak`, columnLabel: "TOTAL", rows: bogeyOrWorseRows },
+  ];
+}
+
+export async function getStreakCategories(): Promise<StatCategory[]> {
+  const [nett, scratch] = await Promise.all([getStreakCategoriesForMode("nett"), getStreakCategoriesForMode("scratch")]);
+  return [...nett, ...scratch];
 }

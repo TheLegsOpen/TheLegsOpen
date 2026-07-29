@@ -8,25 +8,32 @@ import { CountryFlag } from "@/components/shared/country-flag";
 import { cn, playerSlug, surnameFirst } from "@/lib/utils";
 import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { StatCategory } from "@/lib/statistics";
-import type { ScoringMode } from "@/lib/data/scoring-statistics";
+
+type StatSection = "nett" | "scratch" | "streaks";
 
 interface StatExplorerProps {
   nettCategories: StatCategory[];
   scratchCategories: StatCategory[];
+  streakCategories: StatCategory[];
   /** Preselects a stat, e.g. when arriving from a "Full rankings" link -- otherwise defaults to the first Nett stat. */
   initialKey?: string;
 }
 
-export function StatExplorer({ nettCategories, scratchCategories, initialKey }: StatExplorerProps) {
-  const initialMode: ScoringMode = initialKey?.endsWith("-scratch") ? "scratch" : "nett";
-  const [mode, setMode] = useState<ScoringMode>(initialMode);
-  const categories = mode === "nett" ? nettCategories : scratchCategories;
+function sectionForKey(key: string | undefined): StatSection {
+  if (!key) return "nett";
+  if (key.startsWith("longest-")) return "streaks";
+  return key.endsWith("-scratch") ? "scratch" : "nett";
+}
+
+export function StatExplorer({ nettCategories, scratchCategories, streakCategories, initialKey }: StatExplorerProps) {
+  const [section, setSection] = useState<StatSection>(sectionForKey(initialKey));
+  const categories = section === "nett" ? nettCategories : section === "scratch" ? scratchCategories : streakCategories;
   const [selectedKey, setSelectedKey] = useState(initialKey ?? categories[0]?.key);
   const selected = categories.find((c) => c.key === selectedKey) ?? categories[0];
 
-  function handleModeChange(nextMode: ScoringMode) {
-    setMode(nextMode);
-    const nextCategories = nextMode === "nett" ? nettCategories : scratchCategories;
+  function handleSectionChange(nextSection: StatSection) {
+    setSection(nextSection);
+    const nextCategories = nextSection === "nett" ? nettCategories : nextSection === "scratch" ? scratchCategories : streakCategories;
     setSelectedKey(nextCategories[0]?.key);
   }
 
@@ -38,8 +45,8 @@ export function StatExplorer({ nettCategories, scratchCategories, initialKey }: 
         <label className="relative inline-flex items-center gap-2 rounded-full border border-surface-dark-foreground/30 px-4 py-2 text-sm font-bold uppercase tracking-wide text-surface-dark-foreground transition-colors hover:border-accent">
           <span className="sr-only">Select statistics category</span>
           <select
-            value={mode}
-            onChange={(e) => handleModeChange(e.target.value as ScoringMode)}
+            value={section}
+            onChange={(e) => handleSectionChange(e.target.value as StatSection)}
             className="cursor-pointer appearance-none bg-transparent pr-5 focus:outline-none"
           >
             <option value="nett" className="text-black">
@@ -47,6 +54,9 @@ export function StatExplorer({ nettCategories, scratchCategories, initialKey }: 
             </option>
             <option value="scratch" className="text-black">
               SCRATCH SCORING
+            </option>
+            <option value="streaks" className="text-black">
+              STREAKS
             </option>
           </select>
           <ChevronDown className="pointer-events-none absolute right-4 h-4 w-4" />
