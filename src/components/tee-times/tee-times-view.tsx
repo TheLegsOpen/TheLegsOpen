@@ -28,45 +28,49 @@ export function TeeTimesView({
   const [reversed, setReversed] = useState(false);
   const { favorites, hydrated } = useFavorites();
 
+  const distinctTees = new Set(TEE_TIMES.flatMap((round) => round.groups.map((group) => group.tee)));
+  const showTeeFilter = distinctTees.size > 1;
+
   return (
     <>
-      <div className="bg-primary bg-dashboard-pattern py-4 text-primary-foreground">
-        <Container className="flex flex-wrap items-center justify-between gap-4">
-          <div role="tablist" aria-label="Filter by starting tee" className="flex flex-wrap gap-2">
-            {TEE_FILTERS.map((filter) => (
-              <button
-                key={filter}
-                role="tab"
-                type="button"
-                aria-selected={teeFilter === filter}
-                onClick={() => setTeeFilter(filter)}
-                className={cn(
-                  "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
-                  teeFilter === filter
-                    ? "border-accent bg-accent text-accent-foreground"
-                    : "border-primary-foreground/30 text-primary-foreground hover:border-accent hover:text-accent",
-                )}
-              >
-                {filter === "All" ? "All groups" : `${filter} tee`}
-              </button>
-            ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setReversed((prev) => !prev)}
-            aria-pressed={reversed}
-            className="flex h-10 items-center gap-2 rounded-full border border-primary-foreground/30 px-4 text-sm font-medium text-primary-foreground transition-colors hover:border-accent hover:text-accent"
-          >
-            <ArrowUpDown className="h-4 w-4" />
-            Reverse order
-          </button>
-        </Container>
-      </div>
-
       <div className="bg-surface-dark bg-dashboard-pattern text-surface-dark-foreground">
         <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_320px] lg:items-start">
-          <Accordion type="single" collapsible defaultValue="round-0" className="flex flex-col">
+          <div>
+            <div className={cn("mb-8 flex flex-wrap items-center gap-4", showTeeFilter ? "justify-between" : "justify-end")}>
+              {showTeeFilter && (
+                <div role="tablist" aria-label="Filter by starting tee" className="flex flex-wrap gap-2">
+                  {TEE_FILTERS.map((filter) => (
+                    <button
+                      key={filter}
+                      role="tab"
+                      type="button"
+                      aria-selected={teeFilter === filter}
+                      onClick={() => setTeeFilter(filter)}
+                      className={cn(
+                        "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                        teeFilter === filter
+                          ? "border-accent bg-accent text-accent-foreground"
+                          : "border-surface-dark-foreground/30 text-surface-dark-foreground hover:border-accent hover:text-accent",
+                      )}
+                    >
+                      {filter === "All" ? "All groups" : `${filter} tee`}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setReversed((prev) => !prev)}
+                aria-pressed={reversed}
+                className="flex h-10 items-center gap-2 rounded-full border border-surface-dark-foreground/30 px-4 text-sm font-medium text-surface-dark-foreground transition-colors hover:border-accent hover:text-accent"
+              >
+                <ArrowUpDown className="h-4 w-4" />
+                Reverse order
+              </button>
+            </div>
+
+            <Accordion type="single" collapsible defaultValue="round-0" className="flex flex-col">
             {TEE_TIMES.map((round, roundIndex) => {
               const groups = round.groups.filter((group) => teeFilter === "All" || group.tee === teeFilter);
               const ordered = reversed ? [...groups].reverse() : groups;
@@ -89,7 +93,8 @@ export function TeeTimesView({
                 </AccordionItem>
               );
             })}
-          </Accordion>
+            </Accordion>
+          </div>
 
           <ChampionshipSidebar featuredArticle={featuredArticle} clockConfig={clockConfig} tone="dark" />
         </Container>
