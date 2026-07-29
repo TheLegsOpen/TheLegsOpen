@@ -6,15 +6,17 @@ import { ChevronDown } from "lucide-react";
 
 import { CountryFlag } from "@/components/shared/country-flag";
 import { cn, playerSlug, surnameFirst } from "@/lib/utils";
-import { scorePillClass, TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
+import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { StatCategory } from "@/lib/statistics";
 
 interface StatExplorerProps {
   categories: StatCategory[];
+  /** Preselects a stat, e.g. when arriving from a "Full rankings" link -- otherwise defaults to the first. */
+  initialKey?: string;
 }
 
-export function StatExplorer({ categories }: StatExplorerProps) {
-  const [selectedKey, setSelectedKey] = useState(categories[0]?.key);
+export function StatExplorer({ categories, initialKey }: StatExplorerProps) {
+  const [selectedKey, setSelectedKey] = useState(initialKey ?? categories[0]?.key);
   const selected = categories.find((c) => c.key === selectedKey) ?? categories[0];
 
   if (!selected) return null;
@@ -75,7 +77,9 @@ export function StatExplorer({ categories }: StatExplorerProps) {
                   {surnameFirst(row.player.name)}
                 </Link>
               </div>
-              <span className={cn(TILE_CLASS, "text-xs", scorePillClass(row.value))}>{row.display}</span>
+              <span className={cn(TILE_CLASS, "text-xs", selected.useParColoring ? scorePillClass(row.value) : NEUTRAL_TILE_CLASS)}>
+                {row.display}
+              </span>
             </div>
           ))
         )}

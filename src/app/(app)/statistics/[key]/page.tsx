@@ -1,21 +1,35 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 import { PageHero } from "@/components/shared/page-hero";
 import { ChampionshipWeekSwitcher } from "@/components/shared/championship-week-switcher";
 import { Container } from "@/components/shared/container";
 import { ChampionshipSidebar } from "@/components/shared/championship-sidebar";
-import { StatPreviewCard } from "@/components/statistics/stat-preview-card";
+import { StatExplorer } from "@/components/statistics/stat-explorer";
 import { getArticles } from "@/lib/data/articles";
 import { getNettScoringCategories } from "@/lib/data/scoring-statistics";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 
-export const metadata: Metadata = {
-  title: "Statistics",
-  description: "Nett scoring statistics by hole par for The Legs Open.",
-};
+interface StatDetailPageProps {
+  params: Promise<{ key: string }>;
+}
 
-export default async function StatisticsPage() {
+export async function generateMetadata({ params }: StatDetailPageProps): Promise<Metadata> {
+  const { key } = await params;
+  const categories = await getNettScoringCategories();
+  const category = categories.find((c) => c.key === key);
+  return {
+    title: category ? `${category.title} | Statistics` : "Statistics",
+    description: "Full rankings computed live from every player's scorecard.",
+  };
+}
+
+export default async function StatDetailPage({ params }: StatDetailPageProps) {
+  const { key } = await params;
   const [nettScoring, articles, clockConfig] = await Promise.all([getNettScoringCategories(), getArticles(), getSponsorClock()]);
+
+  const category = nettScoring.find((c) => c.key === key);
+  if (!category) notFound();
 
   return (
     <>
@@ -25,17 +39,13 @@ export default async function StatisticsPage() {
         eyebrow="Championship Week"
         title="Statistics"
         description="Scoring statistics computed live from every player's scorecard."
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Statistics" }]}
+        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Statistics", href: "/statistics" }, { label: "Full rankings" }]}
       />
       <ChampionshipWeekSwitcher />
 
       <div className="bg-surface-dark bg-dashboard-pattern text-surface-dark-foreground">
         <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_320px] lg:items-start">
-          <div className="flex flex-col gap-8">
-            {nettScoring.map((category) => (
-              <StatPreviewCard key={category.key} category={category} />
-            ))}
-          </div>
+          <StatExplorer categories={nettScoring} initialKey={key} />
           <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="dark" />
         </Container>
       </div>
