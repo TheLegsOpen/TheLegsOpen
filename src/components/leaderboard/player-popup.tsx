@@ -1,175 +1,206 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Star } from "lucide-react";
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CountryFlag } from "@/components/shared/country-flag";
-import { formatToPar, holeScoreClass, synthesizeHoleScores, synthesizeMovement } from "@/lib/leaderboard";
-import { cn, playerSlug } from "@/lib/utils";
-import type { LeaderboardEntry } from "@/types/player";
-import type { StatCategory } from "@/lib/statistics";
-import type { Article } from "@/types/article";
+import { PlaceholderArt } from "@/components/shared/placeholder-art";
+import { formatToPar } from "@/lib/leaderboard";
+import { cn, playerSlug, splitSurnameFirst } from "@/lib/utils";
+import { scorePillClass, holeScorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
+import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
+
+const FRONT_NINE = Array.from({ length: 9 }, (_, i) => i);
+const BACK_NINE = Array.from({ length: 9 }, (_, i) => i + 9);
+
+const COMPETITION_OPTIONS: { value: Competition; label: string }[] = [
+  { value: "main", label: "Main scorecard" },
+  { value: "stableford", label: "Stableford scorecard" },
+  { value: "scratch", label: "Scratch scorecard" },
+];
+
+function sumHoles(entry: CompetitionEntry, indices: number[]): number | undefined {
+  const values = indices.map((i) => entry.holes[i]?.value);
+  if (values.some((v) => v === undefined)) return undefined;
+  return (values as number[]).reduce((a, b) => a + b, 0);
+}
 
 interface PlayerPopupProps {
-  entry: LeaderboardEntry | undefined;
-  leaderScoreToPar: number;
-  statCategories: StatCategory[];
-  articles: Article[];
+  main?: CompetitionEntry;
+  stableford?: CompetitionEntry;
+  scratch?: CompetitionEntry;
+  leaderToPar: number;
+  isFav: boolean;
+  onToggleFavorite: () => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function PlayerPopup({ entry, leaderScoreToPar, statCategories, articles, open, onOpenChange }: PlayerPopupProps) {
-  if (!entry) return null;
-  const { player } = entry;
+export function PlayerPopup({ main, stableford, scratch, leaderToPar, isFav, onToggleFavorite, open, onOpenChange }: PlayerPopupProps) {
+  const [competition, setCompetition] = useState<Competition>("main");
 
-  const movement = synthesizeMovement(`${player.id}-${entry.position}`);
-  const shotsOffLead = entry.scoreToPar - leaderScoreToPar;
-  const movementText =
-    movement > 0 ? `Up ${movement} place${movement === 1 ? "" : "s"} today.` : movement < 0 ? `Down ${Math.abs(movement)} place${Math.abs(movement) === 1 ? "" : "s"} today.` : "Unchanged today.";
-  const leadText = shotsOffLead === 0 ? "Leading the championship." : `${shotsOffLead} shot${shotsOffLead === 1 ? "" : "s"} off the lead.`;
+  if (!main) return null;
+  const { player } = main;
+  const { surname, firstName } = splitSurnameFirst(player.name);
 
-  const [firstName, ...rest] = player.name.split(" ");
-  const surname = rest.join(" ");
-  const latestRoundIndex = entry.rounds.length - 1;
+  const shotsOffLead = main.toPar !== undefined ? main.toPar - leaderToPar : undefined;
+  const leadText =
+    shotsOffLead === undefined
+      ? "Yet to start."
+      : shotsOffLead === 0
+        ? "Leading the championship."
+        : `${shotsOffLead} shot${shotsOffLead === 1 ? "" : "s"} off the lead.`;
 
-  const playerStats = statCategories
-    .map((category) => {
-      const rowIndex = category.rows.findIndex((row) => row.player.id === player.id);
-      if (rowIndex === -1) return null;
-      return { category, rank: rowIndex + 1, display: category.rows[rowIndex].display };
-    })
-    .filter((s): s is { category: StatCategory; rank: number; display: string } => s !== null);
-
-  const relatedArticles = articles.slice(0, 3);
+  const entryByCompetition: Record<Competition, CompetitionEntry | undefined> = { main, stableford, scratch };
+  const activeEntry = entryByCompetition[competition];
+  const isStableford = competition === "stableford";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] w-full max-w-2xl overflow-y-auto p-0">
+      <DialogContent className="max-h-[85vh] w-full max-w-3xl overflow-y-auto border-none bg-surface-dark p-0 text-surface-dark-foreground">
         <DialogTitle className="sr-only">{player.name}</DialogTitle>
 
-        <div className="flex flex-col gap-4 bg-primary p-6 text-primary-foreground sm:flex-row sm:items-center">
-          <span
-            className={cn(
-              "inline-flex h-12 w-14 shrink-0 items-center justify-center rounded font-display text-xl font-bold tabular-nums",
-              entry.scoreToPar < 0 ? "bg-destructive text-white" : "bg-primary-foreground/15",
-            )}
+        <div className="relative flex flex-col gap-4 bg-primary p-6 text-primary-foreground sm:flex-row sm:items-start">
+          <button
+            type="button"
+            onClick={onToggleFavorite}
+            aria-pressed={isFav}
+            aria-label={`${isFav ? "Remove" : "Add"} ${player.name} ${isFav ? "from" : "to"} favorites`}
+            className="absolute left-4 top-4 text-primary-foreground/70 transition-colors hover:text-accent"
           >
-            {formatToPar(entry.scoreToPar)}
-          </span>
-          <div>
-            <p className="font-display text-lg">{firstName}</p>
-            <h2 className="-mt-1 font-display text-3xl font-bold uppercase">{surname}</h2>
-            <p className="flex items-center gap-1.5 text-sm text-primary-foreground/70">
-              <CountryFlag code={player.countryCode} className="h-3 w-4" />
-              {player.country}
-            </p>
+            <Star className={cn("h-5 w-5", isFav && "fill-current text-accent")} />
+          </button>
+
+          <div className="mt-8 flex items-start gap-4 sm:mt-0">
+            <span
+              className={cn(
+                "inline-flex h-12 w-14 shrink-0 items-center justify-center font-display text-xl font-bold tabular-nums",
+                main.toPar !== undefined ? scorePillClass(main.toPar) : "bg-primary-foreground/15",
+              )}
+            >
+              {main.toPar !== undefined ? formatToPar(main.toPar) : "—"}
+            </span>
+
+            <PlaceholderArt
+              label={`${player.name} portrait`}
+              imageUrl={player.photoUrl}
+              tone="navy"
+              ratio="3/4"
+              className="h-[72px] w-14 shrink-0"
+            />
+
+            <div>
+              <p className="font-display text-lg">{firstName}</p>
+              <h2 className="-mt-1 font-display text-3xl font-bold uppercase leading-none">{surname}</h2>
+              <p className="mt-1 flex items-center gap-1.5 text-sm text-primary-foreground/70">
+                <CountryFlag code={player.countryCode} className="h-3 w-4" />
+                {player.country}
+              </p>
+            </div>
           </div>
+
           <div className="text-sm text-primary-foreground/80 sm:ml-auto sm:text-right">
-            <p>
-              {entry.tied ? "T" : ""}
-              {entry.position} · {movementText}
+            <p className="font-bold">
+              Position {main.tied ? "T" : ""}
+              {main.position}
             </p>
             <p>{leadText}</p>
           </div>
         </div>
 
         <div className="p-6">
-          <Tabs defaultValue="scores">
-            <TabsList>
-              <TabsTrigger value="scores">Scores</TabsTrigger>
-              <TabsTrigger value="news">Latest News</TabsTrigger>
-              <TabsTrigger value="statistics">Statistics</TabsTrigger>
-            </TabsList>
+          <label className="mb-3 flex items-center justify-between gap-3 bg-accent px-4 py-3 text-sm font-bold uppercase tracking-wide text-accent-foreground">
+            <span className="sr-only">Select competition</span>
+            <select
+              value={competition}
+              onChange={(e) => setCompetition(e.target.value as Competition)}
+              className="w-full appearance-none bg-transparent focus:outline-none"
+            >
+              {COMPETITION_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value} className="text-black">
+                  {opt.label.toUpperCase()}
+                </option>
+              ))}
+            </select>
+          </label>
 
-            <TabsContent value="scores" className="flex flex-col gap-6 pt-6">
-              <div className="overflow-x-auto border border-border">
-                <table className="w-full min-w-[360px] border-collapse text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-secondary text-left text-xs uppercase tracking-wide text-muted-foreground">
-                      <th className="px-4 py-2">Round</th>
-                      <th className="px-4 py-2 text-right">Strokes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {entry.rounds.map((strokes, i) => (
-                      <tr key={i} className="border-b border-border last:border-0">
-                        <td className="px-4 py-2 font-medium">Round {i + 1}</td>
-                        <td className="px-4 py-2 text-right tabular-nums">{strokes}</td>
-                      </tr>
+          {activeEntry ? (
+            <div className="overflow-x-auto border border-surface-dark-foreground/15">
+              <table className="w-full min-w-[900px] border-collapse text-sm">
+                <thead>
+                  <tr className="bg-surface-dark-foreground/5 text-center text-xs uppercase tracking-wide text-surface-dark-foreground/60">
+                    {FRONT_NINE.map((i) => (
+                      <th key={i} className="px-1 py-1">
+                        <span className="block">{i + 1}</span>
+                        <span className="block font-normal normal-case text-surface-dark-foreground/40">{activeEntry.holes[i]?.par}</span>
+                      </th>
                     ))}
-                    <tr className="bg-secondary font-semibold">
-                      <td className="px-4 py-2">Total</td>
-                      <td className="px-4 py-2 text-right tabular-nums">
-                        {entry.total} ({formatToPar(entry.scoreToPar)})
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div>
-                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Hole by hole, Round {latestRoundIndex + 1}
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {synthesizeHoleScores(entry.rounds[latestRoundIndex] - 72, `${player.id}-${latestRoundIndex + 1}`).map(
-                    (score, holeIndex) => (
-                      <span
-                        key={holeIndex}
-                        title={`Hole ${holeIndex + 1}: ${formatToPar(score)}`}
-                        className={cn("h-4 w-4", holeScoreClass(score))}
-                      />
-                    ),
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="news" className="flex flex-col gap-4 pt-6">
-              {relatedArticles.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No news right now.</p>
-              ) : (
-                relatedArticles.map((article) => (
-                  <Link
-                    key={article.slug}
-                    href={`/latest/${article.slug}`}
-                    className="group flex flex-col gap-1 border-b border-border pb-4 last:border-0"
-                  >
-                    <span className="text-xs font-semibold uppercase tracking-wide text-accent">{article.category}</span>
-                    <span className="font-display text-base font-bold group-hover:underline">{article.title}</span>
-                    <span className="text-sm text-muted-foreground">{article.dek}</span>
-                  </Link>
-                ))
-              )}
-            </TabsContent>
-
-            <TabsContent value="statistics" className="pt-6">
-              {playerStats.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No statistics recorded for {player.name} yet.</p>
-              ) : (
-                <ul className="flex flex-col divide-y divide-border border-y border-border">
-                  {playerStats.map(({ category, rank, display }) => (
-                    <li key={category.key} className="flex items-center justify-between gap-4 px-1 py-3 text-sm">
-                      <span className="font-medium">{category.title}</span>
-                      <span className="flex items-center gap-3">
-                        <span className="tabular-nums">{display}</span>
-                        <span className="text-xs text-muted-foreground">Rank {rank}</span>
+                    <th className="px-2 py-1">Out</th>
+                    {BACK_NINE.map((i) => (
+                      <th key={i} className="px-1 py-1">
+                        <span className="block">{i + 1}</span>
+                        <span className="block font-normal normal-case text-surface-dark-foreground/40">{activeEntry.holes[i]?.par}</span>
+                      </th>
+                    ))}
+                    <th className="px-2 py-1">In</th>
+                    <th className="px-2 py-1">Tot</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    {FRONT_NINE.map((i) => {
+                      const hole = activeEntry.holes[i];
+                      return (
+                        <td key={i} className="px-1 py-1 text-center">
+                          <span className={cn(TILE_CLASS, "min-w-0 w-9", hole?.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS)}>
+                            {hole?.value ?? ""}
+                          </span>
+                        </td>
+                      );
+                    })}
+                    <td className="px-2 py-1 text-center">
+                      <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>{sumHoles(activeEntry, FRONT_NINE) ?? "—"}</span>
+                    </td>
+                    {BACK_NINE.map((i) => {
+                      const hole = activeEntry.holes[i];
+                      return (
+                        <td key={i} className="px-1 py-1 text-center">
+                          <span className={cn(TILE_CLASS, "min-w-0 w-9", hole?.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS)}>
+                            {hole?.value ?? ""}
+                          </span>
+                        </td>
+                      );
+                    })}
+                    <td className="px-2 py-1 text-center">
+                      <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>{sumHoles(activeEntry, BACK_NINE) ?? "—"}</span>
+                    </td>
+                    <td className="px-2 py-1 text-center">
+                      <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
+                        {isStableford ? (activeEntry.score ?? 0) : (activeEntry.score ?? "—")}
                       </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </TabsContent>
-          </Tabs>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-surface-dark-foreground/60">No scorecard yet for this competition.</p>
+          )}
+
+          <div className="mt-8">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-surface-dark-foreground/50">Statistics</p>
+            <p className="border border-dashed border-surface-dark-foreground/20 p-4 text-sm text-surface-dark-foreground/60">
+              Player statistics for this championship aren&apos;t built yet — check back soon.
+            </p>
+          </div>
 
           <Link
             href={`/players/${playerSlug(player)}`}
-            className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-primary hover:text-accent"
+            className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-accent hover:text-accent/80"
           >
-            Full player bio <ArrowRight className="h-4 w-4" />
+            Full player profile <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </DialogContent>

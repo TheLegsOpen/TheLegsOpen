@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star } from "lucide-react";
 
-import { cn, playerSlug, splitSurnameFirst } from "@/lib/utils";
+import { cn, splitSurnameFirst } from "@/lib/utils";
 import { formatToPar } from "@/lib/leaderboard";
 import { CountryFlag } from "@/components/shared/country-flag";
 import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
@@ -16,6 +15,7 @@ interface LeaderboardTableProps {
   favorites: string[];
   onToggleFavorite: (playerId: string) => void;
   favoritesOnly: boolean;
+  onSelectPlayer: (playerId: string) => void;
 }
 
 /** Aggregate (round-total) Par pill — 3-tier, since a multi-hole total doesn't have a meaningful "eagle" case. */
@@ -68,11 +68,13 @@ function LeaderboardRow({
   isFav,
   onToggleFavorite,
   competition,
+  onSelectPlayer,
 }: {
   entry: CompetitionEntry;
   isFav: boolean;
   onToggleFavorite: (playerId: string) => void;
   competition: Competition;
+  onSelectPlayer: (playerId: string) => void;
 }) {
   const [isMoving, setIsMoving] = useState(false);
   const { surname, firstName } = splitSurnameFirst(entry.player.name);
@@ -104,10 +106,10 @@ function LeaderboardRow({
         <AnimatedValue value={`${entry.tied ? "T" : ""}${entry.position}`} />
       </td>
       <td className="px-2 py-3">
-        <Link href={`/players/${playerSlug(entry.player)}`} className="hover:underline">
+        <button type="button" onClick={() => onSelectPlayer(entry.player.id)} className="hover:underline">
           <span className="font-bold">{surname}</span>
           <span className="font-normal">, {firstName}</span>
-        </Link>
+        </button>
         <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
       </td>
       <td className="px-2 py-3 text-right">
@@ -133,7 +135,7 @@ function LeaderboardRow({
   );
 }
 
-export function LeaderboardTable({ entries, competition, favorites, onToggleFavorite, favoritesOnly }: LeaderboardTableProps) {
+export function LeaderboardTable({ entries, competition, favorites, onToggleFavorite, favoritesOnly, onSelectPlayer }: LeaderboardTableProps) {
   const visible = favoritesOnly ? entries.filter((entry) => favorites.includes(entry.player.id)) : entries;
 
   if (entries.length === 0) {
@@ -175,6 +177,7 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
               isFav={favorites.includes(entry.player.id)}
               onToggleFavorite={onToggleFavorite}
               competition={competition}
+              onSelectPlayer={onSelectPlayer}
             />
           ))}
         </tbody>

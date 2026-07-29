@@ -10,6 +10,7 @@ import { Container } from "@/components/shared/container";
 import { ChampionshipSidebar } from "@/components/shared/championship-sidebar";
 import { LeaderboardTable } from "@/components/leaderboard/leaderboard-table";
 import { HoleByHoleTable } from "@/components/leaderboard/hole-by-hole-table";
+import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { useFavorites } from "@/hooks/use-favorites";
 import { cn } from "@/lib/utils";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
@@ -43,6 +44,7 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
   const [query, setQuery] = useState("");
   const [infoOpen, setInfoOpen] = useState(false);
   const [holeByHole, setHoleByHole] = useState(false);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -56,6 +58,11 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
   const mainEntries = useMemo(() => filterEntries(main, query), [main, query]);
   const stablefordEntries = useMemo(() => filterEntries(stableford, query), [stableford, query]);
   const scratchEntries = useMemo(() => filterEntries(scratch, query), [scratch, query]);
+
+  const selectedMain = main.find((e) => e.player.id === selectedPlayerId);
+  const selectedStableford = stableford.find((e) => e.player.id === selectedPlayerId);
+  const selectedScratch = scratch.find((e) => e.player.id === selectedPlayerId);
+  const leaderToPar = main[0]?.toPar ?? 0;
 
   return (
     <Tabs defaultValue="main">
@@ -168,7 +175,7 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
 
               <TabsContent value="main" className="mt-0">
                 {holeByHole ? (
-                  <HoleByHoleTable entries={mainEntries} />
+                  <HoleByHoleTable entries={mainEntries} onSelectPlayer={setSelectedPlayerId} />
                 ) : (
                   <LeaderboardTable
                     entries={mainEntries}
@@ -176,12 +183,13 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
                     favorites={hydrated ? favorites : []}
                     onToggleFavorite={toggleFavorite}
                     favoritesOnly={favoritesOnly}
+                    onSelectPlayer={setSelectedPlayerId}
                   />
                 )}
               </TabsContent>
               <TabsContent value="stableford" className="mt-0">
                 {holeByHole ? (
-                  <HoleByHoleTable entries={stablefordEntries} />
+                  <HoleByHoleTable entries={stablefordEntries} onSelectPlayer={setSelectedPlayerId} />
                 ) : (
                   <LeaderboardTable
                     entries={stablefordEntries}
@@ -189,12 +197,13 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
                     favorites={hydrated ? favorites : []}
                     onToggleFavorite={toggleFavorite}
                     favoritesOnly={favoritesOnly}
+                    onSelectPlayer={setSelectedPlayerId}
                   />
                 )}
               </TabsContent>
               <TabsContent value="scratch" className="mt-0">
                 {holeByHole ? (
-                  <HoleByHoleTable entries={scratchEntries} />
+                  <HoleByHoleTable entries={scratchEntries} onSelectPlayer={setSelectedPlayerId} />
                 ) : (
                   <LeaderboardTable
                     entries={scratchEntries}
@@ -202,6 +211,7 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
                     favorites={hydrated ? favorites : []}
                     onToggleFavorite={toggleFavorite}
                     favoritesOnly={favoritesOnly}
+                    onSelectPlayer={setSelectedPlayerId}
                   />
                 )}
               </TabsContent>
@@ -241,6 +251,19 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
           </p>
         </DialogContent>
       </Dialog>
+
+      <PlayerPopup
+        main={selectedMain}
+        stableford={selectedStableford}
+        scratch={selectedScratch}
+        leaderToPar={leaderToPar}
+        isFav={selectedPlayerId ? favorites.includes(selectedPlayerId) : false}
+        onToggleFavorite={() => selectedPlayerId && toggleFavorite(selectedPlayerId)}
+        open={!!selectedMain}
+        onOpenChange={(next) => {
+          if (!next) setSelectedPlayerId(null);
+        }}
+      />
     </Tabs>
   );
 }

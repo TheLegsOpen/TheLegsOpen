@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
-
-import { cn, playerSlug, splitSurnameFirst } from "@/lib/utils";
+import { cn, splitSurnameFirst } from "@/lib/utils";
 import { formatToPar } from "@/lib/leaderboard";
 import { CountryFlag } from "@/components/shared/country-flag";
 import {
@@ -16,11 +14,12 @@ import type { CompetitionEntry } from "@/lib/data/scorecards";
 
 interface HoleByHoleTableProps {
   entries: CompetitionEntry[];
+  onSelectPlayer: (playerId: string) => void;
 }
 
 const HOLE_INDICES = Array.from({ length: 18 }, (_, i) => i);
 
-export function HoleByHoleTable({ entries }: HoleByHoleTableProps) {
+export function HoleByHoleTable({ entries, onSelectPlayer }: HoleByHoleTableProps) {
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-surface-dark-foreground/20 py-16 text-center">
@@ -60,10 +59,10 @@ export function HoleByHoleTable({ entries }: HoleByHoleTableProps) {
                   {entry.position}
                 </td>
                 <td className="px-2 py-3 whitespace-nowrap">
-                  <Link href={`/players/${playerSlug(entry.player)}`} className="hover:underline">
+                  <button type="button" onClick={() => onSelectPlayer(entry.player.id)} className="hover:underline">
                     <span className="font-bold">{surname}</span>
                     <span className="font-normal">, {firstName}</span>
-                  </Link>
+                  </button>
                   <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
                 </td>
                 <td className="px-2 py-3 text-right">
