@@ -25,6 +25,17 @@ export const Venues: CollectionConfig = {
     { name: "location", type: "text", required: true },
     { name: "region", type: "text", required: true },
     {
+      type: "row",
+      fields: [
+        {
+          name: "latitude",
+          type: "number",
+          admin: { width: "50%", description: "Powers the homepage weather widget when this venue's championship is active." },
+        },
+        { name: "longitude", type: "number", admin: { width: "50%" } },
+      ],
+    },
+    {
       name: "countryCode",
       label: "Country",
       type: "select",
