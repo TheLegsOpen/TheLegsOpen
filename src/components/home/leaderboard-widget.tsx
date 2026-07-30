@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 
 import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
@@ -35,6 +35,7 @@ export function LeaderboardWidget({ entries }: LeaderboardWidgetProps) {
               <tr className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 text-left text-xs uppercase tracking-wide text-surface-dark-foreground/60">
                 <th className="px-2 py-2">Pos</th>
                 <th className="px-2 py-2">Player</th>
+                <th className="px-2 py-2 text-right" aria-label="Tee time" />
                 <th className="px-2 py-2 text-right">Par</th>
                 <th className="px-2 py-2 text-right">Hole</th>
               </tr>
@@ -54,6 +55,16 @@ export function LeaderboardWidget({ entries }: LeaderboardWidgetProps) {
                         <span className="font-normal">, {firstName}</span>
                       </Link>
                       <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
+                    </td>
+                    <td className="px-2 py-2 text-right text-xs text-accent-foreground/70">
+                      {!entry.started && entry.teeTime ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {entry.teeTime}
+                        </span>
+                      ) : (
+                        "-"
+                      )}
                     </td>
                     <td className="px-2 py-2 text-right">
                       {entry.toPar !== undefined ? (

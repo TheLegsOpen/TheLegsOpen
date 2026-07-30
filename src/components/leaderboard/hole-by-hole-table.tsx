@@ -1,5 +1,7 @@
 "use client";
 
+import { Clock } from "lucide-react";
+
 import { cn, splitSurnameFirst } from "@/lib/utils";
 import { formatToPar } from "@/lib/leaderboard";
 import { CountryFlag } from "@/components/shared/country-flag";
@@ -39,6 +41,7 @@ export function HoleByHoleTable({ entries, onSelectPlayer }: HoleByHoleTableProp
           <tr className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 text-left text-xs uppercase tracking-wide text-surface-dark-foreground/60">
             <th className="px-2 py-3">Pos</th>
             <th className="px-2 py-3">Player</th>
+            <th className="px-2 py-3 text-right" aria-label="Tee time" />
             <th className="px-2 py-3 text-right">Par</th>
             {HOLE_INDICES.map((i) => (
               <th key={i} className="px-1 py-1 text-center">
@@ -65,6 +68,16 @@ export function HoleByHoleTable({ entries, onSelectPlayer }: HoleByHoleTableProp
                   </button>
                   <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
                 </td>
+                <td className="px-2 py-3 text-right text-xs text-accent-foreground/70">
+                  {!entry.started && entry.teeTime ? (
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {entry.teeTime}
+                    </span>
+                  ) : (
+                    "-"
+                  )}
+                </td>
                 <td className="px-2 py-3 text-right">
                   {entry.toPar !== undefined ? (
                     <span className={cn(TILE_CLASS, scorePillClass(entry.toPar))}>
@@ -83,7 +96,7 @@ export function HoleByHoleTable({ entries, onSelectPlayer }: HoleByHoleTableProp
                 ))}
                 <td className="px-4 py-3 text-right tabular-nums">
                   <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
-                    <AnimatedValue value={entry.score ?? ""} />
+                    <AnimatedValue value={entry.started ? (entry.score ?? "") : "-"} />
                   </span>
                 </td>
               </tr>

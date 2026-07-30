@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star } from "lucide-react";
+import { Clock, Star } from "lucide-react";
 
 import { cn, splitSurnameFirst } from "@/lib/utils";
 import { formatToPar } from "@/lib/leaderboard";
@@ -112,6 +112,16 @@ function LeaderboardRow({
         </button>
         <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
       </td>
+      <td className="px-2 py-3 text-right text-xs text-accent-foreground/70">
+        {!entry.started && entry.teeTime ? (
+          <span className="inline-flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            {entry.teeTime}
+          </span>
+        ) : (
+          "-"
+        )}
+      </td>
       <td className="px-2 py-3 text-right">
         {entry.toPar !== undefined ? (
           <span className={cn(TILE_CLASS, scorePillClass(entry.toPar))}>
@@ -128,7 +138,7 @@ function LeaderboardRow({
       </td>
       <td className="px-4 py-3 text-right tabular-nums" title={COMPETITION_LABEL[competition]}>
         <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
-          <AnimatedValue value={entry.score ?? ""} />
+          <AnimatedValue value={entry.started ? (entry.score ?? "") : "-"} />
         </span>
       </td>
     </motion.tr>
@@ -164,6 +174,7 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
             <th className="w-10 px-4 py-3" aria-label="Favorite" />
             <th className="px-2 py-3">Pos</th>
             <th className="px-2 py-3">Player</th>
+            <th className="px-2 py-3 text-right" aria-label="Tee time" />
             <th className="px-2 py-3 text-right">Par</th>
             <th className="px-2 py-3 text-right">Hole</th>
             <th className="px-4 py-3 text-right">Score</th>

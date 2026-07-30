@@ -25,7 +25,12 @@ export interface CompetitionEntry {
   /** Main/Scratch: undefined until all 18 holes are posted. Stableford: always populated, starting at 0. */
   score?: number;
   toPar?: number;
+  /** True once the player has posted a strokes value on at least one hole. */
+  started: boolean;
+  /** "F" once finished, otherwise the hole count while in progress, otherwise "-" (not started). */
   thru: string;
+  /** Raw tee time (e.g. "12.00") from the Championship-round tee sheet, empty if not found. */
+  teeTime: string;
   holes: HoleScore[];
 }
 
@@ -105,7 +110,7 @@ export async function getCompetitionLeaderboard(competition: Competition, req?: 
     const finished = holesCompleted >= 18;
     const playerId = typeof doc.player === "object" ? doc.player.id : doc.player;
     const teeTime = teeTimeByPlayer.get(String(playerId)) ?? "";
-    const thru = started ? (finished ? "F" : String(holesCompleted)) : teeTime || "—";
+    const thru = started ? (finished ? "F" : String(holesCompleted)) : "-";
     const teeTimeMinutes = parseTeeTimeMinutes(teeTime);
 
     const strokesReceived = allocateStrokes(player.championshipHandicap ?? 0, holeInfos);
@@ -133,6 +138,7 @@ export async function getCompetitionLeaderboard(competition: Competition, req?: 
         holesCompleted,
         started,
         teeTimeMinutes,
+        teeTime,
         thru,
         holes,
         score: finished ? (doc.nettTotal ?? 0) : undefined,
@@ -146,6 +152,7 @@ export async function getCompetitionLeaderboard(competition: Competition, req?: 
         holesCompleted,
         started,
         teeTimeMinutes,
+        teeTime,
         thru,
         holes,
         score: finished ? (doc.grossTotal ?? 0) : undefined,
@@ -158,6 +165,7 @@ export async function getCompetitionLeaderboard(competition: Competition, req?: 
       holesCompleted,
       started,
       teeTimeMinutes,
+      teeTime,
       thru,
       holes,
       // Stableford points show live from 0 rather than waiting for the round to start, unlike Main/Scratch.
@@ -188,7 +196,17 @@ export async function getCompetitionLeaderboard(competition: Competition, req?: 
       position = index + 1;
     }
     const tied = rows.filter((r) => String(r.tieKey) === groupKey).length > 1;
-    entries.push({ position, tied, player: row.player, score: row.score, toPar: row.toPar, thru: row.thru, holes: row.holes });
+    entries.push({
+      position,
+      tied,
+      player: row.player,
+      score: row.score,
+      toPar: row.toPar,
+      started: row.started,
+      thru: row.thru,
+      teeTime: row.teeTime,
+      holes: row.holes,
+    });
     previousGroupKey = groupKey;
   });
 
