@@ -29,7 +29,7 @@ export default async function LiveBlogPage() {
       />
       <ChampionshipWeekSwitcher />
 
-      <div className="bg-surface-dark bg-dashboard-pattern text-surface-dark-foreground">
+      <div className="bg-[#EEEEEE]">
         <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_320px] lg:items-start">
           <LiveBlogFeed entries={entries} />
           <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="dark" />

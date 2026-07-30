@@ -67,28 +67,25 @@ interface LiveBlogFeedProps {
 export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
   if (entries.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-2 border border-dashed border-surface-dark-foreground/20 py-16 text-center">
-        <p className="font-display font-bold text-lg">No updates yet</p>
-        <p className="text-sm text-surface-dark-foreground/60">Posts will appear here automatically as notable scores come in.</p>
+      <div className="flex flex-col items-center gap-2 border border-dashed border-black/20 bg-white py-16 text-center">
+        <p className="font-display font-bold text-lg text-primary">No updates yet</p>
+        <p className="text-sm text-black/60">Posts will appear here automatically as notable scores come in.</p>
       </div>
     );
   }
 
   return (
-    <div className="relative border border-surface-dark-foreground/15">
+    <div className="relative border border-black/10">
       {/* Timeline spine running behind every entry's marker dot. */}
-      <div className="pointer-events-none absolute bottom-8 left-6 top-8 w-px bg-surface-dark-foreground/15" aria-hidden="true" />
+      <div className="pointer-events-none absolute bottom-8 left-6 top-8 w-px bg-black/10" aria-hidden="true" />
 
-      {entries.map((entry, index) => {
+      {entries.map((entry) => {
         const meta = CATEGORY_META[entry.category];
         const Icon = meta.icon;
         const isStableford = entry.competition === "stableford";
         return (
-          <article
-            key={entry.id}
-            className={cn("relative py-6 pl-14 pr-5", index % 2 === 1 && "bg-surface-dark-foreground/[0.03]")}
-          >
-            <span className="absolute left-4 top-7 h-4 w-4 rounded-full border-2 border-surface-dark bg-surface-dark-foreground/30" aria-hidden="true" />
+          <article key={entry.id} className="relative border-b border-black/10 bg-white py-6 pl-14 pr-5 last:border-0">
+            <span className="absolute left-4 top-7 h-4 w-4 rounded-full border-2 border-[#EEEEEE] bg-primary/40" aria-hidden="true" />
 
             <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
               <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wide", meta.chipClass)}>
@@ -96,12 +93,12 @@ export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
                 {meta.label}
                 {entry.competition ? ` · ${COMPETITION_LABEL[entry.competition]}` : ""}
               </span>
-              <span className="font-display text-sm text-surface-dark-foreground/50 tabular-nums">
+              <span className="font-display text-sm text-black/50 tabular-nums">
                 {formatTime(entry.postedAt)} · {formatDate(entry.postedAt)}
               </span>
             </div>
-            <h3 className="mb-1.5 font-display text-lg font-bold">{entry.headline}</h3>
-            {entry.body ? <p className="text-base leading-relaxed text-surface-dark-foreground/80">{entry.body}</p> : null}
+            <h3 className="mb-1.5 font-display text-lg font-bold text-primary">{entry.headline}</h3>
+            {entry.body ? <p className="text-base leading-relaxed text-black/70">{entry.body}</p> : null}
             {entry.category === "instagram" && entry.instagramUrl ? (
               <div className="mt-3 flex justify-center overflow-hidden [&_iframe]:!max-w-full">
                 <InstagramEmbed url={entry.instagramUrl} />
