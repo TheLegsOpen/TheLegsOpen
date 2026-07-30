@@ -31,6 +31,7 @@ export default async function StatisticsPage() {
     <>
       <PageHero
         variant="photo"
+        size="compact"
         imageLabel="Practice range at Seabrook Old Course"
         imageUrl={banners.statisticsUrl}
         eyebrow={banners.statisticsEyebrow}

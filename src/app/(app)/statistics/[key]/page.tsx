@@ -47,6 +47,7 @@ export default async function StatDetailPage({ params }: StatDetailPageProps) {
     <>
       <PageHero
         variant="photo"
+        size="compact"
         imageLabel="Practice range at Seabrook Old Course"
         imageUrl={banners.statisticsUrl}
         eyebrow={banners.statisticsEyebrow}

@@ -27,6 +27,7 @@ export default async function LeaderboardPage() {
     <>
       <PageHero
         variant="photo"
+        size="compact"
         imageLabel="Callum Reith celebrates on the 18th green"
         imageUrl={banners.leaderboardUrl}
         eyebrow={banners.leaderboardEyebrow}

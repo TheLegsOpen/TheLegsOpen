@@ -21,6 +21,7 @@ export default async function LiveBlogPage() {
     <>
       <PageHero
         variant="photo"
+        size="compact"
         imageLabel="Gallery watching on the 18th at Seabrook Old Course"
         eyebrow="Championship Week"
         title="Live Blog"

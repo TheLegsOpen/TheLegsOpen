@@ -1,6 +1,7 @@
 import { Container } from "@/components/shared/container";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
+import { cn } from "@/lib/utils";
 
 interface Crumb {
   label: string;
@@ -14,14 +15,16 @@ interface PageHeroProps {
   breadcrumbs?: Crumb[];
   /** "photo" gives landing-style pages the same full-bleed image treatment as the homepage hero. */
   variant?: "light" | "photo";
+  /** "large" (default) matches the homepage's cinematic hero. "compact" suits data-utility pages people check repeatedly (leaderboard, tee times, statistics) so the actual content sits higher on the page -- matches theopen.com/AIG Women's Open's own leaderboard header proportions. */
+  size?: "large" | "compact";
   imageLabel?: string;
   imageUrl?: string;
 }
 
-export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "light", imageLabel, imageUrl }: PageHeroProps) {
+export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "light", size = "large", imageLabel, imageUrl }: PageHeroProps) {
   if (variant === "photo") {
     return (
-      <section className="relative h-[60vh] min-h-[420px] w-full overflow-hidden">
+      <section className={cn("relative w-full overflow-hidden", size === "compact" ? "h-[30vh] min-h-[220px]" : "h-[60vh] min-h-[420px]")}>
         <PlaceholderArt label={imageLabel ?? title} imageUrl={imageUrl} tone="navy" fill />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.8)_45%,rgba(0,0,0,0.25)_75%,rgba(0,0,0,0.05)_100%)]" />
 
