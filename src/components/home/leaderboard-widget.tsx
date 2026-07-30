@@ -56,15 +56,13 @@ export function LeaderboardWidget({ entries }: LeaderboardWidgetProps) {
                       </Link>
                       <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
                     </td>
-                    <td className="px-2 py-2 text-right text-xs text-accent-foreground/70">
+                    <td className="whitespace-nowrap px-2 py-2 text-right text-xs tabular-nums text-accent-foreground/70">
                       {!entry.started && entry.teeTime ? (
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
+                        <span className="inline-flex items-center justify-end gap-1.5 leading-none">
+                          <Clock className="h-3 w-3 shrink-0" />
                           {entry.teeTime}
                         </span>
-                      ) : (
-                        "-"
-                      )}
+                      ) : null}
                     </td>
                     <td className="px-2 py-2 text-right">
                       {entry.toPar !== undefined ? (
