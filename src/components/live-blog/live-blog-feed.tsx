@@ -5,12 +5,12 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   AlertTriangle,
-  Award,
+  Building2,
   Camera,
   Crown,
   Flag,
+  FlagTriangleRight,
   Flame,
-  Navigation,
   Star,
   TrendingDown,
   TrendingUp,
@@ -25,17 +25,18 @@ import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/lea
 import { InstagramEmbed } from "@/components/live-blog/instagram-embed";
 import type { LiveBlogCategory, LiveBlogCompetition, LiveBlogEntry } from "@/lib/data/live-blog";
 
-export const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: typeof Star; chipClass: string }> = {
-  eagle: { label: "Eagle", icon: Star, chipClass: "bg-[#910149] text-white" },
-  birdie: { label: "Birdie", icon: ArrowDownCircle, chipClass: "bg-[#CB333B] text-white" },
+/** `cardClass` colours the whole post like the scoring-indicator dots (Eagle/Birdie/Bogey only) -- everything else stays a plain white card with just a coloured chip. */
+export const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: typeof Star; chipClass: string; cardClass?: string }> = {
+  eagle: { label: "Eagle", icon: Star, chipClass: "bg-[#910149] text-white", cardClass: "bg-[#910149] text-white" },
+  birdie: { label: "Birdie", icon: ArrowDownCircle, chipClass: "bg-[#CB333B] text-white", cardClass: "bg-[#CB333B] text-white" },
   "moving-up": { label: "Moving up", icon: TrendingUp, chipClass: "bg-[#CB333B] text-white" },
   charge: { label: "Making a charge", icon: Flame, chipClass: "bg-[#910149] text-white" },
-  bogey: { label: "Bogey", icon: ArrowUpCircle, chipClass: "bg-[#08325A] text-white" },
+  bogey: { label: "Bogey", icon: ArrowUpCircle, chipClass: "bg-[#08325A] text-white", cardClass: "bg-[#08325A] text-white" },
   "moving-down": { label: "Moving down", icon: TrendingDown, chipClass: "bg-[#08325A] text-white" },
   trouble: { label: "Trouble", icon: AlertTriangle, chipClass: "bg-[#08325A] text-white" },
-  leader: { label: "Leader", icon: Crown, chipClass: "bg-[#0E3D2C] text-white" },
-  through: { label: "Through", icon: Navigation, chipClass: "bg-[#0E3D2C] text-white" },
-  "clubhouse-leader": { label: "Clubhouse leader", icon: Award, chipClass: "bg-[#0E3D2C] text-white" },
+  leader: { label: "Leader", icon: Crown, chipClass: "bg-accent text-accent-foreground" },
+  through: { label: "Through", icon: FlagTriangleRight, chipClass: "bg-accent text-accent-foreground" },
+  "clubhouse-leader": { label: "Clubhouse leader", icon: Building2, chipClass: "bg-accent text-accent-foreground" },
   "round-complete": { label: "In the clubhouse", icon: Flag, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
   "last-group": { label: "Last group out", icon: Users, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
   championship: { label: "Championship", icon: Trophy, chipClass: "bg-accent text-accent-foreground" },
@@ -75,59 +76,75 @@ export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
   }
 
   return (
-    <div className="relative border border-black/10">
-      {/* Timeline spine running behind every entry's marker dot. */}
+    <div className="relative">
+      {/* Timeline spine running behind every entry's marker dot, including through the gaps between posts. */}
       <div className="pointer-events-none absolute bottom-8 left-6 top-8 w-px bg-black/10" aria-hidden="true" />
 
-      {entries.map((entry) => {
-        const meta = CATEGORY_META[entry.category];
-        const Icon = meta.icon;
-        const isStableford = entry.competition === "stableford";
-        return (
-          <article key={entry.id} className="relative border-b border-black/10 bg-white py-6 pl-14 pr-5 last:border-0">
-            <span className="absolute left-4 top-7 h-4 w-4 rounded-full border-2 border-[#EEEEEE] bg-primary/40" aria-hidden="true" />
+      <div className="flex flex-col gap-4">
+        {entries.map((entry) => {
+          const meta = CATEGORY_META[entry.category];
+          const Icon = meta.icon;
+          const isStableford = entry.competition === "stableford";
+          const isColored = Boolean(meta.cardClass);
+          return (
+            <article
+              key={entry.id}
+              className={cn("relative border border-black/10 py-6 pl-14 pr-5", meta.cardClass ?? "bg-white")}
+            >
+              <span className="absolute left-4 top-7 h-4 w-4 rounded-full border-2 border-[#EEEEEE] bg-primary/40" aria-hidden="true" />
 
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-              <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wide", meta.chipClass)}>
-                <Icon className="h-3.5 w-3.5" />
-                {meta.label}
-                {entry.competition ? ` · ${COMPETITION_LABEL[entry.competition]}` : ""}
-              </span>
-              <span className="font-display text-sm text-black/50 tabular-nums">
-                {formatTime(entry.postedAt)} · {formatDate(entry.postedAt)}
-              </span>
-            </div>
-            <h3 className="mb-1.5 font-display text-lg font-bold text-primary">{entry.headline}</h3>
-            {entry.body ? <p className="text-base leading-relaxed text-black/70">{entry.body}</p> : null}
-            {entry.category === "instagram" && entry.instagramUrl ? (
-              <div className="mt-3 flex justify-center overflow-hidden [&_iframe]:!max-w-full">
-                <InstagramEmbed url={entry.instagramUrl} />
-              </div>
-            ) : null}
-            <div className="mt-3 flex items-center gap-3">
-              {entry.player ? (
-                <Link
-                  href={`/players/${playerSlug(entry.player)}`}
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-accent hover:underline"
-                >
-                  <CountryFlag code={entry.player.countryCode} className="h-3 w-4" />
-                  {entry.player.name}
-                </Link>
-              ) : null}
-              {entry.scoreRelative !== undefined ? (
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
                 <span
                   className={cn(
-                    TILE_CLASS,
-                    isStableford ? NEUTRAL_TILE_CLASS : scorePillClass(entry.scoreRelative),
+                    "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wide",
+                    isColored ? "bg-white/15 text-white" : meta.chipClass,
                   )}
                 >
-                  {isStableford ? `${entry.scoreRelative} pts` : formatToPar(entry.scoreRelative)}
+                  <Icon className="h-3.5 w-3.5" />
+                  {meta.label}
+                  {entry.competition ? ` · ${COMPETITION_LABEL[entry.competition]}` : ""}
                 </span>
+                <span className={cn("font-display text-sm tabular-nums", isColored ? "text-white/70" : "text-black/50")}>
+                  {formatTime(entry.postedAt)} · {formatDate(entry.postedAt)}
+                </span>
+              </div>
+              <h3 className={cn("mb-1.5 font-display text-lg font-bold", isColored ? "text-white" : "text-primary")}>{entry.headline}</h3>
+              {entry.body ? (
+                <p className={cn("text-base leading-relaxed", isColored ? "text-white/90" : "text-black/70")}>{entry.body}</p>
               ) : null}
-            </div>
-          </article>
-        );
-      })}
+              {entry.category === "instagram" && entry.instagramUrl ? (
+                <div className="mt-3 flex justify-center overflow-hidden [&_iframe]:!max-w-full">
+                  <InstagramEmbed url={entry.instagramUrl} />
+                </div>
+              ) : null}
+              <div className="mt-3 flex items-center gap-3">
+                {entry.player ? (
+                  <Link
+                    href={`/players/${playerSlug(entry.player)}`}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 text-sm font-semibold hover:underline",
+                      isColored ? "text-white" : "text-accent",
+                    )}
+                  >
+                    <CountryFlag code={entry.player.countryCode} className="h-3 w-4" />
+                    {entry.player.name}
+                  </Link>
+                ) : null}
+                {entry.scoreRelative !== undefined ? (
+                  <span
+                    className={cn(
+                      TILE_CLASS,
+                      isStableford ? NEUTRAL_TILE_CLASS : scorePillClass(entry.scoreRelative),
+                    )}
+                  >
+                    {isStableford ? `${entry.scoreRelative} pts` : formatToPar(entry.scoreRelative)}
+                  </span>
+                ) : null}
+              </div>
+            </article>
+          );
+        })}
+      </div>
     </div>
   );
 }

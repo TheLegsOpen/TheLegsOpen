@@ -33,24 +33,38 @@ export function LiveBlogWidget({ entries }: LiveBlogWidgetProps) {
             const meta = CATEGORY_META[entry.category];
             const Icon = meta.icon;
             const isStableford = entry.competition === "stableford";
+            const isColored = Boolean(meta.cardClass);
             return (
-              <article key={entry.id} className="border-b border-black/10 bg-white p-4 last:border-0">
+              <article
+                key={entry.id}
+                className={cn("border-b border-black/10 p-4 last:border-0", meta.cardClass ?? "bg-white")}
+              >
                 <div className="mb-2 flex items-center justify-between gap-3">
-                  <span className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide", meta.chipClass)}>
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide",
+                      isColored ? "bg-white/15 text-white" : meta.chipClass,
+                    )}
+                  >
                     <Icon className="h-3 w-3" />
                     {meta.label}
                   </span>
-                  <span className="text-[11px] text-black/50 tabular-nums">
+                  <span className={cn("text-[11px] tabular-nums", isColored ? "text-white/70" : "text-black/50")}>
                     {formatTime(entry.postedAt)} · {formatDate(entry.postedAt)}
                   </span>
                 </div>
-                <h3 className="mb-1 font-display text-sm font-bold text-primary">{entry.headline}</h3>
-                {entry.body ? <p className="mb-2 text-sm leading-relaxed text-black/70">{entry.body}</p> : null}
+                <h3 className={cn("mb-1 font-display text-sm font-bold", isColored ? "text-white" : "text-primary")}>{entry.headline}</h3>
+                {entry.body ? (
+                  <p className={cn("mb-2 text-sm leading-relaxed", isColored ? "text-white/90" : "text-black/70")}>{entry.body}</p>
+                ) : null}
                 <div className="flex items-center gap-3">
                   {entry.player ? (
                     <Link
                       href={`/players/${playerSlug(entry.player)}`}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:underline"
+                      className={cn(
+                        "inline-flex items-center gap-1.5 text-xs font-semibold hover:underline",
+                        isColored ? "text-white" : "text-accent",
+                      )}
                     >
                       <CountryFlag code={entry.player.countryCode} className="h-3 w-4" />
                       {entry.player.name}
