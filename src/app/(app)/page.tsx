@@ -30,7 +30,7 @@ export default async function HomePage() {
     <>
       <Hero currentChampion={currentChampion} clockConfig={clockConfig} weather={weather} />
       <section className="bg-surface-dark bg-dashboard-pattern py-16 text-surface-dark-foreground sm:py-24">
-        <Container className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-start">
+        <Container className="grid grid-cols-1 gap-10 lg:grid-cols-2">
           <LeaderboardWidget entries={leaderboard} />
           <LiveBlogWidget entries={liveBlogPosts} />
         </Container>

@@ -20,15 +20,15 @@ export function LiveBlogWidget({ entries }: LiveBlogWidgetProps) {
   const top = entries.slice(0, WIDGET_POST_COUNT);
 
   return (
-    <div className="border border-surface-dark-foreground/15">
+    <div className="flex h-full flex-col border border-surface-dark-foreground/15">
       <div className="bg-primary px-5 py-3">
         <h2 className="font-display text-sm font-bold uppercase tracking-wide text-primary-foreground">Live Blog</h2>
       </div>
 
       {top.length === 0 ? (
-        <p className="bg-white p-5 text-sm text-black/60">Updates will appear here automatically as notable scores come in.</p>
+        <p className="flex-1 bg-white p-5 text-sm text-black/60">Updates will appear here automatically as notable scores come in.</p>
       ) : (
-        <div className="flex flex-col">
+        <div className="flex flex-1 flex-col bg-primary">
           {top.map((entry) => {
             const meta = CATEGORY_META[entry.category];
             const Icon = meta.icon;

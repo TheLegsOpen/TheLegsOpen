@@ -21,16 +21,23 @@ export function LeaderboardWidget({ entries }: LeaderboardWidgetProps) {
   const top = entries.slice(0, WIDGET_ROW_COUNT);
 
   return (
-    <div className="border border-surface-dark-foreground/15">
+    <div className="flex h-full flex-col border border-surface-dark-foreground/15">
       <div className="bg-primary px-5 py-3">
         <h2 className="font-display text-sm font-bold uppercase tracking-wide text-primary-foreground">Leaderboard</h2>
       </div>
 
       {top.length === 0 ? (
-        <p className="p-5 text-sm text-surface-dark-foreground/60">The field will appear here once tee times are generated.</p>
+        <p className="flex-1 bg-primary p-5 text-sm text-surface-dark-foreground/60">The field will appear here once tee times are generated.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+        <div className="flex-1 overflow-x-auto bg-primary">
+          <table className="w-full table-fixed border-collapse text-sm">
+            <colgroup>
+              <col className="w-8" />
+              <col />
+              <col className="w-14" />
+              <col className="w-12" />
+              <col className="w-12" />
+            </colgroup>
             <thead>
               <tr className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 text-left text-xs uppercase tracking-wide text-surface-dark-foreground/60">
                 <th className="px-2 py-2">Pos</th>
@@ -49,12 +56,14 @@ export function LeaderboardWidget({ entries }: LeaderboardWidgetProps) {
                       {entry.tied ? "T" : ""}
                       {entry.position}
                     </td>
-                    <td className="px-2 py-2 whitespace-nowrap">
-                      <Link href={`/players/${playerSlug(entry.player)}`} className="hover:underline">
-                        <span className="font-bold">{surname}</span>
-                        <span className="font-normal">, {firstName}</span>
-                      </Link>
-                      <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
+                    <td className="px-2 py-2">
+                      <div className="flex items-center gap-1.5">
+                        <Link href={`/players/${playerSlug(entry.player)}`} className="truncate hover:underline">
+                          <span className="font-bold">{surname}</span>
+                          <span className="font-normal">, {firstName}</span>
+                        </Link>
+                        <CountryFlag code={entry.player.countryCode} className="h-3 w-4 shrink-0 align-middle" />
+                      </div>
                     </td>
                     <td className="whitespace-nowrap px-2 py-2 text-right text-xs tabular-nums text-accent-foreground/70">
                       {!entry.started && entry.teeTime ? (

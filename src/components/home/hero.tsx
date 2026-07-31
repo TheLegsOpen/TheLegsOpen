@@ -24,7 +24,7 @@ export function Hero({ currentChampion: CURRENT_CHAMPION, clockConfig, weather }
   return (
     <section className="w-full bg-surface-dark">
       <Container className="grid grid-cols-1 gap-3 py-3 lg:grid-cols-[1fr_320px]">
-        <div className="relative h-[380px] w-full overflow-hidden">
+        <div className="relative h-full min-h-[380px] w-full overflow-hidden">
           <PlaceholderArt
             label={`${CURRENT_CHAMPION.winnerName} celebrates at ${CURRENT_CHAMPION.venueName}`}
             tone="navy"

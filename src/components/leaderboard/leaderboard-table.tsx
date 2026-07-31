@@ -106,11 +106,13 @@ function LeaderboardRow({
         <AnimatedValue value={`${entry.tied ? "T" : ""}${entry.position}`} />
       </td>
       <td className="px-2 py-3">
-        <button type="button" onClick={() => onSelectPlayer(entry.player.id)} className="hover:underline">
-          <span className="font-bold">{surname}</span>
-          <span className="font-normal">, {firstName}</span>
-        </button>
-        <CountryFlag code={entry.player.countryCode} className="ml-2 h-3 w-4 align-middle" />
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => onSelectPlayer(entry.player.id)} className="truncate hover:underline">
+            <span className="font-bold">{surname}</span>
+            <span className="font-normal">, {firstName}</span>
+          </button>
+          <CountryFlag code={entry.player.countryCode} className="h-3 w-4 shrink-0 align-middle" />
+        </div>
       </td>
       <td className="whitespace-nowrap px-2 py-3 text-right text-xs tabular-nums text-accent-foreground/70">
         {!entry.started && entry.teeTime ? (
@@ -166,7 +168,16 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
 
   return (
     <div className="overflow-x-auto border border-surface-dark-foreground/15">
-      <table className="w-full min-w-[520px] border-collapse text-sm">
+      <table className="w-full min-w-[640px] table-fixed border-collapse text-sm">
+        <colgroup>
+          <col className="w-10" />
+          <col className="w-12" />
+          <col />
+          <col className="w-20" />
+          <col className="w-16" />
+          <col className="w-16" />
+          <col className="w-20" />
+        </colgroup>
         <thead>
           <tr className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 text-left text-xs uppercase tracking-wide text-surface-dark-foreground/60">
             <th className="w-10 px-4 py-3" aria-label="Favorite" />
