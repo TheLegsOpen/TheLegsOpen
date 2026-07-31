@@ -90,7 +90,7 @@ export function WeatherWidget({ weather }: { weather: VenueWeather }) {
                 <div key={day.date} className="flex flex-col items-center gap-1">
                   <p className="text-[11px] text-white/60">{formatDay(day.date)}</p>
                   <Icon className="h-5 w-5 text-accent" />
-                  <p className="text-sm font-bold tabular-nums">
+                  <p className="whitespace-nowrap text-[11px] font-bold tabular-nums">
                     {Math.round(day.maxTemperatureC)}°<span className="text-white/50">/{Math.round(day.minTemperatureC)}°</span>
                   </p>
                   <p className="flex items-center gap-0.5 text-[10px] text-white/50">
