@@ -39,7 +39,7 @@ export function WeatherWidget({ weather }: { weather: VenueWeather }) {
   return (
     <div className="flex h-full flex-col overflow-hidden text-white">
       <div className="grid grid-cols-2">
-        <div className="flex flex-col items-center justify-center gap-1 bg-accent/15 px-4 py-5 text-primary">
+        <div className="flex flex-col items-center justify-center gap-1 bg-accent px-4 py-5 text-accent-foreground">
           <CurrentIcon className="h-9 w-9" />
           <p className="font-display text-3xl font-bold tabular-nums">
             {Math.round(weather.currentTemperatureC)}
