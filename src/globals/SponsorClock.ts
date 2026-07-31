@@ -23,7 +23,11 @@ export const SponsorClock: GlobalConfig = {
       label: "Sponsor",
       fields: [
         { name: "name", type: "text", defaultValue: "Meridian", required: true },
-        { name: "tagline", type: "text", defaultValue: "Official Timekeeper", required: true },
+        {
+          name: "tagline",
+          type: "text",
+          admin: { description: "Optional small caption under the sponsor name, e.g. \"Official Timekeeper\". Leave blank to hide it." },
+        },
         {
           name: "logo",
           type: "upload",

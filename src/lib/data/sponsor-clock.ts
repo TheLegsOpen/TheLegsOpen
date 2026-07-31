@@ -9,7 +9,7 @@ export type ClockFont = "display" | "timekeeper";
 
 export interface SponsorClock {
   name: string;
-  tagline: string;
+  tagline?: string;
   logoUrl?: string;
   faceColor: string;
   clockFont: ClockFont;
@@ -22,9 +22,8 @@ export interface SponsorClock {
   centerCapUrl?: string;
 }
 
-const DEFAULTS: SponsorClock = {
+const DEFAULTS: Omit<SponsorClock, "tagline"> = {
   name: "Meridian",
-  tagline: "Official Timekeeper",
   faceColor: "#0E3D2C",
   clockFont: "display",
   venueName: "Seabrook Old Course",
@@ -40,7 +39,7 @@ export async function getSponsorClock(): Promise<SponsorClock> {
 
   return {
     name: settings.sponsor?.name || DEFAULTS.name,
-    tagline: settings.sponsor?.tagline || DEFAULTS.tagline,
+    tagline: settings.sponsor?.tagline || undefined,
     logoUrl: mediaUrl(settings.sponsor?.logo),
     faceColor: settings.sponsor?.faceColor || DEFAULTS.faceColor,
     clockFont: (settings.sponsor?.clockFont as ClockFont) || DEFAULTS.clockFont,

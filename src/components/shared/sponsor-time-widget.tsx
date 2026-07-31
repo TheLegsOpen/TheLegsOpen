@@ -59,13 +59,20 @@ function AnalogClock({ date, config }: { date: Date | null; config: SponsorClock
   const minuteAngle = minutes * 6;
   const secondAngle = seconds * 6;
 
+  const hasFaceImage = Boolean(config.faceImageUrl);
+
   return (
     <div
-      className="relative h-28 w-28 shrink-0 rounded-full p-1.5"
-      style={{
-        background: "conic-gradient(from 0deg, #d8d8d8, #f8f8f8, #b8b8b8, #eaeaea, #c4c4c4, #f4f4f4, #d8d8d8)",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(0,0,0,0.15)",
-      }}
+      className="relative h-28 w-28 shrink-0 rounded-full"
+      style={
+        hasFaceImage
+          ? { boxShadow: "0 2px 6px rgba(0,0,0,0.35)" }
+          : {
+              padding: 6,
+              background: "conic-gradient(from 0deg, #d8d8d8, #f8f8f8, #b8b8b8, #eaeaea, #c4c4c4, #f4f4f4, #d8d8d8)",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(0,0,0,0.15)",
+            }
+      }
     >
       <div className="relative h-full w-full">
         {config.faceImageUrl ? (
@@ -133,11 +140,11 @@ export function SponsorTimeWidget({ config }: { config: SponsorClock }) {
       <div className="flex min-w-0 flex-col items-center gap-1 text-center">
         {config.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={config.logoUrl} alt={config.name} className="h-8 w-20 object-contain" />
+          <img src={config.logoUrl} alt={config.name} className="h-12 w-28 object-contain" />
         ) : (
           <p className="font-display text-sm font-bold uppercase tracking-wide">{config.name}</p>
         )}
-        <p className="text-[9px] uppercase tracking-[0.14em] text-white/50">{config.tagline}</p>
+        {config.tagline ? <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">{config.tagline}</p> : null}
       </div>
 
       <AnalogClock date={now} config={config} />
