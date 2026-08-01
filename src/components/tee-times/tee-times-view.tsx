@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import type { TeeTimeRound } from "@/types/championship";
 import type { Article } from "@/types/article";
 import type { SponsorClock } from "@/lib/data/sponsor-clock";
+import type { CompetitionEntry } from "@/lib/data/scorecards";
 
 const TEE_FILTERS = ["All", "1st", "10th"] as const;
 
@@ -19,10 +20,12 @@ export function TeeTimesView({
   rounds: TEE_TIMES,
   featuredArticle,
   clockConfig,
+  mainEntries,
 }: {
   rounds: TeeTimeRound[];
   featuredArticle: Article;
   clockConfig: SponsorClock;
+  mainEntries: CompetitionEntry[];
 }) {
   const [teeFilter, setTeeFilter] = useState<(typeof TEE_FILTERS)[number]>("All");
   const [reversed, setReversed] = useState(false);
@@ -85,7 +88,14 @@ export function TeeTimesView({
                     ) : (
                       <div className="flex flex-col gap-3">
                         {ordered.map((group, index) => (
-                          <MatchupCard key={index} group={group} favorites={hydrated ? favorites : []} tone="dark" />
+                          <MatchupCard
+                            key={index}
+                            gameNumber={reversed ? ordered.length - index : index + 1}
+                            group={group}
+                            favorites={hydrated ? favorites : []}
+                            mainEntries={mainEntries}
+                            tone="dark"
+                          />
                         ))}
                       </div>
                     )}

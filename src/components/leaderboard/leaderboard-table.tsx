@@ -167,7 +167,7 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
   }
 
   return (
-    <div className="overflow-x-auto border border-surface-dark-foreground/15">
+    <div className="overflow-x-auto border border-surface-dark-foreground/15 bg-primary">
       <table className="w-full min-w-[640px] table-fixed border-collapse text-sm">
         <colgroup>
           <col className="w-10" />

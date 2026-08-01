@@ -35,7 +35,7 @@ export function HoleByHoleTable({ entries, onSelectPlayer }: HoleByHoleTableProp
   const coursePars = entries[0].holes;
 
   return (
-    <div className="overflow-x-auto border border-surface-dark-foreground/15">
+    <div className="overflow-x-auto border border-surface-dark-foreground/15 bg-primary">
       <table className="w-full min-w-[1300px] table-fixed border-collapse text-sm">
         <colgroup>
           <col className="w-12" />

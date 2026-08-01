@@ -86,8 +86,8 @@ export function StatExplorer({ nettCategories, scratchCategories, streakCategori
         </div>
 
         {selected.rows.length === 0 ? (
-          <div className="flex flex-col items-center gap-1 border border-dashed border-surface-dark-foreground/20 py-8 text-center">
-            <p className="text-sm text-surface-dark-foreground/60">No holes of this par played yet.</p>
+          <div className="flex flex-col items-center gap-1 bg-primary py-8 text-center">
+            <p className="text-sm text-primary-foreground/60">No holes of this par played yet.</p>
           </div>
         ) : (
           selected.rows.map((row) => (

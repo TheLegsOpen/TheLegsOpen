@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import {
   ArrowDownCircle,
@@ -88,23 +89,29 @@ export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
   }
 
   return (
-    <div className="relative">
-      {/* Timeline spine running behind every entry's marker dot, including through the gaps between posts. */}
-      <div className="pointer-events-none absolute bottom-8 left-6 top-8 w-px bg-black/10" aria-hidden="true" />
+    <div className="grid grid-cols-[24px_1fr] gap-x-4 gap-y-4">
+      {/* Timeline spine: a single element spanning every entry's grid row (and the gaps between
+          them), kept in its own gutter column so it never shares space with a card's own
+          background -- unlike an absolutely-positioned overlay sized to the whole list, this
+          never has to "hide behind" opaque card content, it's simply never underneath it. */}
+      <div className="pointer-events-none relative col-start-1" style={{ gridRow: `1 / ${entries.length + 1}` }} aria-hidden="true">
+        <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-black/15" />
+      </div>
 
-      <div className="flex flex-col gap-4">
-        {entries.map((entry) => {
-          const meta = CATEGORY_META[entry.category];
-          const Icon = meta.icon;
-          const isStableford = entry.competition === "stableford";
-          const isColored = Boolean(meta.cardClass);
-          return (
+      {entries.map((entry, index) => {
+        const meta = CATEGORY_META[entry.category];
+        const Icon = meta.icon;
+        const isStableford = entry.competition === "stableford";
+        const isColored = Boolean(meta.cardClass);
+        return (
+          <Fragment key={entry.id}>
+            <div className="relative col-start-1" style={{ gridRow: index + 1 }} aria-hidden="true">
+              <span className="absolute left-1/2 top-7 h-4 w-4 -translate-x-1/2 rounded-full border-2 border-primary bg-white" />
+            </div>
             <article
-              key={entry.id}
-              className={cn("relative border border-black/10 py-6 pl-14 pr-5", meta.cardClass ?? "bg-white")}
+              className={cn("col-start-2 border border-black/10 py-6 px-5", meta.cardClass ?? "bg-white")}
+              style={{ gridRow: index + 1 }}
             >
-              <span className="absolute left-4 top-7 h-4 w-4 rounded-full border-2 border-[#EEEEEE] bg-primary/40" aria-hidden="true" />
-
               <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
                 <span
                   className={cn(
@@ -154,9 +161,9 @@ export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
                 ) : null}
               </div>
             </article>
-          );
-        })}
-      </div>
+          </Fragment>
+        );
+      })}
     </div>
   );
 }
