@@ -4,7 +4,12 @@ import configPromise from "@/payload.config";
 import { mapPlayer } from "@/lib/data/players";
 import { allocateStrokes, stablefordPoints } from "@/lib/scoring";
 import type { Player } from "@/types/player";
-import type { Player as PayloadPlayer, Championship as PayloadChampionship, Venue as PayloadVenue } from "@/payload-types";
+import type {
+  Player as PayloadPlayer,
+  Championship as PayloadChampionship,
+  Venue as PayloadVenue,
+  Scorecard as PayloadScorecard,
+} from "@/payload-types";
 import type { Payload, PayloadRequest } from "payload";
 
 export type Competition = "main" | "stableford" | "scratch";
@@ -59,16 +64,21 @@ export function parseTeeTimeMinutes(time: string): number {
   return Number(match[1]) * 60 + Number(match[2]);
 }
 
+interface LeaderboardInputs {
+  championship: PayloadChampionship | undefined;
+  holeInfos: { par: number; si: number }[];
+  docs: PayloadScorecard[];
+  teeTimeByPlayer: Map<string, string>;
+}
+
 /**
- * Pass `req` when calling from inside a hook (e.g. the Scorecards afterChange hook that
- * generates live blog posts) so this reads within the same in-flight transaction as the
- * write that triggered it -- otherwise it queries a separate connection that can't see
- * that write until the outer transaction commits, one hook invocation late.
+ * Fetches everything `buildLeaderboardFromDocs` needs (venue pars, every scorecard, and the
+ * tee-time sheet) in one pass, so callers that need more than one derived view -- e.g. the Race
+ * Tracker's before/after snapshot pair -- don't repeat the same queries per competition.
  */
-export async function getCompetitionLeaderboard(competition: Competition, req?: PayloadRequest): Promise<CompetitionEntry[]> {
-  const payload = req?.payload ?? (await getPayload({ config: configPromise }));
+async function loadLeaderboardInputs(payload: Payload, req?: PayloadRequest): Promise<LeaderboardInputs> {
   const championship = await getActiveChampionship(payload, req);
-  if (!championship) return [];
+  if (!championship) return { championship: undefined, holeInfos: [], docs: [], teeTimeByPlayer: new Map() };
 
   const venue = typeof championship.venue === "object" ? (championship.venue as PayloadVenue) : undefined;
   const holeInfos = Array.from({ length: 18 }, (_, i) => ({
@@ -103,7 +113,16 @@ export async function getCompetitionLeaderboard(competition: Competition, req?: 
     }
   }
 
-  const rows = result.docs.map((doc) => {
+  return { championship, holeInfos, docs: result.docs, teeTimeByPlayer };
+}
+
+function buildLeaderboardFromDocs(
+  competition: Competition,
+  holeInfos: { par: number; si: number }[],
+  docs: PayloadScorecard[],
+  teeTimeByPlayer: Map<string, string>,
+): CompetitionEntry[] {
+  const rows = docs.map((doc) => {
     const player = mapPlayer(doc.player as PayloadPlayer);
     const holesCompleted = doc.holesCompleted ?? 0;
     const started = holesCompleted > 0;
@@ -211,4 +230,55 @@ export async function getCompetitionLeaderboard(competition: Competition, req?: 
   });
 
   return entries;
+}
+
+/**
+ * Pass `req` when calling from inside a hook (e.g. the Scorecards afterChange hook that
+ * generates live blog posts) so this reads within the same in-flight transaction as the
+ * write that triggered it -- otherwise it queries a separate connection that can't see
+ * that write until the outer transaction commits, one hook invocation late.
+ */
+export async function getCompetitionLeaderboard(competition: Competition, req?: PayloadRequest): Promise<CompetitionEntry[]> {
+  const payload = req?.payload ?? (await getPayload({ config: configPromise }));
+  const { championship, holeInfos, docs, teeTimeByPlayer } = await loadLeaderboardInputs(payload, req);
+  if (!championship) return [];
+  return buildLeaderboardFromDocs(competition, holeInfos, docs, teeTimeByPlayer);
+}
+
+export interface LeaderboardSnapshotPair {
+  before: Record<Competition, CompetitionEntry[]>;
+  after: Record<Competition, CompetitionEntry[]>;
+}
+
+const ALL_COMPETITIONS: Competition[] = ["main", "stableford", "scratch"];
+
+/**
+ * Builds "the leaderboard as it stood immediately before this save" alongside the current
+ * leaderboard, for all three competitions, from a single fetch -- used by the Race Tracker to
+ * diff before/after state without a persisted snapshot table. The "before" world is reconstructed
+ * by swapping the just-changed scorecard back to its `previousDoc` shape (which already carries
+ * its own correct totals, computed by the same beforeValidate hook on its own prior save) while
+ * leaving every other player's card untouched.
+ */
+export async function getLeaderboardSnapshotPair(
+  req: PayloadRequest,
+  changedScorecardId: string,
+  previousDoc: PayloadScorecard,
+): Promise<LeaderboardSnapshotPair | undefined> {
+  const { championship, holeInfos, docs, teeTimeByPlayer } = await loadLeaderboardInputs(req.payload, req);
+  if (!championship) return undefined;
+
+  const changedAfterDoc = docs.find((d) => String(d.id) === String(changedScorecardId));
+  // `previousDoc` comes from the hook at whatever depth the write used (typically un-populated),
+  // so borrow the already-populated `player` relation from the freshly-fetched (depth: 1) doc.
+  const beforeDocForPlayer: PayloadScorecard = changedAfterDoc ? { ...previousDoc, player: changedAfterDoc.player } : previousDoc;
+  const beforeDocs = docs.map((d) => (String(d.id) === String(changedScorecardId) ? beforeDocForPlayer : d));
+
+  const before = {} as Record<Competition, CompetitionEntry[]>;
+  const after = {} as Record<Competition, CompetitionEntry[]>;
+  for (const competition of ALL_COMPETITIONS) {
+    before[competition] = buildLeaderboardFromDocs(competition, holeInfos, beforeDocs, teeTimeByPlayer);
+    after[competition] = buildLeaderboardFromDocs(competition, holeInfos, docs, teeTimeByPlayer);
+  }
+  return { before, after };
 }

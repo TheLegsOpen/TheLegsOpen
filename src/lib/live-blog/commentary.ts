@@ -144,6 +144,46 @@ export function leaderThroughCommentary(playerName: string, holesCompleted: numb
   return { headline, body };
 }
 
+export function tieCommentary(playerName: string, scoreLabel: string, competitionLabel: string): Commentary {
+  const headline = pick(["Tie at the top", `${playerName.split(" ").slice(-1)[0]} draws level`]);
+  const body = pick([
+    `${playerName} joins the lead in the ${competitionLabel} competition at ${scoreLabel}.`,
+    `We have a share of the lead — ${playerName} moves level at the top on ${scoreLabel}.`,
+    `${playerName} draws level at the summit of the ${competitionLabel} standings, ${scoreLabel}.`,
+  ]);
+  return { headline, body };
+}
+
+export function leadExtendsCommentary(playerName: string, leadMargin: number, competitionLabel: string): Commentary {
+  const headline = pick(["Advantage grows", `${playerName.split(" ").slice(-1)[0]} pulls clear`]);
+  const body = pick([
+    `${playerName} extends the ${competitionLabel} lead to ${leadMargin} with a strong spell.`,
+    `The gap grows — ${playerName} now leads by ${leadMargin} in the ${competitionLabel} competition.`,
+    `${playerName} stretches clear at the top, the lead now out to ${leadMargin}.`,
+  ]);
+  return { headline, body };
+}
+
+export function enteringContentionCommentary(playerName: string, competitionLabel: string): Commentary {
+  const headline = pick(["Into contention", `${playerName.split(" ").slice(-1)[0]} joins the race`]);
+  const body = pick([
+    `${playerName} moves into the ${competitionLabel} race after a strong spell of holes.`,
+    `${playerName} is now firmly in contention in the ${competitionLabel} competition.`,
+    `A real move — ${playerName} climbs into the ${competitionLabel} race.`,
+  ]);
+  return { headline, body };
+}
+
+export function leavingContentionCommentary(playerName: string, competitionLabel: string): Commentary {
+  const headline = pick(["Pressure eases", `${playerName.split(" ").slice(-1)[0]} drops back`]);
+  const body = pick([
+    `${playerName} drops outside the ${competitionLabel} race after a difficult spell.`,
+    `${playerName} slips out of contention in the ${competitionLabel} competition.`,
+    `The gap tells — ${playerName} falls back from the ${competitionLabel} race.`,
+  ]);
+  return { headline, body };
+}
+
 export function clubhouseLeaderCommentary(playerName: string, toPar: number): Commentary {
   const headline = pick(["Clubhouse leader", `${playerName.split(" ").slice(-1)[0]} sets the target`]);
   const body = pick([

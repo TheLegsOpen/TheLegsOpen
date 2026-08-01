@@ -1,12 +1,11 @@
 import type { CollectionAfterChangeHook, PayloadRequest } from "payload";
 
-import { formatToPar } from "@/lib/leaderboard";
-import { getCompetitionLeaderboard, parseTeeTimeMinutes, type Competition } from "@/lib/data/scorecards";
+import { getCompetitionLeaderboard, getLeaderboardSnapshotPair, parseTeeTimeMinutes } from "@/lib/data/scorecards";
+import { generateRaceTrackerPosts } from "@/lib/live-blog/race-events";
 import {
   eagleCommentary,
   birdieCommentary,
   bogeyCommentary,
-  leaderCommentary,
   roundCompleteCommentary,
   competitionUnderwayCommentary,
   lastGroupOutCommentary,
@@ -22,12 +21,6 @@ import type { Scorecard, Player, Championship, Venue, LiveBlogPost } from "@/pay
 function createPost(req: PayloadRequest, data: Omit<LiveBlogPost, "id" | "postedAt" | "updatedAt" | "createdAt">) {
   return req.payload.create({ collection: "live-blog-posts", data: { ...data, postedAt: new Date().toISOString() }, req });
 }
-
-const COMPETITIONS: { key: Competition; label: string }[] = [
-  { key: "main", label: "Main" },
-  { key: "stableford", label: "Stableford" },
-  { key: "scratch", label: "Scratch" },
-];
 
 const TOP_10 = 10;
 
@@ -135,7 +128,10 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
   const oldHoles = previousDoc?.holes ?? [];
   const relatives = newHoles.map((h, i) => (h?.strokes != null ? h.strokes - (venueHoles[i]?.par ?? 4) : undefined));
 
-  const mainEntries = await getCompetitionLeaderboard("main", req);
+  // The Race Tracker's before/after snapshot pair also covers what used to be a separate
+  // getCompetitionLeaderboard("main", req) call here -- `snapshots.after.main` is the same data.
+  const snapshots = previousDoc ? await getLeaderboardSnapshotPair(req, doc.id, previousDoc) : undefined;
+  const mainEntries = snapshots?.after.main ?? (await getCompetitionLeaderboard("main", req));
   const mainEntry = mainEntries.find((e) => String(e.player.id) === String(playerId));
   const inTop10 = (mainEntry?.position ?? Infinity) <= TOP_10;
 
@@ -292,35 +288,10 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
     });
   }
 
-  for (const { key, label } of COMPETITIONS) {
-    const entries = key === "main" ? mainEntries : await getCompetitionLeaderboard(key, req);
-    const soleLeader = entries[0] && !entries[0].tied ? entries[0] : null;
-    if (!soleLeader) continue;
-
-    const latestLeaderPosts = await req.payload.find({
-      collection: "live-blog-posts",
-      where: { and: [{ championship: { equals: championshipId } }, { category: { equals: "leader" } }, { competition: { equals: key } }] },
-      sort: "-postedAt",
-      limit: 1,
-      depth: 0,
-      req,
-    });
-    const lastPost = latestLeaderPosts.docs[0];
-    const lastLeaderPlayerId = lastPost ? (typeof lastPost.player === "object" ? lastPost.player?.id : lastPost.player) : undefined;
-    if (String(lastLeaderPlayerId) === String(soleLeader.player.id)) continue;
-
-    const scoreRaw = key === "stableford" ? (soleLeader.score ?? 0) : (soleLeader.toPar ?? 0);
-    const scoreLabel = key === "stableford" ? `${scoreRaw} pts` : formatToPar(scoreRaw);
-    const { headline, body } = leaderCommentary(soleLeader.player.name, scoreLabel, label);
-    await createPost(req, {
-      category: "leader",
-      competition: key,
-      headline,
-      body,
-      championship: championshipId as string,
-      player: soleLeader.player.id,
-      scoreRelative: scoreRaw,
-    });
+  // Race Tracker: new leader / tie for the lead / lead extension / entering & leaving contention,
+  // across all three competitions, from the before/after snapshot pair computed above.
+  if (snapshots) {
+    await generateRaceTrackerPosts(req, championshipId as string, snapshots);
   }
 
   return doc;
