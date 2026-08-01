@@ -114,6 +114,16 @@ export function chargeCommentary(playerName: string, streak: number): Commentary
   return { headline, body };
 }
 
+/** Distinct from chargeCommentary -- that one asserts a strict consecutive run ("N straight holes"), which would be inaccurate for this looser "N birdies within the last `windowSize` holes" pattern (there may be a par mixed in). */
+export function birdieRunCommentary(playerName: string, birdieCount: number, windowSize: number): Commentary {
+  const headline = pick(["Hot streak", `${playerName.split(" ").slice(-1)[0]} is heating up`]);
+  const body = pick([
+    `${playerName} has gone under par ${birdieCount} times in the last ${windowSize} holes — climbing fast.`,
+    `${birdieCount} birdies in the last ${windowSize} holes for ${playerName}. A real hot streak.`,
+  ]);
+  return { headline, body };
+}
+
 export function movingDownCommentary(playerName: string): Commentary {
   const headline = pick(["Moving down", `${playerName.split(" ").slice(-1)[0]} slips`]);
   const body = pick([
@@ -180,6 +190,60 @@ export function leavingContentionCommentary(playerName: string, competitionLabel
     `${playerName} drops outside the ${competitionLabel} race after a difficult spell.`,
     `${playerName} slips out of contention in the ${competitionLabel} competition.`,
     `The gap tells — ${playerName} falls back from the ${competitionLabel} race.`,
+  ]);
+  return { headline, body };
+}
+
+export function bogeyMissLabel(relativeToPar: number): string | undefined {
+  if (relativeToPar === 2) return "double bogey";
+  if (relativeToPar === 3) return "triple bogey";
+  if (relativeToPar >= 4) return "big number";
+  return undefined;
+}
+
+export function aceCommentary(playerName: string, holeNumber: number): Commentary {
+  const headline = pick(["HOLE IN ONE!", `${playerName.split(" ").slice(-1)[0]} makes an ace`]);
+  const body = pick([
+    `${playerName} holes it straight from the tee at the ${ordinal(holeNumber)} — a hole in one!`,
+    `Incredible scenes at the ${ordinal(holeNumber)} — ${playerName} makes an ace.`,
+  ]);
+  return { headline, body };
+}
+
+export function enterTopCommentary(playerName: string, topN: number, position: number): Commentary {
+  const headline = pick([`Into the top ${topN}`, `${playerName.split(" ").slice(-1)[0]} breaks into the top ${topN}`]);
+  const body = pick([
+    `${playerName} moves into the top ${topN}, up to ${ordinal(position)}.`,
+    `A big move — ${playerName} climbs into the top ${topN} at ${ordinal(position)}.`,
+  ]);
+  return { headline, body };
+}
+
+export function bigGainCommentary(playerName: string, positionsGained: number, position: number): Commentary {
+  const headline = pick(["Big mover", `${playerName.split(" ").slice(-1)[0]} surges up the board`]);
+  const body = pick([
+    `${playerName} climbs ${positionsGained} places to ${ordinal(position)}.`,
+    `A real surge — ${playerName} moves up ${positionsGained} spots to ${ordinal(position)}.`,
+  ]);
+  return { headline, body };
+}
+
+/** `missLabel` (e.g. "double bogey"), when known, names the mistake that caused the fall -- matches the pattern the field's example used ("A costly double bogey drops ... from second to eighth."). */
+export function bigDropCommentary(playerName: string, beforePosition: number, afterPosition: number, missLabel?: string): Commentary {
+  const fromTo = `from ${ordinal(beforePosition)} to ${ordinal(afterPosition)}`;
+  const headline = pick(["Costly spell", `${playerName.split(" ").slice(-1)[0]} slips back`]);
+  const body = missLabel
+    ? pick([`A costly ${missLabel} drops ${playerName} ${fromTo}.`, `${playerName} tumbles ${fromTo} after a ${missLabel}.`])
+    : pick([`${playerName} slips ${fromTo} after a tough stretch.`, `A difficult spell sees ${playerName} fall ${fromTo}.`]);
+  return { headline, body };
+}
+
+export function pressureMomentCommentary(playerName: string, margin: number, unit: "shot" | "point", competitionLabel: string): Commentary {
+  const marginLabel = margin === 0 ? `level with the lead` : `${margin} ${unit}${margin === 1 ? "" : "s"} off the lead`;
+  const headline = pick(["Pressure moment", `${playerName.split(" ").slice(-1)[0]} reaches the last`]);
+  const body = pick([
+    `${playerName} reaches the final hole ${marginLabel} in the ${competitionLabel} competition.`,
+    `Down to the last for ${playerName}, ${marginLabel}.`,
   ]);
   return { headline, body };
 }

@@ -20,6 +20,7 @@ export const LiveBlogPosts: CollectionConfig = {
       type: "select",
       required: true,
       options: [
+        { label: "Hole in one", value: "ace" },
         { label: "Eagle or better", value: "eagle" },
         { label: "Birdie", value: "birdie" },
         { label: "Bogey or worse", value: "bogey" },
@@ -32,6 +33,7 @@ export const LiveBlogPosts: CollectionConfig = {
         { label: "Lead extends", value: "lead-extends" },
         { label: "Entering contention", value: "entering-contention" },
         { label: "Leaving contention", value: "leaving-contention" },
+        { label: "Pressure moment", value: "pressure-moment" },
         { label: "Through", value: "through" },
         { label: "Clubhouse leader", value: "clubhouse-leader" },
         { label: "In the clubhouse", value: "round-complete" },

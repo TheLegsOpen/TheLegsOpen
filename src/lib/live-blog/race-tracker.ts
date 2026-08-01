@@ -106,6 +106,51 @@ export function buildRaceTracker(entries: CompetitionEntry[], competition: Compe
   return { competition, leaderIds, leaderName: leaders[0]?.player.name, leaderMetric: leaderValue, leadMargin, members };
 }
 
+export type MovementEventKind = "enter-top-5" | "enter-top-10" | "big-gain" | "big-drop";
+
+export interface MovementCandidate {
+  kind: MovementEventKind;
+  playerId: string;
+  playerName: string;
+  beforePosition: number;
+  position: number;
+  positionsChanged: number;
+}
+
+const BIG_MOVE_THRESHOLD = 5;
+
+/**
+ * One player's position change on a single leaderboard (Main only, in practice -- see
+ * generate.ts) between the before/after snapshot. Only fires for genuinely large swings: moving
+ * into the top 5 or top 10, or a 5+ position gain/drop -- small week-to-week jitter in a 36-40
+ * player field isn't worth a post. Both entries must be `started`, so a not-yet-teed-off
+ * player's baseline sort position doesn't register as a "move" once they actually begin.
+ */
+export function diffPositionMovement(
+  beforeEntries: CompetitionEntry[],
+  afterEntries: CompetitionEntry[],
+  playerId: string,
+): MovementCandidate | undefined {
+  const before = beforeEntries.find((e) => e.player.id === playerId);
+  const after = afterEntries.find((e) => e.player.id === playerId);
+  if (!before || !after || !before.started || !after.started) return undefined;
+
+  const gained = before.position - after.position;
+  if (gained > 0) {
+    const base = { playerId, playerName: after.player.name, beforePosition: before.position, position: after.position, positionsChanged: gained };
+    if (before.position > 5 && after.position <= 5) return { ...base, kind: "enter-top-5" };
+    if (before.position > 10 && after.position <= 10) return { ...base, kind: "enter-top-10" };
+    if (gained >= BIG_MOVE_THRESHOLD) return { ...base, kind: "big-gain" };
+    return undefined;
+  }
+
+  const dropped = after.position - before.position;
+  if (dropped >= BIG_MOVE_THRESHOLD) {
+    return { kind: "big-drop", playerId, playerName: after.player.name, beforePosition: before.position, position: after.position, positionsChanged: dropped };
+  }
+  return undefined;
+}
+
 /** Compares a before/after pair of trackers for the same competition and returns the meaningful transitions. */
 export function diffRaceTrackers(before: RaceTracker, after: RaceTracker): RaceCandidate[] {
   const candidates: RaceCandidate[] = [];

@@ -7,6 +7,7 @@ import type { Player } from "@/types/player";
 import type { Player as PayloadPlayer } from "@/payload-types";
 
 export type LiveBlogCategory =
+  | "ace"
   | "eagle"
   | "birdie"
   | "bogey"
@@ -19,6 +20,7 @@ export type LiveBlogCategory =
   | "lead-extends"
   | "entering-contention"
   | "leaving-contention"
+  | "pressure-moment"
   | "through"
   | "clubhouse-leader"
   | "round-complete"

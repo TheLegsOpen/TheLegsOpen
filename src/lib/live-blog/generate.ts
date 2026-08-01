@@ -2,17 +2,25 @@ import type { CollectionAfterChangeHook, PayloadRequest } from "payload";
 
 import { getCompetitionLeaderboard, getLeaderboardSnapshotPair, parseTeeTimeMinutes } from "@/lib/data/scorecards";
 import { generateRaceTrackerPosts } from "@/lib/live-blog/race-events";
+import { buildRaceTracker, diffPositionMovement } from "@/lib/live-blog/race-tracker";
 import {
+  aceCommentary,
   eagleCommentary,
   birdieCommentary,
   bogeyCommentary,
+  bogeyMissLabel,
   roundCompleteCommentary,
   competitionUnderwayCommentary,
   lastGroupOutCommentary,
   movingUpCommentary,
   chargeCommentary,
+  birdieRunCommentary,
   movingDownCommentary,
   troubleCommentary,
+  enterTopCommentary,
+  bigGainCommentary,
+  bigDropCommentary,
+  pressureMomentCommentary,
   leaderThroughCommentary,
   clubhouseLeaderCommentary,
 } from "@/lib/live-blog/commentary";
@@ -33,6 +41,19 @@ function trailingStreak(relatives: (number | undefined)[], index: number, direct
     if (direction === "under" && r > -1) break;
     if (direction === "over" && r < 1) break;
     count++;
+  }
+  return count;
+}
+
+/** Counts birdie-or-better holes among the last (up to) `windowSize` played holes ending at `index`, inclusive. */
+function birdiesInWindow(relatives: (number | undefined)[], index: number, windowSize: number): number {
+  let count = 0;
+  let seen = 0;
+  for (let i = index; i >= 0 && seen < windowSize; i--) {
+    const r = relatives[i];
+    if (r === undefined) break;
+    seen++;
+    if (r <= -1) count++;
   }
   return count;
 }
@@ -135,6 +156,8 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
   const mainEntry = mainEntries.find((e) => String(e.player.id) === String(playerId));
   const inTop10 = (mainEntry?.position ?? Infinity) <= TOP_10;
 
+  let worstRelativeThisSave: number | undefined;
+
   for (let i = 0; i < newHoles.length; i++) {
     const newStrokes = newHoles[i]?.strokes;
     const oldStrokes = oldHoles[i]?.strokes;
@@ -145,7 +168,22 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
     const holeNumber = i + 1;
     const scoreRelative = mainEntry?.toPar ?? undefined;
 
-    if (relative <= -2) {
+    if (relative >= 1 && (worstRelativeThisSave === undefined || relative > worstRelativeThisSave)) {
+      worstRelativeThisSave = relative;
+    }
+
+    if (newStrokes === 1) {
+      const { headline, body } = aceCommentary(player.name, holeNumber);
+      await createPost(req, {
+        category: "ace",
+        headline,
+        body,
+        championship: championshipId as string,
+        player: playerId as string,
+        holeNumber,
+        scoreRelative,
+      });
+    } else if (relative <= -2) {
       const { headline, body } = eagleCommentary(player.name, holeNumber);
       await createPost(req, {
         category: "eagle",
@@ -205,6 +243,26 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
             holeNumber,
             scoreRelative,
           });
+        }
+
+        // Looser "3 birdies in the last 4 holes" pattern -- distinct from the strict 3-in-a-row
+        // streak above (which already covers the stronger version of this same narrative beat,
+        // so skip here when streak is exactly 3 to avoid a duplicate "charge" post for one hole).
+        if (streak !== 3) {
+          const windowCount = birdiesInWindow(relatives, i, 4);
+          const previousWindowCount = birdiesInWindow(relatives, i - 1, 4);
+          if (windowCount >= 3 && previousWindowCount < 3) {
+            const { headline, body } = birdieRunCommentary(player.name, windowCount, 4);
+            await createPost(req, {
+              category: "charge",
+              headline,
+              body,
+              championship: championshipId as string,
+              player: playerId as string,
+              holeNumber,
+              scoreRelative,
+            });
+          }
         }
       } else if (relative >= 1) {
         const streak = trailingStreak(relatives, i, "over");
@@ -288,9 +346,68 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
     });
   }
 
-  // Race Tracker: new leader / tie for the lead / lead extension / entering & leaving contention,
-  // across all three competitions, from the before/after snapshot pair computed above.
   if (snapshots) {
+    // Significant Main leaderboard movement for this player: into the top 5/10, or a 5+ position
+    // swing either way. `worstRelativeThisSave` (tracked in the per-hole loop above) names the
+    // mistake behind a fall when there is one, matching "a costly double bogey drops ... from
+    // second to eighth."
+    const movement = diffPositionMovement(snapshots.before.main, snapshots.after.main, playerId as string);
+    if (movement) {
+      if (movement.kind === "enter-top-5" || movement.kind === "enter-top-10") {
+        const { headline, body } = enterTopCommentary(player.name, movement.kind === "enter-top-5" ? 5 : 10, movement.position);
+        await createPost(req, {
+          category: "moving-up",
+          headline,
+          body,
+          championship: championshipId as string,
+          player: playerId as string,
+          scoreRelative: mainEntry?.toPar ?? undefined,
+        });
+      } else if (movement.kind === "big-gain") {
+        const { headline, body } = bigGainCommentary(player.name, movement.positionsChanged, movement.position);
+        await createPost(req, {
+          category: "moving-up",
+          headline,
+          body,
+          championship: championshipId as string,
+          player: playerId as string,
+          scoreRelative: mainEntry?.toPar ?? undefined,
+        });
+      } else if (movement.kind === "big-drop") {
+        const missLabel = worstRelativeThisSave !== undefined ? bogeyMissLabel(worstRelativeThisSave) : undefined;
+        const { headline, body } = bigDropCommentary(player.name, movement.beforePosition, movement.position, missLabel);
+        await createPost(req, {
+          category: "moving-down",
+          headline,
+          body,
+          championship: championshipId as string,
+          player: playerId as string,
+          scoreRelative: mainEntry?.toPar ?? undefined,
+        });
+      }
+    }
+
+    // Final-hole pressure: a Race Tracker member (genuinely in contention, but not the outright
+    // leader -- leaderThroughCommentary above already covers the leader's own progress) reaching
+    // the 18th tee.
+    if (progressed && (doc.holesCompleted ?? 0) === 17 && mainEntry && mainEntry.position !== 1) {
+      const mainAfterTracker = buildRaceTracker(snapshots.after.main, "main");
+      const trackerMember = mainAfterTracker.members.find((m) => String(m.playerId) === String(playerId));
+      if (trackerMember) {
+        const { headline, body } = pressureMomentCommentary(player.name, trackerMember.margin, "shot", "Main");
+        await createPost(req, {
+          category: "pressure-moment",
+          headline,
+          body,
+          championship: championshipId as string,
+          player: playerId as string,
+          scoreRelative: mainEntry.toPar ?? undefined,
+        });
+      }
+    }
+
+    // Race Tracker: new leader / tie for the lead / lead extension / entering & leaving contention,
+    // across all three competitions, from the before/after snapshot pair computed above.
     await generateRaceTrackerPosts(req, championshipId as string, snapshots);
   }
 

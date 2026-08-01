@@ -14,8 +14,10 @@ import {
   Flame,
   LogOut,
   Rocket,
+  Sparkles,
   Star,
   Target,
+  Timer,
   TrendingDown,
   TrendingUp,
   Trophy,
@@ -31,6 +33,7 @@ import type { LiveBlogCategory, LiveBlogCompetition, LiveBlogEntry } from "@/lib
 
 /** `cardClass` colours the whole post like the scoring-indicator dots (Eagle/Birdie/Bogey only) -- everything else stays a plain white card with just a coloured chip. */
 export const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: typeof Star; chipClass: string; cardClass?: string }> = {
+  ace: { label: "Hole in one", icon: Sparkles, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },
   eagle: { label: "Eagle", icon: Star, chipClass: "bg-[#910149] text-white", cardClass: "bg-[#910149] text-white" },
   birdie: { label: "Birdie", icon: ArrowDownCircle, chipClass: "bg-[#CB333B] text-white", cardClass: "bg-[#CB333B] text-white" },
   "moving-up": { label: "Moving up", icon: TrendingUp, chipClass: "bg-[#CB333B] text-white" },
@@ -43,6 +46,7 @@ export const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: type
   "lead-extends": { label: "Lead extends", icon: Rocket, chipClass: "bg-accent text-accent-foreground" },
   "entering-contention": { label: "Into contention", icon: Target, chipClass: "bg-[#CB333B] text-white" },
   "leaving-contention": { label: "Falling back", icon: LogOut, chipClass: "bg-[#08325A] text-white" },
+  "pressure-moment": { label: "Pressure moment", icon: Timer, chipClass: "bg-accent text-accent-foreground" },
   through: { label: "Through", icon: FlagTriangleRight, chipClass: "bg-accent text-accent-foreground" },
   "clubhouse-leader": { label: "Clubhouse leader", icon: Building2, chipClass: "bg-accent text-accent-foreground" },
   "round-complete": { label: "In the clubhouse", icon: Flag, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },

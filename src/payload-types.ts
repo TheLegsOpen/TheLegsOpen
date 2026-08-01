@@ -632,6 +632,7 @@ export interface Scorecard {
 export interface LiveBlogPost {
   id: string;
   category:
+    | "ace"
     | "eagle"
     | "birdie"
     | "bogey"
@@ -644,6 +645,7 @@ export interface LiveBlogPost {
     | "lead-extends"
     | "entering-contention"
     | "leaving-contention"
+    | "pressure-moment"
     | "through"
     | "clubhouse-leader"
     | "round-complete"
