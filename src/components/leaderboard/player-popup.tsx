@@ -27,6 +27,10 @@ function sumHoles(entry: CompetitionEntry, indices: number[]): number | undefine
   return (values as number[]).reduce((a, b) => a + b, 0);
 }
 
+function sumPars(entry: CompetitionEntry, indices: number[]): number {
+  return indices.reduce((total, i) => total + (entry.holes[i]?.par ?? 0), 0);
+}
+
 interface PlayerPopupProps {
   main?: CompetitionEntry;
   stableford?: CompetitionEntry;
@@ -147,22 +151,33 @@ export function PlayerPopup({
             <div className="overflow-x-auto border border-surface-dark-foreground/15">
               <table className="w-full border-collapse text-sm">
                 <thead>
-                  <tr className="bg-surface-dark-foreground/5 text-center text-xs uppercase tracking-wide text-surface-dark-foreground/60">
+                  <tr className="bg-accent text-center text-xs uppercase tracking-wide text-accent-foreground">
                     {FRONT_NINE.map((i) => (
                       <th key={i} className="px-0.5 py-1">
                         <span className="block">{i + 1}</span>
-                        <span className="block font-normal normal-case text-surface-dark-foreground/40">{activeEntry.holes[i]?.par}</span>
+                        <span className="block font-normal normal-case text-accent-foreground/60">{activeEntry.holes[i]?.par}</span>
                       </th>
                     ))}
-                    <th className="px-0.5 py-1">Out</th>
+                    <th className="px-0.5 py-1">
+                      <span className="block">Out</span>
+                      <span className="block font-normal normal-case text-accent-foreground/60">{sumPars(activeEntry, FRONT_NINE)}</span>
+                    </th>
                     {BACK_NINE.map((i) => (
                       <th key={i} className="px-0.5 py-1">
                         <span className="block">{i + 1}</span>
-                        <span className="block font-normal normal-case text-surface-dark-foreground/40">{activeEntry.holes[i]?.par}</span>
+                        <span className="block font-normal normal-case text-accent-foreground/60">{activeEntry.holes[i]?.par}</span>
                       </th>
                     ))}
-                    <th className="px-0.5 py-1">In</th>
-                    <th className="px-0.5 py-1">Tot</th>
+                    <th className="px-0.5 py-1">
+                      <span className="block">In</span>
+                      <span className="block font-normal normal-case text-accent-foreground/60">{sumPars(activeEntry, BACK_NINE)}</span>
+                    </th>
+                    <th className="px-0.5 py-1">
+                      <span className="block">Tot</span>
+                      <span className="block font-normal normal-case text-accent-foreground/60">
+                        {sumPars(activeEntry, [...FRONT_NINE, ...BACK_NINE])}
+                      </span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
