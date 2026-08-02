@@ -1,4 +1,5 @@
 import { Hero } from "@/components/home/hero";
+import { NewsTicker } from "@/components/home/news-ticker";
 import { LeaderboardWidget } from "@/components/home/leaderboard-widget";
 import { LiveBlogWidget } from "@/components/home/live-blog-widget";
 import { HomepageSections } from "@/components/home/sections/homepage-sections";
@@ -11,11 +12,12 @@ import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
 import { getLiveBlogPosts } from "@/lib/data/live-blog";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getVenueWeather } from "@/lib/data/weather";
+import { getNewsTicker } from "@/lib/data/news-ticker";
 
 const PAGE_SIZE = 6;
 
 export default async function HomePage() {
-  const [{ items: initialArticles, hasMore: initialHasMore }, currentChampion, leaderboard, liveBlogPosts, sections, clockConfig, weather] =
+  const [{ items: initialArticles, hasMore: initialHasMore }, currentChampion, leaderboard, liveBlogPosts, sections, clockConfig, weather, tickerItems] =
     await Promise.all([
       getArticlesPage({ page: 1, pageSize: PAGE_SIZE }),
       getCurrentChampion(),
@@ -24,10 +26,12 @@ export default async function HomePage() {
       getHomepageSections(),
       getSponsorClock(),
       getVenueWeather(),
+      getNewsTicker(),
     ]);
 
   return (
     <>
+      <NewsTicker items={tickerItems} />
       <Hero currentChampion={currentChampion} clockConfig={clockConfig} weather={weather} />
       <section className="bg-surface-dark bg-dashboard-pattern py-16 text-surface-dark-foreground sm:py-24">
         <Container className="grid grid-cols-1 gap-10 lg:grid-cols-2">

@@ -110,6 +110,7 @@ export interface Config {
     'site-theme': SiteThemeGlobal;
     'sponsor-clock': SponsorClockGlobal;
     'tournament-status': TournamentStatusGlobal;
+    'news-ticker': NewsTickerGlobal;
     'page-banners': PageBannersGlobal;
     'sponsors': SponsorsGlobal;
     'social-links': SocialLinksGlobal;
@@ -392,6 +393,22 @@ export interface SponsorClockGlobal {
 export interface TournamentStatusGlobal {
   id: string;
   competitionComplete?: boolean | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface NewsTickerGlobal {
+  id: string;
+  items?:
+    | {
+        headline: string;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  forceShowForTesting?: boolean | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }

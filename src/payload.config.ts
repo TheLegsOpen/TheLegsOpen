@@ -22,6 +22,7 @@ import { HomepageSettings } from "./globals/HomepageSettings";
 import { SiteTheme } from "./globals/SiteTheme";
 import { SponsorClock } from "./globals/SponsorClock";
 import { TournamentStatus } from "./globals/TournamentStatus";
+import { NewsTicker } from "./globals/NewsTicker";
 import { PageBanners } from "./globals/PageBanners";
 import { Sponsors } from "./globals/Sponsors";
 import { SocialLinks } from "./globals/SocialLinks";
@@ -68,6 +69,7 @@ export default buildConfig({
     SiteTheme,
     SponsorClock,
     TournamentStatus,
+    NewsTicker,
     PageBanners,
     Sponsors,
     SocialLinks,
