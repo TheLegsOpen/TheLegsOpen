@@ -15,12 +15,14 @@ export const metadata: Metadata = {
 };
 
 export default async function TeeTimesPage() {
-  const [rounds, articles, clockConfig, banners, mainEntries] = await Promise.all([
+  const [rounds, articles, clockConfig, banners, mainEntries, stablefordEntries, scratchEntries] = await Promise.all([
     getTeeTimes(),
     getArticles(),
     getSponsorClock(),
     getPageBanners(),
     getCompetitionLeaderboard("main"),
+    getCompetitionLeaderboard("stableford"),
+    getCompetitionLeaderboard("scratch"),
   ]);
 
   return (
@@ -35,7 +37,14 @@ export default async function TeeTimesPage() {
         description={banners.teeTimesDescription}
       />
       <ChampionshipWeekSwitcher />
-      <TeeTimesView rounds={rounds} featuredArticle={articles[0]} clockConfig={clockConfig} mainEntries={mainEntries} />
+      <TeeTimesView
+        rounds={rounds}
+        featuredArticle={articles[0]}
+        clockConfig={clockConfig}
+        mainEntries={mainEntries}
+        stablefordEntries={stablefordEntries}
+        scratchEntries={scratchEntries}
+      />
     </>
   );
 }

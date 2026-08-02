@@ -7,6 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Container } from "@/components/shared/container";
 import { ChampionshipSidebar } from "@/components/shared/championship-sidebar";
 import { MatchupCard } from "@/components/tee-times/matchup-card";
+import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { useFavorites } from "@/hooks/use-favorites";
 import { cn } from "@/lib/utils";
 import type { TeeTimeRound } from "@/types/championship";
@@ -21,15 +22,25 @@ export function TeeTimesView({
   featuredArticle,
   clockConfig,
   mainEntries,
+  stablefordEntries,
+  scratchEntries,
 }: {
   rounds: TeeTimeRound[];
   featuredArticle: Article;
   clockConfig: SponsorClock;
   mainEntries: CompetitionEntry[];
+  stablefordEntries: CompetitionEntry[];
+  scratchEntries: CompetitionEntry[];
 }) {
   const [teeFilter, setTeeFilter] = useState<(typeof TEE_FILTERS)[number]>("All");
   const [reversed, setReversed] = useState(false);
-  const { favorites, hydrated } = useFavorites();
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const { favorites, hydrated, toggleFavorite } = useFavorites();
+
+  const selectedMain = mainEntries.find((e) => e.player.id === selectedPlayerId);
+  const selectedStableford = stablefordEntries.find((e) => e.player.id === selectedPlayerId);
+  const selectedScratch = scratchEntries.find((e) => e.player.id === selectedPlayerId);
+  const leaderToPar = mainEntries[0]?.toPar ?? 0;
 
   const distinctTees = new Set(TEE_TIMES.flatMap((round) => round.groups.map((group) => group.tee)));
   const showTeeFilter = distinctTees.size > 1;
@@ -95,6 +106,7 @@ export function TeeTimesView({
                             favorites={hydrated ? favorites : []}
                             mainEntries={mainEntries}
                             tone="dark"
+                            onSelectPlayer={setSelectedPlayerId}
                           />
                         ))}
                       </div>
@@ -109,6 +121,20 @@ export function TeeTimesView({
           <ChampionshipSidebar featuredArticle={featuredArticle} clockConfig={clockConfig} tone="dark" />
         </Container>
       </div>
+
+      <PlayerPopup
+        main={selectedMain}
+        stableford={selectedStableford}
+        scratch={selectedScratch}
+        initialCompetition="main"
+        leaderToPar={leaderToPar}
+        isFav={selectedPlayerId ? favorites.includes(selectedPlayerId) : false}
+        onToggleFavorite={() => selectedPlayerId && toggleFavorite(selectedPlayerId)}
+        open={!!selectedMain}
+        onOpenChange={(next) => {
+          if (!next) setSelectedPlayerId(null);
+        }}
+      />
     </>
   );
 }
