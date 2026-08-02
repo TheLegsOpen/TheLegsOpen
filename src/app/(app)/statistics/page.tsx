@@ -17,6 +17,7 @@ import {
 } from "@/lib/data/scoring-statistics";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getPageBanners } from "@/lib/data/page-banners";
+import { getPlayoffs } from "@/lib/data/playoffs";
 
 export const metadata: Metadata = {
   title: "Statistics",
@@ -33,6 +34,7 @@ export default async function StatisticsPage() {
     putting,
     toughestHolesNett,
     toughestHolesScratch,
+    playoffs,
     articles,
     clockConfig,
     banners,
@@ -45,6 +47,7 @@ export default async function StatisticsPage() {
     getPuttingCategories(),
     getToughestHoles("nett"),
     getToughestHoles("scratch"),
+    getPlayoffs(),
     getArticles(),
     getSponsorClock(),
     getPageBanners(),
@@ -74,6 +77,7 @@ export default async function StatisticsPage() {
             puttingCategories={putting}
             toughestHolesNett={toughestHolesNett}
             toughestHolesScratch={toughestHolesScratch}
+            playoffs={playoffs}
           />
           <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="dark" />
         </Container>

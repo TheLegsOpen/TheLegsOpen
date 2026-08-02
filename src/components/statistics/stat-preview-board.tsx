@@ -5,10 +5,13 @@ import { ChevronDown } from "lucide-react";
 
 import { StatPreviewCard } from "@/components/statistics/stat-preview-card";
 import { ToughestHolesBoard } from "@/components/statistics/toughest-holes-board";
+import { PlayoffsBoard } from "@/components/statistics/playoffs-board";
 import type { StatCategory } from "@/lib/statistics";
 import type { HoleToughnessRow } from "@/lib/data/scoring-statistics";
+import type { PlayoffResult } from "@/lib/data/playoffs";
 
-type StatSection = "nett" | "scratch" | "streaks" | "driving" | "approach" | "putting" | "course";
+type StatSection = "nett" | "scratch" | "streaks" | "driving" | "approach" | "putting" | "playoffs" | "course";
+type CategorySection = Exclude<StatSection, "course" | "playoffs">;
 
 interface StatPreviewBoardProps {
   nettCategories: StatCategory[];
@@ -19,9 +22,10 @@ interface StatPreviewBoardProps {
   puttingCategories: StatCategory[];
   toughestHolesNett: HoleToughnessRow[];
   toughestHolesScratch: HoleToughnessRow[];
+  playoffs: PlayoffResult[];
 }
 
-const SECTION_CATEGORIES: Record<Exclude<StatSection, "course">, keyof StatPreviewBoardProps> = {
+const SECTION_CATEGORIES: Record<CategorySection, keyof StatPreviewBoardProps> = {
   nett: "nettCategories",
   scratch: "scratchCategories",
   streaks: "streakCategories",
@@ -31,9 +35,10 @@ const SECTION_CATEGORIES: Record<Exclude<StatSection, "course">, keyof StatPrevi
 };
 
 export function StatPreviewBoard(props: StatPreviewBoardProps) {
-  const { toughestHolesNett, toughestHolesScratch } = props;
+  const { toughestHolesNett, toughestHolesScratch, playoffs } = props;
   const [section, setSection] = useState<StatSection>("nett");
-  const categories = section === "course" ? [] : (props[SECTION_CATEGORIES[section]] as StatCategory[]);
+  const categories =
+    section === "course" || section === "playoffs" ? [] : (props[SECTION_CATEGORIES[section]] as StatCategory[]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -63,6 +68,11 @@ export function StatPreviewBoard(props: StatPreviewBoardProps) {
             <option value="putting" className="text-black">
               PUTTING
             </option>
+            {playoffs.length > 0 && (
+              <option value="playoffs" className="text-black">
+                PLAYOFFS
+              </option>
+            )}
             <option value="course" className="text-black">
               COURSE SCORING
             </option>
@@ -76,6 +86,8 @@ export function StatPreviewBoard(props: StatPreviewBoardProps) {
           <ToughestHolesBoard title="Toughest Holes - Nett" rows={toughestHolesNett} />
           <ToughestHolesBoard title="Toughest Holes - Scratch" rows={toughestHolesScratch} />
         </div>
+      ) : section === "playoffs" ? (
+        <PlayoffsBoard results={playoffs} />
       ) : (
         <div className="flex flex-col gap-8">
           {categories.map((category) => (
