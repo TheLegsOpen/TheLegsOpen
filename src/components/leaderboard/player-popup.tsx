@@ -40,6 +40,9 @@ interface PlayerPopupProps {
   nettCategories: StatCategory[];
   scratchCategories: StatCategory[];
   streakCategories: StatCategory[];
+  drivingCategories: StatCategory[];
+  approachCategories: StatCategory[];
+  puttingCategories: StatCategory[];
   /** Which tab the popup was opened from -- the dropdown defaults here, then can be freely changed. */
   initialCompetition: Competition;
   leaderToPar: number;
@@ -56,6 +59,9 @@ export function PlayerPopup({
   nettCategories,
   scratchCategories,
   streakCategories,
+  drivingCategories,
+  approachCategories,
+  puttingCategories,
   initialCompetition,
   leaderToPar,
   isFav,
@@ -236,6 +242,9 @@ export function PlayerPopup({
               nettCategories={nettCategories}
               scratchCategories={scratchCategories}
               streakCategories={streakCategories}
+              drivingCategories={drivingCategories}
+              approachCategories={approachCategories}
+              puttingCategories={puttingCategories}
               mainThru={main.thru}
               scratchThru={scratch?.thru ?? "-"}
             />

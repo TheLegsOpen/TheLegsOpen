@@ -310,3 +310,169 @@ export async function getToughestHoles(mode: ScoringMode): Promise<HoleToughness
 
   return [...played, ...unplayed];
 }
+
+interface PlayerSkillHoles {
+  player: Player;
+  fairwayHitByHole: (boolean | undefined)[];
+  girByHole: (boolean | undefined)[];
+  puttsByHole: (number | undefined)[];
+}
+
+/**
+ * Fairway/GIR/putts are raw per-hole facts entered separately from the strokes grid (optional,
+ * via the standard Payload scorecard edit screen) -- unlike strokes they don't depend on
+ * handicap, so there's no nett/scratch split here.
+ */
+async function getPlayerSkillHoles(): Promise<{ holeInfos: HoleInfo[]; players: PlayerSkillHoles[] }> {
+  const payload = await getPayload({ config: configPromise });
+  const championship = await getActiveChampionship(payload);
+  if (!championship) return { holeInfos: [], players: [] };
+
+  const venue = typeof championship.venue === "object" ? (championship.venue as Venue) : undefined;
+  const holeInfos = Array.from({ length: 18 }, (_, i) => ({ par: venue?.holes?.[i]?.par ?? 4, si: venue?.holes?.[i]?.si ?? i + 1 }));
+
+  const scorecards = await payload.find({
+    collection: "scorecards",
+    where: { championship: { equals: championship.id } },
+    depth: 1,
+    limit: 300,
+  });
+
+  const players = scorecards.docs.map((doc) => {
+    const player = mapPlayer(doc.player as PayloadPlayer);
+    const fairwayHitByHole = holeInfos.map((_, i) => (doc.holes?.[i]?.strokes != null ? Boolean(doc.holes[i]?.fairwayHit) : undefined));
+    const girByHole = holeInfos.map((_, i) => (doc.holes?.[i]?.strokes != null ? Boolean(doc.holes[i]?.greenInRegulation) : undefined));
+    const puttsByHole = holeInfos.map((_, i) => (doc.holes?.[i]?.strokes != null ? (doc.holes[i]?.putts ?? undefined) : undefined));
+    return { player, fairwayHitByHole, girByHole, puttsByHole };
+  });
+
+  return { holeInfos, players };
+}
+
+/** Field-average-relative "strokes gained" for a rate stat (fairways hit, GIR) where a higher raw value is better. */
+function ratedStrokesGained(
+  players: PlayerSkillHoles[],
+  holeIndices: number[],
+  pick: (p: PlayerSkillHoles, i: number) => boolean | undefined,
+): StatRow[] {
+  const fieldAverageByHole = holeIndices.map((i) => {
+    const values = players.map((p) => pick(p, i)).filter((v): v is boolean => v !== undefined).map((v): number => (v ? 1 : 0));
+    if (values.length === 0) return undefined;
+    return values.reduce((a, b) => a + b, 0) / values.length;
+  });
+
+  const rows: StatRow[] = [];
+  players.forEach((p) => {
+    let gainedTotal = 0;
+    let counted = 0;
+    holeIndices.forEach((holeIdx, i) => {
+      const value = pick(p, holeIdx);
+      const fieldAverage = fieldAverageByHole[i];
+      if (value === undefined || fieldAverage === undefined) return;
+      gainedTotal += (value ? 1 : 0) - fieldAverage;
+      counted += 1;
+    });
+    if (counted > 0) rows.push({ player: p.player, value: -gainedTotal, display: formatDecimalToPar(gainedTotal) });
+  });
+
+  rows.sort((a, b) => a.value - b.value);
+  assignPositions(rows);
+  return rows;
+}
+
+function rateRows(players: PlayerSkillHoles[], holeIndices: number[], pick: (p: PlayerSkillHoles, i: number) => boolean | undefined): StatRow[] {
+  const rows: StatRow[] = [];
+  players.forEach((p) => {
+    let hit = 0;
+    let attempts = 0;
+    holeIndices.forEach((i) => {
+      const value = pick(p, i);
+      if (value === undefined) return;
+      attempts += 1;
+      if (value) hit += 1;
+    });
+    if (attempts > 0) rows.push({ player: p.player, value: hit / attempts, display: `${hit}/${attempts}` });
+  });
+  rows.sort((a, b) => b.value - a.value);
+  assignPositions(rows);
+  return rows;
+}
+
+export async function getDrivingCategories(): Promise<StatCategory[]> {
+  const { holeInfos, players } = await getPlayerSkillHoles();
+  if (holeInfos.length === 0) return [];
+
+  // Fairways aren't a meaningful concept on Par 3s, so they're excluded from both the hit-rate and the field average.
+  const drivingHoles = holeInfos.map((info, i) => (info.par !== 3 ? i : -1)).filter((i) => i !== -1);
+
+  return [
+    { key: "fairways-hit", title: "Fairways Hit", columnLabel: "FAIRWAYS", rows: rateRows(players, drivingHoles, (p, i) => p.fairwayHitByHole[i]) },
+    {
+      key: "driving-strokes-gained",
+      title: "Driving Strokes Gained",
+      columnLabel: "TOTAL",
+      rows: ratedStrokesGained(players, drivingHoles, (p, i) => p.fairwayHitByHole[i]),
+      useParColoring: true,
+    },
+  ];
+}
+
+export async function getApproachCategories(): Promise<StatCategory[]> {
+  const { holeInfos, players } = await getPlayerSkillHoles();
+  if (holeInfos.length === 0) return [];
+
+  const allHoles = holeInfos.map((_, i) => i);
+
+  return [
+    { key: "greens-in-regulation", title: "Greens in Regulation", columnLabel: "GIR", rows: rateRows(players, allHoles, (p, i) => p.girByHole[i]) },
+    {
+      key: "approach-strokes-gained",
+      title: "Approach Strokes Gained",
+      columnLabel: "TOTAL",
+      rows: ratedStrokesGained(players, allHoles, (p, i) => p.girByHole[i]),
+      useParColoring: true,
+    },
+  ];
+}
+
+export async function getPuttingCategories(): Promise<StatCategory[]> {
+  const { holeInfos, players } = await getPlayerSkillHoles();
+  if (holeInfos.length === 0) return [];
+
+  const puttsRows: StatRow[] = [];
+  const strokesGainedRows: StatRow[] = [];
+
+  const fieldAverageByHole = holeInfos.map((_, i) => {
+    const values = players.map((p) => p.puttsByHole[i]).filter((v): v is number => v !== undefined);
+    if (values.length === 0) return undefined;
+    return values.reduce((a, b) => a + b, 0) / values.length;
+  });
+
+  players.forEach((p) => {
+    let totalPutts = 0;
+    let holesCounted = 0;
+    let gainedTotal = 0;
+    let gainedCounted = 0;
+    p.puttsByHole.forEach((putts, i) => {
+      if (putts === undefined) return;
+      totalPutts += putts;
+      holesCounted += 1;
+      const fieldAverage = fieldAverageByHole[i];
+      if (fieldAverage === undefined) return;
+      gainedTotal += fieldAverage - putts;
+      gainedCounted += 1;
+    });
+    if (holesCounted > 0) puttsRows.push({ player: p.player, value: totalPutts, display: String(totalPutts) });
+    if (gainedCounted > 0) strokesGainedRows.push({ player: p.player, value: -gainedTotal, display: formatDecimalToPar(gainedTotal) });
+  });
+
+  puttsRows.sort((a, b) => a.value - b.value);
+  assignPositions(puttsRows);
+  strokesGainedRows.sort((a, b) => a.value - b.value);
+  assignPositions(strokesGainedRows);
+
+  return [
+    { key: "putts", title: "Number of Putts", columnLabel: "TOTAL", rows: puttsRows },
+    { key: "putting-strokes-gained", title: "Putting Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
+  ];
+}

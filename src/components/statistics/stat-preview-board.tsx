@@ -8,25 +8,32 @@ import { ToughestHolesBoard } from "@/components/statistics/toughest-holes-board
 import type { StatCategory } from "@/lib/statistics";
 import type { HoleToughnessRow } from "@/lib/data/scoring-statistics";
 
-type StatSection = "nett" | "scratch" | "streaks" | "course";
+type StatSection = "nett" | "scratch" | "streaks" | "driving" | "approach" | "putting" | "course";
 
 interface StatPreviewBoardProps {
   nettCategories: StatCategory[];
   scratchCategories: StatCategory[];
   streakCategories: StatCategory[];
+  drivingCategories: StatCategory[];
+  approachCategories: StatCategory[];
+  puttingCategories: StatCategory[];
   toughestHolesNett: HoleToughnessRow[];
   toughestHolesScratch: HoleToughnessRow[];
 }
 
-export function StatPreviewBoard({
-  nettCategories,
-  scratchCategories,
-  streakCategories,
-  toughestHolesNett,
-  toughestHolesScratch,
-}: StatPreviewBoardProps) {
+const SECTION_CATEGORIES: Record<Exclude<StatSection, "course">, keyof StatPreviewBoardProps> = {
+  nett: "nettCategories",
+  scratch: "scratchCategories",
+  streaks: "streakCategories",
+  driving: "drivingCategories",
+  approach: "approachCategories",
+  putting: "puttingCategories",
+};
+
+export function StatPreviewBoard(props: StatPreviewBoardProps) {
+  const { toughestHolesNett, toughestHolesScratch } = props;
   const [section, setSection] = useState<StatSection>("nett");
-  const categories = section === "nett" ? nettCategories : section === "scratch" ? scratchCategories : streakCategories;
+  const categories = section === "course" ? [] : (props[SECTION_CATEGORIES[section]] as StatCategory[]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -46,6 +53,15 @@ export function StatPreviewBoard({
             </option>
             <option value="streaks" className="text-black">
               STREAKS
+            </option>
+            <option value="driving" className="text-black">
+              DRIVING
+            </option>
+            <option value="approach" className="text-black">
+              APPROACH
+            </option>
+            <option value="putting" className="text-black">
+              PUTTING
             </option>
             <option value="course" className="text-black">
               COURSE SCORING

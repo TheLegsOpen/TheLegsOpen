@@ -8,7 +8,14 @@ import { getArticles } from "@/lib/data/articles";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getPageBanners } from "@/lib/data/page-banners";
 import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
-import { getNettScoringCategories, getScratchScoringCategories, getStreakCategories } from "@/lib/data/scoring-statistics";
+import {
+  getNettScoringCategories,
+  getScratchScoringCategories,
+  getStreakCategories,
+  getDrivingCategories,
+  getApproachCategories,
+  getPuttingCategories,
+} from "@/lib/data/scoring-statistics";
 
 export const metadata: Metadata = {
   title: "Tee Times",
@@ -27,6 +34,9 @@ export default async function TeeTimesPage() {
     nettCategories,
     scratchCategories,
     streakCategories,
+    drivingCategories,
+    approachCategories,
+    puttingCategories,
   ] = await Promise.all([
     getTeeTimes(),
     getArticles(),
@@ -38,6 +48,9 @@ export default async function TeeTimesPage() {
     getNettScoringCategories(),
     getScratchScoringCategories(),
     getStreakCategories(),
+    getDrivingCategories(),
+    getApproachCategories(),
+    getPuttingCategories(),
   ]);
 
   return (
@@ -62,6 +75,9 @@ export default async function TeeTimesPage() {
         nettCategories={nettCategories}
         scratchCategories={scratchCategories}
         streakCategories={streakCategories}
+        drivingCategories={drivingCategories}
+        approachCategories={approachCategories}
+        puttingCategories={puttingCategories}
       />
     </>
   );

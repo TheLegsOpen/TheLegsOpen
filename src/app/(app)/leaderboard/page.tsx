@@ -7,7 +7,14 @@ import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
 import { getArticles } from "@/lib/data/articles";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getPageBanners } from "@/lib/data/page-banners";
-import { getNettScoringCategories, getScratchScoringCategories, getStreakCategories } from "@/lib/data/scoring-statistics";
+import {
+  getNettScoringCategories,
+  getScratchScoringCategories,
+  getStreakCategories,
+  getDrivingCategories,
+  getApproachCategories,
+  getPuttingCategories,
+} from "@/lib/data/scoring-statistics";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
@@ -15,7 +22,20 @@ export const metadata: Metadata = {
 };
 
 export default async function LeaderboardPage() {
-  const [main, stableford, scratch, articles, clockConfig, banners, nettCategories, scratchCategories, streakCategories] = await Promise.all([
+  const [
+    main,
+    stableford,
+    scratch,
+    articles,
+    clockConfig,
+    banners,
+    nettCategories,
+    scratchCategories,
+    streakCategories,
+    drivingCategories,
+    approachCategories,
+    puttingCategories,
+  ] = await Promise.all([
     getCompetitionLeaderboard("main"),
     getCompetitionLeaderboard("stableford"),
     getCompetitionLeaderboard("scratch"),
@@ -25,6 +45,9 @@ export default async function LeaderboardPage() {
     getNettScoringCategories(),
     getScratchScoringCategories(),
     getStreakCategories(),
+    getDrivingCategories(),
+    getApproachCategories(),
+    getPuttingCategories(),
   ]);
 
   return (
@@ -48,6 +71,9 @@ export default async function LeaderboardPage() {
         nettCategories={nettCategories}
         scratchCategories={scratchCategories}
         streakCategories={streakCategories}
+        drivingCategories={drivingCategories}
+        approachCategories={approachCategories}
+        puttingCategories={puttingCategories}
       />
     </>
   );

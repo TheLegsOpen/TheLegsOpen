@@ -9,12 +9,15 @@ import { cn, playerSlug, surnameFirst } from "@/lib/utils";
 import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { StatCategory } from "@/lib/statistics";
 
-type StatSection = "nett" | "scratch" | "streaks";
+type StatSection = "nett" | "scratch" | "streaks" | "driving" | "approach" | "putting";
 
 interface StatExplorerProps {
   nettCategories: StatCategory[];
   scratchCategories: StatCategory[];
   streakCategories: StatCategory[];
+  drivingCategories: StatCategory[];
+  approachCategories: StatCategory[];
+  puttingCategories: StatCategory[];
   /** Preselects a stat, e.g. when arriving from a "Full rankings" link -- otherwise defaults to the first Nett stat. */
   initialKey?: string;
 }
@@ -22,19 +25,38 @@ interface StatExplorerProps {
 function sectionForKey(key: string | undefined): StatSection {
   if (!key) return "nett";
   if (key.startsWith("longest-")) return "streaks";
+  if (key === "fairways-hit" || key === "driving-strokes-gained") return "driving";
+  if (key === "greens-in-regulation" || key === "approach-strokes-gained") return "approach";
+  if (key === "putts" || key === "putting-strokes-gained") return "putting";
   return key.endsWith("-scratch") ? "scratch" : "nett";
 }
 
-export function StatExplorer({ nettCategories, scratchCategories, streakCategories, initialKey }: StatExplorerProps) {
+export function StatExplorer({
+  nettCategories,
+  scratchCategories,
+  streakCategories,
+  drivingCategories,
+  approachCategories,
+  puttingCategories,
+  initialKey,
+}: StatExplorerProps) {
+  const categoriesBySection: Record<StatSection, StatCategory[]> = {
+    nett: nettCategories,
+    scratch: scratchCategories,
+    streaks: streakCategories,
+    driving: drivingCategories,
+    approach: approachCategories,
+    putting: puttingCategories,
+  };
+
   const [section, setSection] = useState<StatSection>(sectionForKey(initialKey));
-  const categories = section === "nett" ? nettCategories : section === "scratch" ? scratchCategories : streakCategories;
+  const categories = categoriesBySection[section];
   const [selectedKey, setSelectedKey] = useState(initialKey ?? categories[0]?.key);
   const selected = categories.find((c) => c.key === selectedKey) ?? categories[0];
 
   function handleSectionChange(nextSection: StatSection) {
     setSection(nextSection);
-    const nextCategories = nextSection === "nett" ? nettCategories : nextSection === "scratch" ? scratchCategories : streakCategories;
-    setSelectedKey(nextCategories[0]?.key);
+    setSelectedKey(categoriesBySection[nextSection][0]?.key);
   }
 
   if (!selected) return null;
@@ -57,6 +79,15 @@ export function StatExplorer({ nettCategories, scratchCategories, streakCategori
             </option>
             <option value="streaks" className="text-black">
               STREAKS
+            </option>
+            <option value="driving" className="text-black">
+              DRIVING
+            </option>
+            <option value="approach" className="text-black">
+              APPROACH
+            </option>
+            <option value="putting" className="text-black">
+              PUTTING
             </option>
           </select>
           <ChevronDown className="pointer-events-none absolute right-4 h-4 w-4" />

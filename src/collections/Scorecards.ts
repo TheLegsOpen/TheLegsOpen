@@ -53,6 +53,24 @@ export const Scorecards: CollectionConfig = {
             { name: "strokes", type: "number", min: 1, max: 20, admin: { width: "70%" } },
           ],
         },
+        {
+          type: "row",
+          fields: [
+            {
+              name: "fairwayHit",
+              label: "Fairway Hit",
+              type: "checkbox",
+              admin: { width: "33%", description: "Optional -- powers Driving stats. Ignored on Par 3s." },
+            },
+            {
+              name: "greenInRegulation",
+              label: "Green in Regulation",
+              type: "checkbox",
+              admin: { width: "33%", description: "Optional -- powers Approach stats." },
+            },
+            { name: "putts", label: "Putts", type: "number", min: 0, max: 10, admin: { width: "34%", description: "Optional -- powers Putting stats." } },
+          ],
+        },
       ],
     },
     {

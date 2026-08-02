@@ -51,19 +51,31 @@ const summaryLabelStyle: React.CSSProperties = {
   marginRight: 6,
 };
 
-function Cell({ path }: { path: string }) {
+function Cell({ path, max = 20 }: { path: string; max?: number }) {
   const { value, setValue } = useField<number>({ path });
   return (
     <input
       type="number"
       value={value ?? ""}
-      min={1}
-      max={20}
+      min={0}
+      max={max}
       onChange={(e) => {
         const raw = e.target.value;
         setValue(raw === "" ? null : Number(raw));
       }}
       style={cellInputStyle}
+    />
+  );
+}
+
+function CheckboxCell({ path }: { path: string }) {
+  const { value, setValue } = useField<boolean>({ path });
+  return (
+    <input
+      type="checkbox"
+      checked={value ?? false}
+      onChange={(e) => setValue(e.target.checked)}
+      style={{ width: 18, height: 18, cursor: "pointer" }}
     />
   );
 }
@@ -123,6 +135,30 @@ export const ScorecardHolesField: ArrayFieldClientComponent = ({ path }) => {
                 {HOLE_INDICES.map((i) => (
                   <td key={i} style={cellStyle}>
                     <Cell path={`${path}.${i}.strokes`} />
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td style={rowLabelStyle}>Fairway Hit</td>
+                {HOLE_INDICES.map((i) => (
+                  <td key={i} style={cellStyle}>
+                    <CheckboxCell path={`${path}.${i}.fairwayHit`} />
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td style={rowLabelStyle}>GIR</td>
+                {HOLE_INDICES.map((i) => (
+                  <td key={i} style={cellStyle}>
+                    <CheckboxCell path={`${path}.${i}.greenInRegulation`} />
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td style={rowLabelStyle}>Putts</td>
+                {HOLE_INDICES.map((i) => (
+                  <td key={i} style={cellStyle}>
+                    <Cell path={`${path}.${i}.putts`} max={10} />
                   </td>
                 ))}
               </tr>

@@ -7,13 +7,16 @@ import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/lea
 import type { StatCategory, StatRow } from "@/lib/statistics";
 import type { ScoringMode } from "@/lib/data/scoring-statistics";
 
-type StatTabKey = "nett" | "scratch" | "streaks";
+type StatTabKey = "nett" | "scratch" | "streaks" | "driving" | "approach" | "putting";
 
 /** Add a new entry here (plus a case in the switch below) to bring on another stat category later. */
 const STAT_TABS: { key: StatTabKey; label: string }[] = [
   { key: "nett", label: "Nett Scoring" },
   { key: "scratch", label: "Scratch Scoring" },
   { key: "streaks", label: "Streaks" },
+  { key: "driving", label: "Driving" },
+  { key: "approach", label: "Approach" },
+  { key: "putting", label: "Putting" },
 ];
 
 function findRow(categories: StatCategory[], key: string, playerId: string): StatRow | undefined {
@@ -104,11 +107,50 @@ function StreakCards({ categories, playerId }: { categories: StatCategory[]; pla
   );
 }
 
+function DrivingCards({ categories, playerId }: { categories: StatCategory[]; playerId: string }) {
+  const fairwaysHit = findRow(categories, "fairways-hit", playerId);
+  const strokesGained = findRow(categories, "driving-strokes-gained", playerId);
+
+  return (
+    <StatCard title="Driving">
+      <StatValue row={fairwaysHit} label="Fairways Hit" />
+      <StatValue row={strokesGained} useParColoring label="Strokes Gained" />
+    </StatCard>
+  );
+}
+
+function ApproachCards({ categories, playerId }: { categories: StatCategory[]; playerId: string }) {
+  const gir = findRow(categories, "greens-in-regulation", playerId);
+  const strokesGained = findRow(categories, "approach-strokes-gained", playerId);
+
+  return (
+    <StatCard title="Approach">
+      <StatValue row={gir} label="Greens in Regulation" />
+      <StatValue row={strokesGained} useParColoring label="Strokes Gained" />
+    </StatCard>
+  );
+}
+
+function PuttingCards({ categories, playerId }: { categories: StatCategory[]; playerId: string }) {
+  const putts = findRow(categories, "putts", playerId);
+  const strokesGained = findRow(categories, "putting-strokes-gained", playerId);
+
+  return (
+    <StatCard title="Putting">
+      <StatValue row={putts} label="Number of Putts" />
+      <StatValue row={strokesGained} useParColoring label="Strokes Gained" />
+    </StatCard>
+  );
+}
+
 export function PlayerStatPanel({
   playerId,
   nettCategories,
   scratchCategories,
   streakCategories,
+  drivingCategories,
+  approachCategories,
+  puttingCategories,
   mainThru,
   scratchThru,
 }: {
@@ -116,13 +158,16 @@ export function PlayerStatPanel({
   nettCategories: StatCategory[];
   scratchCategories: StatCategory[];
   streakCategories: StatCategory[];
+  drivingCategories: StatCategory[];
+  approachCategories: StatCategory[];
+  puttingCategories: StatCategory[];
   mainThru: string;
   scratchThru: string;
 }) {
   const [tab, setTab] = useState<StatTabKey>("nett");
 
-  const hasAnyData = [nettCategories, scratchCategories, streakCategories].some((categories) =>
-    categories.some((category) => category.rows.some((row) => row.player.id === playerId)),
+  const hasAnyData = [nettCategories, scratchCategories, streakCategories, drivingCategories, approachCategories, puttingCategories].some(
+    (categories) => categories.some((category) => category.rows.some((row) => row.player.id === playerId)),
   );
 
   return (
@@ -153,8 +198,14 @@ export function PlayerStatPanel({
         <ScoringCards categories={nettCategories} mode="nett" playerId={playerId} thru={mainThru} />
       ) : tab === "scratch" ? (
         <ScoringCards categories={scratchCategories} mode="scratch" playerId={playerId} thru={scratchThru} />
-      ) : (
+      ) : tab === "streaks" ? (
         <StreakCards categories={streakCategories} playerId={playerId} />
+      ) : tab === "driving" ? (
+        <DrivingCards categories={drivingCategories} playerId={playerId} />
+      ) : tab === "approach" ? (
+        <ApproachCards categories={approachCategories} playerId={playerId} />
+      ) : (
+        <PuttingCards categories={puttingCategories} playerId={playerId} />
       )}
     </div>
   );

@@ -27,6 +27,9 @@ interface LeaderboardViewProps {
   nettCategories: StatCategory[];
   scratchCategories: StatCategory[];
   streakCategories: StatCategory[];
+  drivingCategories: StatCategory[];
+  approachCategories: StatCategory[];
+  puttingCategories: StatCategory[];
 }
 
 /** Matches the ~10s live-score polling cadence measured on theopen.com/leaderboard. */
@@ -49,6 +52,9 @@ export function LeaderboardView({
   nettCategories,
   scratchCategories,
   streakCategories,
+  drivingCategories,
+  approachCategories,
+  puttingCategories,
 }: LeaderboardViewProps) {
   const router = useRouter();
   const { favorites, toggleFavorite, hydrated } = useFavorites();
@@ -278,6 +284,9 @@ export function LeaderboardView({
         nettCategories={nettCategories}
         scratchCategories={scratchCategories}
         streakCategories={streakCategories}
+        drivingCategories={drivingCategories}
+        approachCategories={approachCategories}
+        puttingCategories={puttingCategories}
         initialCompetition={popupCompetition}
         leaderToPar={leaderToPar}
         isFav={selectedPlayerId ? favorites.includes(selectedPlayerId) : false}

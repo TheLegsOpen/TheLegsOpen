@@ -28,6 +28,9 @@ export function TeeTimesView({
   nettCategories,
   scratchCategories,
   streakCategories,
+  drivingCategories,
+  approachCategories,
+  puttingCategories,
 }: {
   rounds: TeeTimeRound[];
   featuredArticle: Article;
@@ -38,6 +41,9 @@ export function TeeTimesView({
   nettCategories: StatCategory[];
   scratchCategories: StatCategory[];
   streakCategories: StatCategory[];
+  drivingCategories: StatCategory[];
+  approachCategories: StatCategory[];
+  puttingCategories: StatCategory[];
 }) {
   const [teeFilter, setTeeFilter] = useState<(typeof TEE_FILTERS)[number]>("All");
   const [reversed, setReversed] = useState(false);
@@ -136,6 +142,9 @@ export function TeeTimesView({
         nettCategories={nettCategories}
         scratchCategories={scratchCategories}
         streakCategories={streakCategories}
+        drivingCategories={drivingCategories}
+        approachCategories={approachCategories}
+        puttingCategories={puttingCategories}
         initialCompetition="main"
         leaderToPar={leaderToPar}
         isFav={selectedPlayerId ? favorites.includes(selectedPlayerId) : false}

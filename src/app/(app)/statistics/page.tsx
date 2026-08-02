@@ -6,7 +6,15 @@ import { Container } from "@/components/shared/container";
 import { ChampionshipSidebar } from "@/components/shared/championship-sidebar";
 import { StatPreviewBoard } from "@/components/statistics/stat-preview-board";
 import { getArticles } from "@/lib/data/articles";
-import { getNettScoringCategories, getScratchScoringCategories, getStreakCategories, getToughestHoles } from "@/lib/data/scoring-statistics";
+import {
+  getNettScoringCategories,
+  getScratchScoringCategories,
+  getStreakCategories,
+  getDrivingCategories,
+  getApproachCategories,
+  getPuttingCategories,
+  getToughestHoles,
+} from "@/lib/data/scoring-statistics";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getPageBanners } from "@/lib/data/page-banners";
 
@@ -16,10 +24,25 @@ export const metadata: Metadata = {
 };
 
 export default async function StatisticsPage() {
-  const [nettScoring, scratchScoring, streaks, toughestHolesNett, toughestHolesScratch, articles, clockConfig, banners] = await Promise.all([
+  const [
+    nettScoring,
+    scratchScoring,
+    streaks,
+    driving,
+    approach,
+    putting,
+    toughestHolesNett,
+    toughestHolesScratch,
+    articles,
+    clockConfig,
+    banners,
+  ] = await Promise.all([
     getNettScoringCategories(),
     getScratchScoringCategories(),
     getStreakCategories(),
+    getDrivingCategories(),
+    getApproachCategories(),
+    getPuttingCategories(),
     getToughestHoles("nett"),
     getToughestHoles("scratch"),
     getArticles(),
@@ -46,6 +69,9 @@ export default async function StatisticsPage() {
             nettCategories={nettScoring}
             scratchCategories={scratchScoring}
             streakCategories={streaks}
+            drivingCategories={driving}
+            approachCategories={approach}
+            puttingCategories={putting}
             toughestHolesNett={toughestHolesNett}
             toughestHolesScratch={toughestHolesScratch}
           />
