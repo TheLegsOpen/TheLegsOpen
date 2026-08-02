@@ -8,6 +8,7 @@ import { getArticles } from "@/lib/data/articles";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getPageBanners } from "@/lib/data/page-banners";
 import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
+import { getNettScoringCategories, getScratchScoringCategories, getStreakCategories } from "@/lib/data/scoring-statistics";
 
 export const metadata: Metadata = {
   title: "Tee Times",
@@ -15,7 +16,18 @@ export const metadata: Metadata = {
 };
 
 export default async function TeeTimesPage() {
-  const [rounds, articles, clockConfig, banners, mainEntries, stablefordEntries, scratchEntries] = await Promise.all([
+  const [
+    rounds,
+    articles,
+    clockConfig,
+    banners,
+    mainEntries,
+    stablefordEntries,
+    scratchEntries,
+    nettCategories,
+    scratchCategories,
+    streakCategories,
+  ] = await Promise.all([
     getTeeTimes(),
     getArticles(),
     getSponsorClock(),
@@ -23,6 +35,9 @@ export default async function TeeTimesPage() {
     getCompetitionLeaderboard("main"),
     getCompetitionLeaderboard("stableford"),
     getCompetitionLeaderboard("scratch"),
+    getNettScoringCategories(),
+    getScratchScoringCategories(),
+    getStreakCategories(),
   ]);
 
   return (
@@ -44,6 +59,9 @@ export default async function TeeTimesPage() {
         mainEntries={mainEntries}
         stablefordEntries={stablefordEntries}
         scratchEntries={scratchEntries}
+        nettCategories={nettCategories}
+        scratchCategories={scratchCategories}
+        streakCategories={streakCategories}
       />
     </>
   );

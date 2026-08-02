@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
 import type { Article } from "@/types/article";
 import type { SponsorClock } from "@/lib/data/sponsor-clock";
+import type { StatCategory } from "@/lib/statistics";
 
 interface LeaderboardViewProps {
   main: CompetitionEntry[];
@@ -23,6 +24,9 @@ interface LeaderboardViewProps {
   scratch: CompetitionEntry[];
   featuredArticle: Article;
   clockConfig: SponsorClock;
+  nettCategories: StatCategory[];
+  scratchCategories: StatCategory[];
+  streakCategories: StatCategory[];
 }
 
 /** Matches the ~10s live-score polling cadence measured on theopen.com/leaderboard. */
@@ -36,7 +40,16 @@ function filterEntries(entries: CompetitionEntry[], query: string): CompetitionE
   );
 }
 
-export function LeaderboardView({ main, stableford, scratch, featuredArticle, clockConfig }: LeaderboardViewProps) {
+export function LeaderboardView({
+  main,
+  stableford,
+  scratch,
+  featuredArticle,
+  clockConfig,
+  nettCategories,
+  scratchCategories,
+  streakCategories,
+}: LeaderboardViewProps) {
   const router = useRouter();
   const { favorites, toggleFavorite, hydrated } = useFavorites();
   const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -262,6 +275,9 @@ export function LeaderboardView({ main, stableford, scratch, featuredArticle, cl
         main={selectedMain}
         stableford={selectedStableford}
         scratch={selectedScratch}
+        nettCategories={nettCategories}
+        scratchCategories={scratchCategories}
+        streakCategories={streakCategories}
         initialCompetition={popupCompetition}
         leaderToPar={leaderToPar}
         isFav={selectedPlayerId ? favorites.includes(selectedPlayerId) : false}

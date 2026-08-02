@@ -14,6 +14,7 @@ import type { TeeTimeRound } from "@/types/championship";
 import type { Article } from "@/types/article";
 import type { SponsorClock } from "@/lib/data/sponsor-clock";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
+import type { StatCategory } from "@/lib/statistics";
 
 const TEE_FILTERS = ["All", "1st", "10th"] as const;
 
@@ -24,6 +25,9 @@ export function TeeTimesView({
   mainEntries,
   stablefordEntries,
   scratchEntries,
+  nettCategories,
+  scratchCategories,
+  streakCategories,
 }: {
   rounds: TeeTimeRound[];
   featuredArticle: Article;
@@ -31,6 +35,9 @@ export function TeeTimesView({
   mainEntries: CompetitionEntry[];
   stablefordEntries: CompetitionEntry[];
   scratchEntries: CompetitionEntry[];
+  nettCategories: StatCategory[];
+  scratchCategories: StatCategory[];
+  streakCategories: StatCategory[];
 }) {
   const [teeFilter, setTeeFilter] = useState<(typeof TEE_FILTERS)[number]>("All");
   const [reversed, setReversed] = useState(false);
@@ -126,6 +133,9 @@ export function TeeTimesView({
         main={selectedMain}
         stableford={selectedStableford}
         scratch={selectedScratch}
+        nettCategories={nettCategories}
+        scratchCategories={scratchCategories}
+        streakCategories={streakCategories}
         initialCompetition="main"
         leaderToPar={leaderToPar}
         isFav={selectedPlayerId ? favorites.includes(selectedPlayerId) : false}

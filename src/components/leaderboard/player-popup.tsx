@@ -10,7 +10,9 @@ import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { formatToPar } from "@/lib/leaderboard";
 import { cn, playerSlug, splitSurnameFirst } from "@/lib/utils";
 import { scorePillClass, holeScorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
+import { PlayerStatPanel } from "@/components/leaderboard/player-stat-panel";
 import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
+import type { StatCategory } from "@/lib/statistics";
 
 const FRONT_NINE = Array.from({ length: 9 }, (_, i) => i);
 const BACK_NINE = Array.from({ length: 9 }, (_, i) => i + 9);
@@ -35,6 +37,9 @@ interface PlayerPopupProps {
   main?: CompetitionEntry;
   stableford?: CompetitionEntry;
   scratch?: CompetitionEntry;
+  nettCategories: StatCategory[];
+  scratchCategories: StatCategory[];
+  streakCategories: StatCategory[];
   /** Which tab the popup was opened from -- the dropdown defaults here, then can be freely changed. */
   initialCompetition: Competition;
   leaderToPar: number;
@@ -48,6 +53,9 @@ export function PlayerPopup({
   main,
   stableford,
   scratch,
+  nettCategories,
+  scratchCategories,
+  streakCategories,
   initialCompetition,
   leaderToPar,
   isFav,
@@ -223,9 +231,14 @@ export function PlayerPopup({
 
           <div className="mt-8">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-surface-dark-foreground/50">Statistics</p>
-            <p className="border border-dashed border-surface-dark-foreground/20 p-4 text-sm text-surface-dark-foreground/60">
-              Player statistics for this championship aren&apos;t built yet — check back soon.
-            </p>
+            <PlayerStatPanel
+              playerId={player.id}
+              nettCategories={nettCategories}
+              scratchCategories={scratchCategories}
+              streakCategories={streakCategories}
+              mainThru={main.thru}
+              scratchThru={scratch?.thru ?? "-"}
+            />
           </div>
 
           <Link
