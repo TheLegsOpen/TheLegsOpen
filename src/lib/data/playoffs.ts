@@ -43,12 +43,23 @@ export interface PlayoffResult {
   winner?: Player;
   /** True if every step was exhausted and the players are still level -- a genuinely shared title. */
   stillTied: boolean;
+  /** Players who'd otherwise be part of this tie but are barred from winning (the Main champion, for Stableford). */
+  ineligible: Player[];
 }
 
 /** The round only has a final result once nobody who teed off is still out on course. */
 function isConcluded(entries: CompetitionEntry[]): boolean {
   const started = entries.filter((entry) => entry.started);
   return started.length > 0 && started.every((entry) => entry.thru === "F");
+}
+
+/**
+ * `tied` on the leaderboard also groups in not-started players, who share the same baseline
+ * tieKey as a genuinely level-par finisher -- only players who actually posted a score belong
+ * in a real tiebreak.
+ */
+function tiedForFirst(entries: CompetitionEntry[]): CompetitionEntry[] {
+  return entries.filter((entry) => entry.position === 1 && entry.tied && entry.started);
 }
 
 function resolveTiebreak(
@@ -85,25 +96,68 @@ function resolveTiebreak(
 }
 
 /**
+ * Who actually wins a concluded competition -- the outright leader, the resolved winner of a
+ * tie, or (rare) every joint leader if a tie survives all 9 steps. Used only to work out the
+ * Main champion for the Stableford ineligibility rule, so it doesn't need to return anything
+ * richer than a player list.
+ */
+function getWinners(entries: CompetitionEntry[], competition: Competition): Player[] {
+  if (!isConcluded(entries)) return [];
+  const tied = tiedForFirst(entries);
+  if (tied.length === 0) {
+    const leader = entries.find((entry) => entry.position === 1 && entry.started);
+    return leader ? [leader.player] : [];
+  }
+  if (tied.length === 1) return [tied[0].player];
+  const { winner, stillTied } = resolveTiebreak(tied, competition);
+  if (winner) return [winner];
+  return stillTied ? tied.map((entry) => entry.player) : [];
+}
+
+/**
  * Only returns a result for a competition when it has actually finished with a tie for 1st --
- * this is the gate the UI uses to decide whether "Playoffs" appears at all.
+ * this is the gate the UI uses to decide whether "Playoffs" appears at all. Stableford has one
+ * extra rule: the Main champion can't also win Stableford, so if they're part of a Stableford
+ * tie they're pulled out of contention before the tiebreak runs.
  */
 export async function getPlayoffs(): Promise<PlayoffResult[]> {
   const competitions: Competition[] = ["main", "stableford", "scratch"];
+  const entriesByCompetition = new Map(await Promise.all(competitions.map(async (c) => [c, await getCompetitionLeaderboard(c)] as const)));
+
+  const mainEntries = entriesByCompetition.get("main") ?? [];
+  const mainWinnerIds = new Set(getWinners(mainEntries, "main").map((player) => player.id));
+
   const results: PlayoffResult[] = [];
 
   for (const competition of competitions) {
-    const entries = await getCompetitionLeaderboard(competition);
+    const entries = entriesByCompetition.get(competition) ?? [];
     if (entries.length === 0 || !isConcluded(entries)) continue;
 
-    // `tied` on the leaderboard also groups in not-started players, who share the same
-    // baseline tieKey as a genuinely level-par finisher -- only players who actually posted
-    // a score belong in a real tiebreak.
-    const tied = entries.filter((entry) => entry.position === 1 && entry.tied && entry.started);
-    if (tied.length < 2) continue;
+    let tied = tiedForFirst(entries);
+    let ineligible: Player[] = [];
 
-    const { steps, winner, stillTied } = resolveTiebreak(tied, competition);
-    results.push({ competition, competitionLabel: COMPETITION_LABELS[competition], steps, winner, stillTied });
+    if (competition === "stableford" && mainWinnerIds.size > 0) {
+      ineligible = tied.filter((entry) => mainWinnerIds.has(entry.player.id)).map((entry) => entry.player);
+      tied = tied.filter((entry) => !mainWinnerIds.has(entry.player.id));
+    }
+
+    if (ineligible.length === 0 && tied.length < 2) continue;
+
+    if (tied.length >= 2) {
+      const { steps, winner, stillTied } = resolveTiebreak(tied, competition);
+      results.push({ competition, competitionLabel: COMPETITION_LABELS[competition], steps, winner, stillTied, ineligible });
+    } else {
+      // Excluding the Main champion left exactly one (or zero) contenders -- no tiebreak needed,
+      // but the exclusion itself is still worth surfacing.
+      results.push({
+        competition,
+        competitionLabel: COMPETITION_LABELS[competition],
+        steps: [],
+        winner: tied[0]?.player,
+        stillTied: false,
+        ineligible,
+      });
+    }
   }
 
   return results;

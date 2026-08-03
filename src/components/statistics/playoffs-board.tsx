@@ -5,18 +5,30 @@ import { cn, playerSlug, surnameFirst } from "@/lib/utils";
 import type { PlayoffResult } from "@/lib/data/playoffs";
 
 function PlayoffCard({ result }: { result: PlayoffResult }) {
+  const hasSteps = result.steps.length > 0;
+
   return (
     <div className="flex flex-col border border-surface-dark-foreground/15">
       <div className="bg-primary px-4 py-3">
         <h3 className="font-display text-lg font-bold uppercase tracking-wide text-primary-foreground">{result.competitionLabel} Playoff</h3>
         <p className="text-xs text-primary-foreground/70">
           {result.winner
-            ? `${result.winner.name} wins on countback.`
+            ? hasSteps
+              ? `${result.winner.name} wins on countback.`
+              : `${result.winner.name} takes the title.`
             : result.stillTied
               ? "Still level after every tiebreaker — a shared title."
               : "Tiebreak in progress."}
         </p>
       </div>
+
+      {result.ineligible.length > 0 ? (
+        <div className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 px-4 py-3 text-xs text-surface-dark-foreground/70">
+          {result.ineligible.map((player) => player.name).join(", ")}{" "}
+          {result.ineligible.length === 1 ? "is" : "are"} ineligible for the Stableford title as the Main Championship{" "}
+          {result.ineligible.length === 1 ? "winner" : "winners"} — excluded from this tiebreak.
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-3 bg-surface-dark-foreground/5 p-4">
         {result.steps.map((step, index) => (
