@@ -484,10 +484,12 @@ export async function getRecords(): Promise<RecordsData> {
   const oldestChampion = [...agesAtWin].sort((a, b) => b.age.totalDays - a.age.totalDays).slice(0, 3);
   const youngestChampion = [...agesAtWin].sort((a, b) => a.age.totalDays - b.age.totalDays).slice(0, 3);
 
+  // "Competitor" means being in that year's field at all — unlike appearance-count records
+  // (which track actual rounds played), a competitor's age is fixed the moment they're entered,
+  // so there's no reason to wait for them to post a score before counting it.
   const competitorAgeSeen = new Set<string>();
   const competitorAges: CompetitorAgeEntry[] = [];
   for (const p of participation) {
-    if (!p.started) continue;
     const key = `${p.championshipId}:${p.playerId}`;
     if (competitorAgeSeen.has(key)) continue;
     competitorAgeSeen.add(key);
