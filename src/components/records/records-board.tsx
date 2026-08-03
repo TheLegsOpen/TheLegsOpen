@@ -1,13 +1,14 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
 import type { RecordsData } from "@/lib/data/records";
 
 function Section({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-4 border-t border-border pt-8 first:border-t-0 first:pt-0">
+    <section className="flex flex-col gap-2 border-t border-border pt-8 first:border-t-0 first:pt-0">
       <div>
         <h2 className="font-display text-xl font-bold sm:text-2xl">{title}</h2>
         {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
@@ -18,7 +19,7 @@ function Section({ title, description, children }: { title: string; description?
 }
 
 function Empty({ children = "Not yet recorded." }: { children?: ReactNode }) {
-  return <p className="text-sm italic text-muted-foreground/70">{children}</p>;
+  return <p className="py-3 text-sm italic text-muted-foreground/70">{children}</p>;
 }
 
 function RecordRow({ left, right, sub }: { left: ReactNode; right?: ReactNode; sub?: ReactNode }) {
@@ -33,8 +34,19 @@ function RecordRow({ left, right, sub }: { left: ReactNode; right?: ReactNode; s
   );
 }
 
-function CategoryGrid({ children }: { children: ReactNode }) {
-  return <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">{children}</div>;
+/** One collapsible row per stat category, so a page covering 20+ records doesn't force everything open at once. */
+function Category({ value, title, count, children }: { value: string; title: string; count: number; children: ReactNode }) {
+  return (
+    <AccordionItem value={value}>
+      <AccordionTrigger className="text-sm font-bold uppercase tracking-wide text-foreground/90 hover:no-underline">
+        <span className="flex items-center gap-2">
+          {title}
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-bold normal-case tracking-normal text-muted-foreground">{count}</span>
+        </span>
+      </AccordionTrigger>
+      <AccordionContent>{children}</AccordionContent>
+    </AccordionItem>
+  );
 }
 
 export function RecordsBoard({ records }: { records: RecordsData }) {
@@ -97,67 +109,52 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
       </Section>
 
       <Section title="Stableford & Scratch Golfer Of The Year" description="Winners of the other two competitions, where recorded.">
-        <CategoryGrid>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Stableford</p>
-            {championsStableford.length === 0 ? (
-              <Empty />
-            ) : (
-              championsStableford.map((c) => <RecordRow key={c.year} left={c.name} right={c.year} />)
-            )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Scratch</p>
-            {championsScratch.length === 0 ? (
-              <Empty />
-            ) : (
-              championsScratch.map((c) => <RecordRow key={c.year} left={c.name} right={c.year} />)
-            )}
-          </div>
-        </CategoryGrid>
+        <Accordion type="multiple">
+          <Category value="stableford-winners" title="Stableford" count={championsStableford.length}>
+            {championsStableford.length === 0 ? <Empty /> : championsStableford.map((c) => <RecordRow key={c.year} left={c.name} right={c.year} />)}
+          </Category>
+          <Category value="scratch-winners" title="Scratch" count={championsScratch.length}>
+            {championsScratch.length === 0 ? <Empty /> : championsScratch.map((c) => <RecordRow key={c.year} left={c.name} right={c.year} />)}
+          </Category>
+        </Accordion>
       </Section>
 
       <Section title="Most Victories" description="Multiple wins in a single competition.">
-        <CategoryGrid>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Main</p>
+        <Accordion type="multiple">
+          <Category value="most-victories-main" title="Main" count={repeatMain.length}>
             {repeatMain.length === 0 ? (
               <Empty>No player has won more than once yet.</Empty>
             ) : (
               repeatMain.map((v) => <RecordRow key={v.name} left={v.name} sub={v.years.join(", ")} right={v.count} />)
             )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Stableford</p>
+          </Category>
+          <Category value="most-victories-stableford" title="Stableford" count={repeatStableford.length}>
             {repeatStableford.length === 0 ? (
               <Empty />
             ) : (
               repeatStableford.map((v) => <RecordRow key={v.name} left={v.name} sub={v.years.join(", ")} right={v.count} />)
             )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Scratch</p>
+          </Category>
+          <Category value="most-victories-scratch" title="Scratch" count={repeatScratch.length}>
             {repeatScratch.length === 0 ? (
               <Empty />
             ) : (
               repeatScratch.map((v) => <RecordRow key={v.name} left={v.name} sub={v.years.join(", ")} right={v.count} />)
             )}
-          </div>
-        </CategoryGrid>
+          </Category>
+        </Accordion>
       </Section>
 
       <Section title="Scoring Records" description="Main competition only.">
-        <CategoryGrid>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Lowest score in a round by a champion</p>
+        <Accordion type="multiple">
+          <Category value="lowest-round" title="Lowest score in a round by a champion" count={lowestScoreInRound.length}>
             {lowestScoreInRound.length === 0 ? (
               <Empty />
             ) : (
               lowestScoreInRound.map((e) => <RecordRow key={e.year} left={e.name} sub={`${e.venueName} · ${e.year}`} right={e.value} />)
             )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Lowest winning total in relation to par</p>
+          </Category>
+          <Category value="lowest-to-par" title="Lowest winning total in relation to par" count={lowestWinningToPar.length}>
             {lowestWinningToPar.length === 0 ? (
               <Empty />
             ) : (
@@ -165,17 +162,15 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
                 <RecordRow key={e.year} left={e.name} sub={`${e.venueName} · ${e.year}`} right={formatToPar(e.value)} />
               ))
             )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Lowest total by a runner-up</p>
+          </Category>
+          <Category value="lowest-runner-up" title="Lowest total by a runner-up" count={lowestRunnerUpTotal.length}>
             {lowestRunnerUpTotal.length === 0 ? (
               <Empty />
             ) : (
               lowestRunnerUpTotal.map((e) => <RecordRow key={e.year} left={e.name} sub={`${e.venueName} · ${e.year}`} right={e.value} />)
             )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Largest margin of victory</p>
+          </Category>
+          <Category value="largest-margin" title="Largest margin of victory" count={largestMargin.length}>
             {largestMargin.length === 0 ? (
               <Empty />
             ) : (
@@ -183,36 +178,34 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
                 <RecordRow key={e.year} left={e.name} sub={`${e.venueName} · ${e.year}`} right={`${e.margin} shot${e.margin === 1 ? "" : "s"}`} />
               ))
             )}
-          </div>
-        </CategoryGrid>
+          </Category>
+        </Accordion>
       </Section>
 
       <Section title="Milestone Records" description="Main competition only.">
-        <CategoryGrid>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Champions who won on debut</p>
+        <Accordion type="multiple">
+          <Category value="won-on-debut" title="Champions who won on debut" count={wonOnDebut.length}>
             {wonOnDebut.length === 0 ? <Empty /> : wonOnDebut.map((e) => <RecordRow key={e.year} left={e.name} sub={e.venueName} right={e.year} />)}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-              Most appearances by a champion before his first victory
-            </p>
+          </Category>
+          <Category
+            value="appearances-before-victory"
+            title="Most appearances by a champion before his first victory"
+            count={mostAppearancesBeforeFirstVictory.length}
+          >
             {mostAppearancesBeforeFirstVictory.length === 0 ? (
               <Empty />
             ) : (
               mostAppearancesBeforeFirstVictory.map((e) => <RecordRow key={e.year} left={e.name} sub={String(e.year)} right={e.appearances} />)
             )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Champions who won in three separate decades</p>
+          </Category>
+          <Category value="three-decades" title="Champions who won in three separate decades" count={threeDecadeChampions.length}>
             {threeDecadeChampions.length === 0 ? (
               <Empty>No champion has won across three separate decades yet.</Empty>
             ) : (
               threeDecadeChampions.map((e) => <RecordRow key={e.name} left={e.name} sub={e.years.join(", ")} />)
             )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Most appearances in The Legs Open</p>
+          </Category>
+          <Category value="most-appearances" title="Most appearances in The Legs Open" count={mostAppearances.length}>
             {mostAppearances.length === 0 ? (
               <Empty>No appearance history recorded yet.</Empty>
             ) : (
@@ -235,22 +228,20 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
                 />
               ))
             )}
-          </div>
-        </CategoryGrid>
+          </Category>
+        </Accordion>
       </Section>
 
       <Section title="In-Round Records" description="Main competition only.">
-        <CategoryGrid>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Champions who led outright after 9 holes</p>
+        <Accordion type="multiple">
+          <Category value="led-after-9" title="Champions who led outright after 9 holes" count={ledOutrightAfter9.length}>
             {ledOutrightAfter9.length === 0 ? (
               <Empty />
             ) : (
               ledOutrightAfter9.map((e) => <RecordRow key={e.year} left={e.name} sub={e.venueName} right={e.year} />)
             )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Greatest comeback by a champion after 9 holes</p>
+          </Category>
+          <Category value="comeback-after-9" title="Greatest comeback by a champion after 9 holes" count={greatestComebackAfter9.length}>
             {greatestComebackAfter9.length === 0 ? (
               <Empty />
             ) : (
@@ -258,9 +249,8 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
                 <RecordRow key={e.year} left={e.name} sub={`${e.venueName} · ${e.year}`} right={`${e.deficit} back`} />
               ))
             )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Largest lead by any player</p>
+          </Category>
+          <Category value="largest-lead" title="Largest lead by any player" count={largestLeadByAnyPlayer.length}>
             {largestLeadByAnyPlayer.length === 0 ? (
               <Empty />
             ) : (
@@ -273,26 +263,23 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
                 />
               ))
             )}
-          </div>
-        </CategoryGrid>
+          </Category>
+        </Accordion>
       </Section>
 
       <Section title="Age Records">
-        <CategoryGrid>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Oldest Legs Open Champion</p>
+        <Accordion type="multiple">
+          <Category value="oldest-champion" title="Oldest Legs Open Champion" count={oldestChampion.length}>
             {oldestChampion.length === 0 ? <Empty /> : oldestChampion.map((e) => <RecordRow key={e.year} left={e.name} sub={String(e.year)} right={e.age} />)}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Youngest Legs Open Champion</p>
+          </Category>
+          <Category value="youngest-champion" title="Youngest Legs Open Champion" count={youngestChampion.length}>
             {youngestChampion.length === 0 ? (
               <Empty />
             ) : (
               youngestChampion.map((e) => <RecordRow key={e.year} left={e.name} sub={String(e.year)} right={e.age} />)
             )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Oldest Competitor</p>
+          </Category>
+          <Category value="oldest-competitor" title="Oldest Competitor" count={oldestCompetitor.length}>
             {oldestCompetitor.length === 0 ? (
               <Empty>No competitor ages recorded yet.</Empty>
             ) : (
@@ -312,9 +299,8 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
                 />
               ))
             )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Youngest Competitor</p>
+          </Category>
+          <Category value="youngest-competitor" title="Youngest Competitor" count={youngestCompetitor.length}>
             {youngestCompetitor.length === 0 ? (
               <Empty>No competitor ages recorded yet.</Empty>
             ) : (
@@ -334,37 +320,34 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
                 />
               ))
             )}
-          </div>
-        </CategoryGrid>
+          </Category>
+        </Accordion>
       </Section>
 
       <Section title="Venues & Other Records">
-        <CategoryGrid>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Number of times each course has hosted</p>
+        <Accordion type="multiple">
+          <Category value="course-hosts" title="Number of times each course has hosted" count={courseHostCounts.length}>
             {courseHostCounts.length === 0 ? (
               <Empty />
             ) : (
               courseHostCounts.map((e) => <RecordRow key={e.venueName} left={e.venueName} sub={e.years.join(", ")} right={e.count} />)
             )}
-          </div>
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Play-offs at The Legs Open</p>
+          </Category>
+          <Category value="playoffs" title="Play-offs at The Legs Open" count={playoffs.length}>
             {playoffs.length === 0 ? (
               <Empty>No playoff has occurred yet.</Empty>
             ) : (
               playoffs.map((e) => <RecordRow key={e.year} left={e.name} sub={e.venueName} right={e.year} />)
             )}
-          </div>
-          <div className="sm:col-span-2">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">International winner (outside Scotland)</p>
+          </Category>
+          <Category value="international-winner" title="International winner (outside Scotland)" count={internationalWinners.length}>
             {internationalWinners.length === 0 ? (
               <Empty>Every champion so far has come from Scotland.</Empty>
             ) : (
               internationalWinners.map((e) => <RecordRow key={e.year} left={e.name} sub={e.country} right={e.year} />)
             )}
-          </div>
-        </CategoryGrid>
+          </Category>
+        </Accordion>
       </Section>
     </div>
   );
