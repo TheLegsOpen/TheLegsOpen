@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Trophy } from "lucide-react";
 
@@ -6,14 +7,17 @@ import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { Container } from "@/components/shared/container";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { CountryFlag } from "@/components/shared/country-flag";
+import { ArticleCard } from "@/components/news/article-card";
+import { PlayerGallery } from "@/components/players/player-gallery";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getAllPlayerSlugs, getPlayerBySlug } from "@/lib/data/players";
-import { getLeaderboard } from "@/lib/data/leaderboard";
+import { getAllPlayerSlugs, getPlayerBySlug, getPlayerPerformances } from "@/lib/data/players";
+import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
 import { getTeeTimes } from "@/lib/data/tee-times";
-import { getChampionshipHistory } from "@/lib/data/championships";
+import { getArticles } from "@/lib/data/articles";
 import { getSiteTheme } from "@/lib/data/site-theme";
-import { formatToPar, synthesizePastResults } from "@/lib/leaderboard";
-import { cn, playerSlug } from "@/lib/utils";
+import { formatToPar } from "@/lib/leaderboard";
+import { cn } from "@/lib/utils";
+import type { Article } from "@/types/article";
 
 interface PlayerPageProps {
   params: Promise<{ slug: string }>;
@@ -48,23 +52,39 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   const player = await getPlayerBySlug(slug);
   if (!player) notFound();
 
-  const [round4, teeTimeRounds, championshipHistory, theme] = await Promise.all([
-    getLeaderboard("round4"),
+  const [mainLeaderboard, teeTimeRounds, performances, allArticles, theme] = await Promise.all([
+    getCompetitionLeaderboard("main"),
     getTeeTimes(),
-    getChampionshipHistory(),
+    getPlayerPerformances(player),
+    getArticles(),
     getSiteTheme(),
   ]);
-  const entry = round4.find((e) => e.player.id === player.id);
-  const pastResults = synthesizePastResults(player, championshipHistory);
-  const winYears = championshipHistory
-    .filter((c) => c.winnerPlayerSlug === playerSlug(player))
-    .map((c) => c.year)
-    .sort((a, b) => a - b);
+
+  const entry = mainLeaderboard.find((e) => e.player.id === player.id);
+  const winYears = performances.filter((p) => p.finish === "Winner").map((p) => p.year);
+  const debutYear = performances.length > 0 ? Math.min(...performances.map((p) => p.year)) : player.debutYear;
+  const bestFinish = performances.length > 0 ? performances.reduce((best, p) => (p.position < best.position ? p : best)).finish : undefined;
+
   const teeTimes = teeTimeRounds.flatMap((round) =>
     round.groups
       .filter((group) => group.players.some((p) => p.id === player.id))
       .map((group) => ({ round: round.round, date: round.date, time: group.time, tee: group.tee })),
   );
+
+  const featuredArticleSlugs = player.featuredArticleSlugs ?? [];
+  const featuredArticles: Article[] =
+    featuredArticleSlugs.length > 0
+      ? featuredArticleSlugs.map((articleSlug) => allArticles.find((a) => a.slug === articleSlug)).filter((a): a is Article => Boolean(a))
+      : allArticles.slice(0, 3);
+
+  const stats: { label: string; value: string | number }[] = [
+    { label: "Age", value: player.age ?? "—" },
+    ...(player.turnedPro ? [{ label: "Turned Pro", value: player.turnedPro }] : []),
+    ...(debutYear ? [{ label: "Legs Open Debut", value: debutYear }] : []),
+    { label: "Championship Handicap", value: player.championshipHandicap ?? "—" },
+    { label: "Previous Opens", value: player.previousOpens },
+    ...(bestFinish ? [{ label: "Best Legs Open Finish", value: bestFinish }] : []),
+  ];
 
   const [firstName, ...rest] = player.name.split(" ");
   const surname = rest.join(" ");
@@ -91,10 +111,10 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             </div>
           ) : null}
           <div className="grid gap-8 lg:grid-cols-[1fr_320px] lg:items-center">
-            <div className="flex gap-6 sm:gap-10">
-              <StatCell label="Age" value={player.age ?? "—"} first />
-              <StatCell label="Championship Handicap" value={player.championshipHandicap ?? "—"} />
-              <StatCell label="Previous Opens" value={player.previousOpens} />
+            <div className="flex flex-wrap gap-x-6 gap-y-4 sm:gap-x-10">
+              {stats.map((stat, index) => (
+                <StatCell key={stat.label} label={stat.label} value={stat.value} first={index === 0} />
+              ))}
             </div>
             <PlaceholderArt
               label={`${player.name} portrait`}
@@ -135,8 +155,8 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                 <dl className="grid grid-cols-2 gap-6 sm:grid-cols-4">
                   {[
                     { label: "Position", value: `${entry.tied ? "T" : ""}${entry.position}` },
-                    { label: "To Par", value: formatToPar(entry.scoreToPar) },
-                    { label: "Total", value: entry.total },
+                    { label: "To Par", value: entry.toPar !== undefined ? formatToPar(entry.toPar) : "—" },
+                    { label: "Score", value: entry.score ?? "—" },
                     { label: "Thru", value: entry.thru },
                   ].map((stat) => (
                     <div key={stat.label} className="flex flex-col gap-1 border border-border p-4">
@@ -169,17 +189,18 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             ) : null}
           </TabsContent>
 
-          <TabsContent value="bio" className="pt-8">
+          <TabsContent value="bio" className="flex flex-col gap-10 pt-8">
             <div className="flex max-w-2xl flex-col gap-4 text-base leading-relaxed text-muted-foreground">
               {player.bio.map((paragraph, i) => (
                 <p key={i}>{paragraph}</p>
               ))}
             </div>
+            <PlayerGallery playerName={firstName} photos={player.gallery ?? []} />
           </TabsContent>
 
           <TabsContent value="performances" className="pt-8">
-            {pastResults.length === 0 ? (
-              <p className="text-muted-foreground">No previous appearances at the Legs Open.</p>
+            {performances.length === 0 ? (
+              <p className="text-muted-foreground">No previous appearances at the Legs Open on record.</p>
             ) : (
               <div className="overflow-x-auto border border-border">
                 <table className="w-full min-w-[420px] border-collapse text-sm">
@@ -191,7 +212,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                     </tr>
                   </thead>
                   <tbody>
-                    {pastResults.map((result) => (
+                    {performances.map((result) => (
                       <tr key={result.year} className="border-b border-border last:border-0">
                         <td className="px-4 py-3 font-medium tabular-nums">{result.year}</td>
                         <td className="px-4 py-3">{result.venueName}</td>
@@ -212,6 +233,24 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           </TabsContent>
         </Tabs>
       </Container>
+
+      {featuredArticles.length > 0 ? (
+        <section className="border-t border-border bg-secondary/40">
+          <Container className="flex flex-col gap-8 py-16 sm:py-24">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="font-display font-bold text-2xl">More on {firstName}</h2>
+              <Link href="/latest" className="text-sm font-bold uppercase tracking-wide text-primary hover:underline">
+                See more
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
+              {featuredArticles.map((article) => (
+                <ArticleCard key={article.slug} article={article} />
+              ))}
+            </div>
+          </Container>
+        </section>
+      ) : null}
     </>
   );
 }

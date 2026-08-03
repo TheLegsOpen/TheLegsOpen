@@ -71,6 +71,44 @@ export const Players: CollectionConfig = {
     },
     { name: "previousOpens", type: "number", required: true, defaultValue: 0 },
     {
+      name: "turnedPro",
+      label: "Turned Pro",
+      type: "number",
+      admin: { description: "The year this player turned professional. Leave blank if not applicable or unknown." },
+    },
+    {
+      name: "debutYear",
+      label: "Legs Open Debut",
+      type: "number",
+      admin: {
+        description:
+          "The year of this player's first Legs Open appearance. Only needed for years before scorecards were tracked digitally — once real scorecard history exists it's detected automatically and this is used as a fallback.",
+      },
+    },
+    {
+      name: "gallery",
+      label: "Photo Gallery",
+      type: "array",
+      labels: { singular: "Photo", plural: "Photos" },
+      maxRows: 12,
+      admin: { description: "Powers the picture slider on this player's profile page. Add as many or as few as you like." },
+      fields: [
+        { name: "image", type: "upload", relationTo: "media", required: true },
+        { name: "caption", type: "text" },
+      ],
+    },
+    {
+      name: "featuredArticles",
+      label: "Featured Articles",
+      type: "relationship",
+      relationTo: "articles",
+      hasMany: true,
+      maxRows: 3,
+      admin: {
+        description: "Up to 3 articles to feature on this player's profile page. Leave blank to show the latest published articles instead.",
+      },
+    },
+    {
       name: "inField",
       label: "In Current Field",
       type: "checkbox",

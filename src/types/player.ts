@@ -1,3 +1,8 @@
+export interface PlayerGalleryPhoto {
+  imageUrl?: string;
+  caption?: string;
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -6,7 +11,11 @@ export interface Player {
   age?: number;
   championshipHandicap?: number;
   previousOpens: number;
+  turnedPro?: number;
+  debutYear?: number;
   photoUrl?: string;
+  gallery?: PlayerGalleryPhoto[];
+  featuredArticleSlugs?: string[];
   bio: string[];
 }
 

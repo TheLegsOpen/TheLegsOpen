@@ -204,6 +204,10 @@ export interface Player {
   age?: number | null;
   championshipHandicap?: number | null;
   previousOpens: number;
+  turnedPro?: number | null;
+  debutYear?: number | null;
+  gallery?: { image: string | Media; caption?: string | null; id?: string | null }[] | null;
+  featuredArticles?: (string | Article)[] | null;
   inField?: boolean | null;
   cdhNumber?: string | null;
   photo?: (string | Media) | null;
