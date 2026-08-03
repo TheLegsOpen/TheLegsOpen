@@ -481,8 +481,8 @@ export async function getRecords(): Promise<RecordsData> {
       return c.championAgeAtWin !== undefined ? { year: c.year, name: c.winnerName, age: wholeYearsAge(c.championAgeAtWin) } : undefined;
     })
     .filter((e): e is AgeEntry => Boolean(e));
-  const oldestChampion = [...agesAtWin].sort((a, b) => b.age.totalDays - a.age.totalDays).slice(0, 5);
-  const youngestChampion = [...agesAtWin].sort((a, b) => a.age.totalDays - b.age.totalDays).slice(0, 5);
+  const oldestChampion = [...agesAtWin].sort((a, b) => b.age.totalDays - a.age.totalDays).slice(0, 3);
+  const youngestChampion = [...agesAtWin].sort((a, b) => a.age.totalDays - b.age.totalDays).slice(0, 3);
 
   const competitorAgeSeen = new Set<string>();
   const competitorAges: CompetitorAgeEntry[] = [];
@@ -500,8 +500,8 @@ export async function getRecords(): Promise<RecordsData> {
     const player = playersById.get(p.playerId);
     competitorAges.push({ name: player?.name ?? "Unknown", slug: player ? playerSlug(player) : undefined, age });
   }
-  const oldestCompetitor = [...competitorAges].sort((a, b) => b.age.totalDays - a.age.totalDays).slice(0, 5);
-  const youngestCompetitor = [...competitorAges].sort((a, b) => a.age.totalDays - b.age.totalDays).slice(0, 5);
+  const oldestCompetitor = [...competitorAges].sort((a, b) => b.age.totalDays - a.age.totalDays).slice(0, 3);
+  const youngestCompetitor = [...competitorAges].sort((a, b) => a.age.totalDays - b.age.totalDays).slice(0, 3);
 
   const hostCounts = new Map<string, CourseHostCount>();
   for (const c of championsMain) {
