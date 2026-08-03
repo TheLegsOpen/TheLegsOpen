@@ -72,7 +72,7 @@ export const SiteTheme: GlobalConfig = {
       type: "select",
       defaultValue: "fraunces-inter",
       options: [
-        { label: "Fraunces + Inter (default)", value: "fraunces-inter" },
+        { label: "Fraunces + Founders Grotesk (default)", value: "fraunces-inter" },
         { label: "Playfair Display + Source Sans 3", value: "playfair-source-sans" },
         { label: "Newsreader + Manrope", value: "newsreader-manrope" },
       ],

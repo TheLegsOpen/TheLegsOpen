@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter, Playfair_Display, Source_Sans_3, Newsreader, Manrope } from "next/font/google";
+import { Fraunces, Playfair_Display, Source_Sans_3, Newsreader, Manrope } from "next/font/google";
 import localFont from "next/font/local";
 
 import { Header } from "@/components/layout/header";
@@ -22,9 +22,13 @@ const fraunces = Fraunces({
   display: "swap",
 });
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
+const founders = localFont({
+  src: [
+    { path: "../../fonts/founders-grotesk-light.woff2", weight: "300", style: "normal" },
+    { path: "../../fonts/founders-grotesk-regular.woff2", weight: "400", style: "normal" },
+    { path: "../../fonts/founders-grotesk-bold.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-founders",
   display: "swap",
 });
 
@@ -64,7 +68,7 @@ const timekeeper = localFont({
 });
 
 const FONT_PRESET_VARS: Record<FontPreset, { display: string; sans: string }> = {
-  "fraunces-inter": { display: "var(--font-fraunces)", sans: "var(--font-inter)" },
+  "fraunces-inter": { display: "var(--font-fraunces)", sans: "var(--font-founders)" },
   "playfair-source-sans": { display: "var(--font-playfair)", sans: "var(--font-source-sans)" },
   "newsreader-manrope": { display: "var(--font-newsreader)", sans: "var(--font-manrope)" },
 };
@@ -109,7 +113,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${inter.variable} ${playfair.variable} ${sourceSans.variable} ${newsreader.variable} ${manrope.variable} ${timekeeper.variable}`}
+      className={`${fraunces.variable} ${founders.variable} ${playfair.variable} ${sourceSans.variable} ${newsreader.variable} ${manrope.variable} ${timekeeper.variable}`}
     >
       <head>
         <style dangerouslySetInnerHTML={{ __html: themeStyle }} />
