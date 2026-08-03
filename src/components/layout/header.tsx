@@ -60,7 +60,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                     href={section.href}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "block border-b-2 border-transparent px-3.5 py-2 text-sm font-bold uppercase tracking-wide transition-colors hover:text-accent",
+                      "block border-b-2 border-transparent px-3.5 py-2 font-menu text-sm font-bold uppercase tracking-wide transition-colors hover:text-accent",
                       active && "border-accent text-accent",
                     )}
                   >
@@ -77,7 +77,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             <Link
               key={section.label}
               href={section.href}
-              className="hidden px-3 text-sm font-bold uppercase tracking-wide transition-colors hover:text-accent sm:block"
+              className="hidden px-3 font-menu text-sm font-bold uppercase tracking-wide transition-colors hover:text-accent sm:block"
             >
               {section.label}
             </Link>

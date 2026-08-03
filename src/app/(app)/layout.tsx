@@ -24,6 +24,14 @@ const cardinal = localFont({
   display: "swap",
 });
 
+/** Header nav links only, per explicit request -- not part of the site-wide font-preset system. */
+const cardinalPhoto = localFont({
+  src: "../../fonts/cardinalphotoweb-regular.woff2",
+  variable: "--font-cardinal-photo",
+  weight: "400",
+  display: "swap",
+});
+
 const founders = localFont({
   src: [
     { path: "../../fonts/founders-grotesk-light.woff2", weight: "300", style: "normal" },
@@ -115,7 +123,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang="en"
-      className={`${cardinal.variable} ${founders.variable} ${playfair.variable} ${sourceSans.variable} ${newsreader.variable} ${manrope.variable} ${timekeeper.variable}`}
+      className={`${cardinal.variable} ${cardinalPhoto.variable} ${founders.variable} ${playfair.variable} ${sourceSans.variable} ${newsreader.variable} ${manrope.variable} ${timekeeper.variable}`}
     >
       <head>
         <style dangerouslySetInnerHTML={{ __html: themeStyle }} />
