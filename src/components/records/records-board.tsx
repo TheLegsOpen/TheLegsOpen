@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
+import { formatAge } from "@/lib/data/records";
 import type { RecordsData } from "@/lib/data/records";
 
 function Section({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
@@ -270,13 +271,17 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
       <Section title="Age Records">
         <Accordion type="multiple">
           <Category value="oldest-champion" title="Oldest Legs Open Champion" count={oldestChampion.length}>
-            {oldestChampion.length === 0 ? <Empty /> : oldestChampion.map((e) => <RecordRow key={e.year} left={e.name} sub={String(e.year)} right={e.age} />)}
+            {oldestChampion.length === 0 ? (
+              <Empty />
+            ) : (
+              oldestChampion.map((e) => <RecordRow key={e.year} left={e.name} sub={String(e.year)} right={formatAge(e.age)} />)
+            )}
           </Category>
           <Category value="youngest-champion" title="Youngest Legs Open Champion" count={youngestChampion.length}>
             {youngestChampion.length === 0 ? (
               <Empty />
             ) : (
-              youngestChampion.map((e) => <RecordRow key={e.year} left={e.name} sub={String(e.year)} right={e.age} />)
+              youngestChampion.map((e) => <RecordRow key={e.year} left={e.name} sub={String(e.year)} right={formatAge(e.age)} />)
             )}
           </Category>
           <Category value="oldest-competitor" title="Oldest Competitor" count={oldestCompetitor.length}>
@@ -295,7 +300,7 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
                       e.name
                     )
                   }
-                  right={e.age}
+                  right={formatAge(e.age)}
                 />
               ))
             )}
@@ -316,7 +321,7 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
                       e.name
                     )
                   }
-                  right={e.age}
+                  right={formatAge(e.age)}
                 />
               ))
             )}

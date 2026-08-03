@@ -74,16 +74,24 @@ export interface AppearanceLeader {
   appearances: number;
 }
 
+export interface AgeBreakdown {
+  years: number;
+  months: number;
+  days: number;
+  /** Exact age in days — used to break ties between two ages that round to the same years/months/days display. */
+  totalDays: number;
+}
+
 export interface AgeEntry {
   year: number;
   name: string;
-  age: number;
+  age: AgeBreakdown;
 }
 
 export interface CompetitorAgeEntry {
   name: string;
   slug?: string;
-  age: number;
+  age: AgeBreakdown;
 }
 
 export interface CourseHostCount {
@@ -179,13 +187,36 @@ function leadAtHole(cumulativeByPlayer: Map<string, number[]>, holeIndex: number
   return { leaderId: values[0].id, lead: values[1].value - values[0].value };
 }
 
-function ageAt(dobIso: string, atIso: string): number {
+/** Precise calendar age (years/months/days) as of a given date, plus a totalDays figure for exact tie-breaking between two ages that round to the same number of years. */
+function ageAt(dobIso: string, atIso: string): AgeBreakdown {
   const dob = new Date(dobIso);
   const at = new Date(atIso);
-  let age = at.getFullYear() - dob.getFullYear();
-  const hadBirthdayYet = at.getMonth() > dob.getMonth() || (at.getMonth() === dob.getMonth() && at.getDate() >= dob.getDate());
-  if (!hadBirthdayYet) age--;
-  return age;
+
+  let years = at.getFullYear() - dob.getFullYear();
+  let months = at.getMonth() - dob.getMonth();
+  let days = at.getDate() - dob.getDate();
+
+  if (days < 0) {
+    months -= 1;
+    const daysInPrevMonth = new Date(at.getFullYear(), at.getMonth(), 0).getDate();
+    days += daysInPrevMonth;
+  }
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  const totalDays = Math.round((at.getTime() - dob.getTime()) / 86_400_000);
+  return { years, months, days, totalDays };
+}
+
+export function formatAge({ years, months, days }: AgeBreakdown): string {
+  return `${years}y ${months}m ${days}d`;
+}
+
+/** The manual `championAgeAtWin` fallback only ever stores whole years, so it's approximated to a breakdown for display/sort consistency with the precise DOB-based figure. */
+function wholeYearsAge(years: number): AgeBreakdown {
+  return { years, months: 0, days: 0, totalDays: years * 365.25 };
 }
 
 /** Auto-derived facts for a single concluded championship, computed straight from that year's real scorecards — nothing here is hand-entered. */
@@ -447,11 +478,11 @@ export async function getRecords(): Promise<RecordsData> {
       if (c.winnerPlayerId && c.winnerPlayerDateOfBirth && c.date) {
         return { year: c.year, name: c.winnerName, age: ageAt(c.winnerPlayerDateOfBirth, c.date) };
       }
-      return c.championAgeAtWin !== undefined ? { year: c.year, name: c.winnerName, age: c.championAgeAtWin } : undefined;
+      return c.championAgeAtWin !== undefined ? { year: c.year, name: c.winnerName, age: wholeYearsAge(c.championAgeAtWin) } : undefined;
     })
     .filter((e): e is AgeEntry => Boolean(e));
-  const oldestChampion = [...agesAtWin].sort((a, b) => b.age - a.age).slice(0, 5);
-  const youngestChampion = [...agesAtWin].sort((a, b) => a.age - b.age).slice(0, 5);
+  const oldestChampion = [...agesAtWin].sort((a, b) => b.age.totalDays - a.age.totalDays).slice(0, 5);
+  const youngestChampion = [...agesAtWin].sort((a, b) => a.age.totalDays - b.age.totalDays).slice(0, 5);
 
   const competitorAgeSeen = new Set<string>();
   const competitorAges: CompetitorAgeEntry[] = [];
@@ -465,12 +496,12 @@ export async function getRecords(): Promise<RecordsData> {
     const dob = dobById.get(p.playerId);
     if (!championship?.date || !dob) continue;
     const age = ageAt(dob, championship.date);
-    if (age < MIN_COMPETITOR_AGE) continue;
+    if (age.years < MIN_COMPETITOR_AGE) continue;
     const player = playersById.get(p.playerId);
     competitorAges.push({ name: player?.name ?? "Unknown", slug: player ? playerSlug(player) : undefined, age });
   }
-  const oldestCompetitor = [...competitorAges].sort((a, b) => b.age - a.age).slice(0, 5);
-  const youngestCompetitor = [...competitorAges].sort((a, b) => a.age - b.age).slice(0, 5);
+  const oldestCompetitor = [...competitorAges].sort((a, b) => b.age.totalDays - a.age.totalDays).slice(0, 5);
+  const youngestCompetitor = [...competitorAges].sort((a, b) => a.age.totalDays - b.age.totalDays).slice(0, 5);
 
   const hostCounts = new Map<string, CourseHostCount>();
   for (const c of championsMain) {
