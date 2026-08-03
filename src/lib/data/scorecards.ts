@@ -74,10 +74,16 @@ interface LeaderboardInputs {
 /**
  * Fetches everything `buildLeaderboardFromDocs` needs (venue pars, every scorecard, and the
  * tee-time sheet) in one pass, so callers that need more than one derived view -- e.g. the Race
- * Tracker's before/after snapshot pair -- don't repeat the same queries per competition.
+ * Tracker's before/after snapshot pair -- don't repeat the same queries per competition. Defaults
+ * to whichever championship is active; pass one explicitly to build a past year's leaderboard
+ * (e.g. for Records, once that year's round is over).
  */
-async function loadLeaderboardInputs(payload: Payload, req?: PayloadRequest): Promise<LeaderboardInputs> {
-  const championship = await getActiveChampionship(payload, req);
+async function loadLeaderboardInputs(
+  payload: Payload,
+  req?: PayloadRequest,
+  championshipOverride?: PayloadChampionship,
+): Promise<LeaderboardInputs> {
+  const championship = championshipOverride ?? (await getActiveChampionship(payload, req));
   if (!championship) return { championship: undefined, holeInfos: [], docs: [], teeTimeByPlayer: new Map() };
 
   const venue = typeof championship.venue === "object" ? (championship.venue as PayloadVenue) : undefined;
@@ -243,6 +249,35 @@ export async function getCompetitionLeaderboard(competition: Competition, req?: 
   const { championship, holeInfos, docs, teeTimeByPlayer } = await loadLeaderboardInputs(payload, req);
   if (!championship) return [];
   return buildLeaderboardFromDocs(competition, holeInfos, docs, teeTimeByPlayer);
+}
+
+/** Same as `getCompetitionLeaderboard`, but for a specific (possibly past) championship rather than whichever is currently active — used by Records to auto-derive stats from a concluded year's real scorecards. */
+export async function getCompetitionLeaderboardForChampionshipId(
+  championshipId: string,
+  competition: Competition,
+): Promise<CompetitionEntry[]> {
+  const payload = await getPayload({ config: configPromise });
+  const championship = await payload.findByID({ collection: "championships", id: championshipId }).catch(() => undefined);
+  if (!championship) return [];
+  const { holeInfos, docs, teeTimeByPlayer } = await loadLeaderboardInputs(payload, undefined, championship);
+  return buildLeaderboardFromDocs(competition, holeInfos, docs, teeTimeByPlayer);
+}
+
+export interface ScorecardParticipation {
+  championshipId: string;
+  playerId: string;
+  started: boolean;
+}
+
+/** Every scorecard across every championship, reduced to "did this player actually play this year" — the real, automatic basis for appearance-count records (as opposed to the hand-maintained `Player.previousOpens` legacy counter). */
+export async function getAllScorecardParticipation(): Promise<ScorecardParticipation[]> {
+  const payload = await getPayload({ config: configPromise });
+  const result = await payload.find({ collection: "scorecards", limit: 2000, depth: 0 });
+  return result.docs.map((doc) => ({
+    championshipId: String(typeof doc.championship === "object" ? doc.championship.id : doc.championship),
+    playerId: String(typeof doc.player === "object" ? doc.player.id : doc.player),
+    started: (doc.holesCompleted ?? 0) > 0,
+  }));
 }
 
 export interface LeaderboardSnapshotPair {

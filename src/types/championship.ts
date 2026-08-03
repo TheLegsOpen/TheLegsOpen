@@ -1,6 +1,7 @@
 import type { Player } from "@/types/player";
 
 export interface ChampionshipWinner {
+  id: string;
   year: number;
   date?: string;
   venueSlug: string;
@@ -12,6 +13,8 @@ export interface ChampionshipWinner {
   scoreToPar?: number;
   margin?: string;
   winnerPlayerSlug?: string;
+  winnerPlayerId?: string;
+  winnerPlayerDateOfBirth?: string;
   stablefordWinnerName?: string;
   stablefordWinnerCountry?: string;
   scratchWinnerName?: string;

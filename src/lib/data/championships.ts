@@ -26,6 +26,7 @@ function mapChampionship(doc: PayloadChampionship): ChampionshipWinner {
   const winnerPlayer = typeof doc.winnerPlayer === "object" && doc.winnerPlayer ? (doc.winnerPlayer as PayloadPlayer) : undefined;
 
   return {
+    id: String(doc.id),
     year: doc.year,
     date: doc.date ?? undefined,
     venueSlug: venue.slug ?? slugify(venue.name),
@@ -37,6 +38,8 @@ function mapChampionship(doc: PayloadChampionship): ChampionshipWinner {
     scoreToPar: doc.scoreToPar ?? undefined,
     margin: doc.margin ?? undefined,
     winnerPlayerSlug: winnerPlayer?.slug ?? undefined,
+    winnerPlayerId: winnerPlayer?.id ? String(winnerPlayer.id) : undefined,
+    winnerPlayerDateOfBirth: winnerPlayer?.dateOfBirth ?? undefined,
     stablefordWinnerName: doc.stablefordWinnerName ?? undefined,
     stablefordWinnerCountry: doc.stablefordWinnerCountry ?? undefined,
     scratchWinnerName: doc.scratchWinnerName ?? undefined,
