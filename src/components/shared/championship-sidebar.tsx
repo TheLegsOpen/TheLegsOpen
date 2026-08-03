@@ -1,5 +1,4 @@
 import { ArticleCard } from "@/components/news/article-card";
-import { ShopPromoCard } from "@/components/shared/shop-promo-card";
 import { SponsorTimeWidget } from "@/components/shared/sponsor-time-widget";
 import { cn } from "@/lib/utils";
 import type { Article } from "@/types/article";
@@ -16,7 +15,6 @@ export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "ligh
   return (
     <aside className="flex flex-col gap-6">
       <SponsorTimeWidget config={clockConfig} />
-      <ShopPromoCard tone={tone} />
       <div className="flex flex-col gap-3">
         <p
           className={cn(

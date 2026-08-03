@@ -31,15 +31,6 @@ export interface ChampionshipWinner {
   largestLeadAfterHole?: number;
 }
 
-export interface Product {
-  id: string;
-  name: string;
-  collection: string;
-  price: string;
-  category: string;
-  imageLabel: string;
-}
-
 export interface TeeTimeEntry {
   time: string;
   tee: "1st" | "10th";

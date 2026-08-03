@@ -3,7 +3,6 @@ import { NewsTicker } from "@/components/home/news-ticker";
 import { LeaderboardWidget } from "@/components/home/leaderboard-widget";
 import { LiveBlogWidget } from "@/components/home/live-blog-widget";
 import { HomepageSections } from "@/components/home/sections/homepage-sections";
-import { ProductShowcaseCarousel } from "@/components/home/product-showcase-carousel";
 import { NewsGrid } from "@/components/home/news-grid";
 import { Container } from "@/components/shared/container";
 import { getArticlesPage } from "@/lib/data/articles";
@@ -53,7 +52,6 @@ export default async function HomePage() {
         </Container>
       </section>
       <HomepageSections sections={sections} />
-      <ProductShowcaseCarousel />
       <NewsGrid initialArticles={initialArticles} initialHasMore={initialHasMore} />
     </>
   );

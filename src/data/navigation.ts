@@ -4,7 +4,6 @@ export const PRIMARY_NAV: NavSection[] = [
   { label: "Leaderboard", href: "/leaderboard" },
   { label: "Tee Times", href: "/tee-times" },
   { label: "Records", href: "/records" },
-  { label: "Shop", href: "/shop" },
 ];
 
 export const SECONDARY_NAV: NavSection[] = [{ label: "The Clubhouse", href: "/club" }];

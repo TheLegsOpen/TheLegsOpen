@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, Search, ShoppingBag, User } from "lucide-react";
+import { Menu, Search, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/shared/container";
@@ -102,18 +102,6 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
               <User className="h-5 w-5" />
             </Link>
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Shop basket"
-            asChild
-            className="hidden text-primary-foreground hover:bg-primary-foreground/10 hover:text-accent sm:inline-flex"
-          >
-            <Link href="/shop">
-              <ShoppingBag className="h-5 w-5" />
-            </Link>
-          </Button>
-
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button
