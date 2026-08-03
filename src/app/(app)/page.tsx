@@ -13,21 +13,34 @@ import { getLiveBlogPosts } from "@/lib/data/live-blog";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getVenueWeather } from "@/lib/data/weather";
 import { getNewsTicker } from "@/lib/data/news-ticker";
+import { getPlayoffs, applyPlayoffToEntries } from "@/lib/data/playoffs";
 
 const PAGE_SIZE = 6;
 
 export default async function HomePage() {
-  const [{ items: initialArticles, hasMore: initialHasMore }, currentChampion, leaderboard, liveBlogPosts, sections, clockConfig, weather, tickerItems] =
-    await Promise.all([
-      getArticlesPage({ page: 1, pageSize: PAGE_SIZE }),
-      getCurrentChampion(),
-      getCompetitionLeaderboard("main"),
-      getLiveBlogPosts(),
-      getHomepageSections(),
-      getSponsorClock(),
-      getVenueWeather(),
-      getNewsTicker(),
-    ]);
+  const [
+    { items: initialArticles, hasMore: initialHasMore },
+    currentChampion,
+    mainRaw,
+    liveBlogPosts,
+    sections,
+    clockConfig,
+    weather,
+    tickerItems,
+    playoffs,
+  ] = await Promise.all([
+    getArticlesPage({ page: 1, pageSize: PAGE_SIZE }),
+    getCurrentChampion(),
+    getCompetitionLeaderboard("main"),
+    getLiveBlogPosts(),
+    getHomepageSections(),
+    getSponsorClock(),
+    getVenueWeather(),
+    getNewsTicker(),
+    getPlayoffs(),
+  ]);
+
+  const leaderboard = applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main"));
 
   return (
     <>

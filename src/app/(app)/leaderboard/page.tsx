@@ -15,6 +15,7 @@ import {
   getApproachCategories,
   getPuttingCategories,
 } from "@/lib/data/scoring-statistics";
+import { getPlayoffs, applyPlayoffToEntries } from "@/lib/data/playoffs";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
@@ -23,9 +24,9 @@ export const metadata: Metadata = {
 
 export default async function LeaderboardPage() {
   const [
-    main,
-    stableford,
-    scratch,
+    mainRaw,
+    stablefordRaw,
+    scratchRaw,
     articles,
     clockConfig,
     banners,
@@ -35,6 +36,7 @@ export default async function LeaderboardPage() {
     drivingCategories,
     approachCategories,
     puttingCategories,
+    playoffs,
   ] = await Promise.all([
     getCompetitionLeaderboard("main"),
     getCompetitionLeaderboard("stableford"),
@@ -48,7 +50,12 @@ export default async function LeaderboardPage() {
     getDrivingCategories(),
     getApproachCategories(),
     getPuttingCategories(),
+    getPlayoffs(),
   ]);
+
+  const main = applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main"));
+  const stableford = applyPlayoffToEntries(stablefordRaw, playoffs.find((p) => p.competition === "stableford"));
+  const scratch = applyPlayoffToEntries(scratchRaw, playoffs.find((p) => p.competition === "scratch"));
 
   return (
     <>

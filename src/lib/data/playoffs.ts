@@ -30,6 +30,8 @@ const TIEBREAK_STEPS: { label: string; description: string; holeIndices: number[
 export interface TiebreakStepResult {
   label: string;
   description: string;
+  /** 0-indexed hole positions this step compares, e.g. [0, 1, 16, 17] for "Holes 1, 2, 17 & 18". */
+  holeIndices: number[];
   /** Every player still in contention going into this step, with their score over this step's holes. */
   contenders: { player: Player; display: string; value: number }[];
   /** The subset of contenders who tied for best over this step's holes -- carries on to the next step. */
@@ -82,6 +84,7 @@ function resolveTiebreak(
     steps.push({
       label: step.label,
       description: step.description,
+      holeIndices: step.holeIndices,
       contenders: scored.map((s) => ({ player: s.entry.player, display: formatToPar(s.value), value: s.value })),
       survivors: survivors.map((s) => s.entry.player),
     });
@@ -112,6 +115,84 @@ function getWinners(entries: CompetitionEntry[], competition: Competition): Play
   const { winner, stillTied } = resolveTiebreak(tied, competition);
   if (winner) return [winner];
   return stillTied ? tied.map((entry) => entry.player) : [];
+}
+
+export interface PlayoffNote {
+  won: boolean;
+  /** e.g. "Won First Tiebreaker" / "Lost First Tiebreaker". */
+  label: string;
+  /** The step's hole description, e.g. "Holes 1, 2, 17 & 18". */
+  description: string;
+  /** This player's score over that step's holes, e.g. "-2". */
+  display: string;
+  holeIndices: number[];
+}
+
+export interface RankedEntry extends CompetitionEntry {
+  playoffNote?: PlayoffNote;
+}
+
+function findLastStepFor(steps: TiebreakStepResult[], playerId: string) {
+  for (let i = steps.length - 1; i >= 0; i--) {
+    const contender = steps[i].contenders.find((c) => c.player.id === playerId);
+    if (contender) return { step: steps[i], index: i, contender };
+  }
+  return undefined;
+}
+
+/**
+ * Re-ranks a tied-for-1st group once its playoff has resolved to a single winner -- the winner
+ * becomes an outright 1st (no longer "tied"), the rest of that same group become an outright
+ * (or still-tied) 2nd, and every other position is left untouched since the size of the top
+ * group hasn't changed, only whether its members are tied with each other. Players excluded for
+ * ineligibility (the Main champion, in Stableford) and unresolved (`stillTied`) results are left
+ * exactly as the raw leaderboard had them -- there's nothing to re-rank in either case.
+ */
+export function applyPlayoffToEntries(entries: CompetitionEntry[], playoff: PlayoffResult | undefined): RankedEntry[] {
+  if (!playoff || playoff.stillTied || !playoff.winner) return entries;
+
+  const winnerId = playoff.winner.id;
+  const ineligibleIds = new Set(playoff.ineligible.map((p) => p.id));
+  const loserIds = entries
+    .filter((entry) => entry.position === 1 && entry.tied && entry.started && entry.player.id !== winnerId && !ineligibleIds.has(entry.player.id))
+    .map((entry) => entry.player.id);
+
+  if (loserIds.length === 0) return entries;
+  const loserIdSet = new Set(loserIds);
+
+  return entries.map((entry): RankedEntry => {
+    if (entry.player.id === winnerId) {
+      const found = findLastStepFor(playoff.steps, winnerId);
+      return {
+        ...entry,
+        position: 1,
+        tied: false,
+        playoffNote: found && {
+          won: true,
+          label: `Won ${found.step.label}`,
+          description: found.step.description,
+          display: found.contender.display,
+          holeIndices: found.step.holeIndices,
+        },
+      };
+    }
+    if (loserIdSet.has(entry.player.id)) {
+      const found = findLastStepFor(playoff.steps, entry.player.id);
+      return {
+        ...entry,
+        position: 2,
+        tied: loserIdSet.size > 1,
+        playoffNote: found && {
+          won: false,
+          label: `Lost ${found.step.label}`,
+          description: found.step.description,
+          display: found.contender.display,
+          holeIndices: found.step.holeIndices,
+        },
+      };
+    }
+    return entry;
+  });
 }
 
 /**

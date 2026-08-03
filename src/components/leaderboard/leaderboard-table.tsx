@@ -8,9 +8,10 @@ import { cn, splitSurnameFirst } from "@/lib/utils";
 import { formatToPar } from "@/lib/leaderboard";
 import { CountryFlag } from "@/components/shared/country-flag";
 import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
+import type { RankedEntry } from "@/lib/data/playoffs";
 
 interface LeaderboardTableProps {
-  entries: CompetitionEntry[];
+  entries: RankedEntry[];
   competition: Competition;
   favorites: string[];
   onToggleFavorite: (playerId: string) => void;
@@ -70,7 +71,7 @@ function LeaderboardRow({
   competition,
   onSelectPlayer,
 }: {
-  entry: CompetitionEntry;
+  entry: RankedEntry;
   isFav: boolean;
   onToggleFavorite: (playerId: string) => void;
   competition: Competition;
@@ -113,6 +114,11 @@ function LeaderboardRow({
           </button>
           <CountryFlag code={entry.player.countryCode} className="h-3 w-4 shrink-0 align-middle" />
         </div>
+        {entry.playoffNote ? (
+          <p className={cn("mt-0.5 text-[10px] font-bold uppercase tracking-wide", entry.playoffNote.won ? "text-primary" : "text-primary/60")}>
+            {entry.playoffNote.label} ({entry.playoffNote.display})
+          </p>
+        ) : null}
       </td>
       <td className="whitespace-nowrap px-2 py-3 text-right text-xs tabular-nums text-accent-foreground/70">
         {!entry.started && entry.teeTime ? (

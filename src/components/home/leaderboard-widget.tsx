@@ -7,14 +7,14 @@ import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
 import { cn, playerSlug, splitSurnameFirst } from "@/lib/utils";
 import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
-import type { CompetitionEntry } from "@/lib/data/scorecards";
+import type { RankedEntry } from "@/lib/data/playoffs";
 
 const WIDGET_ROW_COUNT = 10;
 /** Denser padding than the full leaderboard's tiles, to suit the narrower homepage column. */
 const COMPACT_TILE_CLASS = "px-1.5 py-0.5 min-w-0";
 
 interface LeaderboardWidgetProps {
-  entries: CompetitionEntry[];
+  entries: RankedEntry[];
 }
 
 export function LeaderboardWidget({ entries }: LeaderboardWidgetProps) {
@@ -64,6 +64,16 @@ export function LeaderboardWidget({ entries }: LeaderboardWidgetProps) {
                         </Link>
                         <CountryFlag code={entry.player.countryCode} className="h-3 w-4 shrink-0 align-middle" />
                       </div>
+                      {entry.playoffNote ? (
+                        <p
+                          className={cn(
+                            "mt-0.5 truncate text-[9px] font-bold uppercase tracking-wide",
+                            entry.playoffNote.won ? "text-primary" : "text-primary/60",
+                          )}
+                        >
+                          {entry.playoffNote.label}
+                        </p>
+                      ) : null}
                     </td>
                     <td className="whitespace-nowrap px-2 py-2 text-right text-xs tabular-nums text-accent-foreground/70">
                       {!entry.started && entry.teeTime ? (
