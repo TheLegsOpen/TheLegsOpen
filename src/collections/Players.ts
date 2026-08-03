@@ -26,6 +26,7 @@ export const Players: CollectionConfig = {
   admin: {
     useAsTitle: "name",
     defaultColumns: ["name", "country", "age", "previousOpens"],
+    description: "Adding a lot of players at once? Use the bulk upload tool at /admin-bulk-players instead of entering them one by one here.",
   },
   access: {
     read: () => true,
