@@ -49,7 +49,66 @@ export const Championships: CollectionConfig = {
       relationTo: "players",
       admin: { description: "Optional — only set if this winner is also in the current Players collection." },
     },
-    { name: "scoreToPar", type: "number" },
-    { name: "margin", type: "text", admin: { description: "e.g. \"2 shots\" or \"Playoff\"" } },
+    {
+      name: "winningScore",
+      type: "number",
+      admin: { description: "The champion's actual raw strokes for the round, e.g. 74." },
+    },
+    {
+      name: "scoreToPar",
+      type: "number",
+      admin: { description: "The champion's score relative to the course's par, e.g. -2 for two under. Not the raw score — see Winning Score above." },
+    },
+    { name: "margin", type: "text", admin: { description: "e.g. \"2\" (shots) or \"Playoff\"" } },
+    {
+      type: "collapsible",
+      label: "Records — additional facts (optional, fill in as known)",
+      fields: [
+        {
+          type: "row",
+          fields: [
+            { name: "stablefordWinnerName", type: "text", admin: { description: "Winner of the Stableford competition this year, if known." } },
+            { name: "stablefordWinnerCountry", type: "text" },
+          ],
+        },
+        {
+          type: "row",
+          fields: [
+            { name: "scratchWinnerName", type: "text", admin: { description: "Winner of the Scratch competition this year, if known." } },
+            { name: "scratchWinnerCountry", type: "text" },
+          ],
+        },
+        {
+          type: "row",
+          fields: [
+            { name: "runnerUpName", type: "text", admin: { description: "Runner-up in the Main competition, if known." } },
+            { name: "runnerUpScore", type: "number", admin: { description: "Runner-up's raw strokes for the round." } },
+          ],
+        },
+        {
+          type: "row",
+          fields: [
+            { name: "wonOnDebut", type: "checkbox", admin: { description: "Tick only if the champion won in their first-ever Legs Open appearance." } },
+            { name: "priorAppearances", type: "number", admin: { description: "How many Legs Opens the champion had played before this win (0 if won on debut)." } },
+            { name: "championAgeAtWin", type: "number", admin: { description: "The champion's age at the time of this win." } },
+          ],
+        },
+        {
+          type: "row",
+          fields: [
+            { name: "ledOutrightAfter9", type: "checkbox", admin: { description: "Tick if the eventual champion held the outright lead after 9 holes." } },
+            { name: "deficitAfter9", type: "number", admin: { description: "Strokes the eventual champion trailed the leader by at the turn (for comeback records)." } },
+          ],
+        },
+        {
+          type: "row",
+          fields: [
+            { name: "largestLeadHolderName", type: "text", admin: { description: "Player who held the single largest lead at any point this year, if known." } },
+            { name: "largestLeadMargin", type: "number", admin: { description: "Size of that lead, in strokes." } },
+            { name: "largestLeadAfterHole", type: "number", admin: { description: "Which hole the lead was measured after." } },
+          ],
+        },
+      ],
+    },
   ],
 };

@@ -294,8 +294,23 @@ export interface Championship {
   winnerName?: string | null;
   winnerCountry?: string | null;
   winnerPlayer?: (string | Player) | null;
+  winningScore?: number | null;
   scoreToPar?: number | null;
   margin?: string | null;
+  stablefordWinnerName?: string | null;
+  stablefordWinnerCountry?: string | null;
+  scratchWinnerName?: string | null;
+  scratchWinnerCountry?: string | null;
+  runnerUpName?: string | null;
+  runnerUpScore?: number | null;
+  wonOnDebut?: boolean | null;
+  priorAppearances?: number | null;
+  championAgeAtWin?: number | null;
+  ledOutrightAfter9?: boolean | null;
+  deficitAfter9?: number | null;
+  largestLeadHolderName?: string | null;
+  largestLeadMargin?: number | null;
+  largestLeadAfterHole?: number | null;
   updatedAt: string;
   createdAt: string;
 }

@@ -3,6 +3,7 @@ import type { NavLink, NavPanelGroup, NavSection } from "@/types/nav";
 export const PRIMARY_NAV: NavSection[] = [
   { label: "Leaderboard", href: "/leaderboard" },
   { label: "Tee Times", href: "/tee-times" },
+  { label: "Records", href: "/records" },
   { label: "Shop", href: "/shop" },
 ];
 
