@@ -11,7 +11,7 @@ import type { InfoCardGroupSection } from "@/types/homepage-section";
 
 export function InfoCardGroup({ section }: { section: InfoCardGroupSection }) {
   return (
-    <section className="bg-surface-dark bg-dashboard-pattern py-16 text-surface-dark-foreground sm:py-24">
+    <section className="bg-surface-dark py-16 text-surface-dark-foreground sm:py-24">
       <Container className="flex flex-col gap-10">
         <SectionHeading tone="dark" eyebrow={section.eyebrow} title={section.heading} />
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
