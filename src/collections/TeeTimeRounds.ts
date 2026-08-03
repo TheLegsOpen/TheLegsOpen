@@ -1,5 +1,7 @@
 import type { CollectionConfig } from "payload";
 
+import { revalidateSite } from "@/lib/revalidate";
+
 export const TeeTimeRounds: CollectionConfig = {
   slug: "tee-time-rounds",
   admin: {
@@ -85,6 +87,8 @@ export const TeeTimeRounds: CollectionConfig = {
 
         return doc;
       },
+      revalidateSite,
     ],
+    afterDelete: [revalidateSite],
   },
 };

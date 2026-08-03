@@ -1,5 +1,7 @@
 import type { CollectionConfig } from "payload";
 
+import { revalidateSite } from "@/lib/revalidate";
+
 function slugify(value: string): string {
   return value
     .toLowerCase()
@@ -53,5 +55,7 @@ export const Articles: CollectionConfig = {
         return data;
       },
     ],
+    afterChange: [revalidateSite],
+    afterDelete: [revalidateSite],
   },
 };
