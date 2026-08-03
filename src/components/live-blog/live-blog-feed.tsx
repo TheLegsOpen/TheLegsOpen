@@ -36,10 +36,10 @@ import type { LiveBlogCategory, LiveBlogCompetition, LiveBlogEntry } from "@/lib
 export const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: typeof Star; chipClass: string; cardClass?: string }> = {
   ace: { label: "Hole in one", icon: Sparkles, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },
   eagle: { label: "Eagle", icon: Star, chipClass: "bg-[#910149] text-white", cardClass: "bg-[#910149] text-white" },
-  birdie: { label: "Birdie", icon: ArrowDownCircle, chipClass: "bg-[#CB333B] text-white", cardClass: "bg-[#CB333B] text-white" },
+  birdie: { label: "Birdie", icon: ArrowUpCircle, chipClass: "bg-[#CB333B] text-white", cardClass: "bg-[#CB333B] text-white" },
   "moving-up": { label: "Moving up", icon: TrendingUp, chipClass: "bg-[#CB333B] text-white" },
   charge: { label: "Making a charge", icon: Flame, chipClass: "bg-[#910149] text-white" },
-  bogey: { label: "Bogey", icon: ArrowUpCircle, chipClass: "bg-[#08325A] text-white", cardClass: "bg-[#08325A] text-white" },
+  bogey: { label: "Bogey", icon: ArrowDownCircle, chipClass: "bg-[#08325A] text-white", cardClass: "bg-[#08325A] text-white" },
   "moving-down": { label: "Moving down", icon: TrendingDown, chipClass: "bg-[#08325A] text-white" },
   trouble: { label: "Trouble", icon: AlertTriangle, chipClass: "bg-[#08325A] text-white" },
   leader: { label: "Leader", icon: Crown, chipClass: "bg-accent text-accent-foreground" },
