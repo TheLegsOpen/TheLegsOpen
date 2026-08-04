@@ -18,6 +18,8 @@ export interface CurrentChampion {
   articleSlug: string;
   /** This championship's real ordinal position -- counted from every recorded Championship, not a hand-maintained number. */
   championshipNumber: number;
+  primaryButtonLabel: string;
+  secondaryButtonLabel: string;
 }
 
 export async function getCurrentChampion(): Promise<CurrentChampion> {
@@ -41,6 +43,8 @@ export async function getCurrentChampion(): Promise<CurrentChampion> {
     scoreToPar: championship.scoreToPar ?? 0,
     articleSlug: article.slug ?? slugify(article.title),
     championshipNumber,
+    primaryButtonLabel: settings.currentChampion.primaryButtonLabel || "Read the story",
+    secondaryButtonLabel: settings.currentChampion.secondaryButtonLabel || "View full leaderboard",
   };
 }
 

@@ -56,7 +56,7 @@ export function Hero({ currentChampion: CURRENT_CHAMPION, clockConfig, weather }
                   size="default"
                   className="font-sans text-[17px] font-bold uppercase leading-[20.4px] tracking-[0.3px]"
                 >
-                  <Link href={`/latest/${CURRENT_CHAMPION.articleSlug}`}>Read the story</Link>
+                  <Link href={`/latest/${CURRENT_CHAMPION.articleSlug}`}>{CURRENT_CHAMPION.primaryButtonLabel}</Link>
                 </Button>
                 <Button
                   asChild
@@ -64,7 +64,7 @@ export function Hero({ currentChampion: CURRENT_CHAMPION, clockConfig, weather }
                   size="default"
                   className="border-white/40 font-sans text-[17px] font-bold uppercase leading-[20.4px] tracking-[0.3px] text-white hover:bg-white/10"
                 >
-                  <Link href="/leaderboard">View full leaderboard</Link>
+                  <Link href="/leaderboard">{CURRENT_CHAMPION.secondaryButtonLabel}</Link>
                 </Button>
               </div>
             </motion.div>

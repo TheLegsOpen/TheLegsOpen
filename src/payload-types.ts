@@ -360,6 +360,8 @@ export interface HomepageSettingsGlobal {
   currentChampion: {
     championship: string | Championship;
     article: string | Article;
+    primaryButtonLabel?: string | null;
+    secondaryButtonLabel?: string | null;
   };
   sections?: (InfoCardGroupBlock | CtaBannerBlock | RichTextBlock)[] | null;
   updatedAt?: string | null;
