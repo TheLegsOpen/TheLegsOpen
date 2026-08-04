@@ -96,7 +96,7 @@ export function PlayerPopup({
       <DialogContent className="max-h-[85vh] w-full max-w-5xl overflow-y-auto border-none bg-surface-dark p-0 text-surface-dark-foreground">
         <DialogTitle className="sr-only">{player.name}</DialogTitle>
 
-        <div className="relative flex flex-col gap-4 bg-primary p-6 text-primary-foreground sm:flex-row sm:items-start">
+        <div className="relative flex flex-col gap-3 bg-primary p-5 text-primary-foreground sm:flex-row sm:items-start">
           <button
             type="button"
             onClick={onToggleFavorite}
@@ -107,7 +107,7 @@ export function PlayerPopup({
             <Star className={cn("h-5 w-5", isFav && "fill-current text-accent")} />
           </button>
 
-          <div className="mt-8 flex items-start gap-4 sm:mt-0">
+          <div className="mt-8 flex items-start gap-3 sm:mt-0">
             <span
               className={cn(
                 "inline-flex h-12 w-14 shrink-0 items-center justify-center font-display text-xl font-bold tabular-nums",
@@ -121,8 +121,9 @@ export function PlayerPopup({
               label={`${player.name} portrait`}
               imageUrl={player.photoUrl}
               tone="navy"
+              blendBlack
               ratio="3/4"
-              className="h-[72px] w-14 shrink-0"
+              className="h-[140px] w-[110px] shrink-0"
             />
 
             <div>
@@ -144,8 +145,8 @@ export function PlayerPopup({
           </div>
         </div>
 
-        <div className="p-6">
-          <label className="relative mb-4 inline-flex items-center gap-2 rounded-full border border-surface-dark-foreground/30 px-4 py-2 text-sm font-bold uppercase tracking-wide text-surface-dark-foreground transition-colors hover:border-accent">
+        <div className="p-5">
+          <label className="relative mb-3 inline-flex items-center gap-2 rounded-full border border-surface-dark-foreground/30 px-4 py-2 text-sm font-bold uppercase tracking-wide text-surface-dark-foreground transition-colors hover:border-accent">
             <span className="sr-only">Select competition</span>
             <select
               value={competition}
@@ -235,20 +236,22 @@ export function PlayerPopup({
             <p className="text-sm text-surface-dark-foreground/60">No scorecard yet for this competition.</p>
           )}
 
-          <div className="mt-8">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-surface-dark-foreground/50">Statistics</p>
-            <PlayerStatPanel
-              playerId={player.id}
-              nettCategories={nettCategories}
-              scratchCategories={scratchCategories}
-              streakCategories={streakCategories}
-              drivingCategories={drivingCategories}
-              approachCategories={approachCategories}
-              puttingCategories={puttingCategories}
-              mainThru={main.thru}
-              scratchThru={scratch?.thru ?? "-"}
-            />
-          </div>
+          {main.started ? (
+            <div className="mt-8">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-surface-dark-foreground/50">Statistics</p>
+              <PlayerStatPanel
+                playerId={player.id}
+                nettCategories={nettCategories}
+                scratchCategories={scratchCategories}
+                streakCategories={streakCategories}
+                drivingCategories={drivingCategories}
+                approachCategories={approachCategories}
+                puttingCategories={puttingCategories}
+                mainThru={main.thru}
+                scratchThru={scratch?.thru ?? "-"}
+              />
+            </div>
+          ) : null}
 
           <Link
             href={`/players/${playerSlug(player)}`}
