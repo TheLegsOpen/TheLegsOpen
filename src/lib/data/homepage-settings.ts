@@ -16,6 +16,8 @@ export interface CurrentChampion {
   venueName: string;
   scoreToPar: number;
   articleSlug: string;
+  /** This championship's real ordinal position -- counted from every recorded Championship, not a hand-maintained number. */
+  championshipNumber: number;
 }
 
 export async function getCurrentChampion(): Promise<CurrentChampion> {
@@ -26,11 +28,19 @@ export async function getCurrentChampion(): Promise<CurrentChampion> {
   const article = settings.currentChampion.article as PayloadArticle;
   const venue = championship.venue as PayloadVenue;
 
+  // Ordinal = this championship's position when every recorded championship is sorted by year --
+  // e.g. year 14 in an unbroken run since the earliest recorded year is genuinely the 14th, no
+  // hardcoded founding year assumed.
+  const allChampionships = await payload.find({ collection: "championships", limit: 500, depth: 0, sort: "year" });
+  const position = allChampionships.docs.findIndex((c) => String(c.id) === String(championship.id));
+  const championshipNumber = position === -1 ? 1 : position + 1;
+
   return {
     winnerName: championship.winnerName ?? "",
     venueName: venue.name,
     scoreToPar: championship.scoreToPar ?? 0,
     articleSlug: article.slug ?? slugify(article.title),
+    championshipNumber,
   };
 }
 

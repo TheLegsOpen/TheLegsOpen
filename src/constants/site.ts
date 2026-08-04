@@ -5,7 +5,6 @@ export const SITE = {
   description:
     "The home of The Legs Open — championship news, tickets & hospitality, tee times, leaderboards and the story of the game's most storied links championship.",
   url: "https://www.thelegsopen.example",
-  currentChampionshipNumber: 154,
   currentYear: 2026,
   nextVenue: "Seabrook Old Course",
 } as const;

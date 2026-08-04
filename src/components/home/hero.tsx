@@ -40,7 +40,7 @@ export function Hero({ currentChampion: CURRENT_CHAMPION, clockConfig, weather }
               className="flex max-w-xl flex-col gap-3"
             >
               <span className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
-                {ordinal(SITE.currentChampionshipNumber - 1)} {SITE.name} Champion
+                {ordinal(CURRENT_CHAMPION.championshipNumber)} {SITE.name} Champion
               </span>
               <h1 className="font-display font-bold text-display-lg text-balance">
                 {CURRENT_CHAMPION.winnerName.split(" ")[0]}&rsquo;s coastal masterclass
