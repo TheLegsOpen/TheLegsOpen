@@ -96,7 +96,8 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.8)_45%,rgba(0,0,0,0.25)_75%,rgba(0,0,0,0.05)_100%)]" />
 
         {/* min-height, not PageHero's fixed h-[60vh] -- this hero carries a stat column + large portrait rather than just title/description, so it needs to grow with content instead of cropping it. Still keyed to the same 60vh used by other "large" PageHero pages (venues, club) for visual consistency. */}
-        <Container className="relative z-10 flex min-h-[60vh] flex-col justify-between gap-10 py-10 sm:py-14">
+        {/* No z-index here (unlike other photo heroes) -- it would isolate the portrait's mix-blend-mode into its own stacking context, cutting it off from the actual hero photo it needs to blend against. Plain DOM order already paints this after (on top of) the absolute hero photo/gradient siblings above, so z-10 was redundant anyway. */}
+        <Container className="relative flex min-h-[60vh] flex-col justify-between gap-10 py-10 sm:py-14">
           <div className="flex flex-col gap-2">
             <Breadcrumbs
               items={[{ label: "Home", href: "/" }, { label: "Leaderboard", href: "/leaderboard" }, { label: player.name }]}
@@ -116,7 +117,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
             <div className="order-first flex justify-center lg:order-2 lg:self-end">
               <div className="relative h-[280px] w-[230px] sm:h-[360px] sm:w-[290px] lg:h-[440px] lg:w-[340px]">
-                <PlaceholderArt label={`${player.name} portrait`} imageUrl={player.photoUrl} tone="slate" fill />
+                <PlaceholderArt label={`${player.name} portrait`} imageUrl={player.photoUrl} tone="slate" blendBlack fill />
               </div>
             </div>
 
