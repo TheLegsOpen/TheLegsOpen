@@ -22,7 +22,7 @@ export function LiveBlogWidget({ entries }: LiveBlogWidgetProps) {
   return (
     <div className="flex h-full flex-col border border-surface-dark-foreground/15">
       <div className="bg-primary px-5 py-3">
-        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-primary-foreground">Live Blog</h2>
+        <h2 className="font-menu text-sm font-bold uppercase tracking-wide text-primary-foreground">Live Blog</h2>
       </div>
 
       {top.length === 0 ? (

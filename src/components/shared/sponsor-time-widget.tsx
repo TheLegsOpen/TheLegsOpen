@@ -142,7 +142,7 @@ export function SponsorTimeWidget({ config }: { config: SponsorClock }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={config.logoUrl} alt={config.name} className="h-12 w-28 object-contain" />
         ) : (
-          <p className="font-display text-sm font-bold uppercase tracking-wide">{config.name}</p>
+          <p className="font-menu text-sm font-bold uppercase tracking-wide">{config.name}</p>
         )}
         {config.tagline ? <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">{config.tagline}</p> : null}
       </div>

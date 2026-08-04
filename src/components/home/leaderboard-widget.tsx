@@ -23,7 +23,7 @@ export function LeaderboardWidget({ entries }: LeaderboardWidgetProps) {
   return (
     <div className="flex h-full flex-col border border-surface-dark-foreground/15">
       <div className="bg-primary px-5 py-3">
-        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-primary-foreground">Leaderboard</h2>
+        <h2 className="font-menu text-sm font-bold uppercase tracking-wide text-primary-foreground">Leaderboard</h2>
       </div>
 
       {top.length === 0 ? (
