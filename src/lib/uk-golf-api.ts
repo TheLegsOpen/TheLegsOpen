@@ -35,6 +35,8 @@ export interface UkGolfClub {
   city?: string;
   county?: string;
   postcode?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface RawClubsResponse {
@@ -42,7 +44,7 @@ interface RawClubsResponse {
   page: number;
   per_page: number;
   total_pages: number;
-  clubs: { id: string; name: string; city?: string; county?: string; postcode?: string }[];
+  clubs: { id: string; name: string; city?: string; county?: string; postcode?: string; latitude?: number; longitude?: number }[];
 }
 
 export interface UkGolfClubSearchPage {
@@ -65,7 +67,15 @@ export async function searchUkGolfClubsPage(countryCode: UkGolfCountryCode, quer
   const data = await ukGolfFetch<RawClubsResponse>(`/clubs?country=${countryCode}&per_page=50&page=${page}`);
   const matches = data.clubs
     .filter((club) => club.name.toLowerCase().includes(needle))
-    .map((club) => ({ id: club.id, name: club.name, city: club.city, county: club.county, postcode: club.postcode }));
+    .map((club) => ({
+      id: club.id,
+      name: club.name,
+      city: club.city,
+      county: club.county,
+      postcode: club.postcode,
+      latitude: club.latitude,
+      longitude: club.longitude,
+    }));
   return { matches, page: data.page, totalPages: data.total_pages };
 }
 

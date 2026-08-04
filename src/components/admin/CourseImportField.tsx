@@ -10,6 +10,8 @@ interface ClubResult {
   city?: string;
   county?: string;
   postcode?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface CourseResult {
@@ -77,6 +79,7 @@ export const CourseImportField: UIFieldClientComponent = () => {
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [clubs, setClubs] = useState<ClubResult[] | null>(null);
+  const [selectedClub, setSelectedClub] = useState<ClubResult | null>(null);
   const [courses, setCourses] = useState<CourseResult[] | null>(null);
   const [scorecard, setScorecard] = useState<ScorecardResult | null>(null);
   const [imported, setImported] = useState(false);
@@ -104,6 +107,7 @@ export const CourseImportField: UIFieldClientComponent = () => {
     setCourses(null);
     setScorecard(null);
     setClubs([]);
+    setSelectedClub(null);
     stopRequested.current = false;
 
     const trimmedQuery = encodeURIComponent(query.trim());
@@ -139,6 +143,7 @@ export const CourseImportField: UIFieldClientComponent = () => {
     setErrorMessage("");
     setClubs(null);
     setScorecard(null);
+    setSelectedClub(club);
     try {
       const { courses: results } = await callApi<{ courses: CourseResult[] }>(`/api/uk-golf-api/courses?clubId=${club.id}`);
       setCourses(results);
@@ -184,6 +189,12 @@ export const CourseImportField: UIFieldClientComponent = () => {
     if (scorecard.slopeRating !== undefined) {
       dispatchFields({ type: "UPDATE", path: "slopeRating", value: scorecard.slopeRating });
     }
+    if (selectedClub?.latitude !== undefined) {
+      dispatchFields({ type: "UPDATE", path: "latitude", value: selectedClub.latitude });
+    }
+    if (selectedClub?.longitude !== undefined) {
+      dispatchFields({ type: "UPDATE", path: "longitude", value: selectedClub.longitude });
+    }
 
     setImported(true);
     setScorecard(null);
@@ -206,6 +217,7 @@ export const CourseImportField: UIFieldClientComponent = () => {
           onClick={() => {
             setOpen(false);
             setClubs(null);
+            setSelectedClub(null);
             setCourses(null);
             setScorecard(null);
             setErrorMessage("");
@@ -218,7 +230,7 @@ export const CourseImportField: UIFieldClientComponent = () => {
 
       {imported ? (
         <p style={{ fontSize: 13, color: "var(--theme-success-500)", marginBottom: 12 }}>
-          Imported — review the Hole Setup table below (and course rating/slope above it), then save.
+          Imported — review the Hole Setup table below (course rating/slope above it, map location above that), then save.
         </p>
       ) : null}
 
