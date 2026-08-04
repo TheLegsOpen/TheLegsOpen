@@ -91,12 +91,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
   return (
     <>
-      <section className="relative w-full overflow-hidden text-primary-foreground">
-        <PlaceholderArt label={`${player.name} at Seabrook Old Course`} imageUrl={banners.playerProfileUrl} tone="navy" fill />
-        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.8)_45%,rgba(0,0,0,0.25)_75%,rgba(0,0,0,0.05)_100%)]" />
-
+      <section className="relative w-full overflow-hidden bg-primary text-primary-foreground">
         {/* Fixed min-height (430px) rather than PageHero's viewport-relative 60vh -- this hero carries a stat column + large portrait rather than just title/description, so it needs to grow with content instead of cropping it, and a fixed value keeps it from ballooning on tall viewports. */}
-        {/* No z-index here (unlike other photo heroes) -- it would isolate the portrait's mix-blend-mode into its own stacking context, cutting it off from the actual hero photo it needs to blend against. Plain DOM order already paints this after (on top of) the absolute hero photo/gradient siblings above, so z-10 was redundant anyway. */}
+        {/* No z-index here -- it would isolate the portrait's mix-blend-mode into its own stacking context, cutting it off from the section's own bg-primary it needs to blend against. Plain DOM order already paints this on top, so z-10 is unnecessary. */}
         <Container className="relative flex min-h-[430px] flex-col justify-between gap-10 py-10 sm:py-14">
           <div className="flex flex-col gap-2">
             <Breadcrumbs
