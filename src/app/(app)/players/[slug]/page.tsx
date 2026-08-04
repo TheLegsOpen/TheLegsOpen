@@ -116,7 +116,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
             <div className="order-first flex justify-center lg:order-2 lg:self-end">
               <div className="relative h-[280px] w-[230px] sm:h-[360px] sm:w-[290px] lg:h-[440px] lg:w-[340px]">
-                <PlaceholderArt label={`${player.name} portrait`} imageUrl={player.photoUrl} tone="slate" fade fill />
+                <PlaceholderArt label={`${player.name} portrait`} imageUrl={player.photoUrl} tone="slate" fill />
               </div>
             </div>
 
