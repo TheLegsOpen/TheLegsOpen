@@ -31,7 +31,14 @@ export function SectionHeading({
           {eyebrow}
         </span>
       ) : null}
-      <h2 className="font-display font-bold text-display-md text-balance">{title}</h2>
+      <h2
+        className={cn(
+          "w-fit border-b-2 border-accent pb-2 font-display text-[28px] font-semibold uppercase leading-[normal] tracking-[0.672px] text-balance",
+          isDark ? "text-white" : "text-foreground",
+        )}
+      >
+        {title}
+      </h2>
       {description ? (
         <p
           className={cn(
