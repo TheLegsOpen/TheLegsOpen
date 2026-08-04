@@ -42,18 +42,28 @@ export function Hero({ currentChampion: CURRENT_CHAMPION, clockConfig, weather }
               <span className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
                 {ordinal(CURRENT_CHAMPION.championshipNumber)} {SITE.name} Champion
               </span>
-              <h1 className="font-display font-bold text-display-lg text-balance">
+              <h1 className="font-display text-[36px] font-semibold leading-[normal] tracking-[0.864px] text-white text-balance">
                 {CURRENT_CHAMPION.winnerName.split(" ")[0]}&rsquo;s coastal masterclass
               </h1>
-              <p className="max-w-lg text-sm text-white/85 sm:text-base">
+              <p className="max-w-lg font-sans text-[20px] font-normal leading-[24px] tracking-[0px] text-white">
                 {CURRENT_CHAMPION.winnerName} held off the chasing pack at {CURRENT_CHAMPION.venueName} to lift the
                 Claret Vase for the first time, closing at {Math.abs(CURRENT_CHAMPION.scoreToPar)} under par.
               </p>
               <div className="flex flex-wrap gap-3 pt-1">
-                <Button asChild variant="accent" size="default">
+                <Button
+                  asChild
+                  variant="accent"
+                  size="default"
+                  className="font-sans text-[17px] font-bold uppercase leading-[20.4px] tracking-[0.3px]"
+                >
                   <Link href={`/latest/${CURRENT_CHAMPION.articleSlug}`}>Read the story</Link>
                 </Button>
-                <Button asChild variant="outline" size="default" className="border-white/40 text-white hover:bg-white/10">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="default"
+                  className="border-white/40 font-sans text-[17px] font-bold uppercase leading-[20.4px] tracking-[0.3px] text-white hover:bg-white/10"
+                >
                   <Link href="/leaderboard">View full leaderboard</Link>
                 </Button>
               </div>
