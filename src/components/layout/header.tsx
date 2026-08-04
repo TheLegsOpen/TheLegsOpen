@@ -29,16 +29,11 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 bg-primary text-primary-foreground transition-shadow duration-300 ease-standard",
+        "sticky top-0 z-30 h-[60px] w-full bg-primary text-primary-foreground transition-shadow duration-300 ease-standard",
         isScrolled && "shadow-header",
       )}
     >
-      <Container
-        className={cn(
-          "flex items-center justify-between gap-6 transition-[padding] duration-300 ease-standard",
-          isScrolled ? "py-3" : "py-4",
-        )}
-      >
+      <Container className="flex h-full items-center justify-between gap-6">
         <Link href="/" className="flex items-center gap-2 font-display text-xl tracking-tight sm:text-2xl">
           {logoUrl ? (
             <Image src={logoUrl} alt="" width={36} height={36} className="h-9 w-9 rounded-full object-contain" />
