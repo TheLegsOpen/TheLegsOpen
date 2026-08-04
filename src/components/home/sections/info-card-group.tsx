@@ -77,10 +77,16 @@ export function InfoCardGroup({ section }: { section: InfoCardGroupSection }) {
                   <PlaceholderArt label={card.title} imageUrl={card.imageUrl} tone={card.tone} ratio="16/9" />
                   <div className="flex flex-1 flex-col justify-between gap-4">
                     <div>
-                      <h3 className="font-display font-bold text-lg">{card.title}</h3>
-                      {card.description ? <p className="mt-1 text-sm text-primary-foreground/70">{card.description}</p> : null}
+                      <h3 className="font-sans text-[24px] font-light capitalize leading-[28.8px] tracking-[0px] text-[#d9d9d9]">
+                        {card.title}
+                      </h3>
+                      {card.description ? (
+                        <p className="mt-1 font-sans text-[16px] font-light leading-[19px] tracking-[0px] text-white">
+                          {card.description}
+                        </p>
+                      ) : null}
                     </div>
-                    <span className="inline-flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-accent">
+                    <span className="inline-flex w-fit items-center gap-1.5 bg-accent px-4 py-2 font-sans text-[17px] font-light uppercase leading-[20.4px] tracking-[0.3px] text-[#06051e]">
                       {card.linkLabel}
                       <ArrowUpRight className="h-4 w-4 transition-transform duration-200 ease-standard group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                     </span>
