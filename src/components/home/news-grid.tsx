@@ -29,7 +29,7 @@ export function NewsGrid({ initialArticles, initialHasMore }: { initialArticles:
   }
 
   return (
-    <section className="bg-surface-dark bg-dashboard-pattern py-16 text-surface-dark-foreground sm:py-24">
+    <section className="bg-surface-dark py-16 text-surface-dark-foreground sm:py-24">
       <Container className="flex flex-col gap-10">
         <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
           <SectionHeading

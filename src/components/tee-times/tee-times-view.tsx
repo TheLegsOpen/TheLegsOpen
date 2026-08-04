@@ -60,7 +60,7 @@ export function TeeTimesView({
 
   return (
     <>
-      <div className="bg-surface-dark bg-dashboard-pattern text-surface-dark-foreground">
+      <div className="bg-surface-dark text-surface-dark-foreground">
         <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_320px] lg:items-start">
           <div>
             <div className={cn("mb-8 flex flex-wrap items-center gap-4", showTeeFilter ? "justify-between" : "justify-end")}>

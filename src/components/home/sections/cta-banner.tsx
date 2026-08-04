@@ -6,7 +6,7 @@ import type { CtaBannerSection } from "@/types/homepage-section";
 
 const TONE_CLASSES = {
   light: "bg-background text-foreground",
-  dark: "bg-surface-dark bg-dashboard-pattern text-surface-dark-foreground",
+  dark: "bg-surface-dark text-surface-dark-foreground",
   gold: "bg-accent text-accent-foreground",
 } as const;
 

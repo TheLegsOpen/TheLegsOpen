@@ -91,7 +91,7 @@ export function LeaderboardView({
 
   return (
     <Tabs defaultValue="main">
-      <div className="bg-surface-dark bg-dashboard-pattern text-surface-dark-foreground">
+      <div className="bg-surface-dark text-surface-dark-foreground">
         <Container className="py-12 sm:py-16">
           <div
             className={cn(

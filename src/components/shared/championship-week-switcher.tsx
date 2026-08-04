@@ -16,7 +16,7 @@ export function ChampionshipWeekSwitcher() {
   const pathname = usePathname();
 
   return (
-    <div className="bg-primary bg-dashboard-pattern py-3">
+    <div className="bg-primary py-3">
       <Container>
         <div role="tablist" aria-label="Championship week" className="inline-flex gap-1 rounded-full border border-primary-foreground/15 bg-primary-foreground/10 p-1">
           {TABS.map((tab) => {
