@@ -23,6 +23,8 @@ export interface PageBanners {
   statisticsEyebrow: string;
   statisticsTitle: string;
   statisticsDescription: string;
+  playerProfileUrl?: string;
+  playerProfileEyebrow: string;
 }
 
 const DEFAULTS = {
@@ -40,6 +42,7 @@ const DEFAULTS = {
   statisticsEyebrow: "Championship Week",
   statisticsTitle: "Statistics",
   statisticsDescription: "Scoring statistics computed live from every player's scorecard.",
+  playerProfileEyebrow: "Player Profile",
 } as const;
 
 export async function getPageBanners(): Promise<PageBanners> {
@@ -66,5 +69,7 @@ export async function getPageBanners(): Promise<PageBanners> {
     statisticsEyebrow: settings.statisticsEyebrow || DEFAULTS.statisticsEyebrow,
     statisticsTitle: settings.statisticsTitle || DEFAULTS.statisticsTitle,
     statisticsDescription: settings.statisticsDescription || DEFAULTS.statisticsDescription,
+    playerProfileUrl: mediaUrl(settings.playerProfile),
+    playerProfileEyebrow: settings.playerProfileEyebrow || DEFAULTS.playerProfileEyebrow,
   };
 }

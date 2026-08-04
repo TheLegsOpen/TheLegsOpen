@@ -455,6 +455,8 @@ export interface PageBannersGlobal {
   statisticsEyebrow?: string | null;
   statisticsTitle?: string | null;
   statisticsDescription?: string | null;
+  playerProfile?: (string | Media) | null;
+  playerProfileEyebrow?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }

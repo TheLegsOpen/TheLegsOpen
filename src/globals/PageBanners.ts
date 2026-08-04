@@ -76,5 +76,19 @@ export const PageBanners: GlobalConfig = {
         { name: "statisticsDescription", type: "textarea", label: "Description" },
       ],
     },
+    {
+      type: "collapsible",
+      label: "Player Profiles",
+      fields: [
+        {
+          name: "playerProfile",
+          type: "upload",
+          relationTo: "media",
+          label: "Banner Image",
+          admin: { description: `${RECOMMENDED} Used behind the stat row and portrait at the top of every player's profile page.` },
+        },
+        { name: "playerProfileEyebrow", type: "text", label: "Eyebrow" },
+      ],
+    },
   ],
 };

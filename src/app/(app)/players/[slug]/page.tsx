@@ -15,6 +15,7 @@ import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
 import { getTeeTimes } from "@/lib/data/tee-times";
 import { getArticles } from "@/lib/data/articles";
 import { getSiteTheme } from "@/lib/data/site-theme";
+import { getPageBanners } from "@/lib/data/page-banners";
 import { formatToPar } from "@/lib/leaderboard";
 import { cn } from "@/lib/utils";
 import type { Article } from "@/types/article";
@@ -52,12 +53,13 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   const player = await getPlayerBySlug(slug);
   if (!player) notFound();
 
-  const [mainLeaderboard, teeTimeRounds, performances, allArticles, theme] = await Promise.all([
+  const [mainLeaderboard, teeTimeRounds, performances, allArticles, theme, banners] = await Promise.all([
     getCompetitionLeaderboard("main"),
     getTeeTimes(),
     getPlayerPerformances(player),
     getArticles(),
     getSiteTheme(),
+    getPageBanners(),
   ]);
 
   const entry = mainLeaderboard.find((e) => e.player.id === player.id);
@@ -91,11 +93,16 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
   return (
     <>
-      <section className="bg-primary text-primary-foreground">
-        <Container className="flex flex-col gap-8 py-10 sm:py-14">
+      <section className="relative w-full overflow-hidden text-primary-foreground">
+        <PlaceholderArt label={`${player.name} at Seabrook Old Course`} imageUrl={banners.playerProfileUrl} tone="navy" fill />
+        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.8)_45%,rgba(0,0,0,0.25)_75%,rgba(0,0,0,0.05)_100%)]" />
+
+        {/* min-height, not PageHero's fixed h-[60vh] -- this hero carries a stat grid + portrait rather than just title/description, so it needs to grow with content instead of cropping it. Still keyed to the same 60vh used by other "large" PageHero pages (venues, club) for visual consistency. */}
+        <Container className="relative z-10 flex min-h-[60vh] flex-col justify-end gap-8 py-10 sm:py-14">
           <Breadcrumbs
             items={[{ label: "Home", href: "/" }, { label: "Leaderboard", href: "/leaderboard" }, { label: player.name }]}
           />
+          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">{banners.playerProfileEyebrow}</span>
           {winYears.length > 0 ? (
             <div className="flex w-fit items-center gap-3 border-l-4 border-accent bg-primary-foreground/5 py-2 pl-4 pr-6">
               {theme.championBadgeUrl ? (
