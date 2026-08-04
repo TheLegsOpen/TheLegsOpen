@@ -36,10 +36,10 @@ export function InfoCardGroup({ section }: { section: InfoCardGroupSection }) {
   return (
     <section className="bg-surface-dark py-16 text-surface-dark-foreground sm:py-24">
       <Container className="flex flex-col gap-10">
-        <div className="flex items-end justify-between gap-6">
-          <SectionHeading tone="dark" eyebrow={section.eyebrow} title={section.heading} />
+        <div className="relative flex w-full flex-col items-center gap-4">
+          <SectionHeading tone="dark" eyebrow={section.eyebrow} title={section.heading} align="center" />
           {section.cards.length > 1 ? (
-            <div className="flex shrink-0 gap-2">
+            <div className="flex shrink-0 gap-2 sm:absolute sm:right-0 sm:top-0">
               <button
                 type="button"
                 aria-label="Previous"
