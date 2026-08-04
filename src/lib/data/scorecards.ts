@@ -97,7 +97,9 @@ async function loadLeaderboardInputs(
       collection: "scorecards",
       where: { championship: { equals: championship.id } },
       limit: 300,
-      depth: 1,
+      // depth 2, not 1 -- resolves each scorecard's player relation *and* that player's own
+      // photo relation, otherwise photo comes back as a bare ID and player-popup can't show it.
+      depth: 2,
       req,
     }),
     payload.find({

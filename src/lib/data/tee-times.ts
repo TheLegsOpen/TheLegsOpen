@@ -16,7 +16,9 @@ export async function getTeeTimes(): Promise<TeeTimeRound[]> {
     collection: "tee-time-rounds",
     where: { archived: { not_equals: true } },
     sort: "id",
-    depth: 1,
+    // depth 2, not 1 -- players are nested inside groups (1 level), so resolving each
+    // player's own photo relationship needs a second level or it comes back as a bare ID.
+    depth: 2,
     limit: 50,
   });
 
