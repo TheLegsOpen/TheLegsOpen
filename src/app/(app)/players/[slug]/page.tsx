@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Trophy } from "lucide-react";
 
-import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { Container } from "@/components/shared/container";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { CountryFlag } from "@/components/shared/country-flag";
@@ -15,7 +14,6 @@ import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
 import { getTeeTimes } from "@/lib/data/tee-times";
 import { getArticles } from "@/lib/data/articles";
 import { getSiteTheme } from "@/lib/data/site-theme";
-import { getPageBanners } from "@/lib/data/page-banners";
 import { formatToPar } from "@/lib/leaderboard";
 import { cn } from "@/lib/utils";
 import type { Article } from "@/types/article";
@@ -44,13 +42,12 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   const player = await getPlayerBySlug(slug);
   if (!player) notFound();
 
-  const [mainLeaderboard, teeTimeRounds, performances, allArticles, theme, banners] = await Promise.all([
+  const [mainLeaderboard, teeTimeRounds, performances, allArticles, theme] = await Promise.all([
     getCompetitionLeaderboard("main"),
     getTeeTimes(),
     getPlayerPerformances(player),
     getArticles(),
     getSiteTheme(),
-    getPageBanners(),
   ]);
 
   const entry = mainLeaderboard.find((e) => e.player.id === player.id);
@@ -92,28 +89,21 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   return (
     <>
       <section className="relative w-full overflow-hidden bg-primary text-primary-foreground">
-        {/* Fixed min-height (430px) rather than PageHero's viewport-relative 60vh -- this hero carries a stat column + large portrait rather than just title/description, so it needs to grow with content instead of cropping it, and a fixed value keeps it from ballooning on tall viewports. */}
+        {/* Fixed height only from lg up (430px) -- below that the grid stacks to a single column, and a fixed height would clip the stacked content. No breadcrumbs/eyebrow here by request, so this is just the stat/portrait/badge row, vertically centered in the banner. */}
         {/* No z-index here -- it would isolate the portrait's mix-blend-mode into its own stacking context, cutting it off from the section's own bg-primary it needs to blend against. Plain DOM order already paints this on top, so z-10 is unnecessary. */}
-        <Container className="relative flex min-h-[430px] flex-col justify-between gap-10 py-10 sm:py-14">
-          <div className="flex flex-col gap-2">
-            <Breadcrumbs
-              items={[{ label: "Home", href: "/" }, { label: "Leaderboard", href: "/leaderboard" }, { label: player.name }]}
-            />
-            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">{banners.playerProfileEyebrow}</span>
-          </div>
-
-          <div className="grid items-end gap-10 lg:grid-cols-[minmax(0,220px)_1fr_minmax(0,220px)]">
-            <div className="flex flex-col gap-5 lg:order-1">
+        <Container className="relative flex h-auto items-center py-10 lg:h-[430px] lg:py-0">
+          <div className="grid w-full items-end gap-8 lg:grid-cols-[minmax(0,220px)_1fr_minmax(0,220px)]">
+            <div className="flex flex-col gap-4 lg:order-1">
               {stats.map((stat) => (
                 <div key={stat.label} className="border-l-2 border-accent pl-4">
                   <p className="text-xs uppercase tracking-wide text-primary-foreground/60">{stat.label}</p>
-                  <p className="font-display text-2xl font-bold sm:text-3xl">{stat.value}</p>
+                  <p className="font-display text-xl font-bold sm:text-2xl">{stat.value}</p>
                 </div>
               ))}
             </div>
 
             <div className="order-first flex justify-center lg:order-2 lg:self-end">
-              <div className="relative h-[280px] w-[230px] sm:h-[360px] sm:w-[290px] lg:h-[440px] lg:w-[340px]">
+              <div className="relative h-[220px] w-[180px] sm:h-[260px] sm:w-[210px] lg:h-[300px] lg:w-[240px]">
                 <PlaceholderArt label={`${player.name} portrait`} imageUrl={player.photoUrl} tone="slate" blendBlack fill />
               </div>
             </div>
@@ -131,7 +121,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                 </div>
                 <div className="flex flex-col leading-tight">
                   {winYears.map((year) => (
-                    <span key={year} className="font-display text-2xl font-bold sm:text-3xl">
+                    <span key={year} className="font-display text-xl font-bold sm:text-2xl">
                       {year}
                     </span>
                   ))}
