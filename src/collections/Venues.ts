@@ -92,6 +92,15 @@ export const Venues: CollectionConfig = {
       },
       fields: [
         {
+          name: "courseImport",
+          type: "ui",
+          admin: {
+            components: {
+              Field: "/components/admin/CourseImportField#CourseImportField",
+            },
+          },
+        },
+        {
           type: "row",
           fields: [
             {
