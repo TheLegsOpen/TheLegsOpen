@@ -128,6 +128,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
               imageUrl={player.photoUrl}
               tone="slate"
               ratio="4/3"
+              fade
               className="lg:justify-self-end"
             />
           </div>

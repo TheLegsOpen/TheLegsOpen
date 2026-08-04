@@ -27,6 +27,13 @@ interface PlaceholderArtProps {
   showCaption?: boolean;
   /** Fill the parent element (absolute inset-0) instead of sizing by `ratio`. */
   fill?: boolean;
+  /**
+   * Soft-fades the image's own edges to transparent instead of showing a hard rectangle.
+   * For a real uploaded photo (imageUrl) placed over a dark hero, this hides the photo's
+   * own background (sky, studio backdrop, whatever the photographer had) without actually
+   * cutting it out -- CSS can't do true background removal, only disguise the seam.
+   */
+  fade?: boolean;
 }
 
 /**
@@ -36,23 +43,24 @@ interface PlaceholderArtProps {
  * renders of the same card stable across the server/client boundary.
  * Renders an admin-uploaded `imageUrl` instead when one is set.
  */
-export function PlaceholderArt({ label, imageUrl, tone = "navy", ratio = "4/3", className, showCaption = false, fill = false }: PlaceholderArtProps) {
+export function PlaceholderArt({ label, imageUrl, tone = "navy", ratio = "4/3", className, showCaption = false, fill = false, fade = false }: PlaceholderArtProps) {
   const seed = hashSeed(label);
   const [dark, mid, light] = TONES[tone];
   const horizon = 55 + (seed % 15);
   const sunX = 20 + (seed % 60);
   const gradientId = `pa-grad-${seed}`;
+  const edgeFade = fade && imageUrl ? { maskImage: "radial-gradient(closest-side, black 75%, transparent 100%)", WebkitMaskImage: "radial-gradient(closest-side, black 75%, transparent 100%)" } : undefined;
 
   return (
     <div
-      className={cn("relative overflow-hidden bg-muted", fill ? "absolute inset-0" : "rounded-lg", className)}
-      style={fill ? undefined : { aspectRatio: ratio.replace("/", " / ") }}
+      className={cn("relative overflow-hidden", edgeFade ? "bg-transparent" : "bg-muted", fill ? "absolute inset-0" : "rounded-lg", className)}
+      style={fill ? edgeFade : { aspectRatio: ratio.replace("/", " / "), ...edgeFade }}
       role="img"
       aria-label={label}
     >
       {imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={imageUrl} alt={label} className="h-full w-full object-cover" />
+        <img src={imageUrl} alt={label} className={cn("h-full w-full object-cover", edgeFade && "scale-110")} />
       ) : (
         <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
           <defs>
