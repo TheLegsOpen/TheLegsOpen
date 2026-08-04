@@ -34,7 +34,10 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
       )}
     >
       <Container className="flex h-full items-center justify-between gap-10">
-        <Link href="/" className="flex shrink-0 items-center gap-2 font-display text-xl tracking-tight sm:text-2xl">
+        <Link
+          href="/"
+          className="flex shrink-0 items-center gap-2 font-menu text-[17px] font-black uppercase leading-[16px] tracking-[1.6px] text-white no-underline"
+        >
           {logoUrl ? (
             <Image src={logoUrl} alt="" width={36} height={36} className="h-9 w-9 rounded-full object-contain" />
           ) : (
