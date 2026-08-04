@@ -33,8 +33,8 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         isScrolled && "shadow-header",
       )}
     >
-      <Container className="flex h-full items-center justify-between gap-6">
-        <Link href="/" className="flex items-center gap-2 font-display text-xl tracking-tight sm:text-2xl">
+      <Container className="flex h-full items-center justify-between gap-10">
+        <Link href="/" className="flex shrink-0 items-center gap-2 font-display text-xl tracking-tight sm:text-2xl">
           {logoUrl ? (
             <Image src={logoUrl} alt="" width={36} height={36} className="h-9 w-9 rounded-full object-contain" />
           ) : (
@@ -46,7 +46,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
         </Link>
 
         <nav aria-label="Primary" className="hidden lg:block">
-          <ul className="flex items-center gap-1">
+          <ul className="flex items-center gap-8">
             {PRIMARY_NAV.map((section) => {
               const active = isActive(section.href);
               return (
@@ -55,7 +55,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
                     href={section.href}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "block border-b-2 border-transparent px-3.5 py-2 font-menu text-sm font-bold uppercase tracking-wide transition-colors hover:text-accent",
+                      "block border-b-2 border-transparent py-2 font-menu text-sm font-bold uppercase leading-[16.1px] tracking-[1.6px] text-white no-underline transition-colors hover:text-accent",
                       active && "border-accent text-accent",
                     )}
                   >
@@ -72,7 +72,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             <Link
               key={section.label}
               href={section.href}
-              className="hidden px-3 font-menu text-sm font-bold uppercase tracking-wide transition-colors hover:text-accent sm:block"
+              className="hidden px-3 font-menu text-sm font-bold uppercase leading-[16.1px] tracking-[1.6px] text-white no-underline transition-colors hover:text-accent sm:block"
             >
               {section.label}
             </Link>
