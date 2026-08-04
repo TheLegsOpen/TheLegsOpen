@@ -39,15 +39,6 @@ export async function generateMetadata({ params }: PlayerPageProps): Promise<Met
   };
 }
 
-function StatCell({ label, value, first = false }: { label: string; value: string | number; first?: boolean }) {
-  return (
-    <div className={cn("flex flex-col gap-1", !first && "border-l border-primary-foreground/20 pl-6 sm:pl-10")}>
-      <span className="text-xs uppercase tracking-wide text-primary-foreground/60">{label}</span>
-      <span className="font-display text-2xl font-bold sm:text-3xl">{value}</span>
-    </div>
-  );
-}
-
 export default async function PlayerPage({ params }: PlayerPageProps) {
   const { slug } = await params;
   const player = await getPlayerBySlug(slug);
@@ -65,7 +56,14 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   const entry = mainLeaderboard.find((e) => e.player.id === player.id);
   const winYears = performances.filter((p) => p.finish === "Winner").map((p) => p.year);
   const debutYear = performances.length > 0 ? Math.min(...performances.map((p) => p.year)) : player.debutYear;
-  const bestFinish = performances.length > 0 ? performances.reduce((best, p) => (p.position < best.position ? p : best)).finish : undefined;
+
+  // "1 - 2015, 2016" rather than just "Winner" -- makes a repeat best finish (e.g. winning twice) visible at a glance instead of collapsing to one word.
+  const bestPosition = performances.length > 0 ? Math.min(...performances.map((p) => p.position)) : undefined;
+  const bestFinishYears = performances.filter((p) => p.position === bestPosition).sort((a, b) => a.year - b.year);
+  const bestFinish =
+    bestFinishYears.length > 0
+      ? `${bestPosition === 1 ? "1" : bestFinishYears[0].finish} - ${bestFinishYears.map((p) => p.year).join(", ")}`
+      : undefined;
 
   const teeTimes = teeTimeRounds.flatMap((round) =>
     round.groups
@@ -97,40 +95,51 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         <PlaceholderArt label={`${player.name} at Seabrook Old Course`} imageUrl={banners.playerProfileUrl} tone="navy" fill />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.8)_45%,rgba(0,0,0,0.25)_75%,rgba(0,0,0,0.05)_100%)]" />
 
-        {/* min-height, not PageHero's fixed h-[60vh] -- this hero carries a stat grid + portrait rather than just title/description, so it needs to grow with content instead of cropping it. Still keyed to the same 60vh used by other "large" PageHero pages (venues, club) for visual consistency. */}
-        <Container className="relative z-10 flex min-h-[60vh] flex-col justify-end gap-8 py-10 sm:py-14">
-          <Breadcrumbs
-            items={[{ label: "Home", href: "/" }, { label: "Leaderboard", href: "/leaderboard" }, { label: player.name }]}
-          />
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">{banners.playerProfileEyebrow}</span>
-          {winYears.length > 0 ? (
-            <div className="flex w-fit items-center gap-3 border-l-4 border-accent bg-primary-foreground/5 py-2 pl-4 pr-6">
-              {theme.championBadgeUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={theme.championBadgeUrl} alt="" aria-hidden="true" className="h-6 w-6 shrink-0 object-contain" />
-              ) : (
-                <Trophy className="h-6 w-6 shrink-0 text-accent" aria-hidden="true" />
-              )}
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">Champion Golfer of the Year</p>
-                <p className="font-display text-2xl font-bold text-white sm:text-3xl">{winYears.join(" & ")}</p>
-              </div>
-            </div>
-          ) : null}
-          <div className="grid gap-8 lg:grid-cols-[1fr_320px] lg:items-center">
-            <div className="flex flex-wrap gap-x-6 gap-y-4 sm:gap-x-10">
-              {stats.map((stat, index) => (
-                <StatCell key={stat.label} label={stat.label} value={stat.value} first={index === 0} />
+        {/* min-height, not PageHero's fixed h-[60vh] -- this hero carries a stat column + large portrait rather than just title/description, so it needs to grow with content instead of cropping it. Still keyed to the same 60vh used by other "large" PageHero pages (venues, club) for visual consistency. */}
+        <Container className="relative z-10 flex min-h-[60vh] flex-col justify-between gap-10 py-10 sm:py-14">
+          <div className="flex flex-col gap-2">
+            <Breadcrumbs
+              items={[{ label: "Home", href: "/" }, { label: "Leaderboard", href: "/leaderboard" }, { label: player.name }]}
+            />
+            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">{banners.playerProfileEyebrow}</span>
+          </div>
+
+          <div className="grid items-end gap-10 lg:grid-cols-[minmax(0,220px)_1fr_minmax(0,220px)]">
+            <div className="flex flex-col gap-5 lg:order-1">
+              {stats.map((stat) => (
+                <div key={stat.label} className="border-l-2 border-accent pl-4">
+                  <p className="text-xs uppercase tracking-wide text-primary-foreground/60">{stat.label}</p>
+                  <p className="font-display text-2xl font-bold sm:text-3xl">{stat.value}</p>
+                </div>
               ))}
             </div>
-            <PlaceholderArt
-              label={`${player.name} portrait`}
-              imageUrl={player.photoUrl}
-              tone="slate"
-              ratio="4/3"
-              fade
-              className="lg:justify-self-end"
-            />
+
+            <div className="order-first flex justify-center lg:order-2 lg:self-end">
+              <div className="relative h-[280px] w-[230px] sm:h-[360px] sm:w-[290px] lg:h-[440px] lg:w-[340px]">
+                <PlaceholderArt label={`${player.name} portrait`} imageUrl={player.photoUrl} tone="slate" fade fill />
+              </div>
+            </div>
+
+            {winYears.length > 0 ? (
+              <div className="flex flex-col gap-2 border-l-2 border-accent pl-4 lg:order-3 lg:self-end">
+                <div className="flex items-center gap-2">
+                  {theme.championBadgeUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={theme.championBadgeUrl} alt="" aria-hidden="true" className="h-4 w-4 shrink-0 object-contain" />
+                  ) : (
+                    <Trophy className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+                  )}
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">Champion Golfer of the Year</p>
+                </div>
+                <div className="flex flex-col leading-tight">
+                  {winYears.map((year) => (
+                    <span key={year} className="font-display text-2xl font-bold sm:text-3xl">
+                      {year}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
         </Container>
       </section>
