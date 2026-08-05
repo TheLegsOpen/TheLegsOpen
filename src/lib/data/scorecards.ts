@@ -57,6 +57,14 @@ export async function getActiveChampionshipId(): Promise<string | undefined> {
   return championship?.id;
 }
 
+/** Whether the given venue is hosting the currently active championship -- only that venue has live hole-by-hole scoring data. */
+export async function isActiveChampionshipVenue(venueSlug: string): Promise<boolean> {
+  const payload = await getPayload({ config: configPromise });
+  const championship = await getActiveChampionship(payload);
+  const venue = championship && typeof championship.venue === "object" ? (championship.venue as PayloadVenue) : undefined;
+  return venue?.slug === venueSlug;
+}
+
 /** "12.00" or "08:12" -> minutes since midnight, for sorting not-yet-started players by tee time. Unparsable sorts last. */
 export function parseTeeTimeMinutes(time: string): number {
   const match = time.match(/(\d{1,2})[.:](\d{2})/);

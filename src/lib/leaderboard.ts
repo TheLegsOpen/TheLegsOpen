@@ -48,6 +48,12 @@ export function formatToPar(value: number): string {
   return value > 0 ? `+${value}` : `${value}`;
 }
 
+/** The round only has a final result once nobody who teed off is still out on course. */
+export function isConcluded(entries: { started: boolean; thru: string }[]): boolean {
+  const started = entries.filter((entry) => entry.started);
+  return started.length > 0 && started.every((entry) => entry.thru === "F");
+}
+
 /**
  * Deterministically synthesizes a plausible "places moved since the last
  * update" value (the data model is a point-in-time snapshot, not a feed of

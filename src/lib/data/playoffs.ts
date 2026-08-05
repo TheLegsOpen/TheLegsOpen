@@ -1,5 +1,5 @@
 import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
-import { formatToPar } from "@/lib/leaderboard";
+import { formatToPar, isConcluded } from "@/lib/leaderboard";
 import type { Competition, CompetitionEntry } from "@/lib/data/scorecards";
 import type { Player } from "@/types/player";
 
@@ -47,12 +47,6 @@ export interface PlayoffResult {
   stillTied: boolean;
   /** Players who'd otherwise be part of this tie but are barred from winning (the Main champion, for Stableford). */
   ineligible: Player[];
-}
-
-/** The round only has a final result once nobody who teed off is still out on course. */
-function isConcluded(entries: CompetitionEntry[]): boolean {
-  const started = entries.filter((entry) => entry.started);
-  return started.length > 0 && started.every((entry) => entry.thru === "F");
 }
 
 /**

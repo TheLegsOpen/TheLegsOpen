@@ -7,7 +7,7 @@ import { ArrowRight, Clock } from "lucide-react";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { useFavorites } from "@/hooks/use-favorites";
-import { formatToPar } from "@/lib/leaderboard";
+import { formatToPar, isConcluded } from "@/lib/leaderboard";
 import { cn, splitSurnameFirst } from "@/lib/utils";
 import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { RankedEntry } from "@/lib/data/playoffs";
@@ -28,6 +28,7 @@ interface LeaderboardWidgetProps {
   drivingCategories: StatCategory[];
   approachCategories: StatCategory[];
   puttingCategories: StatCategory[];
+  championBadgeUrl?: string;
 }
 
 export function LeaderboardWidget({
@@ -40,11 +41,13 @@ export function LeaderboardWidget({
   drivingCategories,
   approachCategories,
   puttingCategories,
+  championBadgeUrl,
 }: LeaderboardWidgetProps) {
   const top = entries.slice(0, WIDGET_ROW_COUNT);
   const { favorites, toggleFavorite } = useFavorites();
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [popupCompetition, setPopupCompetition] = useState<Competition>("main");
+  const concluded = isConcluded(entries);
 
   const selectedMain = entries.find((e) => e.player.id === selectedPlayerId);
   const selectedStableford = stableford.find((e) => e.player.id === selectedPlayerId);
@@ -101,6 +104,9 @@ export function LeaderboardWidget({
                           <span className="font-normal">, {firstName}</span>
                         </button>
                         <CountryFlag code={entry.player.countryCode} className="h-3 w-4 shrink-0 align-middle" />
+                        {concluded && entry.position === 1 && !entry.tied && championBadgeUrl ? (
+                          <img src={championBadgeUrl} alt="Champion" className="h-3.5 w-3.5 shrink-0 object-contain" />
+                        ) : null}
                       </div>
                       {entry.playoffNote ? (
                         <p

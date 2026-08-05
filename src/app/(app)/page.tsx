@@ -10,6 +10,7 @@ import { getCurrentChampion, getHomepageSections } from "@/lib/data/homepage-set
 import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
 import { getLiveBlogPosts } from "@/lib/data/live-blog";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
+import { getSiteTheme } from "@/lib/data/site-theme";
 import { getVenueWeather } from "@/lib/data/weather";
 import { getNewsTicker } from "@/lib/data/news-ticker";
 import { getPlayoffs, applyPlayoffToEntries } from "@/lib/data/playoffs";
@@ -43,6 +44,7 @@ export default async function HomePage() {
     drivingCategories,
     approachCategories,
     puttingCategories,
+    theme,
   ] = await Promise.all([
     getArticlesPage({ page: 1, pageSize: PAGE_SIZE }),
     getCurrentChampion(),
@@ -61,6 +63,7 @@ export default async function HomePage() {
     getDrivingCategories(),
     getApproachCategories(),
     getPuttingCategories(),
+    getSiteTheme(),
   ]);
 
   const leaderboard = applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main"));
@@ -83,6 +86,7 @@ export default async function HomePage() {
             drivingCategories={drivingCategories}
             approachCategories={approachCategories}
             puttingCategories={puttingCategories}
+            championBadgeUrl={theme.championBadgeUrl}
           />
           <LiveBlogWidget entries={liveBlogPosts} />
         </Container>

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PageHero } from "@/components/shared/page-hero";
@@ -8,12 +7,16 @@ import { CountryFlag } from "@/components/shared/country-flag";
 import { StatBlock } from "@/components/venues/stat-block";
 import { VenueGallery } from "@/components/venues/venue-gallery";
 import { VenueChampions, type VenueChampion } from "@/components/venues/venue-champions";
+import { VenueChampionshipCarousel } from "@/components/venues/venue-championship-carousel";
 import { ArticleCard } from "@/components/news/article-card";
+import { ToughestHolesBoard } from "@/components/statistics/toughest-holes-board";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getAllVenueSlugs, getVenueBySlug } from "@/lib/data/venues";
 import { getChampionshipsByVenueSlug } from "@/lib/data/championships";
 import { getPlayers } from "@/lib/data/players";
 import { getArticles } from "@/lib/data/articles";
+import { isActiveChampionshipVenue } from "@/lib/data/scorecards";
+import { getToughestHoles } from "@/lib/data/scoring-statistics";
 
 interface VenuePageProps {
   params: Promise<{ slug: string }>;
@@ -36,12 +39,17 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
   const venue = await getVenueBySlug(slug);
   if (!venue) notFound();
 
-  const [championshipsRaw, players, allArticles] = await Promise.all([
+  const [championshipsRaw, players, allArticles, isActiveVenue] = await Promise.all([
     getChampionshipsByVenueSlug(venue.slug),
     getPlayers(),
     getArticles(),
+    isActiveChampionshipVenue(venue.slug),
   ]);
+  const [toughestHolesNett, toughestHolesScratch] = isActiveVenue
+    ? await Promise.all([getToughestHoles("nett"), getToughestHoles("scratch")])
+    : [[], []];
   const championshipsHere = [...championshipsRaw].sort((a, b) => b.year - a.year);
+  const championshipsChronological = [...championshipsRaw].sort((a, b) => a.year - b.year);
 
   const playerByName = new Map(players.map((player) => [player.name, player]));
   const championsByKey = new Map<string, VenueChampion>();
@@ -94,7 +102,7 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
         <Tabs defaultValue="overview">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="course-card">Course Card</TabsTrigger>
+            <TabsTrigger value="course-card">Course Statistics</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="flex max-w-3xl flex-col gap-4 text-base leading-relaxed">
@@ -103,8 +111,20 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
             ))}
           </TabsContent>
 
-          <TabsContent value="course-card">
-            <StatBlock stats={venue.stats} />
+          <TabsContent value="course-card" className="flex flex-col gap-8">
+            {venue.stats.length > 0 ? <StatBlock stats={venue.stats} /> : null}
+            {isActiveVenue ? (
+              <div className="bg-surface-dark text-surface-dark-foreground">
+                <div className="flex flex-col gap-8 p-6">
+                  <ToughestHolesBoard title="Course Scoring - Nett" rows={toughestHolesNett} />
+                  <ToughestHolesBoard title="Course Scoring - Scratch" rows={toughestHolesScratch} />
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Hole-by-hole course scoring appears here once {venue.name} is hosting a live championship.
+              </p>
+            )}
           </TabsContent>
         </Tabs>
 
@@ -121,32 +141,17 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
           </div>
         ) : null}
 
-        {championshipsHere.length > 0 ? (
-          <div className="flex flex-col gap-6">
-            <h2 className="font-display font-bold text-2xl">The Legs Open at {venue.name}</h2>
-            <ul className="flex flex-col divide-y divide-border border-y border-border">
-              {championshipsHere.map((c) => (
-                <li key={c.year} className="flex items-center justify-between gap-4 py-4">
-                  <span className="w-16 shrink-0 font-display text-2xl font-bold text-muted-foreground">{c.year}</span>
-                  {c.winnerName ? (
-                    c.winnerPlayerSlug ? (
-                      <Link
-                        href={`/players/${c.winnerPlayerSlug}`}
-                        className="flex-1 font-display text-xl font-bold uppercase tracking-wide hover:text-accent hover:underline"
-                      >
-                        {c.winnerName}
-                      </Link>
-                    ) : (
-                      <span className="flex-1 font-display text-xl font-bold uppercase tracking-wide">{c.winnerName}</span>
-                    )
-                  ) : (
-                    <span className="flex-1 text-muted-foreground">TBD</span>
-                  )}
-                  <span className="shrink-0 text-sm text-muted-foreground">{c.margin ?? "—"}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+        {championshipsChronological.length > 0 ? (
+          <VenueChampionshipCarousel
+            venueName={venue.name}
+            entries={championshipsChronological.map((c) => ({
+              year: c.year,
+              winnerName: c.winnerName,
+              winnerPlayerSlug: c.winnerPlayerSlug,
+              margin: c.margin,
+              photoUrl: c.winnerName ? playerByName.get(c.winnerName)?.photoUrl : undefined,
+            }))}
+          />
         ) : (
           <p className="text-sm text-muted-foreground">{venue.name} has not yet hosted a recorded championship in our archive.</p>
         )}
