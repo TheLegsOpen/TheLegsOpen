@@ -1,13 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Clock } from "lucide-react";
 
 import { CountryFlag } from "@/components/shared/country-flag";
+import { PlayerPopup } from "@/components/leaderboard/player-popup";
+import { useFavorites } from "@/hooks/use-favorites";
 import { formatToPar } from "@/lib/leaderboard";
-import { cn, playerSlug, splitSurnameFirst } from "@/lib/utils";
+import { cn, splitSurnameFirst } from "@/lib/utils";
 import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { RankedEntry } from "@/lib/data/playoffs";
+import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
+import type { StatCategory } from "@/lib/statistics";
 
 const WIDGET_ROW_COUNT = 10;
 /** Denser padding than the full leaderboard's tiles, to suit the narrower homepage column. */
@@ -15,10 +20,36 @@ const COMPACT_TILE_CLASS = "px-1.5 py-0.5 min-w-0";
 
 interface LeaderboardWidgetProps {
   entries: RankedEntry[];
+  stableford: CompetitionEntry[];
+  scratch: CompetitionEntry[];
+  nettCategories: StatCategory[];
+  scratchCategories: StatCategory[];
+  streakCategories: StatCategory[];
+  drivingCategories: StatCategory[];
+  approachCategories: StatCategory[];
+  puttingCategories: StatCategory[];
 }
 
-export function LeaderboardWidget({ entries }: LeaderboardWidgetProps) {
+export function LeaderboardWidget({
+  entries,
+  stableford,
+  scratch,
+  nettCategories,
+  scratchCategories,
+  streakCategories,
+  drivingCategories,
+  approachCategories,
+  puttingCategories,
+}: LeaderboardWidgetProps) {
   const top = entries.slice(0, WIDGET_ROW_COUNT);
+  const { favorites, toggleFavorite } = useFavorites();
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [popupCompetition, setPopupCompetition] = useState<Competition>("main");
+
+  const selectedMain = entries.find((e) => e.player.id === selectedPlayerId);
+  const selectedStableford = stableford.find((e) => e.player.id === selectedPlayerId);
+  const selectedScratch = scratch.find((e) => e.player.id === selectedPlayerId);
+  const leaderToPar = entries[0]?.toPar ?? 0;
 
   return (
     <div className="flex h-full flex-col border border-surface-dark-foreground/15">
@@ -58,10 +89,17 @@ export function LeaderboardWidget({ entries }: LeaderboardWidgetProps) {
                     </td>
                     <td className="px-2 py-2">
                       <div className="flex items-center gap-1.5">
-                        <Link href={`/players/${playerSlug(entry.player)}`} className="truncate hover:underline">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedPlayerId(entry.player.id);
+                            setPopupCompetition("main");
+                          }}
+                          className="truncate hover:underline"
+                        >
                           <span className="font-bold">{surname}</span>
                           <span className="font-normal">, {firstName}</span>
-                        </Link>
+                        </button>
                         <CountryFlag code={entry.player.countryCode} className="h-3 w-4 shrink-0 align-middle" />
                       </div>
                       {entry.playoffNote ? (
@@ -110,6 +148,26 @@ export function LeaderboardWidget({ entries }: LeaderboardWidgetProps) {
         Full leaderboard
         <ArrowRight className="h-4 w-4" />
       </Link>
+
+      <PlayerPopup
+        main={selectedMain}
+        stableford={selectedStableford}
+        scratch={selectedScratch}
+        nettCategories={nettCategories}
+        scratchCategories={scratchCategories}
+        streakCategories={streakCategories}
+        drivingCategories={drivingCategories}
+        approachCategories={approachCategories}
+        puttingCategories={puttingCategories}
+        initialCompetition={popupCompetition}
+        leaderToPar={leaderToPar}
+        isFav={selectedPlayerId ? favorites.includes(selectedPlayerId) : false}
+        onToggleFavorite={() => selectedPlayerId && toggleFavorite(selectedPlayerId)}
+        open={!!selectedMain}
+        onOpenChange={(next) => {
+          if (!next) setSelectedPlayerId(null);
+        }}
+      />
     </div>
   );
 }
