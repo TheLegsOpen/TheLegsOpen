@@ -91,6 +91,12 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
       <section className="relative w-full overflow-hidden bg-primary text-primary-foreground">
         {/* Fixed height only from lg up (430px) -- below that the grid stacks to a single column, and a fixed height would clip the stacked content. No breadcrumbs/eyebrow here by request, so this is just the stat/portrait/badge row, vertically centered in the banner. */}
         {/* No z-index here -- it would isolate the portrait's mix-blend-mode into its own stacking context, cutting it off from the section's own bg-primary it needs to blend against. Plain DOM order already paints this on top, so z-10 is unnecessary. */}
+        {/* Desktop-only: anchored to the whole hero (not the badge column) so it reads as a full-height decorative element alongside the portrait, matching the earlier desktop treatment. Below lg there's no room for this, so the badge column gets its own smaller corner version instead. */}
+        {winYears.length > 0 && theme.championTrophyGraphicUrl ? (
+          <div className="pointer-events-none absolute bottom-0 right-0 hidden h-[300px] w-[240px] lg:block" aria-hidden="true">
+            <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill />
+          </div>
+        ) : null}
         <Container className="relative flex h-auto items-end py-10 lg:h-[430px] lg:py-0">
           <div className="grid w-full items-end gap-8 lg:grid-cols-[minmax(0,220px)_1fr_minmax(0,220px)]">
             <div className="flex flex-col gap-4 lg:order-1">
@@ -110,10 +116,10 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
             {winYears.length > 0 ? (
               <div className="relative flex flex-col gap-2 border-l-2 border-accent pl-4 lg:order-3 lg:self-end">
-                {/* Scoped to this column (not the whole hero) so it shows at every breakpoint, not just desktop -- matches theopen.com's player pages, where the trophy stays visible and tucked behind the champion text on mobile too. */}
+                {/* Mobile/tablet only -- scoped to this column since there's no room for the full-hero desktop version below lg. Matches theopen.com's player pages, where the trophy stays visible (just smaller, tucked behind the champion text) on mobile too, instead of disappearing entirely. */}
                 {theme.championTrophyGraphicUrl ? (
                   <div
-                    className="pointer-events-none absolute -right-3 -top-4 h-[110px] w-[90px] sm:h-[140px] sm:w-[115px] lg:h-[170px] lg:w-[135px]"
+                    className="pointer-events-none absolute -right-3 -top-4 h-[110px] w-[90px] sm:h-[140px] sm:w-[115px] lg:hidden"
                     aria-hidden="true"
                   >
                     <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill />
