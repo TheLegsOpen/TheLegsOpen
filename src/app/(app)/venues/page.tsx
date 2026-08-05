@@ -25,6 +25,7 @@ export default async function VenuesPage() {
     <>
       <PageHero
         variant="photo"
+        heightPx={292}
         imageLabel="Aerial view of a links course in the rotation"
         imageUrl={banners.venuesUrl}
         eyebrow={banners.venuesEyebrow}

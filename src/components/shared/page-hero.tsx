@@ -15,16 +15,21 @@ interface PageHeroProps {
   breadcrumbs?: Crumb[];
   /** "photo" gives landing-style pages the same full-bleed image treatment as the homepage hero. */
   variant?: "light" | "photo";
-  /** "large" (default) matches the homepage's cinematic hero. "compact" suits data-utility pages people check repeatedly (leaderboard, tee times, statistics) so the actual content sits higher on the page -- matches theopen.com/AIG Women's Open's own leaderboard header proportions. */
+  /** "large" (default) matches the homepage's cinematic hero. "compact" suits data-utility pages people check repeatedly (leaderboard, tee times, statistics) so the actual content sits higher on the page -- matches theopen.com/AIG Women's Open's own leaderboard header proportions. Ignored when `heightPx` is set. */
   size?: "large" | "compact";
+  /** Fixed height in pixels, overriding the vh-based `size` presets -- for a page that needs an exact height rather than one scaled to the viewport. */
+  heightPx?: number;
   imageLabel?: string;
   imageUrl?: string;
 }
 
-export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "light", size = "large", imageLabel, imageUrl }: PageHeroProps) {
+export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "light", size = "large", heightPx, imageLabel, imageUrl }: PageHeroProps) {
   if (variant === "photo") {
     return (
-      <section className={cn("relative w-full overflow-hidden", size === "compact" ? "h-[30vh] min-h-[220px]" : "h-[60vh] min-h-[420px]")}>
+      <section
+        className={cn("relative w-full overflow-hidden", !heightPx && (size === "compact" ? "h-[30vh] min-h-[220px]" : "h-[60vh] min-h-[420px]"))}
+        style={heightPx ? { height: heightPx } : undefined}
+      >
         <PlaceholderArt label={imageLabel ?? title} imageUrl={imageUrl} tone="navy" fill />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.8)_45%,rgba(0,0,0,0.25)_75%,rgba(0,0,0,0.05)_100%)]" />
 
