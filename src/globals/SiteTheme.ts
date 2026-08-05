@@ -65,6 +65,16 @@ export const SiteTheme: GlobalConfig = {
               "Shown next to the year(s) won on a champion's Field card and profile page. Falls back to a trophy icon when not set. Recommended: square, transparent background, at least 200×200px.",
           },
         },
+        {
+          name: "championTrophyGraphic",
+          type: "upload",
+          relationTo: "media",
+          label: "Champion Trophy Graphic",
+          admin: {
+            description:
+              "Large decorative trophy graphic shown on the right side of the hero on a champion's profile page, next to their Champion Golfer of the Year years -- matches theopen.com's Claret Jug treatment. Not shown at all when not set, or for players who haven't won. Recommended: tall image with a black/dark background so it blends into the hero without a visible edge.",
+          },
+        },
       ],
     },
     {

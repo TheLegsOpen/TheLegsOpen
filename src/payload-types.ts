@@ -380,6 +380,7 @@ export interface SiteThemeGlobal {
     logo?: (string | Media) | null;
     favicon?: (string | Media) | null;
     championBadge?: (string | Media) | null;
+    championTrophyGraphic?: (string | Media) | null;
   };
   fontPreset: 'fraunces-inter' | 'playfair-source-sans' | 'newsreader-manrope';
   updatedAt?: string | null;

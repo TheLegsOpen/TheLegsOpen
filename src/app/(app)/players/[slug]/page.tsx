@@ -91,6 +91,11 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
       <section className="relative w-full overflow-hidden bg-primary text-primary-foreground">
         {/* Fixed height only from lg up (430px) -- below that the grid stacks to a single column, and a fixed height would clip the stacked content. No breadcrumbs/eyebrow here by request, so this is just the stat/portrait/badge row, vertically centered in the banner. */}
         {/* No z-index here -- it would isolate the portrait's mix-blend-mode into its own stacking context, cutting it off from the section's own bg-primary it needs to blend against. Plain DOM order already paints this on top, so z-10 is unnecessary. */}
+        {winYears.length > 0 && theme.championTrophyGraphicUrl ? (
+          <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[320px] lg:block" aria-hidden="true">
+            <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill />
+          </div>
+        ) : null}
         <Container className="relative flex h-auto items-center py-10 lg:h-[430px] lg:py-0">
           <div className="grid w-full items-end gap-8 lg:grid-cols-[minmax(0,220px)_1fr_minmax(0,220px)]">
             <div className="flex flex-col gap-4 lg:order-1">
