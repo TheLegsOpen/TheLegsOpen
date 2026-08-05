@@ -84,6 +84,29 @@ export const Venues: CollectionConfig = {
       },
     },
     {
+      name: "gallery",
+      label: "Photo Gallery",
+      type: "array",
+      labels: { singular: "Photo", plural: "Photos" },
+      maxRows: 12,
+      admin: { description: "Powers the \"Pictures at [venue]\" slider on this venue's page. Add as many or as few as you like." },
+      fields: [
+        { name: "image", type: "upload", relationTo: "media", required: true },
+        { name: "caption", type: "text" },
+      ],
+    },
+    {
+      name: "featuredArticles",
+      label: "Featured Articles",
+      type: "relationship",
+      relationTo: "articles",
+      hasMany: true,
+      maxRows: 3,
+      admin: {
+        description: "Up to 3 articles to feature on this venue's page. Leave blank to hide the section entirely.",
+      },
+    },
+    {
       type: "collapsible",
       label: "Hole Setup",
       admin: {

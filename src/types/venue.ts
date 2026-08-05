@@ -3,6 +3,11 @@ export interface VenueStat {
   value: string;
 }
 
+export interface VenueGalleryPhoto {
+  imageUrl?: string;
+  caption?: string;
+}
+
 export interface Venue {
   slug: string;
   name: string;
@@ -19,4 +24,7 @@ export interface Venue {
   stats: VenueStat[];
   imageLabel: string;
   imageUrl?: string;
+  /** Optional, like Player.gallery/featuredArticleSlugs -- keeps the legacy src/data/venues.ts fixture objects (which predate these fields) type-valid. */
+  gallery?: VenueGalleryPhoto[];
+  featuredArticleSlugs?: string[];
 }

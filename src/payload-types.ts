@@ -248,6 +248,14 @@ export interface Venue {
     | null;
   imageLabel: string;
   image?: (string | Media) | null;
+  gallery?:
+    | {
+        image: string | Media;
+        caption?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  featuredArticles?: (string | Article)[] | null;
   courseRating?: number | null;
   slopeRating?: number | null;
   holes?:

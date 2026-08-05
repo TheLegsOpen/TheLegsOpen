@@ -27,6 +27,10 @@ export function mapVenue(doc: PayloadVenue): Venue {
     stats: (doc.stats ?? []).map((stat) => ({ label: stat.label, value: stat.value })),
     imageLabel: doc.imageLabel,
     imageUrl: mediaUrl(doc.image),
+    gallery: (doc.gallery ?? []).map((photo) => ({ imageUrl: mediaUrl(photo.image), caption: photo.caption ?? undefined })),
+    featuredArticleSlugs: (doc.featuredArticles ?? [])
+      .map((article) => (typeof article === "object" ? (article.slug ?? slugify(article.title)) : undefined))
+      .filter((slug): slug is string => Boolean(slug)),
   };
 }
 
