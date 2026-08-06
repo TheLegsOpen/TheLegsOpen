@@ -15,6 +15,7 @@ export interface ChampionshipWinner {
   winnerPlayerSlug?: string;
   winnerPlayerId?: string;
   winnerPlayerDateOfBirth?: string;
+  winnerPhotoUrl?: string;
   stablefordWinnerName?: string;
   stablefordWinnerCountry?: string;
   scratchWinnerName?: string;

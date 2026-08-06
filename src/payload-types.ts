@@ -306,6 +306,7 @@ export interface Championship {
   winnerName?: string | null;
   winnerCountry?: string | null;
   winnerPlayer?: (string | Player) | null;
+  winnerPhoto?: (string | Media) | null;
   winningScore?: number | null;
   scoreToPar?: number | null;
   margin?: string | null;

@@ -50,6 +50,16 @@ export const Championships: CollectionConfig = {
       admin: { description: "Optional — only set if this winner is also in the current Players collection." },
     },
     {
+      name: "winnerPhoto",
+      label: "Champion Photo (venue page override)",
+      type: "upload",
+      relationTo: "media",
+      admin: {
+        description:
+          "Optional. Shown for this champion on the venue's \"Champion Golfers at [venue]\" section instead of their usual player profile photo. Leave blank to fall back to the profile photo.",
+      },
+    },
+    {
       name: "winningScore",
       type: "number",
       admin: { description: "The champion's actual raw strokes for the round, e.g. 74." },

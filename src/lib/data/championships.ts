@@ -40,6 +40,7 @@ function mapChampionship(doc: PayloadChampionship): ChampionshipWinner {
     winnerPlayerSlug: winnerPlayer?.slug ?? undefined,
     winnerPlayerId: winnerPlayer?.id ? String(winnerPlayer.id) : undefined,
     winnerPlayerDateOfBirth: winnerPlayer?.dateOfBirth ?? undefined,
+    winnerPhotoUrl: mediaUrl(doc.winnerPhoto),
     stablefordWinnerName: doc.stablefordWinnerName ?? undefined,
     stablefordWinnerCountry: doc.stablefordWinnerCountry ?? undefined,
     scratchWinnerName: doc.scratchWinnerName ?? undefined,

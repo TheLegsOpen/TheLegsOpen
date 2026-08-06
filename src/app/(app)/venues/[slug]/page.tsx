@@ -8,6 +8,7 @@ import { StatBlock } from "@/components/venues/stat-block";
 import { VenueGallery } from "@/components/venues/venue-gallery";
 import { VenueChampions, type VenueChampion } from "@/components/venues/venue-champions";
 import { VenueChampionshipCarousel } from "@/components/venues/venue-championship-carousel";
+import { VenueChampionshipTimeline } from "@/components/venues/venue-championship-timeline";
 import { ArticleCard } from "@/components/news/article-card";
 import { ToughestHolesBoard } from "@/components/statistics/toughest-holes-board";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -65,7 +66,7 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
         key,
         name: c.winnerName,
         slug: c.winnerPlayerSlug,
-        photoUrl: playerByName.get(c.winnerName)?.photoUrl,
+        photoUrl: c.winnerPhotoUrl ?? playerByName.get(c.winnerName)?.photoUrl,
         years: [c.year],
       });
     }
@@ -142,16 +143,27 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
         ) : null}
 
         {championshipsChronological.length > 0 ? (
-          <VenueChampionshipCarousel
-            venueName={venue.name}
-            entries={championshipsChronological.map((c) => ({
-              year: c.year,
-              winnerName: c.winnerName,
-              winnerPlayerSlug: c.winnerPlayerSlug,
-              margin: c.margin,
-              photoUrl: c.winnerName ? playerByName.get(c.winnerName)?.photoUrl : undefined,
-            }))}
-          />
+          <>
+            <VenueChampionshipCarousel
+              venueName={venue.name}
+              entries={championshipsChronological.map((c) => ({
+                year: c.year,
+                winnerName: c.winnerName,
+                winnerPlayerSlug: c.winnerPlayerSlug,
+                margin: c.margin,
+                photoUrl: c.winnerName ? c.winnerPhotoUrl ?? playerByName.get(c.winnerName)?.photoUrl : undefined,
+              }))}
+            />
+            <VenueChampionshipTimeline
+              venueName={venue.name}
+              entries={championshipsChronological.map((c) => ({
+                year: c.year,
+                winnerName: c.winnerName,
+                winnerPlayerSlug: c.winnerPlayerSlug,
+                photoUrl: c.winnerName ? c.winnerPhotoUrl ?? playerByName.get(c.winnerName)?.photoUrl : undefined,
+              }))}
+            />
+          </>
         ) : (
           <p className="text-sm text-muted-foreground">{venue.name} has not yet hosted a recorded championship in our archive.</p>
         )}

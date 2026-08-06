@@ -42,7 +42,7 @@ export function VenueChampionshipCarousel({ venueName, entries }: { venueName: s
           <div className="flex">
             {entries.map((entry, index) => (
               <div key={index} className="min-w-0 flex-[0_0_100%]">
-                <div className="relative aspect-[16/9] w-full overflow-hidden bg-primary">
+                <div className="relative aspect-[21/9] w-full overflow-hidden bg-primary">
                   <PlaceholderArt
                     label={entry.winnerName ? `${entry.winnerName} portrait` : `${entry.year} champion not yet recorded`}
                     imageUrl={entry.photoUrl}
@@ -50,24 +50,21 @@ export function VenueChampionshipCarousel({ venueName, entries }: { venueName: s
                     blendBlack
                     fill
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1 p-6 text-white">
-                    <span className="font-display text-4xl font-bold">{entry.year}</span>
+                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 flex items-baseline gap-2 p-4 text-sm text-white sm:p-5">
+                    <span className="font-semibold tabular-nums text-accent">{entry.year}</span>
                     {entry.winnerName ? (
                       entry.winnerPlayerSlug ? (
-                        <Link
-                          href={`/players/${entry.winnerPlayerSlug}`}
-                          className="w-fit font-display text-xl font-bold uppercase tracking-wide hover:text-accent hover:underline"
-                        >
+                        <Link href={`/players/${entry.winnerPlayerSlug}`} className="hover:underline">
                           {entry.winnerName}
                         </Link>
                       ) : (
-                        <span className="font-display text-xl font-bold uppercase tracking-wide">{entry.winnerName}</span>
+                        <span>{entry.winnerName}</span>
                       )
                     ) : (
                       <span className="text-white/70">TBD</span>
                     )}
-                    {entry.margin ? <span className="text-sm text-white/70">{entry.margin}</span> : null}
+                    {entry.margin ? <span className="text-white/60">· {entry.margin}</span> : null}
                   </div>
                 </div>
               </div>
