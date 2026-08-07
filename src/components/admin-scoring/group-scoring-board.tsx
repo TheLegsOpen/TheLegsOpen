@@ -49,6 +49,7 @@ function GroupCard({ group, holeInfos }: { group: ScoringGroup; holeInfos: HoleI
     Object.fromEntries(group.players.map((p) => [p.scorecardId, [...p.holes]])),
   );
   const [status, setStatus] = useState<SaveStatus>("idle");
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const allComplete = group.players.every((p) => rows[p.scorecardId]?.every((v) => v != null));
 
@@ -73,6 +74,7 @@ function GroupCard({ group, holeInfos }: { group: ScoringGroup; holeInfos: HoleI
 
   async function handleSave() {
     setStatus("saving");
+    setErrorMessage("");
     try {
       const res = await fetch("/api/admin-scoring/save", {
         method: "POST",
@@ -81,9 +83,19 @@ function GroupCard({ group, holeInfos }: { group: ScoringGroup; holeInfos: HoleI
           updates: group.players.map((p) => ({ scorecardId: p.scorecardId, holes: rows[p.scorecardId] })),
         }),
       });
-      if (!res.ok) throw new Error("Save failed");
+      const body = await res.json().catch(() => null);
+      if (!res.ok || body?.success === false) {
+        const idToName = new Map(group.players.map((p) => [p.scorecardId, p.name]));
+        const detail =
+          body?.error ??
+          (body?.errors?.length
+            ? body.errors.map((e: { scorecardId: string; message: string }) => `${idToName.get(e.scorecardId) ?? e.scorecardId}: ${e.message}`).join("; ")
+            : `HTTP ${res.status}`);
+        throw new Error(detail);
+      }
       setStatus("saved");
-    } catch {
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : "Save failed");
       setStatus("error");
     }
   }
@@ -212,7 +224,7 @@ function GroupCard({ group, holeInfos }: { group: ScoringGroup; holeInfos: HoleI
               {status === "saving" ? "Saving…" : "Save Group"}
             </button>
             {status === "saved" && <span className="text-sm text-[#0E3D2C]">Saved.</span>}
-            {status === "error" && <span className="text-sm text-[#CB333B]">Save failed — try again.</span>}
+            {status === "error" && <span className="text-sm text-[#CB333B]">Save failed: {errorMessage || "unknown error"}</span>}
           </div>
         </div>
       )}
