@@ -10,6 +10,11 @@ export const LegalPages: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "slug", "updatedAt"],
     description: "Privacy Policy, Cookie Policy, Website Terms, Modern Slavery Statement, and any other simple legal copy page.",
+    components: {
+      edit: {
+        beforeDocumentControls: ["/components/admin/RecordNav#RecordNav"],
+      },
+    },
   },
   access: {
     read: () => true,

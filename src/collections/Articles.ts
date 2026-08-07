@@ -14,6 +14,11 @@ export const Articles: CollectionConfig = {
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "_status", "category", "publishedAt"],
+    components: {
+      edit: {
+        beforeDocumentControls: ["/components/admin/RecordNav#RecordNav"],
+      },
+    },
   },
   access: {
     read: () => true,

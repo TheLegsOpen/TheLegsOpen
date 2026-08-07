@@ -21,9 +21,9 @@ import { StrikethroughFeatureClient as StrikethroughFeatureClient_e70f5e05f09f93
 import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
+import { RecordNav as RecordNav_50335bcd1db5554e2daba9f0ae26ca57 } from '../../../components/admin/RecordNav'
 import { CourseImportField as CourseImportField_027e57f3e03ef2c516738b356679913d } from '../../../components/admin/CourseImportField'
 import { HolesTableField as HolesTableField_76e82c7a63974865a87d0601d94c6d0e } from '../../../components/admin/HolesTableField'
-import { ChampionshipYearNav as ChampionshipYearNav_2962114da7eeedf06cc84ca81a76e054 } from '../../../components/admin/ChampionshipYearNav'
 import { ScorecardHolesField as ScorecardHolesField_3b9f0d5055863e51a870fb77cf5873b4 } from '../../../components/admin/ScorecardHolesField'
 import { BrandIcon as BrandIcon_d0588eb7948ddcaab14f9f6ea2cd1dd7 } from '../../../components/admin/BrandIcon'
 import { BrandLogo as BrandLogo_9bb8ea9971948830b3de812baaa56aec } from '../../../components/admin/BrandLogo'
@@ -55,9 +55,9 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#UnderlineFeatureClient": UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  "/components/admin/RecordNav#RecordNav": RecordNav_50335bcd1db5554e2daba9f0ae26ca57,
   "/components/admin/CourseImportField#CourseImportField": CourseImportField_027e57f3e03ef2c516738b356679913d,
   "/components/admin/HolesTableField#HolesTableField": HolesTableField_76e82c7a63974865a87d0601d94c6d0e,
-  "/components/admin/ChampionshipYearNav#ChampionshipYearNav": ChampionshipYearNav_2962114da7eeedf06cc84ca81a76e054,
   "/components/admin/ScorecardHolesField#ScorecardHolesField": ScorecardHolesField_3b9f0d5055863e51a870fb77cf5873b4,
   "/components/admin/BrandIcon#BrandIcon": BrandIcon_d0588eb7948ddcaab14f9f6ea2cd1dd7,
   "/components/admin/BrandLogo#BrandLogo": BrandLogo_9bb8ea9971948830b3de812baaa56aec,

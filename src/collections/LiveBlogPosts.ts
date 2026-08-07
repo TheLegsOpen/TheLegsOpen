@@ -10,6 +10,11 @@ export const LiveBlogPosts: CollectionConfig = {
     defaultColumns: ["headline", "category", "player", "championship", "postedAt"],
     description:
       "Auto-generated whenever a notable score is saved (birdie or better, bogey or worse, a new outright leader, or a finished round). You can also add posts by hand for anything the generator won't catch.",
+    components: {
+      edit: {
+        beforeDocumentControls: ["/components/admin/RecordNav#RecordNav"],
+      },
+    },
   },
   access: {
     read: () => true,

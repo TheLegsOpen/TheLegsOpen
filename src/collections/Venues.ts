@@ -15,6 +15,11 @@ export const Venues: CollectionConfig = {
   admin: {
     useAsTitle: "name",
     defaultColumns: ["name", "location", "timesHosted"],
+    components: {
+      edit: {
+        beforeDocumentControls: ["/components/admin/RecordNav#RecordNav"],
+      },
+    },
   },
   access: {
     read: () => true,
