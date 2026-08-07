@@ -75,7 +75,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
       : allArticles.slice(0, 3);
 
   const stats: { label: string; value: string | number }[] = [
-    { label: "Age", value: player.age ?? "—" },
+    { label: "Age", value: player.ageAtChampionship ?? "—" },
     ...(player.turnedPro ? [{ label: "Turned Pro", value: player.turnedPro }] : []),
     ...(debutYear ? [{ label: "Legs Open Debut", value: debutYear }] : []),
     { label: "Championship Handicap", value: player.championshipHandicap ?? "—" },

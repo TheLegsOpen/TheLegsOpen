@@ -3,9 +3,9 @@ import { getPayload } from "payload";
 import configPromise from "@/payload.config";
 import { mediaUrl, slugify } from "@/lib/utils";
 import { lexicalToPlainParagraphs } from "@/lib/lexical";
-import { getChampionshipHistory } from "@/lib/data/championships";
+import { getChampionshipHistory, getActiveChampionshipSummary } from "@/lib/data/championships";
 import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
-import type { Player, FieldPlayer } from "@/types/player";
+import type { Player, PlayerWithChampionshipAge } from "@/types/player";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { Player as PayloadPlayer } from "@/payload-types";
 
@@ -40,12 +40,6 @@ export async function getPlayers(): Promise<Player[]> {
   return result.docs.map(mapPlayer);
 }
 
-export async function getPlayerBySlug(slug: string): Promise<Player | undefined> {
-  const payload = await getPayload({ config: configPromise });
-  const result = await payload.find({ collection: "players", where: { slug: { equals: slug } }, limit: 1 });
-  return result.docs[0] ? mapPlayer(result.docs[0]) : undefined;
-}
-
 function ageInYears(dobIso: string, asOfIso: string): number {
   const dob = new Date(dobIso);
   const asOf = new Date(asOfIso);
@@ -57,14 +51,25 @@ function ageInYears(dobIso: string, asOfIso: string): number {
   return age;
 }
 
-/** Players ticked "In Current Field", with age computed as of the active championship's date rather than today — so replaying a past championship shows their age at the time. */
-export async function getFieldPlayers(asOfIso: string): Promise<FieldPlayer[]> {
+/** Age shown on the player's own profile card is as of the active championship's date, not today — so replaying a past championship shows their age at the time, not their real-world current age. */
+export async function getPlayerBySlug(slug: string): Promise<PlayerWithChampionshipAge | undefined> {
+  const payload = await getPayload({ config: configPromise });
+  const result = await payload.find({ collection: "players", where: { slug: { equals: slug } }, limit: 1 });
+  const doc = result.docs[0];
+  if (!doc) return undefined;
+
+  const activeChampionship = await getActiveChampionshipSummary();
+  const ageAtChampionship =
+    !doc.hideAge && doc.dateOfBirth && activeChampionship ? ageInYears(doc.dateOfBirth, activeChampionship.effectiveDate) : undefined;
+
+  return { ...mapPlayer(doc), ageAtChampionship };
+}
+
+/** Players ticked "In Current Field" — the public roster shown on the Field page. */
+export async function getFieldPlayers(): Promise<Player[]> {
   const payload = await getPayload({ config: configPromise });
   const result = await payload.find({ collection: "players", where: { inField: { equals: true } }, limit: 200, sort: "name" });
-  return result.docs.map((doc) => ({
-    ...mapPlayer(doc),
-    ageAtChampionship: !doc.hideAge && doc.dateOfBirth ? ageInYears(doc.dateOfBirth, asOfIso) : undefined,
-  }));
+  return result.docs.map(mapPlayer);
 }
 
 export async function getAllPlayerSlugs(): Promise<string[]> {

@@ -19,8 +19,8 @@ export interface Player {
   bio: string[];
 }
 
-export interface FieldPlayer extends Player {
-  /** Age as of the active championship's date, not today — undefined if date of birth or age is hidden. */
+export interface PlayerWithChampionshipAge extends Player {
+  /** Age as of the active championship's date, not today — undefined if date of birth is unknown or age is hidden. */
   ageAtChampionship?: number;
 }
 

@@ -8,15 +8,13 @@ import type { Player } from "@/types/player";
 
 interface PlayerCardProps {
   player: Player;
-  /** Age to display, e.g. as of a specific championship's date — omitted entirely when unset (unknown DOB or hidden). */
-  age?: number;
   /** Years this player has won The Legs Open, if any — shows a champion badge when set. */
   championYears?: number[];
   /** Champion Badge (Site Theme global). Falls back to a trophy icon when not set. */
   championLogoUrl?: string;
 }
 
-export function PlayerCard({ player, age, championYears, championLogoUrl }: PlayerCardProps) {
+export function PlayerCard({ player, championYears, championLogoUrl }: PlayerCardProps) {
   return (
     <Link href={`/players/${playerSlug(player)}`} className="group flex flex-col gap-3">
       <div className="relative">
@@ -51,10 +49,7 @@ export function PlayerCard({ player, age, championYears, championLogoUrl }: Play
       </div>
       <div>
         <p className="font-display font-bold leading-tight group-hover:text-primary">{player.name}</p>
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">
-          {player.country}
-          {age !== undefined ? ` · Age ${age}` : ""}
-        </p>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">{player.country}</p>
       </div>
     </Link>
   );

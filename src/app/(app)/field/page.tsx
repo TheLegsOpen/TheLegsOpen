@@ -14,11 +14,9 @@ export const metadata: Metadata = {
 };
 
 export default async function FieldPage() {
-  const activeChampionship = await getActiveChampionshipSummary();
-  const asOfDate = activeChampionship?.effectiveDate ?? new Date().toISOString();
-
-  const [players, championshipHistory, banners, theme] = await Promise.all([
-    getFieldPlayers(asOfDate),
+  const [activeChampionship, players, championshipHistory, banners, theme] = await Promise.all([
+    getActiveChampionshipSummary(),
+    getFieldPlayers(),
     getChampionshipHistory(),
     getPageBanners(),
     getSiteTheme(),
