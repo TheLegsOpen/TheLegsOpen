@@ -46,6 +46,9 @@ export async function POST(request: NextRequest) {
         collection: "scorecards",
         id: update.scorecardId,
         data: { holes },
+        // Bulk group saves happen at typing speed, not golf speed -- the live-blog generator
+        // would otherwise narrate every intermediate save as if it just happened live.
+        context: { suppressLiveBlog: true },
       });
       results.push({ id: updated.id, holesCompleted: updated.holesCompleted });
     } catch (err) {

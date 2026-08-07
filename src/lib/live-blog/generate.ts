@@ -71,20 +71,32 @@ function birdiesInWindow(relatives: (number | undefined)[], index: number, windo
  * Streaks, "top 10", leader-through-the-hole, and clubhouse leader are all based on the
  * Main competition only, matching how Round Complete already worked.
  */
-export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async ({ doc, previousDoc, req, operation }) => {
+export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async ({ doc, previousDoc, req, operation, context }) => {
   if (operation !== "update") return doc;
   if (!doc.scoreUpdatedAt || doc.scoreUpdatedAt === previousDoc?.scoreUpdatedAt) return doc;
+
+  // The Group Scoring bulk tool (src/app/(app)/api/admin-scoring/save/route.ts) flags its own
+  // updates with this -- it saves many players/holes in rapid succession (e.g. backfilling an
+  // old championship's results), which isn't real-time play and shouldn't be narrated as such.
+  // A single edit through the normal Scorecards admin field is unaffected.
+  if (context?.suppressLiveBlog) return doc;
 
   const playerId = typeof doc.player === "object" ? doc.player.id : doc.player;
   const championshipId = typeof doc.championship === "object" ? doc.championship.id : doc.championship;
   if (!playerId || !championshipId) return doc;
 
-  const player = (typeof doc.player === "object"
-    ? doc.player
-    : await req.payload.findByID({ collection: "players", id: playerId, req })) as Player;
   const championship = (typeof doc.championship === "object"
     ? doc.championship
     : await req.payload.findByID({ collection: "championships", id: championshipId, req })) as Championship;
+
+  // Only the championship flagged "Currently Being Scored" gets live commentary -- replaying an
+  // old championship's results after the fact (historical backfill) should be silent, not
+  // narrated as if it were happening live right now.
+  if (!championship.isActive) return doc;
+
+  const player = (typeof doc.player === "object"
+    ? doc.player
+    : await req.payload.findByID({ collection: "players", id: playerId, req })) as Player;
   const venueId = typeof championship.venue === "object" ? championship.venue?.id : championship.venue;
   const venue = venueId ? ((await req.payload.findByID({ collection: "venues", id: venueId, req })) as Venue) : null;
   const venueHoles = venue?.holes ?? [];

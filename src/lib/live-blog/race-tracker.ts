@@ -57,7 +57,10 @@ function marginBehind(value: number, leaderValue: number, competition: Competiti
 /**
  * Builds the current Race Tracker for one competition. Only players who have posted at least
  * one score count -- otherwise every not-yet-teed-off player would read as "tied for the lead
- * at level par" before the field is even out.
+ * at level par" before the field is even out. No-return (disqualified) players are excluded too --
+ * their `toPar`/`score` is deliberately `undefined` so the real leaderboard sorts them to the
+ * bottom, but `metricValue`'s `?? 0` fallback would otherwise read that as "level par" and could
+ * wrongly crown a DQ'd player as leader or tied for the lead.
  *
  * `priorMemberIds`, when passed, applies one step of hysteresis: a player already in the
  * tracker is only dropped once they fall a full stroke/point beyond the normal entry margin,
@@ -66,7 +69,7 @@ function marginBehind(value: number, leaderValue: number, competition: Competiti
  * persisted multi-hole stickiness -- see race-events.ts for how it's wired between saves.
  */
 export function buildRaceTracker(entries: CompetitionEntry[], competition: Competition, priorMemberIds?: Set<string>): RaceTracker {
-  const started = entries.filter((e) => e.started);
+  const started = entries.filter((e) => e.started && !e.noReturn);
   if (started.length === 0) {
     return { competition, leaderIds: [], leaderName: undefined, leaderMetric: undefined, leadMargin: 0, members: [] };
   }

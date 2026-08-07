@@ -27,11 +27,11 @@ export function scorePillClass(relativeToPar: number): string {
   return "bg-white text-[#08325A]";
 }
 
-/** Per-hole colours — full eagle/birdie/par/bogey-or-worse scale, only meaningful at the single-hole level. */
+/** Per-hole colours — full eagle/birdie/par/bogey-or-worse scale, only meaningful at the single-hole level. Par uses the same green as the round-total pill above, so "at par" reads as one consistent colour everywhere it appears. */
 export function holeScorePillClass(relativeToPar: number): string {
   if (relativeToPar <= -2) return "bg-[#910149] text-white";
   if (relativeToPar === -1) return "bg-[#CB333B] text-white";
-  if (relativeToPar === 0) return "bg-[#758973] text-white";
+  if (relativeToPar === 0) return "bg-[#0E3D2C] text-white";
   return "bg-[#08325A] text-white";
 }
 

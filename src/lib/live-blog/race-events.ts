@@ -15,6 +15,9 @@ import type { LiveBlogPost } from "@/payload-types";
 const COMPETITION_LABEL: Record<Competition, string> = { main: "Main", stableford: "Stableford", scratch: "Scratch" };
 const ALL_COMPETITIONS: Competition[] = ["main", "stableford", "scratch"];
 
+/** Below this many started players, "leader"/"tie"/"contention" is a meaningless artifact of a thin field, not a real race -- skip it rather than flip-flopping "takes control" every time someone posts their first hole. */
+const MIN_STARTED_FOR_RACE_EVENTS = 4;
+
 function scoreLabel(competition: Competition, value: number): string {
   return competition === "stableford" ? `${value} pts` : formatToPar(value);
 }
@@ -65,6 +68,9 @@ async function lastContentionDirection(
  */
 export async function generateRaceTrackerPosts(req: PayloadRequest, championshipId: string, snapshots: LeaderboardSnapshotPair): Promise<void> {
   for (const competition of ALL_COMPETITIONS) {
+    const startedCount = snapshots.after[competition].filter((e) => e.started).length;
+    if (startedCount < MIN_STARTED_FOR_RACE_EVENTS) continue;
+
     const beforeTracker = buildRaceTracker(snapshots.before[competition], competition);
     const afterTracker = buildRaceTracker(
       snapshots.after[competition],

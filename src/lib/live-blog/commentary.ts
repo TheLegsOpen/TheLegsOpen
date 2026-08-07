@@ -38,7 +38,7 @@ export function birdieCommentary(playerName: string, holeNumber: number): Commen
 
 export function bogeyCommentary(playerName: string, holeNumber: number, relativeToPar: number): Commentary {
   const isDouble = relativeToPar >= 2;
-  const headline = isDouble ? pick(["Dropped shots", "Trouble at the last"]) : pick(["Bogey", "Shot dropped"]);
+  const headline = isDouble ? pick(["Dropped shots", `Trouble at the ${ordinal(holeNumber)}`]) : pick(["Bogey", "Shot dropped"]);
   const body = isDouble
     ? pick([
         `A difficult ${ordinal(holeNumber)} for ${playerName} — ${relativeToPar} over the hole.`,
@@ -167,7 +167,7 @@ export function tieCommentary(playerName: string, scoreLabel: string, competitio
 export function leadExtendsCommentary(playerName: string, leadMargin: number, competitionLabel: string): Commentary {
   const headline = pick(["Advantage grows", `${playerName.split(" ").slice(-1)[0]} pulls clear`]);
   const body = pick([
-    `${playerName} extends the ${competitionLabel} lead to ${leadMargin} with a strong spell.`,
+    `${playerName} extends the ${competitionLabel} lead to ${leadMargin}.`,
     `The gap grows — ${playerName} now leads by ${leadMargin} in the ${competitionLabel} competition.`,
     `${playerName} stretches clear at the top, the lead now out to ${leadMargin}.`,
   ]);
@@ -177,7 +177,7 @@ export function leadExtendsCommentary(playerName: string, leadMargin: number, co
 export function enteringContentionCommentary(playerName: string, competitionLabel: string): Commentary {
   const headline = pick(["Into contention", `${playerName.split(" ").slice(-1)[0]} joins the race`]);
   const body = pick([
-    `${playerName} moves into the ${competitionLabel} race after a strong spell of holes.`,
+    `${playerName} moves into the ${competitionLabel} race.`,
     `${playerName} is now firmly in contention in the ${competitionLabel} competition.`,
     `A real move — ${playerName} climbs into the ${competitionLabel} race.`,
   ]);
@@ -187,7 +187,7 @@ export function enteringContentionCommentary(playerName: string, competitionLabe
 export function leavingContentionCommentary(playerName: string, competitionLabel: string): Commentary {
   const headline = pick(["Pressure eases", `${playerName.split(" ").slice(-1)[0]} drops back`]);
   const body = pick([
-    `${playerName} drops outside the ${competitionLabel} race after a difficult spell.`,
+    `${playerName} drops outside the ${competitionLabel} race.`,
     `${playerName} slips out of contention in the ${competitionLabel} competition.`,
     `The gap tells — ${playerName} falls back from the ${competitionLabel} race.`,
   ]);

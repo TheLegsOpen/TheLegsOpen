@@ -77,7 +77,23 @@ export function LeaderboardView({
         router.refresh();
       }
     }, AUTO_REFRESH_INTERVAL_MS);
-    return () => clearInterval(interval);
+
+    // Mobile browsers routinely suspend JS timers while backgrounded (locking the screen,
+    // switching apps) and don't reliably resume the interval on return -- so on top of the
+    // interval, refresh immediately whenever the page becomes visible again. This is what makes
+    // "coming back to the tab" actually show fresh data on mobile, not just on desktop where the
+    // interval alone tends to keep ticking in the background.
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        router.refresh();
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [router]);
 
   const mainEntries = useMemo(() => filterEntries(main, query), [main, query]);
