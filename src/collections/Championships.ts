@@ -8,6 +8,11 @@ export const Championships: CollectionConfig = {
     useAsTitle: "year",
     defaultColumns: ["year", "venue", "winnerName", "margin"],
     description: "Historical winners aren't necessarily current-field players, so the winner is stored as plain text rather than a relationship — link winnerPlayer only when they happen to also be in this year's Players collection.",
+    components: {
+      edit: {
+        beforeDocumentControls: ["/components/admin/ChampionshipYearNav#ChampionshipYearNav"],
+      },
+    },
   },
   access: {
     read: () => true,
