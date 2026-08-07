@@ -27,15 +27,22 @@ export interface ScorecardTotals {
   stablefordTotal: number;
   toParGross: number;
   toParNett: number;
+  /** True if any hole was marked "X" (no return / picked up) — disqualifies Main and Scratch, but Stableford keeps accumulating. */
+  noReturn: boolean;
 }
 
 /**
- * Computes all three competitions' totals from one set of hole-by-hole
- * gross strokes — supports partial rounds (holes not yet played are
- * simply skipped) so standings can update live as scores come in.
+ * Computes all three competitions' totals from one set of hole-by-hole gross
+ * strokes — supports partial rounds (holes not yet played are simply
+ * skipped) so standings can update live as scores come in. A hole marked
+ * "no return" (picked up rather than holed out) scores 0 Stableford points
+ * and is otherwise excluded from Gross/Nett totals; if any hole is a no
+ * return, the whole card is flagged `noReturn` so callers can show "NR" for
+ * Main/Scratch while Stableford carries on unaffected.
  */
 export function computeScorecardTotals(
   strokes: (number | null | undefined)[],
+  noReturn: (boolean | null | undefined)[],
   holes: HoleInfo[],
   handicap: number,
 ): ScorecardTotals {
@@ -46,8 +53,14 @@ export function computeScorecardTotals(
   let grossTotal = 0;
   let nettTotal = 0;
   let stablefordTotal = 0;
+  let anyNoReturn = false;
 
   holes.forEach((hole, index) => {
+    if (noReturn[index]) {
+      holesCompleted += 1;
+      anyNoReturn = true;
+      return;
+    }
     const gross = strokes[index];
     if (gross == null) return;
     holesCompleted += 1;
@@ -65,5 +78,6 @@ export function computeScorecardTotals(
     stablefordTotal,
     toParGross: grossTotal - parPlayed,
     toParNett: nettTotal - parPlayed,
+    noReturn: anyNoReturn,
   };
 }

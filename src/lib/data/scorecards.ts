@@ -37,6 +37,8 @@ export interface CompetitionEntry {
   /** Raw tee time (e.g. "12.00") from the Championship-round tee sheet, empty if not found. */
   teeTime: string;
   holes: HoleScore[];
+  /** Main/Scratch only — a hole marked "no return" disqualifies this player from this competition; shown as "NR" and sorted to the bottom. Stableford is never affected. */
+  noReturn?: boolean;
 }
 
 /**
@@ -165,6 +167,11 @@ function buildLeaderboardFromDocs(
       return { holeNumber: i + 1, par: info.par, value: points, relative: points - 2 };
     });
 
+    // A hole marked "no return" disqualifies Main/Scratch for that player — sorted below every
+    // valid score via a sentinel tieKey, and shown as "NR" rather than a position/score. Stableford
+    // is never disqualified: it keeps accumulating from the player's other holes as normal.
+    const noReturn = competition !== "stableford" && Boolean(doc.noReturn);
+
     // tieKey groups players into the same standing — lower is better for main/scratch (to-par),
     // negated Stableford points so the same ascending comparator works for both.
     if (competition === "main") {
@@ -176,9 +183,10 @@ function buildLeaderboardFromDocs(
         teeTime,
         thru,
         holes,
-        score: finished ? (doc.nettTotal ?? 0) : undefined,
-        toPar: started ? (doc.toParNett ?? 0) : 0,
-        tieKey: doc.toParNett ?? 0,
+        noReturn,
+        score: noReturn ? undefined : finished ? (doc.nettTotal ?? 0) : undefined,
+        toPar: noReturn ? undefined : started ? (doc.toParNett ?? 0) : 0,
+        tieKey: noReturn ? Number.POSITIVE_INFINITY : (doc.toParNett ?? 0),
       };
     }
     if (competition === "scratch") {
@@ -190,9 +198,10 @@ function buildLeaderboardFromDocs(
         teeTime,
         thru,
         holes,
-        score: finished ? (doc.grossTotal ?? 0) : undefined,
-        toPar: started ? (doc.toParGross ?? 0) : 0,
-        tieKey: doc.toParGross ?? 0,
+        noReturn,
+        score: noReturn ? undefined : finished ? (doc.grossTotal ?? 0) : undefined,
+        toPar: noReturn ? undefined : started ? (doc.toParGross ?? 0) : 0,
+        tieKey: noReturn ? Number.POSITIVE_INFINITY : (doc.toParGross ?? 0),
       };
     }
     return {
@@ -203,6 +212,7 @@ function buildLeaderboardFromDocs(
       teeTime,
       thru,
       holes,
+      noReturn,
       // Stableford points show live from 0 rather than waiting for the round to start, unlike Main/Scratch.
       score: doc.stablefordTotal ?? 0,
       toPar: started ? (doc.toParNett ?? 0) : 0,
@@ -230,7 +240,9 @@ function buildLeaderboardFromDocs(
     if (groupKey !== previousGroupKey) {
       position = index + 1;
     }
-    const tied = rows.filter((r) => String(r.tieKey) === groupKey).length > 1;
+    // NR players share the same sentinel tieKey but aren't meaningfully "tied" with each other —
+    // each is individually disqualified, not level on score.
+    const tied = !row.noReturn && rows.filter((r) => String(r.tieKey) === groupKey).length > 1;
     entries.push({
       position,
       tied,
@@ -241,6 +253,7 @@ function buildLeaderboardFromDocs(
       thru: row.thru,
       teeTime: row.teeTime,
       holes: row.holes,
+      noReturn: row.noReturn,
     });
     previousGroupKey = groupKey;
   });

@@ -665,6 +665,7 @@ export interface Scorecard {
     | {
         holeNumber: number;
         strokes?: number | null;
+        noReturn?: boolean | null;
         fairwayHit?: boolean | null;
         greenInRegulation?: boolean | null;
         putts?: number | null;
@@ -677,6 +678,7 @@ export interface Scorecard {
   stablefordTotal?: number | null;
   toParGross?: number | null;
   toParNett?: number | null;
+  noReturn?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }

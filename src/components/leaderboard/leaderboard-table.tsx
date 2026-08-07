@@ -110,7 +110,7 @@ function LeaderboardRow({
       </td>
       <td className="px-2 py-3 tabular-nums">
         <span className={cn(isLeader && "text-lg font-black text-accent")}>
-          <AnimatedValue value={`${entry.tied ? "T" : ""}${entry.position}`} />
+          <AnimatedValue value={entry.noReturn ? "NR" : `${entry.tied ? "T" : ""}${entry.position}`} />
         </span>
       </td>
       <td className="px-2 py-3">
@@ -157,7 +157,11 @@ function LeaderboardRow({
         ) : null}
       </td>
       <td className="px-2 py-3 text-right">
-        {entry.toPar !== undefined ? (
+        {entry.noReturn ? (
+          <span className={cn(TILE_CLASS, "bg-white text-[#CB333B]")} title="No return — picked up on a hole, disqualified from this competition">
+            NR
+          </span>
+        ) : entry.toPar !== undefined ? (
           <span className={cn(TILE_CLASS, scorePillClass(entry.toPar))}>
             <AnimatedValue value={formatToPar(entry.toPar)} />
           </span>
@@ -172,7 +176,7 @@ function LeaderboardRow({
       </td>
       <td className="px-4 py-3 text-right tabular-nums" title={COMPETITION_LABEL[competition]}>
         <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
-          <AnimatedValue value={entry.started && entry.score !== undefined ? entry.score : "-"} />
+          <AnimatedValue value={entry.noReturn ? "NR" : entry.started && entry.score !== undefined ? entry.score : "-"} />
         </span>
       </td>
     </motion.tr>

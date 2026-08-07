@@ -10,12 +10,15 @@ export interface HoleInfo {
   yards?: number;
 }
 
+/** A hole's recorded value: a strokes number, "X" for a no return (picked up), or null if not yet played. */
+export type HoleValue = number | "X" | null;
+
 export interface ScoringPlayer {
   playerId: string;
   scorecardId: string;
   name: string;
   handicap: number;
-  holes: (number | null)[];
+  holes: HoleValue[];
 }
 
 export interface ScoringGroup {
@@ -34,27 +37,35 @@ type SaveStatus = "idle" | "saving" | "saved" | "error";
 const FRONT_NINE = Array.from({ length: 9 }, (_, i) => i);
 const BACK_NINE = Array.from({ length: 9 }, (_, i) => i + 9);
 
-function sumRange(holes: (number | null)[], indices: number[]): number | null {
-  const values = indices.map((i) => holes[i]).filter((v): v is number => v != null);
+function sumRange(holes: HoleValue[], indices: number[]): number | null {
+  const values = indices.map((i) => holes[i]).filter((v): v is number => typeof v === "number");
   if (values.length === 0) return null;
   return values.reduce((a, b) => a + b, 0);
 }
 
 function GroupCard({ group, holeInfos }: { group: ScoringGroup; holeInfos: HoleInfo[] }) {
   const [expanded, setExpanded] = useState(false);
-  const [rows, setRows] = useState<Record<string, (number | null)[]>>(() =>
+  const [rows, setRows] = useState<Record<string, HoleValue[]>>(() =>
     Object.fromEntries(group.players.map((p) => [p.scorecardId, [...p.holes]])),
   );
   const [status, setStatus] = useState<SaveStatus>("idle");
 
   const allComplete = group.players.every((p) => rows[p.scorecardId]?.every((v) => v != null));
 
-  function setValue(scorecardId: string, holeIndex: number, value: string) {
+  function setValue(scorecardId: string, holeIndex: number, raw: string) {
     setStatus("idle");
     setRows((prev) => {
       const next = { ...prev };
       const holes = [...(next[scorecardId] ?? [])];
-      holes[holeIndex] = value === "" ? null : Number(value);
+      const trimmed = raw.trim();
+      if (trimmed === "") {
+        holes[holeIndex] = null;
+      } else if (trimmed.toUpperCase() === "X") {
+        holes[holeIndex] = "X";
+      } else {
+        const num = Number(trimmed);
+        if (!Number.isNaN(num)) holes[holeIndex] = num;
+      }
       next[scorecardId] = holes;
       return next;
     });
@@ -149,12 +160,15 @@ function GroupCard({ group, holeInfos }: { group: ScoringGroup; holeInfos: HoleI
                       {FRONT_NINE.map((i) => (
                         <td key={i} className="px-1 py-1">
                           <input
-                            type="number"
-                            min={1}
-                            max={20}
+                            type="text"
+                            inputMode="numeric"
                             value={holes[i] ?? ""}
                             onChange={(e) => setValue(player.scorecardId, i, e.target.value)}
-                            className="w-11 border border-surface-dark-foreground/20 bg-surface-dark px-1 py-1 text-center text-sm text-surface-dark-foreground focus:border-accent focus:outline-none"
+                            title='Enter strokes, or "X" for a no return (picked up)'
+                            className={cn(
+                              "w-11 border border-surface-dark-foreground/20 bg-surface-dark px-1 py-1 text-center text-sm text-surface-dark-foreground focus:border-accent focus:outline-none",
+                              holes[i] === "X" && "border-[#CB333B] bg-[#CB333B]/20 font-bold text-[#CB333B]",
+                            )}
                           />
                         </td>
                       ))}
@@ -162,12 +176,15 @@ function GroupCard({ group, holeInfos }: { group: ScoringGroup; holeInfos: HoleI
                       {BACK_NINE.map((i) => (
                         <td key={i} className="px-1 py-1">
                           <input
-                            type="number"
-                            min={1}
-                            max={20}
+                            type="text"
+                            inputMode="numeric"
                             value={holes[i] ?? ""}
                             onChange={(e) => setValue(player.scorecardId, i, e.target.value)}
-                            className="w-11 border border-surface-dark-foreground/20 bg-surface-dark px-1 py-1 text-center text-sm text-surface-dark-foreground focus:border-accent focus:outline-none"
+                            title='Enter strokes, or "X" for a no return (picked up)'
+                            className={cn(
+                              "w-11 border border-surface-dark-foreground/20 bg-surface-dark px-1 py-1 text-center text-sm text-surface-dark-foreground focus:border-accent focus:outline-none",
+                              holes[i] === "X" && "border-[#CB333B] bg-[#CB333B]/20 font-bold text-[#CB333B]",
+                            )}
                           />
                         </td>
                       ))}
@@ -179,6 +196,11 @@ function GroupCard({ group, holeInfos }: { group: ScoringGroup; holeInfos: HoleI
               </tbody>
             </table>
           </div>
+
+          <p className="mt-3 text-xs text-surface-dark-foreground/50">
+            Type <span className="font-bold text-[#CB333B]">X</span> instead of a number for a hole picked up on — disqualifies Main &amp; Scratch for
+            that player (shown as NR), Stableford keeps going.
+          </p>
 
           <div className="mt-4 flex items-center gap-3">
             <button

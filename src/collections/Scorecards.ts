@@ -10,9 +10,9 @@ export const Scorecards: CollectionConfig = {
   labels: { singular: "Scorecard", plural: "Scorecards" },
   admin: {
     useAsTitle: "id",
-    defaultColumns: ["player", "teeTime", "championship", "grossTotal", "nettTotal", "stablefordTotal", "holesCompleted", "scoreUpdatedAt"],
+    defaultColumns: ["player", "teeTime", "championship", "grossTotal", "nettTotal", "stablefordTotal", "holesCompleted", "noReturn", "scoreUpdatedAt"],
     description:
-      "One scorecard per player per championship. Enter gross strokes hole by hole — Nett Strokeplay (Main), Stableford (Secondary) and Gross Strokeplay (Third) are all calculated automatically from this single entry. Sort by Tee Time to cluster players from the same group together.",
+      "One scorecard per player per championship. Enter gross strokes hole by hole — Nett Strokeplay (Main), Stableford (Secondary) and Gross Strokeplay (Third) are all calculated automatically from this single entry. Type \"X\" instead of a number for a hole the player picked up on (no return) — that disqualifies Main and Scratch for the round (shown as NR) but Stableford keeps going, scoring 0 for that hole. Sort by Tee Time to cluster players from the same group together.",
   },
   access: {
     read: () => true,
@@ -52,6 +52,16 @@ export const Scorecards: CollectionConfig = {
             },
             { name: "strokes", type: "number", min: 1, max: 20, admin: { width: "70%" } },
           ],
+        },
+        {
+          name: "noReturn",
+          label: "No Return (X)",
+          type: "checkbox",
+          defaultValue: false,
+          admin: {
+            hidden: true,
+            description: "Set via typing \"X\" in the Strokes box above — not normally edited directly.",
+          },
         },
         {
           type: "row",
@@ -94,6 +104,15 @@ export const Scorecards: CollectionConfig = {
         { name: "toParNett", label: "Nett To Par", type: "number", admin: { readOnly: true, hidden: true, width: "16%" } },
       ],
     },
+    {
+      name: "noReturn",
+      label: "NR (Main/Scratch)",
+      type: "checkbox",
+      admin: {
+        readOnly: true,
+        description: "Set automatically when any hole is marked \"X\" — disqualifies this card from Main and Scratch. Stableford is unaffected.",
+      },
+    },
   ],
   hooks: {
     beforeValidate: [
@@ -103,11 +122,13 @@ export const Scorecards: CollectionConfig = {
         if (Array.isArray(data.holes)) {
           data.holes = data.holes.map((hole: Record<string, unknown>, index: number) => ({ ...hole, holeNumber: index + 1 }));
 
-          const incomingStrokes = data.holes.map((hole: { strokes?: number }) => hole.strokes ?? null);
-          const originalStrokes = (originalDoc?.holes ?? []).map((hole: { strokes?: number | null }) => hole.strokes ?? null);
+          const incomingStrokes = data.holes.map((hole: { strokes?: number; noReturn?: boolean }) => `${hole.strokes ?? ""}:${hole.noReturn ?? false}`);
+          const originalStrokes = (originalDoc?.holes ?? []).map(
+            (hole: { strokes?: number | null; noReturn?: boolean | null }) => `${hole.strokes ?? ""}:${hole.noReturn ?? false}`,
+          );
           const strokesChanged =
             incomingStrokes.length !== originalStrokes.length ||
-            incomingStrokes.some((value: number | null, index: number) => value !== originalStrokes[index]);
+            incomingStrokes.some((value: string, index: number) => value !== originalStrokes[index]);
           if (strokesChanged) {
             data.scoreUpdatedAt = new Date().toISOString();
           }
@@ -163,7 +184,8 @@ export const Scorecards: CollectionConfig = {
             si: venueHoles[index]?.si ?? index + 1,
           }));
           const strokes = data.holes.map((hole: { strokes?: number }) => hole.strokes ?? null);
-          const totals = computeScorecardTotals(strokes, holeInfos, player.championshipHandicap ?? 0);
+          const noReturn = data.holes.map((hole: { noReturn?: boolean }) => hole.noReturn ?? false);
+          const totals = computeScorecardTotals(strokes, noReturn, holeInfos, player.championshipHandicap ?? 0);
 
           data.holesCompleted = totals.holesCompleted;
           data.grossTotal = totals.grossTotal;
@@ -171,6 +193,7 @@ export const Scorecards: CollectionConfig = {
           data.stablefordTotal = totals.stablefordTotal;
           data.toParGross = totals.toParGross;
           data.toParNett = totals.toParNett;
+          data.noReturn = totals.noReturn;
         }
 
         return data;

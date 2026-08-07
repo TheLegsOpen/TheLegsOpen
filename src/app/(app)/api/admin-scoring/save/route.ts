@@ -5,7 +5,7 @@ import configPromise from "@/payload.config";
 
 interface GroupUpdate {
   scorecardId: string;
-  holes: (number | null)[];
+  holes: (number | "X" | null)[];
 }
 
 export async function POST(request: NextRequest) {
@@ -22,7 +22,11 @@ export async function POST(request: NextRequest) {
   const results = [];
   for (const update of updates) {
     if (!update.scorecardId) continue;
-    const holes = update.holes.map((strokes, i) => ({ holeNumber: i + 1, strokes: strokes ?? undefined }));
+    const holes = update.holes.map((value, i) => ({
+      holeNumber: i + 1,
+      strokes: value === "X" ? undefined : (value ?? undefined),
+      noReturn: value === "X",
+    }));
     const updated = await payload.update({
       collection: "scorecards",
       id: update.scorecardId,

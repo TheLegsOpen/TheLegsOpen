@@ -68,6 +68,45 @@ function Cell({ path, max = 20 }: { path: string; max?: number }) {
   );
 }
 
+/** Strokes cell — accepts a number, or "X" for a hole the player picked up on (no return). */
+function StrokesCell({ strokesPath, noReturnPath }: { strokesPath: string; noReturnPath: string }) {
+  const { value: strokes, setValue: setStrokes } = useField<number>({ path: strokesPath });
+  const { value: noReturn, setValue: setNoReturn } = useField<boolean>({ path: noReturnPath });
+
+  function handleChange(raw: string) {
+    const trimmed = raw.trim();
+    if (trimmed === "") {
+      setStrokes(null);
+      setNoReturn(false);
+      return;
+    }
+    if (trimmed.toUpperCase() === "X") {
+      setStrokes(null);
+      setNoReturn(true);
+      return;
+    }
+    const num = Number(trimmed);
+    if (!Number.isNaN(num)) {
+      setStrokes(num);
+      setNoReturn(false);
+    }
+  }
+
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      value={noReturn ? "X" : (strokes ?? "")}
+      onChange={(e) => handleChange(e.target.value)}
+      title={noReturn ? "No return — DQ'd from Main/Scratch, Stableford continues" : undefined}
+      style={{
+        ...cellInputStyle,
+        ...(noReturn ? { background: "var(--theme-error-100)", color: "var(--theme-error-500)", fontWeight: 700 } : {}),
+      }}
+    />
+  );
+}
+
 function CheckboxCell({ path }: { path: string }) {
   const { value, setValue } = useField<boolean>({ path });
   return (
@@ -88,6 +127,14 @@ function SummaryItem({ label, path, suffix }: { label: string; path: string; suf
       <strong>{value ?? "—"}</strong>
       {suffix ? ` ${suffix}` : ""}
     </span>
+  );
+}
+
+function NoReturnBadge() {
+  const { value } = useField<boolean>({ path: "noReturn" });
+  if (!value) return null;
+  return (
+    <span style={{ color: "var(--theme-error-500)", fontWeight: 700 }}>NR — Main &amp; Scratch disqualified, Stableford continues</span>
   );
 }
 
@@ -113,6 +160,7 @@ export const ScorecardHolesField: ArrayFieldClientComponent = ({ path }) => {
         <SummaryItem label="Gross" path="grossTotal" />
         <SummaryItem label="Nett" path="nettTotal" />
         <SummaryItem label="Stableford" path="stablefordTotal" suffix="pts" />
+        <NoReturnBadge />
       </div>
       {!ready ? (
         <p style={{ fontSize: 13, color: "var(--theme-elevation-500)" }}>Setting up hole rows…</p>
@@ -134,7 +182,7 @@ export const ScorecardHolesField: ArrayFieldClientComponent = ({ path }) => {
                 <td style={rowLabelStyle}>Strokes</td>
                 {HOLE_INDICES.map((i) => (
                   <td key={i} style={cellStyle}>
-                    <Cell path={`${path}.${i}.strokes`} />
+                    <StrokesCell strokesPath={`${path}.${i}.strokes`} noReturnPath={`${path}.${i}.noReturn`} />
                   </td>
                 ))}
               </tr>

@@ -4,7 +4,7 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { getActiveChampionship } from "@/lib/data/scorecards";
-import { GroupScoringBoard, type ScoringGroup, type HoleInfo } from "@/components/admin-scoring/group-scoring-board";
+import { GroupScoringBoard, type ScoringGroup, type HoleInfo, type HoleValue } from "@/components/admin-scoring/group-scoring-board";
 import type { Venue, Player, Scorecard } from "@/payload-types";
 
 export const dynamic = "force-dynamic";
@@ -65,7 +65,9 @@ export default async function AdminScoringPage() {
         .filter((p): p is Player => Boolean(p))
         .map((player) => {
           const scorecard = scorecardByPlayerId.get(String(player.id));
-          const holes: (number | null)[] = Array.from({ length: 18 }, (_, i) => scorecard?.holes?.[i]?.strokes ?? null);
+          const holes: HoleValue[] = Array.from({ length: 18 }, (_, i) =>
+            scorecard?.holes?.[i]?.noReturn ? "X" : (scorecard?.holes?.[i]?.strokes ?? null),
+          );
           return {
             playerId: String(player.id),
             scorecardId: scorecard ? String(scorecard.id) : "",
