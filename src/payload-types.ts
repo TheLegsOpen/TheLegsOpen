@@ -209,6 +209,7 @@ export interface Player {
   gallery?: { image: string | Media; caption?: string | null; id?: string | null }[] | null;
   featuredArticles?: (string | Article)[] | null;
   inField?: boolean | null;
+  hideAge?: boolean | null;
   cdhNumber?: string | null;
   photo?: (string | Media) | null;
   bio?: unknown;

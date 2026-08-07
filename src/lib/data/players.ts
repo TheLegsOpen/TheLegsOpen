@@ -5,7 +5,7 @@ import { mediaUrl, slugify } from "@/lib/utils";
 import { lexicalToPlainParagraphs } from "@/lib/lexical";
 import { getChampionshipHistory } from "@/lib/data/championships";
 import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
-import type { Player } from "@/types/player";
+import type { Player, FieldPlayer } from "@/types/player";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { Player as PayloadPlayer } from "@/payload-types";
 
@@ -20,7 +20,7 @@ export function mapPlayer(doc: PayloadPlayer): Player {
     name: doc.name,
     country: doc.country,
     countryCode: doc.countryCode,
-    age: doc.age ?? undefined,
+    age: doc.hideAge ? undefined : doc.age ?? undefined,
     championshipHandicap: doc.championshipHandicap ?? undefined,
     previousOpens: doc.previousOpens,
     turnedPro: doc.turnedPro ?? undefined,
@@ -44,6 +44,27 @@ export async function getPlayerBySlug(slug: string): Promise<Player | undefined>
   const payload = await getPayload({ config: configPromise });
   const result = await payload.find({ collection: "players", where: { slug: { equals: slug } }, limit: 1 });
   return result.docs[0] ? mapPlayer(result.docs[0]) : undefined;
+}
+
+function ageInYears(dobIso: string, asOfIso: string): number {
+  const dob = new Date(dobIso);
+  const asOf = new Date(asOfIso);
+  let age = asOf.getFullYear() - dob.getFullYear();
+  const monthDiff = asOf.getMonth() - dob.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && asOf.getDate() < dob.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+/** Players ticked "In Current Field", with age computed as of the active championship's date rather than today — so replaying a past championship shows their age at the time. */
+export async function getFieldPlayers(asOfIso: string): Promise<FieldPlayer[]> {
+  const payload = await getPayload({ config: configPromise });
+  const result = await payload.find({ collection: "players", where: { inField: { equals: true } }, limit: 200, sort: "name" });
+  return result.docs.map((doc) => ({
+    ...mapPlayer(doc),
+    ageAtChampionship: !doc.hideAge && doc.dateOfBirth ? ageInYears(doc.dateOfBirth, asOfIso) : undefined,
+  }));
 }
 
 export async function getAllPlayerSlugs(): Promise<string[]> {

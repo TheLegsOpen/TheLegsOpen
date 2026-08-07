@@ -115,7 +115,17 @@ export const Players: CollectionConfig = {
       type: "checkbox",
       defaultValue: false,
       admin: {
-        description: "Tick for players competing in the current championship — narrows the player picker when building tee times.",
+        description: "Tick for players competing in the current championship — narrows the player picker when building tee times, and is what the public Field page shows.",
+        position: "sidebar",
+      },
+    },
+    {
+      name: "hideAge",
+      label: "Hide Age (deceased)",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        description: "Tick for a player who has since passed away — hides their age everywhere on the public site (profile page, Field page).",
         position: "sidebar",
       },
     },

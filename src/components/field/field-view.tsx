@@ -8,7 +8,7 @@ import { PlayerCard } from "@/components/field/player-card";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { COUNTRIES } from "@/data/countries";
 import { cn, playerSlug } from "@/lib/utils";
-import type { Player } from "@/types/player";
+import type { FieldPlayer } from "@/types/player";
 import type { ChampionshipWinner } from "@/types/championship";
 
 type Chip = "all" | "champions" | "debutants";
@@ -20,7 +20,7 @@ const CHIPS: { id: Chip; label: string }[] = [
 ];
 
 interface FieldViewProps {
-  players: Player[];
+  players: FieldPlayer[];
   championshipHistory: ChampionshipWinner[];
   championLogoUrl?: string;
 }
@@ -125,6 +125,7 @@ export function FieldView({ players, championshipHistory, championLogoUrl }: Fie
             <PlayerCard
               key={player.id}
               player={player}
+              age={player.ageAtChampionship}
               championYears={championYearsBySlug.get(playerSlug(player))}
               championLogoUrl={championLogoUrl}
             />

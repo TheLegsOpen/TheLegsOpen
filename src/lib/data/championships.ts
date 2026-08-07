@@ -5,6 +5,16 @@ import { slugify, mediaUrl } from "@/lib/utils";
 import type { ChampionshipWinner } from "@/types/championship";
 import type { Championship as PayloadChampionship, Venue as PayloadVenue, Player as PayloadPlayer } from "@/payload-types";
 
+export interface ActiveChampionshipSummary {
+  year: number;
+  /** This championship's real ordinal position -- counted from every recorded Championship, not a hand-maintained number. */
+  ordinal: number;
+  venueName: string;
+  venueSlug: string;
+  /** The championship's date, or 31 Dec of its year when no date is set -- used for "age at this championship" calculations. */
+  effectiveDate: string;
+}
+
 export interface UpcomingChampionship {
   year: number;
   date?: string;
@@ -106,4 +116,35 @@ export async function getUpcomingChampionships(limit = 3): Promise<UpcomingChamp
     venueImageLabel: venue.imageLabel,
     venueCountryCode: venue.countryCode ?? undefined,
   }));
+}
+
+/**
+ * Whichever championship is flagged "Currently Being Scored" — falls back to the most recent by
+ * year, same rule as the live-scoring lookup in lib/data/scorecards.ts (kept separate here to
+ * avoid a circular import between the two data-access seams).
+ */
+export async function getActiveChampionshipSummary(): Promise<ActiveChampionshipSummary | undefined> {
+  const payload = await getPayload({ config: configPromise });
+  const allChampionships = await payload.find({ collection: "championships", limit: 500, depth: 0, sort: "year" });
+  if (allChampionships.docs.length === 0) return undefined;
+
+  const activeIndex = allChampionships.docs.findIndex((doc) => doc.isActive);
+  const index = activeIndex === -1 ? allChampionships.docs.length - 1 : activeIndex;
+  const doc = allChampionships.docs[index];
+
+  const venueResult = await payload.find({
+    collection: "venues",
+    where: { id: { equals: typeof doc.venue === "object" ? doc.venue.id : doc.venue } },
+    limit: 1,
+  });
+  const venue = venueResult.docs[0];
+  if (!venue) return undefined;
+
+  return {
+    year: doc.year,
+    ordinal: index + 1,
+    venueName: venue.name,
+    venueSlug: venue.slug ?? slugify(venue.name),
+    effectiveDate: doc.date ?? `${doc.year}-12-31`,
+  };
 }

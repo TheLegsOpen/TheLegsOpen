@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 
 import { PageHero } from "@/components/shared/page-hero";
 import { FieldView } from "@/components/field/field-view";
-import { getPlayers } from "@/lib/data/players";
-import { getChampionshipHistory } from "@/lib/data/championships";
+import { getFieldPlayers } from "@/lib/data/players";
+import { getChampionshipHistory, getActiveChampionshipSummary } from "@/lib/data/championships";
 import { getPageBanners } from "@/lib/data/page-banners";
 import { getSiteTheme } from "@/lib/data/site-theme";
+import { ordinal } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Field",
@@ -13,8 +14,11 @@ export const metadata: Metadata = {
 };
 
 export default async function FieldPage() {
+  const activeChampionship = await getActiveChampionshipSummary();
+  const asOfDate = activeChampionship?.effectiveDate ?? new Date().toISOString();
+
   const [players, championshipHistory, banners, theme] = await Promise.all([
-    getPlayers(),
+    getFieldPlayers(asOfDate),
     getChampionshipHistory(),
     getPageBanners(),
     getSiteTheme(),
@@ -25,6 +29,10 @@ export default async function FieldPage() {
     return aSurname.localeCompare(bSurname);
   });
 
+  const description = activeChampionship
+    ? `The following players are in the field at The ${ordinal(activeChampionship.ordinal)} Legs Open at ${activeChampionship.venueName}.`
+    : "The full field of players competing at The Legs Open.";
+
   return (
     <>
       <PageHero
@@ -34,7 +42,7 @@ export default async function FieldPage() {
         imageUrl={banners.fieldUrl}
         eyebrow={banners.fieldEyebrow}
         title={banners.fieldTitle}
-        description={`${sorted.length} players competing at Seabrook Old Course this week.`}
+        description={description}
       />
       <FieldView players={sorted} championshipHistory={championshipHistory} championLogoUrl={theme.championBadgeUrl} />
     </>
