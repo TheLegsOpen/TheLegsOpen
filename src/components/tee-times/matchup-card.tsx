@@ -54,7 +54,12 @@ function PlayerChip({
             {isFavorite ? <Star className="h-3 w-3 shrink-0 fill-accent text-accent" aria-hidden="true" /> : null}
             {firstName}
           </span>
-          <span className="font-display text-lg font-bold uppercase tracking-wide hover:underline">{surname}</span>
+          <span className="font-display text-lg font-bold uppercase tracking-wide hover:underline">
+            {surname}
+            {player.championshipHandicap !== undefined ? (
+              <span className="ml-1 text-sm font-normal normal-case tracking-normal">({player.championshipHandicap})</span>
+            ) : null}
+          </span>
         </button>
         <p
           className={cn(
@@ -67,11 +72,7 @@ function PlayerChip({
         </p>
         {entry?.started ? (
           <span
-            className={cn(
-              TILE_CLASS,
-              "w-fit",
-              entry.score !== undefined && entry.toPar !== undefined ? scorePillClass(entry.toPar) : NEUTRAL_TILE_CLASS,
-            )}
+            className={cn(TILE_CLASS, "w-fit", entry.toPar !== undefined ? scorePillClass(entry.toPar) : NEUTRAL_TILE_CLASS)}
           >
             {entry.toPar !== undefined ? formatToPar(entry.toPar) : entry.thru}
           </span>

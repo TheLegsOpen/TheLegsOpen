@@ -138,23 +138,29 @@ function findLastStepFor(steps: TiebreakStepResult[], playerId: string) {
  * Re-ranks a tied-for-1st group once its playoff has resolved to a single winner -- the winner
  * becomes an outright 1st (no longer "tied"), the rest of that same group become an outright
  * (or still-tied) 2nd, and every other position is left untouched since the size of the top
- * group hasn't changed, only whether its members are tied with each other. Players excluded for
- * ineligibility (the Main champion, in Stableford) and unresolved (`stillTied`) results are left
- * exactly as the raw leaderboard had them -- there's nothing to re-rank in either case.
+ * group hasn't changed, only whether its members are tied with each other. A player excluded for
+ * ineligibility (the Main champion, barred from also winning Stableford) never played a
+ * head-to-head tiebreak against the winner, so they get their own "Ineligible" note rather than
+ * a "Lost" one, but they still drop to 2nd alongside any genuine tiebreak losers -- otherwise
+ * they'd be left showing as a co-leader forever, with no winner ever resolved. An unresolved
+ * (`stillTied`) result is left exactly as the raw leaderboard had it -- there's nothing to
+ * re-rank. Finally, the array itself is re-sorted by the (possibly just-updated) position, since
+ * relabelling a field doesn't move a row -- without this the winner's row could still render
+ * below the row it just outranked.
  */
 export function applyPlayoffToEntries(entries: CompetitionEntry[], playoff: PlayoffResult | undefined): RankedEntry[] {
   if (!playoff || playoff.stillTied || !playoff.winner) return entries;
 
   const winnerId = playoff.winner.id;
   const ineligibleIds = new Set(playoff.ineligible.map((p) => p.id));
-  const loserIds = entries
-    .filter((entry) => entry.position === 1 && entry.tied && entry.started && entry.player.id !== winnerId && !ineligibleIds.has(entry.player.id))
-    .map((entry) => entry.player.id);
+  const otherTied = entries.filter(
+    (entry) => entry.position === 1 && entry.tied && entry.started && entry.player.id !== winnerId,
+  );
+  const loserIds = new Set(otherTied.filter((entry) => !ineligibleIds.has(entry.player.id)).map((entry) => entry.player.id));
 
-  if (loserIds.length === 0) return entries;
-  const loserIdSet = new Set(loserIds);
+  if (otherTied.length === 0) return entries;
 
-  return entries.map((entry): RankedEntry => {
+  const ranked = entries.map((entry): RankedEntry => {
     if (entry.player.id === winnerId) {
       const found = findLastStepFor(playoff.steps, winnerId);
       return {
@@ -170,12 +176,12 @@ export function applyPlayoffToEntries(entries: CompetitionEntry[], playoff: Play
         },
       };
     }
-    if (loserIdSet.has(entry.player.id)) {
+    if (loserIds.has(entry.player.id)) {
       const found = findLastStepFor(playoff.steps, entry.player.id);
       return {
         ...entry,
         position: 2,
-        tied: loserIdSet.size > 1,
+        tied: otherTied.length > 1,
         playoffNote: found && {
           won: false,
           label: `Lost ${found.step.label}`,
@@ -185,8 +191,18 @@ export function applyPlayoffToEntries(entries: CompetitionEntry[], playoff: Play
         },
       };
     }
+    if (ineligibleIds.has(entry.player.id)) {
+      return {
+        ...entry,
+        position: 2,
+        tied: otherTied.length > 1,
+        playoffNote: { won: false, label: "Ineligible", description: "Already the Main Champion", display: "", holeIndices: [] },
+      };
+    }
     return entry;
   });
+
+  return ranked.sort((a, b) => a.position - b.position);
 }
 
 /**

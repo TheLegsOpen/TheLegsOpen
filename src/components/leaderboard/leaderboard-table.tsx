@@ -7,7 +7,6 @@ import { Clock, Star } from "lucide-react";
 import { cn, splitSurnameFirst } from "@/lib/utils";
 import { formatToPar, isConcluded } from "@/lib/leaderboard";
 import { CountryFlag } from "@/components/shared/country-flag";
-import { SITE } from "@/constants/site";
 import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
 import type { RankedEntry } from "@/lib/data/playoffs";
 
@@ -27,11 +26,11 @@ export function scorePillClass(relativeToPar: number): string {
   return "bg-white text-[#08325A]";
 }
 
-/** Per-hole colours — full eagle/birdie/par/bogey-or-worse scale, only meaningful at the single-hole level. Par uses the same green as the round-total pill above, so "at par" reads as one consistent colour everywhere it appears. */
+/** Per-hole colours — full eagle/birdie/par/bogey-or-worse scale, only meaningful at the single-hole level. Par is a neutral grey here (rather than the round-total pill's dark green) since with 18 small cells in a row, dark green and dark navy (bogey) read as nearly the same colour -- grey stays clearly distinct from every other tier. */
 export function holeScorePillClass(relativeToPar: number): string {
   if (relativeToPar <= -2) return "bg-[#910149] text-white";
   if (relativeToPar === -1) return "bg-[#CB333B] text-white";
-  if (relativeToPar === 0) return "bg-[#0E3D2C] text-white";
+  if (relativeToPar === 0) return "bg-[#B0B0B0] text-black";
   return "bg-[#08325A] text-white";
 }
 
@@ -39,6 +38,12 @@ const COMPETITION_LABEL: Record<Competition, string> = {
   main: "Nett strokes",
   stableford: "points",
   scratch: "gross strokes",
+};
+
+const CHAMPION_LABEL: Record<Competition, string> = {
+  main: "Champion Golfer Of The Year",
+  scratch: "Scratch Golfer Of The Year",
+  stableford: "Stableford Golfer Of The Year",
 };
 
 const ROW_TRANSITION = { type: "spring" as const, stiffness: 380, damping: 34, mass: 0.9 };
@@ -116,7 +121,7 @@ function LeaderboardRow({
       <td className="px-2 py-3">
         {isLeader ? (
           <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-accent">
-            The {SITE.shortName} Champion
+            {CHAMPION_LABEL[competition]}
           </span>
         ) : null}
         <div className="flex items-center gap-2">
@@ -139,8 +144,28 @@ function LeaderboardRow({
                   : "text-primary/60",
             )}
           >
-            {entry.playoffNote.label} ({entry.playoffNote.display})
+            {entry.playoffNote.display ? `${entry.playoffNote.label} (${entry.playoffNote.display})` : entry.playoffNote.label}
           </p>
+        ) : null}
+        {entry.playoffNote && entry.playoffNote.holeIndices.length > 0 ? (
+          <div className="mt-1.5 flex gap-1">
+            {entry.playoffNote.holeIndices.map((i) => {
+              const hole = entry.holes[i];
+              if (!hole) return null;
+              return (
+                <div key={i} className="flex flex-col items-center gap-0.5">
+                  <span className="text-center text-[9px] font-semibold leading-tight text-accent-foreground/50">
+                    {hole.holeNumber}
+                    <br />
+                    {hole.par}
+                  </span>
+                  <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hole.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS)}>
+                    {hole.value ?? "—"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         ) : null}
       </td>
       <td

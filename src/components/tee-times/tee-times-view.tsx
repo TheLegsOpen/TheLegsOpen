@@ -103,8 +103,11 @@ export function TeeTimesView({
               const ordered = reversed ? [...groups].reverse() : groups;
               return (
                 <AccordionItem key={roundIndex} value={`round-${roundIndex}`} className="border-b border-surface-dark-foreground/15">
-                  <AccordionTrigger className="font-display font-bold text-xl hover:text-accent">
-                    {round.round} Round · {round.date}
+                  <AccordionTrigger className="hover:text-accent">
+                    <span>
+                      <span className="text-sm font-semibold uppercase tracking-wide text-surface-dark-foreground/60">{round.round} Round</span>
+                      <span className="ml-2 font-display text-xl font-bold">{round.date}</span>
+                    </span>
                   </AccordionTrigger>
                   <AccordionContent>
                     {ordered.length === 0 ? (
