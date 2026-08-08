@@ -302,6 +302,7 @@ export interface Championship {
   id: string;
   year: number;
   isActive?: boolean | null;
+  completed?: boolean | null;
   date?: string | null;
   venue: string | Venue;
   winnerName?: string | null;

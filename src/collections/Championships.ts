@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 
 import { revalidateSite } from "@/lib/revalidate";
+import { computeChampionshipAutoStats } from "@/lib/data/championship-stats";
 
 export const Championships: CollectionConfig = {
   slug: "championships",
@@ -18,6 +19,16 @@ export const Championships: CollectionConfig = {
     read: () => true,
   },
   hooks: {
+    beforeValidate: [
+      async ({ data, req, originalDoc }) => {
+        if (!data) return data;
+        if (data.completed && originalDoc?.id) {
+          const stats = await computeChampionshipAutoStats(req.payload, String(originalDoc.id));
+          if (stats) Object.assign(data, stats);
+        }
+        return data;
+      },
+    ],
     afterChange: [revalidateSite],
     afterDelete: [revalidateSite],
   },
@@ -30,6 +41,17 @@ export const Championships: CollectionConfig = {
       defaultValue: false,
       admin: {
         description: "Tick this for whichever championship is on today — the live leaderboard reads scores for this event.",
+      },
+    },
+    {
+      name: "completed",
+      label: "Completed",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        position: "sidebar",
+        description:
+          "Tick once every player has finished and the result is final. Auto-fills (and keeps overwriting, on every save) the winner, Stableford/Scratch winners, runner-up, margin, front-9 lead, biggest lead, champion's age, and prior appearances straight from real scorecards -- the same logic Records already uses. Won On Debut is never auto-set, since a computed zero prior appearances can't be told apart from data that was just never entered.",
       },
     },
     {

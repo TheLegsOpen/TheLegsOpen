@@ -58,7 +58,8 @@ function tiedForFirst(entries: CompetitionEntry[]): CompetitionEntry[] {
   return entries.filter((entry) => entry.position === 1 && entry.tied && entry.started);
 }
 
-function resolveTiebreak(
+/** Exported for reuse by the Championship auto-stats populator (src/lib/data/championship-stats.ts), which needs the same countback rules to determine a competition's winner from scratch rather than just verifying one that's already confirmed. */
+export function resolveTiebreak(
   tied: CompetitionEntry[],
   competition: Competition,
 ): { steps: TiebreakStepResult[]; winner?: Player; stillTied: boolean } {
