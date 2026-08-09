@@ -85,28 +85,30 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
   return (
     <div className="flex flex-col gap-12">
       <Section title="Champion Golfer Of The Year" description="Every winner of the Main competition.">
-        {championsMain.length === 0 ? (
-          <Empty>No championships recorded yet.</Empty>
-        ) : (
-          <div className="flex flex-col">
-            {championsMain.map((c) => (
-              <RecordRow
-                key={c.year}
-                left={
-                  c.slug ? (
-                    <Link href={`/players/${c.slug}`} className="hover:underline">
-                      {c.name}
-                    </Link>
-                  ) : (
-                    c.name
-                  )
-                }
-                sub={c.venueName}
-                right={c.year}
-              />
-            ))}
-          </div>
-        )}
+        <Accordion type="multiple">
+          <Category value="champion-main" title="Main" count={championsMain.length}>
+            {championsMain.length === 0 ? (
+              <Empty>No championships recorded yet.</Empty>
+            ) : (
+              championsMain.map((c) => (
+                <RecordRow
+                  key={c.year}
+                  left={
+                    c.slug ? (
+                      <Link href={`/players/${c.slug}`} className="hover:underline">
+                        {c.name}
+                      </Link>
+                    ) : (
+                      c.name
+                    )
+                  }
+                  sub={c.venueName}
+                  right={c.year}
+                />
+              ))
+            )}
+          </Category>
+        </Accordion>
       </Section>
 
       <Section title="Stableford & Scratch Golfer Of The Year" description="Winners of the other two competitions, where recorded.">

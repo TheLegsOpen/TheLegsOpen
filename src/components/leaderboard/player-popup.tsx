@@ -96,7 +96,7 @@ export function PlayerPopup({
       <DialogContent className="max-h-[85vh] w-full max-w-5xl overflow-y-auto border-none bg-surface-dark p-0 text-surface-dark-foreground">
         <DialogTitle className="sr-only">{player.name}</DialogTitle>
 
-        <div className="relative flex flex-col gap-3 bg-primary p-5 text-primary-foreground sm:flex-row sm:items-start">
+        <div className="relative flex flex-col gap-3 bg-primary p-5 pl-14 pr-16 text-primary-foreground sm:flex-row sm:items-start">
           <button
             type="button"
             onClick={onToggleFavorite}
