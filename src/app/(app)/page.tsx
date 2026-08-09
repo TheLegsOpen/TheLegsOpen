@@ -87,6 +87,7 @@ export default async function HomePage() {
             approachCategories={approachCategories}
             puttingCategories={puttingCategories}
             championBadgeUrl={theme.championBadgeUrl}
+            championWinnerBadgeUrl={theme.championWinnerBadgeUrl}
           />
           <LiveBlogWidget entries={liveBlogPage.entries} />
         </Container>

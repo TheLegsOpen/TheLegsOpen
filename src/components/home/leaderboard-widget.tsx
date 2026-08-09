@@ -29,6 +29,7 @@ interface LeaderboardWidgetProps {
   approachCategories: StatCategory[];
   puttingCategories: StatCategory[];
   championBadgeUrl?: string;
+  championWinnerBadgeUrl?: string;
 }
 
 export function LeaderboardWidget({
@@ -42,6 +43,7 @@ export function LeaderboardWidget({
   approachCategories,
   puttingCategories,
   championBadgeUrl,
+  championWinnerBadgeUrl,
 }: LeaderboardWidgetProps) {
   const top = entries.slice(0, WIDGET_ROW_COUNT);
   const { favorites, toggleFavorite } = useFavorites();
@@ -108,6 +110,9 @@ export function LeaderboardWidget({
                         <CountryFlag code={entry.player.countryCode} className="h-3 w-4 shrink-0 align-middle" />
                         {concluded && entry.position === 1 && !entry.tied && championBadgeUrl ? (
                           <img src={championBadgeUrl} alt="Champion" className="h-3.5 w-3.5 shrink-0 object-contain" />
+                        ) : null}
+                        {concluded && entry.position === 1 && !entry.tied && championWinnerBadgeUrl ? (
+                          <img src={championWinnerBadgeUrl} alt="Championship Winner" className="h-3.5 w-3.5 shrink-0 object-contain" />
                         ) : null}
                       </div>
                       {entry.playoffNote ? (

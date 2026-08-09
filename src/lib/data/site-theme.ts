@@ -11,6 +11,7 @@ export interface SiteTheme {
   logoUrl?: string;
   faviconUrl?: string;
   championBadgeUrl?: string;
+  championWinnerBadgeUrl?: string;
   championTrophyGraphicUrl?: string;
   fontPreset: FontPreset;
 }
@@ -31,6 +32,7 @@ export async function getSiteTheme(): Promise<SiteTheme> {
     logoUrl: mediaUrl(settings.branding?.logo),
     faviconUrl: mediaUrl(settings.branding?.favicon),
     championBadgeUrl: mediaUrl(settings.branding?.championBadge),
+    championWinnerBadgeUrl: mediaUrl(settings.branding?.championWinnerBadge),
     championTrophyGraphicUrl: mediaUrl(settings.branding?.championTrophyGraphic),
     fontPreset: settings.fontPreset || DEFAULTS.fontPreset,
   };

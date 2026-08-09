@@ -56,14 +56,31 @@ export const SiteTheme: GlobalConfig = {
           admin: { description: "Optional. Replaces the browser tab icon when set. A square image works best." },
         },
         {
-          name: "championBadge",
-          type: "upload",
-          relationTo: "media",
-          label: "Champion Badge",
-          admin: {
-            description:
-              "Shown next to the year(s) won on a champion's Field card and profile page. Falls back to a trophy icon when not set. Recommended: square, transparent background, at least 200×200px.",
-          },
+          type: "row",
+          fields: [
+            {
+              name: "championBadge",
+              type: "upload",
+              relationTo: "media",
+              label: "Champion Badge",
+              admin: {
+                width: "50%",
+                description:
+                  "Shown next to the year(s) won on a champion's Field card and profile page. Falls back to a trophy icon when not set. Recommended: square, transparent background, at least 200×200px.",
+              },
+            },
+            {
+              name: "championWinnerBadge",
+              type: "upload",
+              relationTo: "media",
+              label: "Championship Winner Badge",
+              admin: {
+                width: "50%",
+                description:
+                  "Shown on the homepage leaderboard widget, next to the Champion Badge above, once the championship is decided. Falls back to showing nothing (not the trophy icon) when unset. Recommended: square, transparent background, at least 200×200px.",
+              },
+            },
+          ],
         },
         {
           name: "championTrophyGraphic",
