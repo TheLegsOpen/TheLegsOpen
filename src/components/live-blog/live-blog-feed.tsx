@@ -1,7 +1,6 @@
 "use client";
 
-import { Fragment } from "react";
-import Link from "next/link";
+import { Fragment, useState } from "react";
 import {
   ArrowDownCircle,
   ArrowUpCircle,
@@ -14,6 +13,7 @@ import {
   FlagTriangleRight,
   Flame,
   LogOut,
+  Loader2,
   Rocket,
   Sparkles,
   Star,
@@ -27,10 +27,14 @@ import {
 
 import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
-import { cn, playerSlug } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
+import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { InstagramEmbed } from "@/components/live-blog/instagram-embed";
-import type { LiveBlogCategory, LiveBlogCompetition, LiveBlogEntry } from "@/lib/data/live-blog";
+import { useFavorites } from "@/hooks/use-favorites";
+import type { LiveBlogCategory, LiveBlogCompetition, LiveBlogEntry, LiveBlogPage } from "@/lib/data/live-blog";
+import type { CompetitionEntry } from "@/lib/data/scorecards";
+import type { StatCategory } from "@/lib/statistics";
 
 /** `cardClass` colours the whole post like the scoring-indicator dots (Eagle/Birdie/Bogey only) -- everything else stays a plain white card with just a coloured chip. */
 export const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: typeof Star; chipClass: string; cardClass?: string }> = {
@@ -75,10 +79,61 @@ export function formatDate(iso: string): string {
 }
 
 interface LiveBlogFeedProps {
-  entries: LiveBlogEntry[];
+  initialEntries: LiveBlogEntry[];
+  initialHasNextPage: boolean;
+  mainEntries: CompetitionEntry[];
+  stablefordEntries: CompetitionEntry[];
+  scratchEntries: CompetitionEntry[];
+  nettCategories: StatCategory[];
+  scratchCategories: StatCategory[];
+  streakCategories: StatCategory[];
+  drivingCategories: StatCategory[];
+  approachCategories: StatCategory[];
+  puttingCategories: StatCategory[];
 }
 
-export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
+export function LiveBlogFeed({
+  initialEntries,
+  initialHasNextPage,
+  mainEntries,
+  stablefordEntries,
+  scratchEntries,
+  nettCategories,
+  scratchCategories,
+  streakCategories,
+  drivingCategories,
+  approachCategories,
+  puttingCategories,
+}: LiveBlogFeedProps) {
+  const [entries, setEntries] = useState(initialEntries);
+  const [page, setPage] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(initialHasNextPage);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const { favorites, toggleFavorite } = useFavorites();
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const selectedMain = mainEntries.find((e) => e.player.id === selectedPlayerId);
+  const selectedStableford = stablefordEntries.find((e) => e.player.id === selectedPlayerId);
+  const selectedScratch = scratchEntries.find((e) => e.player.id === selectedPlayerId);
+  const leaderToPar = mainEntries[0]?.toPar ?? 0;
+
+  async function loadMore() {
+    setLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const res = await fetch(`/api/live-blog-feed?page=${nextPage}`);
+      if (!res.ok) throw new Error("Failed to load more posts");
+      const data: LiveBlogPage = await res.json();
+      setEntries((prev) => [...prev, ...data.entries]);
+      setHasNextPage(data.hasNextPage);
+      setPage(nextPage);
+    } catch {
+      // Leave hasNextPage as-is so the button just stays available to retry.
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center gap-2 border border-dashed border-black/20 bg-white py-16 text-center">
@@ -88,7 +143,7 @@ export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
     );
   }
 
-  return (
+  const feedGrid = (
     <div className="grid grid-cols-[24px_1fr] gap-x-4 gap-y-4">
       {/* Timeline spine: a single element spanning every entry's grid row (and the gaps between
           them), kept in its own gutter column so it never shares space with a card's own
@@ -138,8 +193,9 @@ export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
               ) : null}
               <div className="mt-3 flex items-center gap-3">
                 {entry.player ? (
-                  <Link
-                    href={`/players/${playerSlug(entry.player)}`}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlayerId(entry.player!.id)}
                     className={cn(
                       "inline-flex items-center gap-1.5 text-sm font-semibold hover:underline",
                       isColored ? "text-white" : "text-accent",
@@ -147,7 +203,7 @@ export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
                   >
                     <CountryFlag code={entry.player.countryCode} className="h-3 w-4" />
                     {entry.player.name}
-                  </Link>
+                  </button>
                 ) : null}
                 {entry.scoreRelative !== undefined ? (
                   <span
@@ -164,6 +220,46 @@ export function LiveBlogFeed({ entries }: LiveBlogFeedProps) {
           </Fragment>
         );
       })}
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col gap-8">
+      {feedGrid}
+
+      {hasNextPage ? (
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="inline-flex items-center gap-2 bg-[#2269AB] px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#1b558a] disabled:opacity-60"
+          >
+            {loadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {loadingMore ? "Loading…" : "Load more"}
+          </button>
+        </div>
+      ) : null}
+
+      <PlayerPopup
+        main={selectedMain}
+        stableford={selectedStableford}
+        scratch={selectedScratch}
+        nettCategories={nettCategories}
+        scratchCategories={scratchCategories}
+        streakCategories={streakCategories}
+        drivingCategories={drivingCategories}
+        approachCategories={approachCategories}
+        puttingCategories={puttingCategories}
+        initialCompetition="main"
+        leaderToPar={leaderToPar}
+        isFav={selectedPlayerId ? favorites.includes(selectedPlayerId) : false}
+        onToggleFavorite={() => selectedPlayerId && toggleFavorite(selectedPlayerId)}
+        open={!!selectedMain}
+        onOpenChange={(next) => {
+          if (!next) setSelectedPlayerId(null);
+        }}
+      />
     </div>
   );
 }

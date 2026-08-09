@@ -68,8 +68,8 @@ export function SearchOverlay({ open, onOpenChange }: { open: boolean; onOpenCha
                 onChange={(event) => setQuery(event.target.value)}
                 className="h-auto border-0 bg-transparent px-0 text-lg shadow-none focus-visible:ring-0"
               />
-              <DialogPrimitive.Close className="rounded-sm p-1 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                <X className="h-5 w-5" />
+              <DialogPrimitive.Close className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#2269AB] text-white transition-colors hover:bg-[#1b558a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <X className="h-4 w-4" />
                 <span className="sr-only">Close search</span>
               </DialogPrimitive.Close>
             </div>

@@ -8,6 +8,15 @@ import { LiveBlogFeed } from "@/components/live-blog/live-blog-feed";
 import { getLiveBlogPosts } from "@/lib/data/live-blog";
 import { getArticles } from "@/lib/data/articles";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
+import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
+import {
+  getNettScoringCategories,
+  getScratchScoringCategories,
+  getStreakCategories,
+  getDrivingCategories,
+  getApproachCategories,
+  getPuttingCategories,
+} from "@/lib/data/scoring-statistics";
 
 export const metadata: Metadata = {
   title: "Live Blog",
@@ -15,7 +24,33 @@ export const metadata: Metadata = {
 };
 
 export default async function LiveBlogPage() {
-  const [entries, articles, clockConfig] = await Promise.all([getLiveBlogPosts(), getArticles(), getSponsorClock()]);
+  const [
+    liveBlogPage,
+    articles,
+    clockConfig,
+    mainEntries,
+    stablefordEntries,
+    scratchEntries,
+    nettCategories,
+    scratchCategories,
+    streakCategories,
+    drivingCategories,
+    approachCategories,
+    puttingCategories,
+  ] = await Promise.all([
+    getLiveBlogPosts(),
+    getArticles(),
+    getSponsorClock(),
+    getCompetitionLeaderboard("main"),
+    getCompetitionLeaderboard("stableford"),
+    getCompetitionLeaderboard("scratch"),
+    getNettScoringCategories(),
+    getScratchScoringCategories(),
+    getStreakCategories(),
+    getDrivingCategories(),
+    getApproachCategories(),
+    getPuttingCategories(),
+  ]);
 
   return (
     <>
@@ -32,7 +67,19 @@ export default async function LiveBlogPage() {
 
       <div className="bg-[#EEEEEE]">
         <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_320px] lg:items-start">
-          <LiveBlogFeed entries={entries} />
+          <LiveBlogFeed
+            initialEntries={liveBlogPage.entries}
+            initialHasNextPage={liveBlogPage.hasNextPage}
+            mainEntries={mainEntries}
+            stablefordEntries={stablefordEntries}
+            scratchEntries={scratchEntries}
+            nettCategories={nettCategories}
+            scratchCategories={scratchCategories}
+            streakCategories={streakCategories}
+            drivingCategories={drivingCategories}
+            approachCategories={approachCategories}
+            puttingCategories={puttingCategories}
+          />
           <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="dark" />
         </Container>
       </div>

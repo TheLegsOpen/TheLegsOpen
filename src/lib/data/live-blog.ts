@@ -42,29 +42,42 @@ export interface LiveBlogEntry {
   postedAt: string;
 }
 
-export async function getLiveBlogPosts(): Promise<LiveBlogEntry[]> {
+export interface LiveBlogPage {
+  entries: LiveBlogEntry[];
+  hasNextPage: boolean;
+  nextPage: number | null;
+}
+
+const LIVE_BLOG_PAGE_SIZE = 40;
+
+export async function getLiveBlogPosts(page = 1, limit = LIVE_BLOG_PAGE_SIZE): Promise<LiveBlogPage> {
   const payload = await getPayload({ config: configPromise });
   const championship = await getActiveChampionship(payload);
-  if (!championship) return [];
+  if (!championship) return { entries: [], hasNextPage: false, nextPage: null };
 
   const result = await payload.find({
     collection: "live-blog-posts",
     where: { championship: { equals: championship.id } },
     sort: "-postedAt",
-    limit: 200,
+    limit,
+    page,
     depth: 1,
   });
 
-  return result.docs.map((doc) => ({
-    id: String(doc.id),
-    category: doc.category,
-    competition: doc.competition ?? undefined,
-    headline: doc.headline,
-    body: doc.body,
-    instagramUrl: doc.instagramUrl ?? undefined,
-    player: typeof doc.player === "object" && doc.player ? mapPlayer(doc.player as PayloadPlayer) : undefined,
-    holeNumber: doc.holeNumber ?? undefined,
-    scoreRelative: doc.scoreRelative ?? undefined,
-    postedAt: doc.postedAt,
-  }));
+  return {
+    entries: result.docs.map((doc) => ({
+      id: String(doc.id),
+      category: doc.category,
+      competition: doc.competition ?? undefined,
+      headline: doc.headline,
+      body: doc.body,
+      instagramUrl: doc.instagramUrl ?? undefined,
+      player: typeof doc.player === "object" && doc.player ? mapPlayer(doc.player as PayloadPlayer) : undefined,
+      holeNumber: doc.holeNumber ?? undefined,
+      scoreRelative: doc.scoreRelative ?? undefined,
+      postedAt: doc.postedAt,
+    })),
+    hasNextPage: result.hasNextPage,
+    nextPage: result.nextPage ?? null,
+  };
 }

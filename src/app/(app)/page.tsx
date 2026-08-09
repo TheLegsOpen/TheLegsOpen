@@ -32,7 +32,7 @@ export default async function HomePage() {
     mainRaw,
     stablefordRaw,
     scratchRaw,
-    liveBlogPosts,
+    liveBlogPage,
     sections,
     clockConfig,
     weather,
@@ -88,7 +88,7 @@ export default async function HomePage() {
             puttingCategories={puttingCategories}
             championBadgeUrl={theme.championBadgeUrl}
           />
-          <LiveBlogWidget entries={liveBlogPosts} />
+          <LiveBlogWidget entries={liveBlogPage.entries} />
         </Container>
       </section>
       <HomepageSections sections={sections} />
