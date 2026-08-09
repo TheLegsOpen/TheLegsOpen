@@ -1,10 +1,8 @@
-import Link from "next/link";
-
 import { CountryFlag } from "@/components/shared/country-flag";
-import { cn, playerSlug, surnameFirst } from "@/lib/utils";
+import { cn, surnameFirst } from "@/lib/utils";
 import type { PlayoffResult } from "@/lib/data/playoffs";
 
-function PlayoffCard({ result }: { result: PlayoffResult }) {
+function PlayoffCard({ result, onSelectPlayer }: { result: PlayoffResult; onSelectPlayer: (playerId: string) => void }) {
   const hasSteps = result.steps.length > 0;
 
   return (
@@ -49,9 +47,9 @@ function PlayoffCard({ result }: { result: PlayoffResult }) {
                   >
                     <span className="flex items-center gap-2 text-sm">
                       <CountryFlag code={contender.player.countryCode} className="h-3 w-4" />
-                      <Link href={`/players/${playerSlug(contender.player)}`} className="hover:underline">
+                      <button type="button" onClick={() => onSelectPlayer(contender.player.id)} className="hover:underline">
                         {surnameFirst(contender.player.name)}
-                      </Link>
+                      </button>
                     </span>
                     <span className="text-sm font-bold tabular-nums">{contender.display}</span>
                   </div>
@@ -65,13 +63,13 @@ function PlayoffCard({ result }: { result: PlayoffResult }) {
   );
 }
 
-export function PlayoffsBoard({ results }: { results: PlayoffResult[] }) {
+export function PlayoffsBoard({ results, onSelectPlayer }: { results: PlayoffResult[]; onSelectPlayer: (playerId: string) => void }) {
   if (results.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-8">
       {results.map((result) => (
-        <PlayoffCard key={result.competition} result={result} />
+        <PlayoffCard key={result.competition} result={result} onSelectPlayer={onSelectPlayer} />
       ))}
     </div>
   );

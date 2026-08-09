@@ -4,13 +4,13 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
 import { CountryFlag } from "@/components/shared/country-flag";
-import { cn, playerSlug, surnameFirst } from "@/lib/utils";
+import { cn, surnameFirst } from "@/lib/utils";
 import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { StatCategory } from "@/lib/statistics";
 
 const PREVIEW_COUNT = 3;
 
-export function StatPreviewCard({ category }: { category: StatCategory }) {
+export function StatPreviewCard({ category, onSelectPlayer }: { category: StatCategory; onSelectPlayer: (playerId: string) => void }) {
   const top = category.rows.slice(0, PREVIEW_COUNT);
 
   return (
@@ -46,9 +46,9 @@ export function StatPreviewCard({ category }: { category: StatCategory }) {
                 {row.position}
               </span>
               <CountryFlag code={row.player.countryCode} className="h-3 w-4" />
-              <Link href={`/players/${playerSlug(row.player)}`} className="font-medium hover:underline">
+              <button type="button" onClick={() => onSelectPlayer(row.player.id)} className="font-medium hover:underline">
                 {surnameFirst(row.player.name)}
-              </Link>
+              </button>
             </div>
             <span className={cn(TILE_CLASS, "text-xs", category.useParColoring ? scorePillClass(row.value) : NEUTRAL_TILE_CLASS)}>
               {row.display}

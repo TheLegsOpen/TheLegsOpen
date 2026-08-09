@@ -98,6 +98,13 @@ function isConcluded(entries: CompetitionEntry[]): boolean {
  * that year's real scorecards concluded AND agree with the confirmed winner (the same guard used
  * for Records) — otherwise the year is left out rather than guessed, since a regulation round
  * that doesn't match the confirmed result can't be trusted to say where anyone else finished.
+ *
+ * The confirmed winner just needs to be one of the players sharing the top spot, not necessarily
+ * the sole outright leader -- a title decided by playoff/countback still leaves the raw Main
+ * leaderboard showing a tie at 1st (the tiebreak is resolved separately, see lib/data/playoffs.ts),
+ * and that tie shouldn't make every other player's real, concluded finish untrustworthy. A player
+ * who was themselves part of that tied group but isn't the confirmed winner is the tiebreak's
+ * runner-up, so their own finish reads as a clean 2nd rather than "tied 1st".
  */
 export async function getPlayerPerformances(player: Player): Promise<PlayerPerformance[]> {
   const history = await getChampionshipHistory();
@@ -112,13 +119,18 @@ export async function getPlayerPerformances(player: Player): Promise<PlayerPerfo
       const main = await getCompetitionLeaderboardForChampionshipId(c.id, "main");
       if (!isConcluded(main)) return undefined;
 
-      const winner = main.find((e) => e.position === 1);
-      if (!winner || winner.tied || winner.player.name !== c.winnerName) return undefined;
+      const topGroup = main.filter((e) => e.position === 1);
+      const confirmedWinner = topGroup.find((e) => e.player.name === c.winnerName);
+      if (!confirmedWinner) return undefined;
 
       const entry = main.find((e) => e.player.name === player.name);
       if (!entry || !entry.started) return undefined;
 
-      return { year: c.year, venueName: c.venueName, finish: entry.tied ? `T${entry.position}` : `${entry.position}`, position: entry.position };
+      const wasTiebreakRunnerUp = entry.position === 1 && entry.tied && entry.player.name !== c.winnerName;
+      const position = wasTiebreakRunnerUp ? 2 : entry.position;
+      const finish = wasTiebreakRunnerUp ? "2" : entry.tied ? `T${entry.position}` : `${entry.position}`;
+
+      return { year: c.year, venueName: c.venueName, finish, position };
     }),
   );
 

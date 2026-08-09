@@ -15,8 +15,8 @@ import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
 import type { StatCategory } from "@/lib/statistics";
 
 const WIDGET_ROW_COUNT = 10;
-/** Denser padding than the full leaderboard's tiles, to suit the narrower homepage column. */
-const COMPACT_TILE_CLASS = "px-1.5 py-0.5 min-w-0";
+/** Denser padding than the full leaderboard's tiles, to suit the narrower homepage column. Fixed (not minimum) width, so "-1" and "+15" render the same size instead of the pill growing/shrinking with digit count. */
+const COMPACT_TILE_CLASS = "px-1.5 py-0.5 w-10";
 
 interface LeaderboardWidgetProps {
   entries: RankedEntry[];

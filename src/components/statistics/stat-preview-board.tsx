@@ -6,9 +6,12 @@ import { ChevronDown } from "lucide-react";
 import { StatPreviewCard } from "@/components/statistics/stat-preview-card";
 import { ToughestHolesBoard } from "@/components/statistics/toughest-holes-board";
 import { PlayoffsBoard } from "@/components/statistics/playoffs-board";
+import { PlayerPopup } from "@/components/leaderboard/player-popup";
+import { useFavorites } from "@/hooks/use-favorites";
 import type { StatCategory } from "@/lib/statistics";
 import type { HoleToughnessRow } from "@/lib/data/scoring-statistics";
 import type { PlayoffResult } from "@/lib/data/playoffs";
+import type { CompetitionEntry } from "@/lib/data/scorecards";
 
 type StatSection = "nett" | "scratch" | "streaks" | "driving" | "approach" | "putting" | "playoffs" | "course";
 type CategorySection = Exclude<StatSection, "course" | "playoffs">;
@@ -23,6 +26,9 @@ interface StatPreviewBoardProps {
   toughestHolesNett: HoleToughnessRow[];
   toughestHolesScratch: HoleToughnessRow[];
   playoffs: PlayoffResult[];
+  mainEntries: CompetitionEntry[];
+  stablefordEntries: CompetitionEntry[];
+  scratchEntries: CompetitionEntry[];
 }
 
 const SECTION_CATEGORIES: Record<CategorySection, keyof StatPreviewBoardProps> = {
@@ -35,10 +41,30 @@ const SECTION_CATEGORIES: Record<CategorySection, keyof StatPreviewBoardProps> =
 };
 
 export function StatPreviewBoard(props: StatPreviewBoardProps) {
-  const { toughestHolesNett, toughestHolesScratch, playoffs } = props;
+  const {
+    toughestHolesNett,
+    toughestHolesScratch,
+    playoffs,
+    mainEntries,
+    stablefordEntries,
+    scratchEntries,
+    nettCategories,
+    scratchCategories,
+    streakCategories,
+    drivingCategories,
+    approachCategories,
+    puttingCategories,
+  } = props;
   const [section, setSection] = useState<StatSection>("nett");
   const categories =
     section === "course" || section === "playoffs" ? [] : (props[SECTION_CATEGORIES[section]] as StatCategory[]);
+
+  const { favorites, toggleFavorite } = useFavorites();
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const selectedMain = mainEntries.find((e) => e.player.id === selectedPlayerId);
+  const selectedStableford = stablefordEntries.find((e) => e.player.id === selectedPlayerId);
+  const selectedScratch = scratchEntries.find((e) => e.player.id === selectedPlayerId);
+  const leaderToPar = mainEntries[0]?.toPar ?? 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -87,14 +113,34 @@ export function StatPreviewBoard(props: StatPreviewBoardProps) {
           <ToughestHolesBoard title="Toughest Holes - Scratch" rows={toughestHolesScratch} />
         </div>
       ) : section === "playoffs" ? (
-        <PlayoffsBoard results={playoffs} />
+        <PlayoffsBoard results={playoffs} onSelectPlayer={setSelectedPlayerId} />
       ) : (
         <div className="flex flex-col gap-8">
           {categories.map((category) => (
-            <StatPreviewCard key={category.key} category={category} />
+            <StatPreviewCard key={category.key} category={category} onSelectPlayer={setSelectedPlayerId} />
           ))}
         </div>
       )}
+
+      <PlayerPopup
+        main={selectedMain}
+        stableford={selectedStableford}
+        scratch={selectedScratch}
+        nettCategories={nettCategories}
+        scratchCategories={scratchCategories}
+        streakCategories={streakCategories}
+        drivingCategories={drivingCategories}
+        approachCategories={approachCategories}
+        puttingCategories={puttingCategories}
+        initialCompetition={section === "scratch" ? "scratch" : "main"}
+        leaderToPar={leaderToPar}
+        isFav={selectedPlayerId ? favorites.includes(selectedPlayerId) : false}
+        onToggleFavorite={() => selectedPlayerId && toggleFavorite(selectedPlayerId)}
+        open={!!selectedMain}
+        onOpenChange={(next) => {
+          if (!next) setSelectedPlayerId(null);
+        }}
+      />
     </div>
   );
 }

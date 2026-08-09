@@ -18,6 +18,7 @@ import {
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getPageBanners } from "@/lib/data/page-banners";
 import { getPlayoffs } from "@/lib/data/playoffs";
+import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
 
 export const metadata: Metadata = {
   title: "Statistics",
@@ -38,6 +39,9 @@ export default async function StatisticsPage() {
     articles,
     clockConfig,
     banners,
+    mainEntries,
+    stablefordEntries,
+    scratchEntries,
   ] = await Promise.all([
     getNettScoringCategories(),
     getScratchScoringCategories(),
@@ -51,6 +55,9 @@ export default async function StatisticsPage() {
     getArticles(),
     getSponsorClock(),
     getPageBanners(),
+    getCompetitionLeaderboard("main"),
+    getCompetitionLeaderboard("stableford"),
+    getCompetitionLeaderboard("scratch"),
   ]);
 
   return (
@@ -78,6 +85,9 @@ export default async function StatisticsPage() {
             toughestHolesNett={toughestHolesNett}
             toughestHolesScratch={toughestHolesScratch}
             playoffs={playoffs}
+            mainEntries={mainEntries}
+            stablefordEntries={stablefordEntries}
+            scratchEntries={scratchEntries}
           />
           <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="dark" />
         </Container>

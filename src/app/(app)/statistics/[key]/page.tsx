@@ -17,6 +17,7 @@ import {
 } from "@/lib/data/scoring-statistics";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getPageBanners } from "@/lib/data/page-banners";
+import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
 
 interface StatDetailPageProps {
   params: Promise<{ key: string }>;
@@ -41,7 +42,20 @@ export async function generateMetadata({ params }: StatDetailPageProps): Promise
 
 export default async function StatDetailPage({ params }: StatDetailPageProps) {
   const { key } = await params;
-  const [nettScoring, scratchScoring, streaks, driving, approach, putting, articles, clockConfig, banners] = await Promise.all([
+  const [
+    nettScoring,
+    scratchScoring,
+    streaks,
+    driving,
+    approach,
+    putting,
+    articles,
+    clockConfig,
+    banners,
+    mainEntries,
+    stablefordEntries,
+    scratchEntries,
+  ] = await Promise.all([
     getNettScoringCategories(),
     getScratchScoringCategories(),
     getStreakCategories(),
@@ -51,6 +65,9 @@ export default async function StatDetailPage({ params }: StatDetailPageProps) {
     getArticles(),
     getSponsorClock(),
     getPageBanners(),
+    getCompetitionLeaderboard("main"),
+    getCompetitionLeaderboard("stableford"),
+    getCompetitionLeaderboard("scratch"),
   ]);
 
   const category = [...nettScoring, ...scratchScoring, ...streaks, ...driving, ...approach, ...putting].find((c) => c.key === key);
@@ -79,6 +96,9 @@ export default async function StatDetailPage({ params }: StatDetailPageProps) {
             approachCategories={approach}
             puttingCategories={putting}
             initialKey={key}
+            mainEntries={mainEntries}
+            stablefordEntries={stablefordEntries}
+            scratchEntries={scratchEntries}
           />
           <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="dark" />
         </Container>

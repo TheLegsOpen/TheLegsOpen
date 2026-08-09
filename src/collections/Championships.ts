@@ -89,12 +89,12 @@ export const Championships: CollectionConfig = {
     {
       name: "winningScore",
       type: "number",
-      admin: { description: "The champion's actual raw strokes for the round, e.g. 74." },
+      admin: { description: "The champion's Main (Nett) total for the round -- the competition that actually decides the title -- e.g. 65." },
     },
     {
       name: "scoreToPar",
       type: "number",
-      admin: { description: "The champion's score relative to the course's par, e.g. -2 for two under. Not the raw score — see Winning Score above." },
+      admin: { description: "The champion's Main (Nett) score relative to the course's par, e.g. -4 for four under." },
     },
     { name: "margin", type: "text", admin: { description: "e.g. \"2\" (shots) or \"Playoff\"" } },
     {
@@ -119,7 +119,7 @@ export const Championships: CollectionConfig = {
           type: "row",
           fields: [
             { name: "runnerUpName", type: "text", admin: { description: "Runner-up in the Main competition, if known." } },
-            { name: "runnerUpScore", type: "number", admin: { description: "Runner-up's raw strokes for the round." } },
+            { name: "runnerUpScore", type: "number", admin: { description: "Runner-up's Main (Nett) total for the round." } },
           ],
         },
         {

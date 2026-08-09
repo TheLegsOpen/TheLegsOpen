@@ -140,14 +140,14 @@ export async function computeChampionshipAutoStats(payload: Payload, championshi
     winnerPlayer: winner.id,
   };
 
-  const scratchEntryForWinner = scratch.find((e) => e.player.id === winner.id);
-  stats.winningScore = scratchEntryForWinner?.score;
-  stats.scoreToPar = scratchEntryForWinner?.toPar;
+  // Main (nett) is the competition that actually decides the champion, so winningScore/scoreToPar
+  // and the runner-up's score reflect Main, not Scratch -- e.g. 65 / -4, not the gross total.
+  stats.winningScore = winnerEntry.score;
+  stats.scoreToPar = winnerEntry.toPar;
 
   if (mainResult.runnerUp) {
     stats.runnerUpName = mainResult.runnerUp.player.name;
-    const runnerUpScratch = scratch.find((e) => e.player.id === mainResult.runnerUp!.player.id);
-    stats.runnerUpScore = runnerUpScratch?.score;
+    stats.runnerUpScore = mainResult.runnerUp.score;
   }
   if (mainResult.viaTiebreak) {
     stats.margin = "Playoff";

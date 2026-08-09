@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 
 import { CountryFlag } from "@/components/shared/country-flag";
-import { cn, playerSlug, surnameFirst } from "@/lib/utils";
+import { cn, surnameFirst } from "@/lib/utils";
 import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
+import { PlayerPopup } from "@/components/leaderboard/player-popup";
+import { useFavorites } from "@/hooks/use-favorites";
 import type { StatCategory } from "@/lib/statistics";
+import type { CompetitionEntry } from "@/lib/data/scorecards";
 
 type StatSection = "nett" | "scratch" | "streaks" | "driving" | "approach" | "putting";
 
@@ -20,6 +22,9 @@ interface StatExplorerProps {
   puttingCategories: StatCategory[];
   /** Preselects a stat, e.g. when arriving from a "Full rankings" link -- otherwise defaults to the first Nett stat. */
   initialKey?: string;
+  mainEntries: CompetitionEntry[];
+  stablefordEntries: CompetitionEntry[];
+  scratchEntries: CompetitionEntry[];
 }
 
 function sectionForKey(key: string | undefined): StatSection {
@@ -39,6 +44,9 @@ export function StatExplorer({
   approachCategories,
   puttingCategories,
   initialKey,
+  mainEntries,
+  stablefordEntries,
+  scratchEntries,
 }: StatExplorerProps) {
   const categoriesBySection: Record<StatSection, StatCategory[]> = {
     nett: nettCategories,
@@ -53,6 +61,13 @@ export function StatExplorer({
   const categories = categoriesBySection[section];
   const [selectedKey, setSelectedKey] = useState(initialKey ?? categories[0]?.key);
   const selected = categories.find((c) => c.key === selectedKey) ?? categories[0];
+
+  const { favorites, toggleFavorite } = useFavorites();
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const selectedMain = mainEntries.find((e) => e.player.id === selectedPlayerId);
+  const selectedStableford = stablefordEntries.find((e) => e.player.id === selectedPlayerId);
+  const selectedScratch = scratchEntries.find((e) => e.player.id === selectedPlayerId);
+  const leaderToPar = mainEntries[0]?.toPar ?? 0;
 
   function handleSectionChange(nextSection: StatSection) {
     setSection(nextSection);
@@ -132,9 +147,9 @@ export function StatExplorer({
                   {row.position}
                 </span>
                 <CountryFlag code={row.player.countryCode} className="h-3 w-4" />
-                <Link href={`/players/${playerSlug(row.player)}`} className="font-medium hover:underline">
+                <button type="button" onClick={() => setSelectedPlayerId(row.player.id)} className="font-medium hover:underline">
                   {surnameFirst(row.player.name)}
-                </Link>
+                </button>
               </div>
               <span className={cn(TILE_CLASS, "text-xs", selected.useParColoring ? scorePillClass(row.value) : NEUTRAL_TILE_CLASS)}>
                 {row.display}
@@ -143,6 +158,26 @@ export function StatExplorer({
           ))
         )}
       </div>
+
+      <PlayerPopup
+        main={selectedMain}
+        stableford={selectedStableford}
+        scratch={selectedScratch}
+        nettCategories={nettCategories}
+        scratchCategories={scratchCategories}
+        streakCategories={streakCategories}
+        drivingCategories={drivingCategories}
+        approachCategories={approachCategories}
+        puttingCategories={puttingCategories}
+        initialCompetition={section === "scratch" ? "scratch" : "main"}
+        leaderToPar={leaderToPar}
+        isFav={selectedPlayerId ? favorites.includes(selectedPlayerId) : false}
+        onToggleFavorite={() => selectedPlayerId && toggleFavorite(selectedPlayerId)}
+        open={!!selectedMain}
+        onOpenChange={(next) => {
+          if (!next) setSelectedPlayerId(null);
+        }}
+      />
     </div>
   );
 }

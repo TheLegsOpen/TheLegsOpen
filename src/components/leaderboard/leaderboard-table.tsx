@@ -96,8 +96,7 @@ function LeaderboardRow({
       onLayoutAnimationStart={() => setIsMoving(true)}
       onLayoutAnimationComplete={() => setIsMoving(false)}
       className={cn(
-        "relative",
-        isLeader ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-accent/90 text-accent-foreground hover:bg-accent",
+        "relative bg-accent/90 text-accent-foreground hover:bg-accent",
         isMoving && "z-10 shadow-[0_10px_24px_-6px_rgba(0,0,0,0.45)]",
       )}
       style={{ position: "relative" }}
@@ -108,19 +107,19 @@ function LeaderboardRow({
           onClick={() => onToggleFavorite(entry.player.id)}
           aria-pressed={isFav}
           aria-label={`${isFav ? "Remove" : "Add"} ${entry.player.name} ${isFav ? "from" : "to"} favorites`}
-          className={cn("transition-colors", isLeader ? "text-primary-foreground/70 hover:text-accent" : "text-accent-foreground/70 hover:text-primary")}
+          className="text-accent-foreground/70 transition-colors hover:text-primary"
         >
           <Star className={cn("h-4 w-4", isFav && "fill-current text-current")} />
         </button>
       </td>
       <td className="px-2 py-3 tabular-nums">
-        <span className={cn(isLeader && "text-lg font-black text-accent")}>
+        <span className={cn(isLeader && "text-lg font-black text-primary")}>
           <AnimatedValue value={entry.noReturn ? "NR" : `${entry.tied ? "T" : ""}${entry.position}`} />
         </span>
       </td>
       <td className="px-2 py-3">
         {isLeader ? (
-          <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-accent">
+          <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
             {CHAMPION_LABEL[competition]}
           </span>
         ) : null}
@@ -132,18 +131,7 @@ function LeaderboardRow({
           <CountryFlag code={entry.player.countryCode} className="h-3 w-4 shrink-0 align-middle" />
         </div>
         {entry.playoffNote ? (
-          <p
-            className={cn(
-              "mt-0.5 text-[10px] font-bold uppercase tracking-wide",
-              isLeader
-                ? entry.playoffNote.won
-                  ? "text-accent"
-                  : "text-accent/70"
-                : entry.playoffNote.won
-                  ? "text-primary"
-                  : "text-primary/60",
-            )}
-          >
+          <p className={cn("mt-0.5 text-[10px] font-bold uppercase tracking-wide", entry.playoffNote.won ? "text-primary" : "text-primary/60")}>
             {entry.playoffNote.display ? `${entry.playoffNote.label} (${entry.playoffNote.display})` : entry.playoffNote.label}
           </p>
         ) : null}
@@ -168,12 +156,7 @@ function LeaderboardRow({
           </div>
         ) : null}
       </td>
-      <td
-        className={cn(
-          "whitespace-nowrap px-2 py-3 text-right text-xs tabular-nums",
-          isLeader ? "text-primary-foreground/70" : "text-accent-foreground/70",
-        )}
-      >
+      <td className="whitespace-nowrap px-2 py-3 text-right text-xs tabular-nums text-accent-foreground/70">
         {!entry.started && entry.teeTime ? (
           <span className="inline-flex items-center justify-end gap-1.5 leading-none">
             <Clock className="h-3 w-3 shrink-0" />
