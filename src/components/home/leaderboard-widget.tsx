@@ -9,7 +9,7 @@ import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { useFavorites } from "@/hooks/use-favorites";
 import { formatToPar, isConcluded } from "@/lib/leaderboard";
 import { cn, splitSurnameFirst } from "@/lib/utils";
-import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
+import { scorePillClass, holeScorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { RankedEntry } from "@/lib/data/playoffs";
 import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
 import type { StatCategory } from "@/lib/statistics";
@@ -28,7 +28,6 @@ interface LeaderboardWidgetProps {
   drivingCategories: StatCategory[];
   approachCategories: StatCategory[];
   puttingCategories: StatCategory[];
-  championBadgeUrl?: string;
   championWinnerBadgeUrl?: string;
 }
 
@@ -42,7 +41,6 @@ export function LeaderboardWidget({
   drivingCategories,
   approachCategories,
   puttingCategories,
-  championBadgeUrl,
   championWinnerBadgeUrl,
 }: LeaderboardWidgetProps) {
   const top = entries.slice(0, WIDGET_ROW_COUNT);
@@ -65,7 +63,7 @@ export function LeaderboardWidget({
       {top.length === 0 ? (
         <p className="flex-1 bg-primary p-5 text-sm text-surface-dark-foreground/60">The field will appear here once tee times are generated.</p>
       ) : (
-        <div className="flex-1 overflow-x-auto bg-primary">
+        <div className="no-scrollbar flex-1 overflow-x-auto bg-primary">
           <table className="w-full table-fixed border-collapse text-sm">
             <colgroup>
               <col className="w-8" />
@@ -108,11 +106,22 @@ export function LeaderboardWidget({
                           <span className="font-normal">, {firstName}</span>
                         </button>
                         <CountryFlag code={entry.player.countryCode} className="h-3 w-4 shrink-0 align-middle" />
-                        {concluded && entry.position === 1 && !entry.tied && championBadgeUrl ? (
-                          <img src={championBadgeUrl} alt="Champion" className="h-3.5 w-3.5 shrink-0 object-contain" />
-                        ) : null}
                         {concluded && entry.position === 1 && !entry.tied && championWinnerBadgeUrl ? (
-                          <img src={championWinnerBadgeUrl} alt="Championship Winner" className="h-3.5 w-3.5 shrink-0 object-contain" />
+                          <span
+                            role="img"
+                            aria-label="Championship Winner"
+                            className="h-3.5 w-3.5 shrink-0 bg-primary"
+                            style={{
+                              WebkitMaskImage: `url(${championWinnerBadgeUrl})`,
+                              maskImage: `url(${championWinnerBadgeUrl})`,
+                              WebkitMaskSize: "contain",
+                              maskSize: "contain",
+                              WebkitMaskRepeat: "no-repeat",
+                              maskRepeat: "no-repeat",
+                              WebkitMaskPosition: "center",
+                              maskPosition: "center",
+                            }}
+                          />
                         ) : null}
                       </div>
                       {entry.playoffNote ? (
@@ -122,8 +131,34 @@ export function LeaderboardWidget({
                             entry.playoffNote.won ? "text-primary" : "text-primary/60",
                           )}
                         >
-                          {entry.playoffNote.label}
+                          {entry.playoffNote.display ? `${entry.playoffNote.label} (${entry.playoffNote.display})` : entry.playoffNote.label}
                         </p>
+                      ) : null}
+                      {entry.playoffNote && entry.playoffNote.holeIndices.length > 0 ? (
+                        <div className="mt-1 flex gap-0.5">
+                          {entry.playoffNote.holeIndices.map((i) => {
+                            const hole = entry.holes[i];
+                            if (!hole) return null;
+                            return (
+                              <div key={i} className="flex flex-col items-center gap-0.5">
+                                <span className="text-center text-[8px] font-semibold leading-tight text-accent-foreground/50">
+                                  {hole.holeNumber}
+                                  <br />
+                                  {hole.par}
+                                </span>
+                                <span
+                                  className={cn(
+                                    TILE_CLASS,
+                                    "min-w-0 w-6 px-0 py-0.5",
+                                    hole.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS,
+                                  )}
+                                >
+                                  {hole.value ?? "—"}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       ) : null}
                     </td>
                     <td className="whitespace-nowrap px-2 py-2 text-right text-xs tabular-nums text-accent-foreground/70">

@@ -22,7 +22,7 @@ export function ToughestHolesBoard({ title, rows }: { title: string; rows: HoleT
         <h3 className="font-display text-lg font-bold uppercase tracking-wide text-primary-foreground">{title}</h3>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="no-scrollbar overflow-x-auto">
         <table className="w-full min-w-[720px] border-collapse text-sm">
           <thead>
             <tr className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 text-left text-xs uppercase tracking-wide text-surface-dark-foreground/60">

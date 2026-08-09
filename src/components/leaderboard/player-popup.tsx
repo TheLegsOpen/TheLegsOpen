@@ -163,7 +163,7 @@ export function PlayerPopup({
           </label>
 
           {activeEntry ? (
-            <div className="overflow-x-auto border border-surface-dark-foreground/15">
+            <div className="no-scrollbar overflow-x-auto border border-surface-dark-foreground/15">
               <table className="w-full border-collapse text-sm">
                 <thead>
                   <tr className="bg-accent text-center text-xs uppercase tracking-wide text-accent-foreground">

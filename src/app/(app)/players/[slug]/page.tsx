@@ -222,7 +222,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             {performances.length === 0 ? (
               <p className="text-muted-foreground">No previous appearances at the Legs Open on record.</p>
             ) : (
-              <div className="overflow-x-auto border border-border">
+              <div className="no-scrollbar overflow-x-auto border border-border">
                 <table className="w-full min-w-[420px] border-collapse text-sm">
                   <thead>
                     <tr className="border-b border-border bg-secondary text-left text-xs uppercase tracking-wide text-muted-foreground">
