@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 import { Flag, Info, Search, Star, X } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +11,7 @@ import { LeaderboardTable } from "@/components/leaderboard/leaderboard-table";
 import { HoleByHoleTable } from "@/components/leaderboard/hole-by-hole-table";
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { useFavorites } from "@/hooks/use-favorites";
+import { useAutoRefresh } from "@/hooks/use-auto-refresh";
 import { cn } from "@/lib/utils";
 import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
 import type { Article } from "@/types/article";
@@ -56,7 +56,6 @@ export function LeaderboardView({
   approachCategories,
   puttingCategories,
 }: LeaderboardViewProps) {
-  const router = useRouter();
   const { favorites, toggleFavorite, hydrated } = useFavorites();
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -71,30 +70,7 @@ export function LeaderboardView({
     setPopupCompetition(competition);
   }
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (document.visibilityState === "visible") {
-        router.refresh();
-      }
-    }, AUTO_REFRESH_INTERVAL_MS);
-
-    // Mobile browsers routinely suspend JS timers while backgrounded (locking the screen,
-    // switching apps) and don't reliably resume the interval on return -- so on top of the
-    // interval, refresh immediately whenever the page becomes visible again. This is what makes
-    // "coming back to the tab" actually show fresh data on mobile, not just on desktop where the
-    // interval alone tends to keep ticking in the background.
-    function handleVisibilityChange() {
-      if (document.visibilityState === "visible") {
-        router.refresh();
-      }
-    }
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [router]);
+  useAutoRefresh(AUTO_REFRESH_INTERVAL_MS);
 
   const mainEntries = useMemo(() => filterEntries(main, query), [main, query]);
   const stablefordEntries = useMemo(() => filterEntries(stableford, query), [stableford, query]);

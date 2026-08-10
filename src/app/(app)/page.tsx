@@ -1,3 +1,4 @@
+import { AutoRefresh } from "@/components/shared/auto-refresh";
 import { Hero } from "@/components/home/hero";
 import { NewsTicker } from "@/components/home/news-ticker";
 import { LeaderboardWidget } from "@/components/home/leaderboard-widget";
@@ -72,6 +73,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <AutoRefresh intervalMs={10_000} />
       <NewsTicker items={tickerItems} />
       <Hero currentChampion={currentChampion} clockConfig={clockConfig} weather={weather} />
       <section className="bg-surface-dark py-16 text-surface-dark-foreground sm:py-24">
