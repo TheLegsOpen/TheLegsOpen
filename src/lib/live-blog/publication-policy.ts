@@ -1,6 +1,6 @@
 import type { PayloadRequest } from "payload";
 
-import { computeSignificance, isCriticalCategory, type SignificanceInput, type TriggerCategory } from "@/lib/live-blog/significance";
+import { computeSignificance, isCriticalCategory, bypassesCooldown, type SignificanceInput, type TriggerCategory } from "@/lib/live-blog/significance";
 import type { LiveBlogPost } from "@/payload-types";
 
 export type SuppressionReason = "DISABLED" | "LOW_SIGNIFICANCE" | "COOLDOWN" | "MAX_PER_HOUR" | "DUPLICATE" | "FACT_VALIDATION_FAILED";
@@ -35,14 +35,17 @@ export function decidePublication(params: {
   enabled: boolean;
   significance: number;
   minimumSignificance: number;
-  critical: boolean;
+  /** Categories that can genuinely recur many times a round (birdie/bogey) are cooldown-gated; every other category is a one-off state change and shouldn't be held back by a burst of near-simultaneous saves. See significance.ts's bypassesCooldown. */
+  cooldownExempt: boolean;
+  /** Only the small set of always-must-publish categories (lead change, tie, pressure moment, winner confirmed, ace) bypass the hourly cap -- see significance.ts's isCriticalCategory. */
+  rateLimitExempt: boolean;
   inCooldown: boolean;
   rateLimited: boolean;
 }): { allow: boolean; reason?: SuppressionReason } {
   if (!params.enabled) return { allow: false, reason: "DISABLED" };
   if (params.significance < params.minimumSignificance) return { allow: false, reason: "LOW_SIGNIFICANCE" };
-  if (!params.critical && params.inCooldown) return { allow: false, reason: "COOLDOWN" };
-  if (!params.critical && params.rateLimited) return { allow: false, reason: "MAX_PER_HOUR" };
+  if (!params.cooldownExempt && params.inCooldown) return { allow: false, reason: "COOLDOWN" };
+  if (!params.rateLimitExempt && params.rateLimited) return { allow: false, reason: "MAX_PER_HOUR" };
   return { allow: true };
 }
 
@@ -126,6 +129,7 @@ export async function evaluateAndPublish(
   try {
     const significance = computeSignificance(candidate.significance);
     const critical = isCriticalCategory(candidate.category);
+    const cooldownExempt = bypassesCooldown(candidate.category);
     const fingerprint = buildFingerprint(candidate);
 
     let logId: string;
@@ -159,7 +163,8 @@ export async function evaluateAndPublish(
       enabled: config.enabled,
       significance,
       minimumSignificance: config.minimumSignificance,
-      critical,
+      cooldownExempt,
+      rateLimitExempt: critical,
       inCooldown: isInCooldown(lastPublishedAt, now, config.cooldownSeconds),
       rateLimited: isRateLimited(postsInLastHour, config.maxPostsPerHour),
     });

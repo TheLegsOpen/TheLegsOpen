@@ -105,3 +105,18 @@ export function computeSignificance(input: SignificanceInput): number {
 export function isCriticalCategory(category: TriggerCategory): boolean {
   return CRITICAL_CATEGORIES.has(category);
 }
+
+/**
+ * Birdie and bogey are the only categories that can genuinely recur many times for the same
+ * player in a round, so they're the only ones a cooldown meaningfully protects against. Every
+ * other category (a lead change, entering/leaving contention, a big position swing, an eagle...)
+ * already represents a one-off state change by construction -- it isn't a spam vector, so a flat
+ * cooldown shouldn't hold it back just because it landed in the same burst of near-simultaneous
+ * saves that real tee-time-staggered play regularly produces (several groups posting scores
+ * within the same minute).
+ */
+const COOLDOWN_GATED_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<TriggerCategory>(["birdie", "bogey"]);
+
+export function bypassesCooldown(category: TriggerCategory): boolean {
+  return isCriticalCategory(category) || !COOLDOWN_GATED_CATEGORIES.has(category);
+}

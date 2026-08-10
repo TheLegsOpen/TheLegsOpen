@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { computeSignificance, isCriticalCategory } from "@/lib/live-blog/significance";
+import { computeSignificance, isCriticalCategory, bypassesCooldown } from "@/lib/live-blog/significance";
 
 describe("computeSignificance — routine event suppression", () => {
   it("scores a bogey for a player outside contention very low", () => {
@@ -80,7 +80,7 @@ describe("computeSignificance — round-complete", () => {
 });
 
 describe("isCriticalCategory", () => {
-  it("treats lead changes, ties, winner confirmation, pressure moments and aces as critical (cooldown/rate-limit bypass)", () => {
+  it("treats lead changes, ties, winner confirmation, pressure moments and aces as critical (bypass cooldown AND the hourly cap)", () => {
     expect(isCriticalCategory("leader")).toBe(true);
     expect(isCriticalCategory("tie")).toBe(true);
     expect(isCriticalCategory("winner-confirmed")).toBe(true);
@@ -90,5 +90,28 @@ describe("isCriticalCategory", () => {
 
   it("does not treat a routine bogey as critical", () => {
     expect(isCriticalCategory("bogey")).toBe(false);
+  });
+});
+
+describe("bypassesCooldown", () => {
+  it("cooldown-gates birdie and bogey -- the only categories that can genuinely recur many times in one round", () => {
+    expect(bypassesCooldown("birdie")).toBe(false);
+    expect(bypassesCooldown("bogey")).toBe(false);
+  });
+
+  it("exempts one-off state-change categories from cooldown, even though they aren't critical (still rate-limited)", () => {
+    expect(bypassesCooldown("entering-contention")).toBe(true);
+    expect(bypassesCooldown("leaving-contention")).toBe(true);
+    expect(bypassesCooldown("moving-up")).toBe(true);
+    expect(bypassesCooldown("moving-down")).toBe(true);
+    expect(bypassesCooldown("trouble")).toBe(true);
+    expect(bypassesCooldown("charge")).toBe(true);
+    expect(bypassesCooldown("eagle")).toBe(true);
+  });
+
+  it("exempts every critical category too", () => {
+    expect(bypassesCooldown("leader")).toBe(true);
+    expect(bypassesCooldown("tie")).toBe(true);
+    expect(bypassesCooldown("ace")).toBe(true);
   });
 });

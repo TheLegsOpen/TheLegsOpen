@@ -3,38 +3,59 @@ import { describe, expect, it } from "vitest";
 import { buildFingerprint, decidePublication, isInCooldown, isRateLimited, validateFacts } from "@/lib/live-blog/publication-policy";
 
 describe("decidePublication", () => {
-  const base = { enabled: true, significance: 80, minimumSignificance: 35, critical: false, inCooldown: false, rateLimited: false };
+  const base = {
+    enabled: true,
+    significance: 80,
+    minimumSignificance: 35,
+    cooldownExempt: false,
+    rateLimitExempt: false,
+    inCooldown: false,
+    rateLimited: false,
+  };
 
   it("allows a candidate that clears every gate", () => {
     expect(decidePublication(base)).toEqual({ allow: true });
   });
 
   it("suppresses everything when the master switch is off, even a high-significance critical event", () => {
-    expect(decidePublication({ ...base, enabled: false, critical: true, significance: 100 })).toEqual({ allow: false, reason: "DISABLED" });
+    expect(decidePublication({ ...base, enabled: false, cooldownExempt: true, rateLimitExempt: true, significance: 100 })).toEqual({
+      allow: false,
+      reason: "DISABLED",
+    });
   });
 
   it("suppresses a candidate below the minimum significance", () => {
     expect(decidePublication({ ...base, significance: 10 })).toEqual({ allow: false, reason: "LOW_SIGNIFICANCE" });
   });
 
-  it("suppresses a non-critical candidate during cooldown", () => {
+  it("suppresses a cooldown-gated candidate during cooldown", () => {
     expect(decidePublication({ ...base, inCooldown: true })).toEqual({ allow: false, reason: "COOLDOWN" });
   });
 
-  it("suppresses a non-critical candidate once the hourly cap is hit", () => {
+  it("suppresses a rate-limit-gated candidate once the hourly cap is hit", () => {
     expect(decidePublication({ ...base, rateLimited: true })).toEqual({ allow: false, reason: "MAX_PER_HOUR" });
   });
 
-  it("lets a critical candidate bypass cooldown", () => {
-    expect(decidePublication({ ...base, critical: true, inCooldown: true })).toEqual({ allow: true });
+  it("lets a cooldown-exempt candidate bypass cooldown", () => {
+    expect(decidePublication({ ...base, cooldownExempt: true, inCooldown: true })).toEqual({ allow: true });
   });
 
-  it("lets a critical candidate bypass the hourly cap", () => {
-    expect(decidePublication({ ...base, critical: true, rateLimited: true })).toEqual({ allow: true });
+  it("lets a rate-limit-exempt candidate bypass the hourly cap", () => {
+    expect(decidePublication({ ...base, rateLimitExempt: true, rateLimited: true })).toEqual({ allow: true });
   });
 
-  it("still enforces the minimum significance for a critical candidate", () => {
-    expect(decidePublication({ ...base, critical: true, significance: 5 })).toEqual({ allow: false, reason: "LOW_SIGNIFICANCE" });
+  it("still enforces the minimum significance for a fully-exempt critical candidate", () => {
+    expect(decidePublication({ ...base, cooldownExempt: true, rateLimitExempt: true, significance: 5 })).toEqual({
+      allow: false,
+      reason: "LOW_SIGNIFICANCE",
+    });
+  });
+
+  it("cooldown-exempt does not also exempt from the hourly cap", () => {
+    expect(decidePublication({ ...base, cooldownExempt: true, inCooldown: true, rateLimited: true })).toEqual({
+      allow: false,
+      reason: "MAX_PER_HOUR",
+    });
   });
 });
 
