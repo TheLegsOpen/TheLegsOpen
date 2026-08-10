@@ -42,6 +42,7 @@ export const LiveBlogPosts: CollectionConfig = {
         { label: "Through", value: "through" },
         { label: "Clubhouse leader", value: "clubhouse-leader" },
         { label: "In the clubhouse", value: "round-complete" },
+        { label: "Winner confirmed", value: "winner-confirmed" },
         { label: "Last group out", value: "last-group" },
         { label: "Championship", value: "championship" },
         { label: "Instagram", value: "instagram" },

@@ -18,7 +18,9 @@ import { PlayerStatistics } from "./collections/PlayerStatistics";
 import { LegalPages } from "./collections/LegalPages";
 import { Scorecards } from "./collections/Scorecards";
 import { LiveBlogPosts } from "./collections/LiveBlogPosts";
+import { LiveBlogTriggerLog } from "./collections/LiveBlogTriggerLog";
 import { HomepageSettings } from "./globals/HomepageSettings";
+import { LiveBlogConfig } from "./globals/LiveBlogConfig";
 import { SiteTheme } from "./globals/SiteTheme";
 import { SponsorClock } from "./globals/SponsorClock";
 import { TournamentStatus } from "./globals/TournamentStatus";
@@ -63,9 +65,11 @@ export default buildConfig({
     LegalPages,
     Scorecards,
     LiveBlogPosts,
+    LiveBlogTriggerLog,
   ],
   globals: [
     HomepageSettings,
+    LiveBlogConfig,
     SiteTheme,
     SponsorClock,
     TournamentStatus,

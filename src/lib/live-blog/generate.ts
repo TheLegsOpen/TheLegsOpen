@@ -1,7 +1,10 @@
 import type { CollectionAfterChangeHook, PayloadRequest } from "payload";
 
 import { getCompetitionLeaderboard, getLeaderboardSnapshotPair, parseTeeTimeMinutes } from "@/lib/data/scorecards";
+import { getLiveBlogConfig } from "@/lib/data/live-blog";
+import { evaluateAndPublish, type TriggerCandidate } from "@/lib/live-blog/publication-policy";
 import { generateRaceTrackerPosts } from "@/lib/live-blog/race-events";
+import { generateWinnerConfirmedPosts } from "@/lib/live-blog/winner-confirmed";
 import { buildRaceTracker, diffPositionMovement } from "@/lib/live-blog/race-tracker";
 import {
   aceCommentary,
@@ -25,10 +28,6 @@ import {
   clubhouseLeaderCommentary,
 } from "@/lib/live-blog/commentary";
 import type { Scorecard, Player, Championship, Venue, LiveBlogPost } from "@/payload-types";
-
-function createPost(req: PayloadRequest, data: Omit<LiveBlogPost, "id" | "postedAt" | "updatedAt" | "createdAt">) {
-  return req.payload.create({ collection: "live-blog-posts", data: { ...data, postedAt: new Date().toISOString() }, req });
-}
 
 const TOP_10 = 10;
 
@@ -61,7 +60,10 @@ function birdiesInWindow(relatives: (number | undefined)[], index: number, windo
 /**
  * Fires whenever a Scorecard's holes are saved. Uses scoreUpdatedAt (only stamped when
  * strokes actually change, see Scorecards.ts) to skip unrelated saves like the tee-time
- * backfill, so this never runs on a save that didn't change anyone's score.
+ * backfill, so this never runs on a save that didn't change anyone's score. It also doubles as
+ * the "saveNonce" fed to every candidate below -- stable across retries of the exact same save,
+ * different for any later one -- which is what makes evaluateAndPublish's fingerprint dedup
+ * (publication-policy.ts) replay/retry-safe.
  *
  * Every Local API call below passes `req` so it reads/writes within the same in-flight
  * transaction as the Scorecard update that triggered this hook -- without it, a fresh
@@ -70,6 +72,13 @@ function birdiesInWindow(relatives: (number | undefined)[], index: number, windo
  *
  * Streaks, "top 10", leader-through-the-hole, and clubhouse leader are all based on the
  * Main competition only, matching how Round Complete already worked.
+ *
+ * Every candidate below is routed through evaluateAndPublish (publication-policy.ts) rather than
+ * created directly -- that's the single gate that scores significance, applies the cooldown/
+ * max-per-hour throttle, dedups via a unique fingerprint, validates the generated copy, and
+ * writes an observability row to live-blog-trigger-log, all without changing the detection logic
+ * itself. A failure anywhere in that gate is caught internally and never propagates here, so a
+ * live-blog problem can never roll back or block the scorecard save.
  */
 export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async ({ doc, previousDoc, req, operation, context }) => {
   if (operation !== "update") return doc;
@@ -93,6 +102,10 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
   // old championship's results after the fact (historical backfill) should be silent, not
   // narrated as if it were happening live right now.
   if (!championship.isActive) return doc;
+
+  const config = await getLiveBlogConfig(req);
+  const saveNonce = doc.scoreUpdatedAt;
+  const publish = (candidate: TriggerCandidate) => evaluateAndPublish(req, candidate, config);
 
   const player = (typeof doc.player === "object"
     ? doc.player
@@ -119,7 +132,13 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
     });
     if (startedElsewhere.docs.length === 0 && venue) {
       const { headline, body } = competitionUnderwayCommentary(championship.year, venue.name);
-      await createPost(req, { category: "championship", headline, body, championship: championshipId as string });
+      await publish({
+        category: "championship",
+        championshipId: championshipId as string,
+        saveNonce: `${saveNonce}:underway`,
+        significance: { category: "championship", inContention: true },
+        post: { category: "championship", headline, body, championship: championshipId as string },
+      });
     }
 
     // Last group out: this player's first hole, and they belong to the latest tee-time group.
@@ -152,7 +171,13 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
       });
       if (alreadyPosted.docs.length === 0) {
         const { headline, body } = lastGroupOutCommentary(venue.name);
-        await createPost(req, { category: "last-group", headline, body, championship: championshipId as string });
+        await publish({
+          category: "last-group",
+          championshipId: championshipId as string,
+          saveNonce: `${saveNonce}:last-group`,
+          significance: { category: "last-group", inContention: true },
+          post: { category: "last-group", headline, body, championship: championshipId as string },
+        });
       }
     }
   }
@@ -179,6 +204,8 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
     const relative = newStrokes - par;
     const holeNumber = i + 1;
     const scoreRelative = mainEntry?.toPar ?? undefined;
+    const holesRemaining = 18 - holeNumber;
+    const holeNonce = `${saveNonce}:hole-${holeNumber}`;
 
     if (relative >= 1 && (worstRelativeThisSave === undefined || relative > worstRelativeThisSave)) {
       worstRelativeThisSave = relative;
@@ -186,47 +213,51 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
 
     if (newStrokes === 1) {
       const { headline, body } = aceCommentary(player.name, holeNumber);
-      await createPost(req, {
+      await publish({
         category: "ace",
-        headline,
-        body,
-        championship: championshipId as string,
-        player: playerId as string,
+        championshipId: championshipId as string,
+        playerId: playerId as string,
+        playerName: player.name,
         holeNumber,
-        scoreRelative,
+        saveNonce: holeNonce,
+        significance: { category: "ace", inContention: true, holesRemaining },
+        post: { category: "ace", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
       });
     } else if (relative <= -2) {
       const { headline, body } = eagleCommentary(player.name, holeNumber);
-      await createPost(req, {
+      await publish({
         category: "eagle",
-        headline,
-        body,
-        championship: championshipId as string,
-        player: playerId as string,
+        championshipId: championshipId as string,
+        playerId: playerId as string,
+        playerName: player.name,
         holeNumber,
-        scoreRelative,
+        saveNonce: holeNonce,
+        significance: { category: "eagle", inContention: true, holesRemaining },
+        post: { category: "eagle", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
       });
     } else if (relative === -1) {
       const { headline, body } = birdieCommentary(player.name, holeNumber);
-      await createPost(req, {
+      await publish({
         category: "birdie",
-        headline,
-        body,
-        championship: championshipId as string,
-        player: playerId as string,
+        championshipId: championshipId as string,
+        playerId: playerId as string,
+        playerName: player.name,
         holeNumber,
-        scoreRelative,
+        saveNonce: holeNonce,
+        significance: { category: "birdie", inContention: inTop10, holesRemaining },
+        post: { category: "birdie", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
       });
     } else if (relative >= 1) {
       const { headline, body } = bogeyCommentary(player.name, holeNumber, relative);
-      await createPost(req, {
+      await publish({
         category: "bogey",
-        headline,
-        body,
-        championship: championshipId as string,
-        player: playerId as string,
+        championshipId: championshipId as string,
+        playerId: playerId as string,
+        playerName: player.name,
         holeNumber,
-        scoreRelative,
+        saveNonce: holeNonce,
+        significance: { category: "bogey", inContention: inTop10, holesRemaining },
+        post: { category: "bogey", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
       });
     }
 
@@ -235,25 +266,27 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         const streak = trailingStreak(relatives, i, "under");
         if (streak === 2) {
           const { headline, body } = movingUpCommentary(player.name);
-          await createPost(req, {
+          await publish({
             category: "moving-up",
-            headline,
-            body,
-            championship: championshipId as string,
-            player: playerId as string,
+            championshipId: championshipId as string,
+            playerId: playerId as string,
+            playerName: player.name,
             holeNumber,
-            scoreRelative,
+            saveNonce: `${holeNonce}:streak`,
+            significance: { category: "moving-up", inContention: true, holesRemaining },
+            post: { category: "moving-up", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
           });
         } else if (streak === 3) {
           const { headline, body } = chargeCommentary(player.name, streak);
-          await createPost(req, {
+          await publish({
             category: "charge",
-            headline,
-            body,
-            championship: championshipId as string,
-            player: playerId as string,
+            championshipId: championshipId as string,
+            playerId: playerId as string,
+            playerName: player.name,
             holeNumber,
-            scoreRelative,
+            saveNonce: `${holeNonce}:streak`,
+            significance: { category: "charge", inContention: true, holesRemaining },
+            post: { category: "charge", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
           });
         }
 
@@ -265,14 +298,15 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           const previousWindowCount = birdiesInWindow(relatives, i - 1, 4);
           if (windowCount >= 3 && previousWindowCount < 3) {
             const { headline, body } = birdieRunCommentary(player.name, windowCount, 4);
-            await createPost(req, {
+            await publish({
               category: "charge",
-              headline,
-              body,
-              championship: championshipId as string,
-              player: playerId as string,
+              championshipId: championshipId as string,
+              playerId: playerId as string,
+              playerName: player.name,
               holeNumber,
-              scoreRelative,
+              saveNonce: `${holeNonce}:run`,
+              significance: { category: "charge", inContention: true, holesRemaining },
+              post: { category: "charge", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
             });
           }
         }
@@ -280,25 +314,27 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         const streak = trailingStreak(relatives, i, "over");
         if (streak === 2) {
           const { headline, body } = movingDownCommentary(player.name);
-          await createPost(req, {
+          await publish({
             category: "moving-down",
-            headline,
-            body,
-            championship: championshipId as string,
-            player: playerId as string,
+            championshipId: championshipId as string,
+            playerId: playerId as string,
+            playerName: player.name,
             holeNumber,
-            scoreRelative,
+            saveNonce: `${holeNonce}:streak`,
+            significance: { category: "moving-down", inContention: true, holesRemaining },
+            post: { category: "moving-down", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
           });
         } else if (streak === 3) {
           const { headline, body } = troubleCommentary(player.name, streak);
-          await createPost(req, {
+          await publish({
             category: "trouble",
-            headline,
-            body,
-            championship: championshipId as string,
-            player: playerId as string,
+            championshipId: championshipId as string,
+            playerId: playerId as string,
+            playerName: player.name,
             holeNumber,
-            scoreRelative,
+            saveNonce: `${holeNonce}:streak`,
+            significance: { category: "trouble", inContention: true, holesRemaining },
+            post: { category: "trouble", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
           });
         }
       }
@@ -309,13 +345,21 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
   const finishedBefore = (previousDoc?.holesCompleted ?? 0) >= 18;
   if (finishedNow && !finishedBefore && mainEntry) {
     const { headline, body } = roundCompleteCommentary(player.name, mainEntry.toPar ?? 0, mainEntry.position, mainEntry.tied);
-    await createPost(req, {
+    await publish({
       category: "round-complete",
-      headline,
-      body,
-      championship: championshipId as string,
-      player: playerId as string,
-      scoreRelative: mainEntry.toPar ?? undefined,
+      championshipId: championshipId as string,
+      playerId: playerId as string,
+      playerName: player.name,
+      saveNonce: `${saveNonce}:round-complete`,
+      significance: { category: "round-complete", inContention: true, finishPosition: mainEntry.position },
+      post: {
+        category: "round-complete",
+        headline,
+        body,
+        championship: championshipId as string,
+        player: playerId as string,
+        scoreRelative: mainEntry.toPar ?? undefined,
+      },
     });
 
     const finishedEntries = mainEntries.filter((e) => e.score !== undefined);
@@ -333,13 +377,21 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
       const lastClubhouseLeaderId = lastPost ? (typeof lastPost.player === "object" ? lastPost.player?.id : lastPost.player) : undefined;
       if (String(lastClubhouseLeaderId) !== String(playerId)) {
         const { headline: chHeadline, body: chBody } = clubhouseLeaderCommentary(player.name, bestFinished.toPar ?? 0);
-        await createPost(req, {
+        await publish({
           category: "clubhouse-leader",
-          headline: chHeadline,
-          body: chBody,
-          championship: championshipId as string,
-          player: playerId as string,
-          scoreRelative: bestFinished.toPar ?? undefined,
+          championshipId: championshipId as string,
+          playerId: playerId as string,
+          playerName: player.name,
+          saveNonce: `${saveNonce}:clubhouse-leader`,
+          significance: { category: "clubhouse-leader", inContention: true },
+          post: {
+            category: "clubhouse-leader",
+            headline: chHeadline,
+            body: chBody,
+            championship: championshipId as string,
+            player: playerId as string,
+            scoreRelative: bestFinished.toPar ?? undefined,
+          },
         });
       }
     }
@@ -348,13 +400,21 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
   const progressed = (doc.holesCompleted ?? 0) > (previousDoc?.holesCompleted ?? 0);
   if (progressed && mainEntry && mainEntry.position === 1) {
     const { headline, body } = leaderThroughCommentary(player.name, doc.holesCompleted ?? 0, mainEntry.toPar ?? 0, mainEntry.tied);
-    await createPost(req, {
+    await publish({
       category: "through",
-      headline,
-      body,
-      championship: championshipId as string,
-      player: playerId as string,
-      scoreRelative: mainEntry.toPar ?? undefined,
+      championshipId: championshipId as string,
+      playerId: playerId as string,
+      playerName: player.name,
+      saveNonce: `${saveNonce}:through`,
+      significance: { category: "through", inContention: true, holesRemaining: 18 - (doc.holesCompleted ?? 0) },
+      post: {
+        category: "through",
+        headline,
+        body,
+        championship: championshipId as string,
+        player: playerId as string,
+        scoreRelative: mainEntry.toPar ?? undefined,
+      },
     });
   }
 
@@ -367,34 +427,58 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
     if (movement) {
       if (movement.kind === "enter-top-5" || movement.kind === "enter-top-10") {
         const { headline, body } = enterTopCommentary(player.name, movement.kind === "enter-top-5" ? 5 : 10, movement.position);
-        await createPost(req, {
+        await publish({
           category: "moving-up",
-          headline,
-          body,
-          championship: championshipId as string,
-          player: playerId as string,
-          scoreRelative: mainEntry?.toPar ?? undefined,
+          championshipId: championshipId as string,
+          playerId: playerId as string,
+          playerName: player.name,
+          saveNonce: `${saveNonce}:movement`,
+          significance: { category: "moving-up", inContention: true, movementKind: movement.kind, positionsChanged: movement.positionsChanged },
+          post: {
+            category: "moving-up",
+            headline,
+            body,
+            championship: championshipId as string,
+            player: playerId as string,
+            scoreRelative: mainEntry?.toPar ?? undefined,
+          },
         });
       } else if (movement.kind === "big-gain") {
         const { headline, body } = bigGainCommentary(player.name, movement.positionsChanged, movement.position);
-        await createPost(req, {
+        await publish({
           category: "moving-up",
-          headline,
-          body,
-          championship: championshipId as string,
-          player: playerId as string,
-          scoreRelative: mainEntry?.toPar ?? undefined,
+          championshipId: championshipId as string,
+          playerId: playerId as string,
+          playerName: player.name,
+          saveNonce: `${saveNonce}:movement`,
+          significance: { category: "moving-up", inContention: true, movementKind: "big-gain", positionsChanged: movement.positionsChanged },
+          post: {
+            category: "moving-up",
+            headline,
+            body,
+            championship: championshipId as string,
+            player: playerId as string,
+            scoreRelative: mainEntry?.toPar ?? undefined,
+          },
         });
       } else if (movement.kind === "big-drop") {
         const missLabel = worstRelativeThisSave !== undefined ? bogeyMissLabel(worstRelativeThisSave) : undefined;
         const { headline, body } = bigDropCommentary(player.name, movement.beforePosition, movement.position, missLabel);
-        await createPost(req, {
+        await publish({
           category: "moving-down",
-          headline,
-          body,
-          championship: championshipId as string,
-          player: playerId as string,
-          scoreRelative: mainEntry?.toPar ?? undefined,
+          championshipId: championshipId as string,
+          playerId: playerId as string,
+          playerName: player.name,
+          saveNonce: `${saveNonce}:movement`,
+          significance: { category: "moving-down", inContention: true, movementKind: "big-drop", positionsChanged: movement.positionsChanged },
+          post: {
+            category: "moving-down",
+            headline,
+            body,
+            championship: championshipId as string,
+            player: playerId as string,
+            scoreRelative: mainEntry?.toPar ?? undefined,
+          },
         });
       }
     }
@@ -407,20 +491,32 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
       const trackerMember = mainAfterTracker.members.find((m) => String(m.playerId) === String(playerId));
       if (trackerMember) {
         const { headline, body } = pressureMomentCommentary(player.name, trackerMember.margin, "shot", "Main");
-        await createPost(req, {
+        await publish({
           category: "pressure-moment",
-          headline,
-          body,
-          championship: championshipId as string,
-          player: playerId as string,
-          scoreRelative: mainEntry.toPar ?? undefined,
+          championshipId: championshipId as string,
+          playerId: playerId as string,
+          playerName: player.name,
+          saveNonce: `${saveNonce}:pressure-moment`,
+          significance: { category: "pressure-moment", inContention: true, holesRemaining: 1 },
+          post: {
+            category: "pressure-moment",
+            headline,
+            body,
+            championship: championshipId as string,
+            player: playerId as string,
+            scoreRelative: mainEntry.toPar ?? undefined,
+          },
         });
       }
     }
 
     // Race Tracker: new leader / tie for the lead / lead extension / entering & leaving contention,
     // across all three competitions, from the before/after snapshot pair computed above.
-    await generateRaceTrackerPosts(req, championshipId as string, snapshots);
+    await generateRaceTrackerPosts(req, championshipId as string, snapshots, saveNonce, config);
+
+    // Winner confirmed: fires at most once per competition, the moment the last player still out
+    // on course finishes -- see winner-confirmed.ts for why this needs the before/after pair too.
+    await generateWinnerConfirmedPosts(req, championshipId as string, snapshots, saveNonce, config);
   }
 
   return doc;

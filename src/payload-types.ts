@@ -87,6 +87,7 @@ export interface Config {
     'legal-pages': LegalPage;
     scorecards: Scorecard;
     'live-blog-posts': LiveBlogPost;
+    'live-blog-trigger-log': LiveBlogTriggerLog;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -107,6 +108,7 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     'homepage-settings': HomepageSettingsGlobal;
+    'live-blog-config': LiveBlogConfigGlobal;
     'site-theme': SiteThemeGlobal;
     'sponsor-clock': SponsorClockGlobal;
     'tournament-status': TournamentStatusGlobal;
@@ -381,6 +383,18 @@ export interface HomepageSettingsGlobal {
 /**
  * Hand-added — see note at top of file.
  */
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface LiveBlogConfigGlobal {
+  id: string;
+  enabled?: boolean | null;
+  minimumSignificance: number;
+  cooldownSeconds: number;
+  maxPostsPerHour: number;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
 export interface SiteThemeGlobal {
   id: string;
   colors: {
@@ -707,6 +721,7 @@ export interface LiveBlogPost {
     | "through"
     | "clubhouse-leader"
     | "round-complete"
+    | "winner-confirmed"
     | "last-group"
     | "championship"
     | "instagram";
@@ -719,6 +734,26 @@ export interface LiveBlogPost {
   holeNumber?: number | null;
   scoreRelative?: number | null;
   postedAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface LiveBlogTriggerLog {
+  id: string;
+  fingerprint: string;
+  championship: string | Championship;
+  player?: (string | Player) | null;
+  category: string;
+  holeNumber?: number | null;
+  significance: number;
+  threshold: number;
+  selected?: boolean | null;
+  suppressed?: boolean | null;
+  suppressionReason?: ('DISABLED' | 'LOW_SIGNIFICANCE' | 'COOLDOWN' | 'MAX_PER_HOUR' | 'DUPLICATE' | 'FACT_VALIDATION_FAILED') | null;
+  post?: (string | LiveBlogPost) | null;
+  evaluatedAt: string;
   updatedAt: string;
   createdAt: string;
 }

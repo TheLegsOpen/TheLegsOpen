@@ -1,8 +1,10 @@
 import { getPayload } from "payload";
+import type { PayloadRequest } from "payload";
 
 import configPromise from "@/payload.config";
 import { getActiveChampionship } from "@/lib/data/scorecards";
 import { mapPlayer } from "@/lib/data/players";
+import { DEFAULT_PUBLICATION_CONFIG, type PublicationConfig } from "@/lib/live-blog/publication-policy";
 import type { Player } from "@/types/player";
 import type { Player as PayloadPlayer } from "@/payload-types";
 
@@ -24,6 +26,7 @@ export type LiveBlogCategory =
   | "through"
   | "clubhouse-leader"
   | "round-complete"
+  | "winner-confirmed"
   | "last-group"
   | "championship"
   | "instagram";
@@ -79,5 +82,23 @@ export async function getLiveBlogPosts(page = 1, limit = LIVE_BLOG_PAGE_SIZE): P
     })),
     hasNextPage: result.hasNextPage,
     nextPage: result.nextPage ?? null,
+  };
+}
+
+/**
+ * Reads the "Live Blog Config" global, falling back to DEFAULT_PUBLICATION_CONFIG for any field
+ * that hasn't been saved yet (a brand-new global before its first admin save). Pass `req` when
+ * calling from inside the Scorecards afterChange hook so this reads within the same in-flight
+ * transaction as the write that triggered it.
+ */
+export async function getLiveBlogConfig(req?: PayloadRequest): Promise<PublicationConfig> {
+  const payload = req?.payload ?? (await getPayload({ config: configPromise }));
+  const global = await payload.findGlobal({ slug: "live-blog-config", depth: 0, req }).catch(() => undefined);
+  if (!global) return DEFAULT_PUBLICATION_CONFIG;
+  return {
+    enabled: global.enabled ?? DEFAULT_PUBLICATION_CONFIG.enabled,
+    minimumSignificance: global.minimumSignificance ?? DEFAULT_PUBLICATION_CONFIG.minimumSignificance,
+    cooldownSeconds: global.cooldownSeconds ?? DEFAULT_PUBLICATION_CONFIG.cooldownSeconds,
+    maxPostsPerHour: global.maxPostsPerHour ?? DEFAULT_PUBLICATION_CONFIG.maxPostsPerHour,
   };
 }

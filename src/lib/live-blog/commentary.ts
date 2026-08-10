@@ -248,6 +248,16 @@ export function pressureMomentCommentary(playerName: string, margin: number, uni
   return { headline, body };
 }
 
+export function winnerConfirmedCommentary(playerName: string, competitionLabel: string, scoreLabel: string): Commentary {
+  const headline = pick(["Champion confirmed", `${playerName.split(" ").slice(-1)[0]} takes the title`]);
+  const body = pick([
+    `With the field home, ${playerName} is confirmed as the ${competitionLabel} winner on ${scoreLabel}.`,
+    `${playerName} has won the ${competitionLabel} competition, finishing on ${scoreLabel}.`,
+    `That's the competition decided — ${playerName} is champion of the ${competitionLabel} on ${scoreLabel}.`,
+  ]);
+  return { headline, body };
+}
+
 export function clubhouseLeaderCommentary(playerName: string, toPar: number): Commentary {
   const headline = pick(["Clubhouse leader", `${playerName.split(" ").slice(-1)[0]} sets the target`]);
   const body = pick([

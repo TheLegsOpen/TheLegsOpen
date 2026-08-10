@@ -3,6 +3,7 @@ import type { PayloadRequest } from "payload";
 import { formatToPar } from "@/lib/leaderboard";
 import type { Competition, LeaderboardSnapshotPair } from "@/lib/data/scorecards";
 import { buildRaceTracker, diffRaceTrackers } from "@/lib/live-blog/race-tracker";
+import { evaluateAndPublish, type PublicationConfig, type TriggerCandidate } from "@/lib/live-blog/publication-policy";
 import {
   leaderCommentary,
   tieCommentary,
@@ -10,7 +11,6 @@ import {
   enteringContentionCommentary,
   leavingContentionCommentary,
 } from "@/lib/live-blog/commentary";
-import type { LiveBlogPost } from "@/payload-types";
 
 const COMPETITION_LABEL: Record<Competition, string> = { main: "Main", stableford: "Stableford", scratch: "Scratch" };
 const ALL_COMPETITIONS: Competition[] = ["main", "stableford", "scratch"];
@@ -22,16 +22,15 @@ function scoreLabel(competition: Competition, value: number): string {
   return competition === "stableford" ? `${value} pts` : formatToPar(value);
 }
 
-function createPost(req: PayloadRequest, data: Omit<LiveBlogPost, "id" | "postedAt" | "updatedAt" | "createdAt">) {
-  return req.payload.create({ collection: "live-blog-posts", data: { ...data, postedAt: new Date().toISOString() }, req });
-}
-
 /**
  * Entering/leaving-contention dedup: only fires if the player's most recent contention-status
  * post for this competition isn't already the same direction (so a player who's already flagged
  * "into contention" doesn't get re-flagged every hole they stay there). New-leader, tie, and
  * lead-extends don't need this -- they're transition-triggered by construction in
- * diffRaceTrackers, so each only fires on the exact save that causes the change.
+ * diffRaceTrackers, so each only fires on the exact save that causes the change. This is a
+ * narrative-direction guard, distinct from evaluateAndPublish's fingerprint dedup below (which
+ * only catches an exact retry of the same save, not "the player re-entered contention a few
+ * holes later" -- a legitimate, different event that should still post).
  */
 async function lastContentionDirection(
   req: PayloadRequest,
@@ -66,7 +65,13 @@ async function lastContentionDirection(
  * eagle/birdie/bogey/streak detection, which already has this same snapshot's "after" side
  * (`snapshots.after.main`) available as `mainEntries` -- no second fetch needed.
  */
-export async function generateRaceTrackerPosts(req: PayloadRequest, championshipId: string, snapshots: LeaderboardSnapshotPair): Promise<void> {
+export async function generateRaceTrackerPosts(
+  req: PayloadRequest,
+  championshipId: string,
+  snapshots: LeaderboardSnapshotPair,
+  saveNonce: string,
+  config: PublicationConfig,
+): Promise<void> {
   for (const competition of ALL_COMPETITIONS) {
     const startedCount = snapshots.after[competition].filter((e) => e.started).length;
     if (startedCount < MIN_STARTED_FOR_RACE_EVENTS) continue;
@@ -86,45 +91,63 @@ export async function generateRaceTrackerPosts(req: PayloadRequest, championship
         if (lastDirection === candidate.kind) continue;
       }
 
+      const saveNonceForCandidate = `${saveNonce}:${competition}:${candidate.kind}:${candidate.playerId}`;
+
       if (candidate.kind === "new-leader") {
         const { headline, body } = leaderCommentary(candidate.playerName, scoreLabel(competition, candidate.scoreValue), label);
-        await createPost(req, {
+        await evaluateAndPublish(req, {
           category: "leader",
-          competition,
-          headline,
-          body,
-          championship: championshipId,
-          player: candidate.playerId,
-          scoreRelative: candidate.scoreValue,
-        });
+          championshipId,
+          playerId: candidate.playerId,
+          playerName: candidate.playerName,
+          saveNonce: saveNonceForCandidate,
+          significance: { category: "leader", inContention: true },
+          post: { category: "leader", competition, headline, body, championship: championshipId, player: candidate.playerId, scoreRelative: candidate.scoreValue },
+        } satisfies TriggerCandidate, config);
       } else if (candidate.kind === "tie-for-lead") {
         const { headline, body } = tieCommentary(candidate.playerName, scoreLabel(competition, candidate.scoreValue), label);
-        await createPost(req, {
+        await evaluateAndPublish(req, {
           category: "tie",
-          competition,
-          headline,
-          body,
-          championship: championshipId,
-          player: candidate.playerId,
-          scoreRelative: candidate.scoreValue,
-        });
+          championshipId,
+          playerId: candidate.playerId,
+          playerName: candidate.playerName,
+          saveNonce: saveNonceForCandidate,
+          significance: { category: "tie", inContention: true },
+          post: { category: "tie", competition, headline, body, championship: championshipId, player: candidate.playerId, scoreRelative: candidate.scoreValue },
+        } satisfies TriggerCandidate, config);
       } else if (candidate.kind === "lead-extends") {
         const { headline, body } = leadExtendsCommentary(candidate.playerName, candidate.leadMargin ?? 0, label);
-        await createPost(req, {
+        await evaluateAndPublish(req, {
           category: "lead-extends",
-          competition,
-          headline,
-          body,
-          championship: championshipId,
-          player: candidate.playerId,
-          scoreRelative: candidate.scoreValue,
-        });
+          championshipId,
+          playerId: candidate.playerId,
+          playerName: candidate.playerName,
+          saveNonce: saveNonceForCandidate,
+          significance: { category: "lead-extends", inContention: true },
+          post: { category: "lead-extends", competition, headline, body, championship: championshipId, player: candidate.playerId, scoreRelative: candidate.scoreValue },
+        } satisfies TriggerCandidate, config);
       } else if (candidate.kind === "entering-contention") {
         const { headline, body } = enteringContentionCommentary(candidate.playerName, label);
-        await createPost(req, { category: "entering-contention", competition, headline, body, championship: championshipId, player: candidate.playerId });
+        await evaluateAndPublish(req, {
+          category: "entering-contention",
+          championshipId,
+          playerId: candidate.playerId,
+          playerName: candidate.playerName,
+          saveNonce: saveNonceForCandidate,
+          significance: { category: "entering-contention", inContention: true },
+          post: { category: "entering-contention", competition, headline, body, championship: championshipId, player: candidate.playerId },
+        } satisfies TriggerCandidate, config);
       } else if (candidate.kind === "leaving-contention") {
         const { headline, body } = leavingContentionCommentary(candidate.playerName, label);
-        await createPost(req, { category: "leaving-contention", competition, headline, body, championship: championshipId, player: candidate.playerId });
+        await evaluateAndPublish(req, {
+          category: "leaving-contention",
+          championshipId,
+          playerId: candidate.playerId,
+          playerName: candidate.playerName,
+          saveNonce: saveNonceForCandidate,
+          significance: { category: "leaving-contention", inContention: true },
+          post: { category: "leaving-contention", competition, headline, body, championship: championshipId, player: candidate.playerId },
+        } satisfies TriggerCandidate, config);
       }
     }
   }

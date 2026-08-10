@@ -55,6 +55,7 @@ export const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: type
   through: { label: "Through", icon: FlagTriangleRight, chipClass: "bg-accent text-accent-foreground" },
   "clubhouse-leader": { label: "Clubhouse leader", icon: Building2, chipClass: "bg-accent text-accent-foreground" },
   "round-complete": { label: "In the clubhouse", icon: Flag, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
+  "winner-confirmed": { label: "Winner confirmed", icon: Trophy, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },
   "last-group": { label: "Last group out", icon: Users, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
   championship: { label: "Championship", icon: Trophy, chipClass: "bg-accent text-accent-foreground" },
   instagram: {

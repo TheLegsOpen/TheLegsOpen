@@ -71,7 +71,7 @@ function leadAtHole(cumulativeByPlayer: Map<string, number[]>, holeIndex: number
   return { leaderId: values[0].id, lead: values[1].value - values[0].value };
 }
 
-interface WinnerResolution {
+export interface WinnerResolution {
   winner?: Player;
   winnerEntry?: CompetitionEntry;
   runnerUp?: CompetitionEntry;
@@ -84,7 +84,7 @@ interface WinnerResolution {
  * (the Main champion, barred from also winning Stableford) all the same way. `excludeIds`
  * members are skipped even if they're the outright leader, falling through to whoever's next.
  */
-function resolveCompetitionWinner(entries: CompetitionEntry[], competition: Competition, excludeIds: Set<string>): WinnerResolution {
+export function resolveCompetitionWinner(entries: CompetitionEntry[], competition: Competition, excludeIds: Set<string>): WinnerResolution {
   if (!isConcluded(entries)) return { viaTiebreak: false };
 
   const started = entries.filter((e) => e.started);
