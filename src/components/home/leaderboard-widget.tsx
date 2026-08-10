@@ -69,9 +69,9 @@ export function LeaderboardWidget({
               <col className="w-8" />
               <col />
               <col className="w-14" />
-              <col className="w-12" />
-              <col className="w-12" />
-              <col className="w-12" />
+              <col className="w-14" />
+              <col className="w-14" />
+              <col className="w-14" />
             </colgroup>
             <thead>
               <tr className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 text-left text-xs uppercase tracking-wide text-surface-dark-foreground/60">
