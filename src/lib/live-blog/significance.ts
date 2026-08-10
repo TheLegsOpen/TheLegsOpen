@@ -120,3 +120,16 @@ const COOLDOWN_GATED_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<TriggerC
 export function bypassesCooldown(category: TriggerCategory): boolean {
   return isCriticalCategory(category) || !COOLDOWN_GATED_CATEGORIES.has(category);
 }
+
+/**
+ * Only these four categories' commentary templates (see commentary.ts) actually cite a specific
+ * hole by number -- e.g. "birdie at the 15th". Streak/momentum categories (moving-up, charge,
+ * trouble...) also carry a holeNumber (the hole that triggered detection), but their copy
+ * deliberately describes a run across multiple holes ("two straight holes", "3 in the last 4")
+ * rather than naming one, so fact-validation shouldn't require that number to appear literally.
+ */
+const HOLE_CITING_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<TriggerCategory>(["ace", "eagle", "birdie", "bogey"]);
+
+export function citesHoleNumber(category: TriggerCategory): boolean {
+  return HOLE_CITING_CATEGORIES.has(category);
+}

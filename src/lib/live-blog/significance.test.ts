@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { computeSignificance, isCriticalCategory, bypassesCooldown } from "@/lib/live-blog/significance";
+import { computeSignificance, isCriticalCategory, bypassesCooldown, citesHoleNumber } from "@/lib/live-blog/significance";
 
 describe("computeSignificance — routine event suppression", () => {
   it("scores a bogey for a player outside contention very low", () => {
@@ -113,5 +113,26 @@ describe("bypassesCooldown", () => {
     expect(bypassesCooldown("leader")).toBe(true);
     expect(bypassesCooldown("tie")).toBe(true);
     expect(bypassesCooldown("ace")).toBe(true);
+  });
+});
+
+describe("citesHoleNumber", () => {
+  it("is true for the four categories whose commentary templates name a specific hole", () => {
+    expect(citesHoleNumber("ace")).toBe(true);
+    expect(citesHoleNumber("eagle")).toBe(true);
+    expect(citesHoleNumber("birdie")).toBe(true);
+    expect(citesHoleNumber("bogey")).toBe(true);
+  });
+
+  it("is false for streak/momentum categories, whose copy describes a run across holes rather than naming one", () => {
+    expect(citesHoleNumber("moving-up")).toBe(false);
+    expect(citesHoleNumber("moving-down")).toBe(false);
+    expect(citesHoleNumber("charge")).toBe(false);
+    expect(citesHoleNumber("trouble")).toBe(false);
+  });
+
+  it("is false for categories that never carry a holeNumber at all", () => {
+    expect(citesHoleNumber("leader")).toBe(false);
+    expect(citesHoleNumber("round-complete")).toBe(false);
   });
 });

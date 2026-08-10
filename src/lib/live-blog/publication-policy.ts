@@ -1,6 +1,6 @@
 import type { PayloadRequest } from "payload";
 
-import { computeSignificance, isCriticalCategory, bypassesCooldown, type SignificanceInput, type TriggerCategory } from "@/lib/live-blog/significance";
+import { computeSignificance, isCriticalCategory, bypassesCooldown, citesHoleNumber, type SignificanceInput, type TriggerCategory } from "@/lib/live-blog/significance";
 import type { LiveBlogPost } from "@/payload-types";
 
 export type SuppressionReason = "DISABLED" | "LOW_SIGNIFICANCE" | "COOLDOWN" | "MAX_PER_HOUR" | "DUPLICATE" | "FACT_VALIDATION_FAILED";
@@ -179,7 +179,7 @@ export async function evaluateAndPublish(
       headline: candidate.post.headline,
       body: candidate.post.body,
       playerName: candidate.playerName,
-      holeNumber: candidate.holeNumber,
+      holeNumber: citesHoleNumber(candidate.category) ? candidate.holeNumber : undefined,
     });
     if (!validation.valid) {
       console.error(`[live-blog] fact validation failed for ${fingerprint}: ${validation.reason}`);
