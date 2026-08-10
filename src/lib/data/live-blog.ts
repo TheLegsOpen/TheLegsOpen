@@ -29,6 +29,7 @@ export type LiveBlogCategory =
   | "round-complete"
   | "winner-confirmed"
   | "playoff"
+  | "no-return"
   | "last-group"
   | "championship"
   | "instagram";

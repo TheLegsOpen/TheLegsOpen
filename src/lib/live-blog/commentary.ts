@@ -170,6 +170,15 @@ export function leaderFaltersCommentary(playerName: string, streak: number): Com
   return { headline, body };
 }
 
+export function noReturnCommentary(playerName: string, holeNumber: number): Commentary {
+  const headline = pick(["Picked up", `${playerName.split(" ").slice(-1)[0]} picks up`]);
+  const body = pick([
+    `${playerName} picks up at the ${ordinal(holeNumber)} and is out of the Main and Scratch competitions -- still live in the Stableford.`,
+    `A no-return at the ${ordinal(holeNumber)} for ${playerName}, who's now out of contention for Main and Scratch -- the Stableford points keep counting.`,
+  ]);
+  return { headline, body };
+}
+
 export function playoffCommentary(names: string[], competitionLabel: string, scoreLabel: string): Commentary {
   const joined = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : (names[0] ?? "");
   const headline = pick(["Playoff!", "It's a playoff"]);

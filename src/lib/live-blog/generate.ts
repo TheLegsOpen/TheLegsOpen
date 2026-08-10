@@ -21,6 +21,7 @@ import {
   movingDownCommentary,
   troubleCommentary,
   leaderFaltersCommentary,
+  noReturnCommentary,
   enterTopCommentary,
   bigGainCommentary,
   bigDropCommentary,
@@ -212,7 +213,43 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
 
   let worstRelativeThisSave: number | undefined;
 
+  // A no-return on any hole disqualifies the whole card for Main/Scratch (Stableford keeps
+  // accumulating -- see computeScorecardTotals). Announce the moment it happens, once, then stop
+  // narrating this player's Main/Scratch progress for the rest of the round -- their Stableford
+  // story (via the Race Tracker below, which is never disqualified) carries on as normal.
+  const playerNoReturn = Boolean(doc.noReturn);
+  const wasNoReturn = Boolean(previousDoc?.noReturn);
+  let noReturnAnnouncedThisSave = false;
+
   for (let i = 0; i < newHoles.length; i++) {
+    const holeNumber = i + 1;
+    const newHoleNoReturn = Boolean(newHoles[i]?.noReturn);
+    const oldHoleNoReturn = Boolean(oldHoles[i]?.noReturn);
+
+    if (newHoleNoReturn && !oldHoleNoReturn && !wasNoReturn && !noReturnAnnouncedThisSave) {
+      noReturnAnnouncedThisSave = true;
+      const { headline, body } = noReturnCommentary(player.name, holeNumber);
+      await publish({
+        category: "no-return",
+        championshipId: championshipId as string,
+        playerId: playerId as string,
+        playerName: player.name,
+        holeNumber,
+        saveNonce: `${saveNonce}:hole-${holeNumber}:no-return`,
+        significance: { category: "no-return", inContention: true, holesRemaining: 18 - holeNumber },
+        post: {
+          category: "no-return",
+          headline,
+          body,
+          championship: championshipId as string,
+          player: playerId as string,
+          holeNumber,
+        },
+      });
+    }
+
+    if (playerNoReturn) continue;
+
     const newStrokes = newHoles[i]?.strokes;
     const oldStrokes = oldHoles[i]?.strokes;
     if (newStrokes == null || newStrokes === oldStrokes) continue;
@@ -220,7 +257,6 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
     const par = venueHoles[i]?.par ?? 4;
     const grossRelative = newStrokes - par;
     const nettRelative = nettRelatives[i];
-    const holeNumber = i + 1;
     const holesRemaining = 18 - holeNumber;
     const holeNonce = `${saveNonce}:hole-${holeNumber}`;
 
@@ -465,7 +501,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
 
   const finishedNow = (doc.holesCompleted ?? 0) >= 18;
   const finishedBefore = (previousDoc?.holesCompleted ?? 0) >= 18;
-  if (finishedNow && !finishedBefore && mainEntry) {
+  if (finishedNow && !finishedBefore && mainEntry && !mainEntry.noReturn) {
     const { headline, body } = roundCompleteCommentary(player.name, mainEntry.toPar ?? 0, mainEntry.position, mainEntry.tied);
     await publish({
       category: "round-complete",
@@ -548,7 +584,9 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
     // swing either way. `worstRelativeThisSave` (tracked in the per-hole loop above) names the
     // mistake behind a fall when there is one, matching "a costly double bogey drops ... from
     // second to eighth."
-    const movement = diffPositionMovement(snapshots.before.main, snapshots.after.main, playerId as string);
+    // A no-return causes a real Main position collapse, but it's already covered by its own
+    // announcement above -- not a "costly double bogey" story, so skip movement detection for it.
+    const movement = mainEntry?.noReturn ? undefined : diffPositionMovement(snapshots.before.main, snapshots.after.main, playerId as string);
     if (movement) {
       if (movement.kind === "enter-top-5" || movement.kind === "enter-top-10") {
         const { headline, body } = enterTopCommentary(player.name, movement.kind === "enter-top-5" ? 5 : 10, movement.position);

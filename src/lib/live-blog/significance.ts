@@ -39,6 +39,7 @@ const BASE_SIGNIFICANCE: Record<TriggerCategory, number> = {
   tie: 90,
   "pressure-moment": 85,
   "leader-falters": 80,
+  "no-return": 70,
   "clubhouse-leader": 80,
   ace: 95,
   eagle: 80,
@@ -131,7 +132,7 @@ export function bypassesCooldown(category: TriggerCategory): boolean {
  * deliberately describes a run across multiple holes ("two straight holes", "3 in the last 4")
  * rather than naming one, so fact-validation shouldn't require that number to appear literally.
  */
-const HOLE_CITING_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<TriggerCategory>(["ace", "eagle", "birdie", "bogey"]);
+const HOLE_CITING_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<TriggerCategory>(["ace", "eagle", "birdie", "bogey", "no-return"]);
 
 export function citesHoleNumber(category: TriggerCategory): boolean {
   return HOLE_CITING_CATEGORIES.has(category);
