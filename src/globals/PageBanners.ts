@@ -78,6 +78,16 @@ export const PageBanners: GlobalConfig = {
     },
     {
       type: "collapsible",
+      label: "Records",
+      fields: [
+        { name: "records", type: "upload", relationTo: "media", label: "Banner Image", admin: { description: RECOMMENDED_COMPACT } },
+        { name: "recordsEyebrow", type: "text", label: "Eyebrow" },
+        { name: "recordsTitle", type: "text", label: "Title" },
+        { name: "recordsDescription", type: "textarea", label: "Description" },
+      ],
+    },
+    {
+      type: "collapsible",
       label: "Player Profiles",
       fields: [
         {

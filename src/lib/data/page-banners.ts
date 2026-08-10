@@ -23,6 +23,10 @@ export interface PageBanners {
   statisticsEyebrow: string;
   statisticsTitle: string;
   statisticsDescription: string;
+  recordsUrl?: string;
+  recordsEyebrow: string;
+  recordsTitle: string;
+  recordsDescription: string;
   playerProfileUrl?: string;
   playerProfileEyebrow: string;
 }
@@ -42,6 +46,9 @@ const DEFAULTS = {
   statisticsEyebrow: "Championship Week",
   statisticsTitle: "Statistics",
   statisticsDescription: "Scoring statistics computed live from every player's scorecard.",
+  recordsEyebrow: "Since 2013",
+  recordsTitle: "Records & Statistics",
+  recordsDescription: "The roll of honour, milestones and scoring records from The Legs Open's history.",
   playerProfileEyebrow: "Player Profile",
 } as const;
 
@@ -69,6 +76,10 @@ export async function getPageBanners(): Promise<PageBanners> {
     statisticsEyebrow: settings.statisticsEyebrow || DEFAULTS.statisticsEyebrow,
     statisticsTitle: settings.statisticsTitle || DEFAULTS.statisticsTitle,
     statisticsDescription: settings.statisticsDescription || DEFAULTS.statisticsDescription,
+    recordsUrl: mediaUrl(settings.records),
+    recordsEyebrow: settings.recordsEyebrow || DEFAULTS.recordsEyebrow,
+    recordsTitle: settings.recordsTitle || DEFAULTS.recordsTitle,
+    recordsDescription: settings.recordsDescription || DEFAULTS.recordsDescription,
     playerProfileUrl: mediaUrl(settings.playerProfile),
     playerProfileEyebrow: settings.playerProfileEyebrow || DEFAULTS.playerProfileEyebrow,
   };

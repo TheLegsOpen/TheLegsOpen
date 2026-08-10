@@ -359,7 +359,9 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
             {playoffs.length === 0 ? (
               <Empty>No playoff has occurred yet.</Empty>
             ) : (
-              playoffs.map((e) => <RecordRow key={e.year} left={e.name} sub={e.venueName} right={e.year} />)
+              playoffs.map((e) => (
+                <RecordRow key={e.year} left={e.name} sub={e.result ? `${e.venueName} · ${e.result}` : e.venueName} right={e.year} />
+              ))
             )}
           </Category>
           <Category value="international-winner" title="International winner (outside Scotland)" count={internationalWinners.length}>

@@ -4,9 +4,23 @@ import configPromise from "@/payload.config";
 import { getChampionshipHistory } from "@/lib/data/championships";
 import { getPlayers } from "@/lib/data/players";
 import { getCompetitionLeaderboardForChampionshipId, getAllScorecardParticipation } from "@/lib/data/scorecards";
+import { getPlayoffs } from "@/lib/data/playoffs";
 import { playerSlug } from "@/lib/utils";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { ChampionshipWinner } from "@/types/championship";
+import type { PlayoffResult } from "@/lib/data/playoffs";
+
+/** "Alastair Campbell (-2) beat Bobby Ferguson (E)" -- the deciding tiebreak step's own scores for the winner and the best-placed non-winner, reusing the exact same countback resolution the live leaderboard shows during play. Undefined if the title genuinely ended up shared (every tiebreak step exhausted, still level). */
+function formatPlayoffResult(result: PlayoffResult): string | undefined {
+  if (!result.winner || result.steps.length === 0) return undefined;
+  const decidingStep = result.steps[result.steps.length - 1];
+  const winnerContender = decidingStep.contenders.find((c) => c.player.id === result.winner!.id);
+  const runnerUpContender = decidingStep.contenders
+    .filter((c) => c.player.id !== result.winner!.id)
+    .sort((a, b) => (result.competition === "stableford" ? b.value - a.value : a.value - b.value))[0];
+  if (!winnerContender || !runnerUpContender) return undefined;
+  return `${result.winner.name} (${winnerContender.display}) beat ${runnerUpContender.player.name} (${runnerUpContender.display})`;
+}
 
 /** Below this a Venue's totalPar reflects an incomplete hole setup, not a genuine course par — see Championships.scoreToPar admin note. */
 const MIN_COMPETITOR_AGE = 14;
@@ -41,6 +55,11 @@ export interface YearVenueEntry {
   year: number;
   name: string;
   venueName: string;
+}
+
+export interface PlayoffRecordEntry extends YearVenueEntry {
+  /** e.g. "Alastair Campbell (-2) beat Bobby Ferguson (E)" -- undefined if the title ended up genuinely shared. */
+  result?: string;
 }
 
 export interface ScoreEntry {
@@ -118,7 +137,7 @@ export interface RecordsData {
   mostVictoriesStableford: VictoryCount[];
   mostVictoriesScratch: VictoryCount[];
   largestMargin: MarginEntry[];
-  playoffs: YearVenueEntry[];
+  playoffs: PlayoffRecordEntry[];
   wonOnDebut: YearVenueEntry[];
   mostAppearancesBeforeFirstVictory: { year: number; name: string; appearances: number }[];
   threeDecadeChampions: DecadeSpanEntry[];
@@ -238,24 +257,41 @@ export interface AutoFacts {
   ledOutrightAfter9: boolean;
   deficitAfter9?: number;
   largestLead?: { holderName: string; margin: number; afterHole: number };
+  /** The Main competition's own tiebreak resolution, when it needed one -- reused by the Records "Play-offs" list so it doesn't have to re-derive the same countback a second time. */
+  mainPlayoffResult?: PlayoffResult;
 }
 
 export async function computeAutoFacts(championship: ChampionshipWinner): Promise<AutoFacts | undefined> {
-  const [main, stableford, scratch] = await Promise.all([
+  const [main, stableford, scratch, playoffResults] = await Promise.all([
     getCompetitionLeaderboardForChampionshipId(championship.id, "main"),
     getCompetitionLeaderboardForChampionshipId(championship.id, "stableford"),
     getCompetitionLeaderboardForChampionshipId(championship.id, "scratch"),
+    getPlayoffs(championship.id),
   ]);
   if (!isConcluded(main)) return undefined;
 
   // Stableford/Scratch are separate competitions from Main and don't depend on which Main player
   // eventually took the title, so their winner/score resolve regardless of a Main-side tie.
-  const stablefordWinner = namesFor(stableford, 1);
-  const scratchWinner = namesFor(scratch, 1);
-  // Tied-for-1st players share the same score by definition, so it's safe to read from the
-  // first entry at position 1 regardless of whether namesFor found a single winner or a tie.
-  const stablefordWinnerScore = stableford.find((e) => e.position === 1)?.score;
-  const scratchWinnerEntry = scratch.find((e) => e.position === 1);
+  // getPlayoffs already applies the "Main champion is ineligible for Stableford" exclusion and
+  // resolves any genuine tie via countback -- namesFor alone doesn't know about that exclusion,
+  // so it would (wrongly) credit both tied players even when one of them isn't actually eligible.
+  const stablefordPlayoff = playoffResults.find((r) => r.competition === "stableford");
+  const scratchPlayoff = playoffResults.find((r) => r.competition === "scratch");
+
+  const stablefordWinnerEntry = stablefordPlayoff?.winner
+    ? stableford.find((e) => e.player.id === stablefordPlayoff.winner!.id)
+    : undefined;
+  const stablefordWinner = stablefordWinnerEntry
+    ? { names: stablefordWinnerEntry.player.name, country: stablefordWinnerEntry.player.country }
+    : namesFor(stableford, 1);
+  const stablefordWinnerScore = stablefordWinnerEntry?.score ?? stableford.find((e) => e.position === 1)?.score;
+
+  const scratchWinnerEntry = scratchPlayoff?.winner
+    ? scratch.find((e) => e.player.id === scratchPlayoff.winner!.id)
+    : scratch.find((e) => e.position === 1);
+  const scratchWinner = scratchPlayoff?.winner
+    ? { names: scratchWinnerEntry?.player.name ?? "", country: scratchWinnerEntry?.player.country }
+    : namesFor(scratch, 1);
 
   const cumulative = runningTotalsByPlayer(main);
 
@@ -325,6 +361,7 @@ export async function computeAutoFacts(championship: ChampionshipWinner): Promis
     ledOutrightAfter9,
     deficitAfter9,
     largestLead,
+    mainPlayoffResult: playoffResults.find((r) => r.competition === "main"),
   };
 }
 
@@ -400,9 +437,12 @@ export async function getRecords(): Promise<RecordsData> {
   // works for every year regardless of whether computeAutoFacts also has an entry for it (that
   // function returns partial facts even for a tied/playoff year now, so "has auto facts" is no
   // longer a reliable proxy for "wasn't a playoff").
-  const playoffs: YearVenueEntry[] = played
+  const playoffs: PlayoffRecordEntry[] = played
     .filter((c) => c.margin?.toLowerCase() === "playoff")
-    .map((c) => ({ year: c.year, name: c.winnerName, venueName: c.venueName }));
+    .map((c) => {
+      const result = autoFactsByYear.get(c.year)?.mainPlayoffResult;
+      return { year: c.year, name: c.winnerName, venueName: c.venueName, result: result ? formatPlayoffResult(result) : undefined };
+    });
 
   const yearById = new Map(played.map((c) => [c.id, c.year]));
 
@@ -417,11 +457,19 @@ export async function getRecords(): Promise<RecordsData> {
 
   const playersById = new Map(players.map((p) => [String(p.id), p]));
 
-  // Auto-derivation can only ever prove a *positive* prior-appearance count (real digital years
-  // on file) — a computed zero is indistinguishable from `previousOpens` simply never having been
-  // filled in, so "won on debut" relies on the admin's own explicit confirmation rather than risk
-  // asserting that as fact about a real person.
-  const wonOnDebut: YearVenueEntry[] = played.filter((c) => c.wonOnDebut).map((c) => ({ year: c.year, name: c.winnerName, venueName: c.venueName }));
+  // Auto-derived the same way as mostAppearancesBeforeFirstVictory below: previousOpens (the
+  // hand-maintained pre-digital baseline) plus real digital-era appearances before this year.
+  // Falls back to the manual wonOnDebut checkbox only when the winner isn't digitally tracked at
+  // all (no winnerPlayerId to look up), since there's nothing to compute in that case.
+  const wonOnDebut: YearVenueEntry[] = played
+    .filter((c) => {
+      if (c.winnerPlayerId) {
+        const base = playersById.get(c.winnerPlayerId)?.previousOpens ?? 0;
+        return appearancesBefore(c.winnerPlayerId, c.year, base) === 0;
+      }
+      return Boolean(c.wonOnDebut);
+    })
+    .map((c) => ({ year: c.year, name: c.winnerName, venueName: c.venueName }));
 
   const mostAppearancesBeforeFirstVictory = played
     .map((c) => {

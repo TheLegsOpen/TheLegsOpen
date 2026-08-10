@@ -4,6 +4,7 @@ import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
 import { RecordsBoard } from "@/components/records/records-board";
 import { getRecords } from "@/lib/data/records";
+import { getPageBanners } from "@/lib/data/page-banners";
 
 export const metadata: Metadata = {
   title: "Records & Statistics",
@@ -11,14 +12,18 @@ export const metadata: Metadata = {
 };
 
 export default async function RecordsPage() {
-  const records = await getRecords();
+  const [records, banners] = await Promise.all([getRecords(), getPageBanners()]);
 
   return (
     <>
       <PageHero
-        eyebrow="Since 2013"
-        title="Records & Statistics"
-        description="The roll of honour, milestones and scoring records from The Legs Open's history."
+        variant="photo"
+        size="compact"
+        imageLabel="The Claret Vase engraved with every Legs Open champion"
+        imageUrl={banners.recordsUrl}
+        eyebrow={banners.recordsEyebrow}
+        title={banners.recordsTitle}
+        description={banners.recordsDescription}
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Records" }]}
       />
       <Container className="py-16 sm:py-24">
