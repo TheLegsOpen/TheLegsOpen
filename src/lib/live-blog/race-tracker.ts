@@ -5,6 +5,8 @@ export interface TrackerMember {
   playerName: string;
   position: number;
   margin: number;
+  /** "F" once the round is finished, otherwise the number of holes completed as a string (matches CompetitionEntry.thru). */
+  thru: string;
 }
 
 export interface RaceTracker {
@@ -29,6 +31,10 @@ export interface RaceCandidate {
   /** to-par for main/scratch, points for stableford. */
   scoreValue: number;
   leadMargin?: number;
+  /** How many holes this player has completed, when known -- "F" once finished. */
+  thru?: string;
+  /** For tie-for-lead only: the other player(s) already sharing the lead this player just joined. */
+  otherLeaderNames?: string[];
 }
 
 /** How many holes (or points, for Stableford) back of the lead still counts as "in the race". Main tightens on the closing holes. */
@@ -45,12 +51,12 @@ function holesRemaining(entry: CompetitionEntry): number {
 }
 
 /** Higher is better for Stableford points; lower (more under par) is better for Main/Scratch. */
-function metricValue(entry: CompetitionEntry, competition: Competition): number {
+export function metricValue(entry: CompetitionEntry, competition: Competition): number {
   return competition === "stableford" ? (entry.score ?? 0) : (entry.toPar ?? 0);
 }
 
 /** Strokes/points behind the lead -- 0 for the leader(s), always >= 0 for everyone else. */
-function marginBehind(value: number, leaderValue: number, competition: Competition): number {
+export function marginBehind(value: number, leaderValue: number, competition: Competition): number {
   return competition === "stableford" ? leaderValue - value : value - leaderValue;
 }
 
@@ -104,6 +110,7 @@ export function buildRaceTracker(entries: CompetitionEntry[], competition: Compe
       playerName: e.player.name,
       position: e.position,
       margin: marginBehind(metricValue(e, competition), leaderValue, competition),
+      thru: e.thru,
     }));
 
   return { competition, leaderIds, leaderName: leaders[0]?.player.name, leaderMetric: leaderValue, leadMargin, members };
@@ -170,18 +177,25 @@ export function diffRaceTrackers(before: RaceTracker, after: RaceTracker): RaceC
       playerId: id,
       playerName: after.leaderName ?? "",
       scoreValue: after.leaderMetric ?? 0,
+      thru: after.members.find((m) => m.playerId === id)?.thru,
     });
   }
 
   if (after.leaderIds.length > 1) {
     for (const id of after.leaderIds.filter((i) => !beforeLeaderSet.has(i))) {
       const member = after.members.find((m) => m.playerId === id);
+      const otherLeaderNames = after.leaderIds
+        .filter((otherId) => otherId !== id)
+        .map((otherId) => after.members.find((m) => m.playerId === otherId)?.playerName)
+        .filter((name): name is string => Boolean(name));
       candidates.push({
         kind: "tie-for-lead",
         competition: after.competition,
         playerId: id,
         playerName: member?.playerName ?? "",
         scoreValue: after.leaderMetric ?? 0,
+        thru: member?.thru,
+        otherLeaderNames,
       });
     }
   }
@@ -195,20 +209,35 @@ export function diffRaceTrackers(before: RaceTracker, after: RaceTracker): RaceC
       playerName: after.leaderName ?? "",
       scoreValue: after.leaderMetric ?? 0,
       leadMargin: after.leadMargin,
+      thru: after.members.find((m) => m.playerId === after.leaderIds[0])?.thru,
     });
   }
 
   const beforeMemberIds = new Set(before.members.map((m) => m.playerId));
   for (const m of after.members) {
     if (!beforeMemberIds.has(m.playerId)) {
-      candidates.push({ kind: "entering-contention", competition: after.competition, playerId: m.playerId, playerName: m.playerName, scoreValue: 0 });
+      candidates.push({
+        kind: "entering-contention",
+        competition: after.competition,
+        playerId: m.playerId,
+        playerName: m.playerName,
+        scoreValue: m.margin,
+        thru: m.thru,
+      });
     }
   }
 
   const afterMemberIds = new Set(after.members.map((m) => m.playerId));
   for (const m of before.members) {
     if (!afterMemberIds.has(m.playerId)) {
-      candidates.push({ kind: "leaving-contention", competition: before.competition, playerId: m.playerId, playerName: m.playerName, scoreValue: 0 });
+      candidates.push({
+        kind: "leaving-contention",
+        competition: before.competition,
+        playerId: m.playerId,
+        playerName: m.playerName,
+        scoreValue: m.margin,
+        thru: m.thru,
+      });
     }
   }
 

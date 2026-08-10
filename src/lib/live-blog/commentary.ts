@@ -15,6 +15,21 @@ function ordinal(n: number): string {
   return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`;
 }
 
+/** ", thru N" once a holes-completed figure is known -- omitted once the round is finished ("F") or unknown. */
+function thruSuffix(thru?: string): string {
+  return thru && thru !== "F" ? `, thru ${thru}` : "";
+}
+
+function joinNames(names: string[]): string {
+  if (names.length === 0) return "";
+  if (names.length === 1) return names[0];
+  return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`;
+}
+
+function marginLabel(margin: number, unit: "shot" | "point"): string {
+  return `${margin} ${unit}${margin === 1 ? "" : "s"} behind the leader`;
+}
+
 export function eagleCommentary(playerName: string, holeNumber: number): Commentary {
   const headline = pick(["Eagle!", `${playerName.split(" ").slice(-1)[0]} soars`, "Two shots gone in one"]);
   const body = pick([
@@ -53,12 +68,13 @@ export function bogeyCommentary(playerName: string, holeNumber: number, relative
   return { headline, body };
 }
 
-export function leaderCommentary(playerName: string, scoreLabel: string, competitionLabel: string): Commentary {
+export function leaderCommentary(playerName: string, scoreLabel: string, competitionLabel: string, thru?: string): Commentary {
+  const suffix = thruSuffix(thru);
   const headline = pick(["New leader", `${playerName.split(" ").slice(-1)[0]} takes control`]);
   const body = pick([
-    `${playerName} moves to the top of the ${competitionLabel} leaderboard at ${scoreLabel}.`,
-    `${playerName} now holds the outright lead in the ${competitionLabel} standings on ${scoreLabel}.`,
-    `A new name at the top — ${playerName} leads the ${competitionLabel} competition at ${scoreLabel}.`,
+    `${playerName} moves to the top of the ${competitionLabel} leaderboard at ${scoreLabel}${suffix}.`,
+    `${playerName} now holds the outright lead in the ${competitionLabel} standings on ${scoreLabel}${suffix}.`,
+    `A new name at the top — ${playerName} leads the ${competitionLabel} competition at ${scoreLabel}${suffix}.`,
   ]);
   return { headline, body };
 }
@@ -174,42 +190,65 @@ export function leaderThroughCommentary(playerName: string, holesCompleted: numb
   return { headline, body };
 }
 
-export function tieCommentary(playerName: string, scoreLabel: string, competitionLabel: string): Commentary {
+export function tieCommentary(
+  playerName: string,
+  scoreLabel: string,
+  competitionLabel: string,
+  thru?: string,
+  otherLeaderNames: string[] = [],
+): Commentary {
+  const suffix = thruSuffix(thru);
+  const withOthers = otherLeaderNames.length > 0 ? ` with ${joinNames(otherLeaderNames)}` : "";
   const headline = pick(["Tie at the top", `${playerName.split(" ").slice(-1)[0]} draws level`]);
   const body = pick([
-    `${playerName} joins the lead in the ${competitionLabel} competition at ${scoreLabel}.`,
-    `We have a share of the lead — ${playerName} moves level at the top on ${scoreLabel}.`,
-    `${playerName} draws level at the summit of the ${competitionLabel} standings, ${scoreLabel}.`,
+    `${playerName} joins the lead in the ${competitionLabel} competition${withOthers} at ${scoreLabel}${suffix}.`,
+    `We have a share of the lead — ${playerName} moves level at the top${withOthers} on ${scoreLabel}${suffix}.`,
+    `${playerName} draws level at the summit of the ${competitionLabel} standings${withOthers}, on ${scoreLabel}${suffix}.`,
   ]);
   return { headline, body };
 }
 
-export function leadExtendsCommentary(playerName: string, leadMargin: number, competitionLabel: string): Commentary {
+export function leadExtendsCommentary(playerName: string, leadMargin: number, competitionLabel: string, thru?: string): Commentary {
+  const suffix = thruSuffix(thru);
   const headline = pick(["Advantage grows", `${playerName.split(" ").slice(-1)[0]} pulls clear`]);
   const body = pick([
-    `${playerName} extends the ${competitionLabel} lead to ${leadMargin}.`,
-    `The gap grows — ${playerName} now leads by ${leadMargin} in the ${competitionLabel} competition.`,
-    `${playerName} stretches clear at the top, the lead now out to ${leadMargin}.`,
+    `${playerName} extends the ${competitionLabel} lead to ${leadMargin}${suffix}.`,
+    `The gap grows — ${playerName} now leads by ${leadMargin} in the ${competitionLabel} competition${suffix}.`,
+    `${playerName} stretches clear at the top, the lead now out to ${leadMargin}${suffix}.`,
   ]);
   return { headline, body };
 }
 
-export function enteringContentionCommentary(playerName: string, competitionLabel: string): Commentary {
+export function enteringContentionCommentary(
+  playerName: string,
+  competitionLabel: string,
+  margin: number,
+  unit: "shot" | "point",
+  thru?: string,
+): Commentary {
+  const detail = ` They lie ${marginLabel(margin, unit)}${thruSuffix(thru)}.`;
   const headline = pick(["Into contention", `${playerName.split(" ").slice(-1)[0]} joins the race`]);
   const body = pick([
-    `${playerName} moves into the ${competitionLabel} race.`,
-    `${playerName} is now firmly in contention in the ${competitionLabel} competition.`,
-    `A real move — ${playerName} climbs into the ${competitionLabel} race.`,
+    `${playerName} moves into the ${competitionLabel} race.${detail}`,
+    `${playerName} is now firmly in contention in the ${competitionLabel} competition.${detail}`,
+    `A real move — ${playerName} climbs into the ${competitionLabel} race.${detail}`,
   ]);
   return { headline, body };
 }
 
-export function leavingContentionCommentary(playerName: string, competitionLabel: string): Commentary {
+export function leavingContentionCommentary(
+  playerName: string,
+  competitionLabel: string,
+  margin: number,
+  unit: "shot" | "point",
+  thru?: string,
+): Commentary {
+  const detail = ` They're now ${marginLabel(margin, unit)}${thruSuffix(thru)}.`;
   const headline = pick(["Pressure eases", `${playerName.split(" ").slice(-1)[0]} drops back`]);
   const body = pick([
-    `${playerName} drops outside the ${competitionLabel} race.`,
-    `${playerName} slips out of contention in the ${competitionLabel} competition.`,
-    `The gap tells — ${playerName} falls back from the ${competitionLabel} race.`,
+    `${playerName} drops outside the ${competitionLabel} race.${detail}`,
+    `${playerName} slips out of contention in the ${competitionLabel} competition.${detail}`,
+    `The gap tells — ${playerName} falls back from the ${competitionLabel} race.${detail}`,
   ]);
   return { headline, body };
 }

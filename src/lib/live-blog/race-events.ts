@@ -22,6 +22,10 @@ function scoreLabel(competition: Competition, value: number): string {
   return competition === "stableford" ? `${value} pts` : formatToPar(value);
 }
 
+function marginUnit(competition: Competition): "shot" | "point" {
+  return competition === "stableford" ? "point" : "shot";
+}
+
 /**
  * Entering/leaving-contention dedup: only fires if the player's most recent contention-status
  * post for this competition isn't already the same direction (so a player who's already flagged
@@ -94,7 +98,7 @@ export async function generateRaceTrackerPosts(
       const saveNonceForCandidate = `${saveNonce}:${competition}:${candidate.kind}:${candidate.playerId}`;
 
       if (candidate.kind === "new-leader") {
-        const { headline, body } = leaderCommentary(candidate.playerName, scoreLabel(competition, candidate.scoreValue), label);
+        const { headline, body } = leaderCommentary(candidate.playerName, scoreLabel(competition, candidate.scoreValue), label, candidate.thru);
         await evaluateAndPublish(req, {
           category: "leader",
           championshipId,
@@ -105,7 +109,13 @@ export async function generateRaceTrackerPosts(
           post: { category: "leader", competition, headline, body, championship: championshipId, player: candidate.playerId, scoreRelative: candidate.scoreValue },
         } satisfies TriggerCandidate, config);
       } else if (candidate.kind === "tie-for-lead") {
-        const { headline, body } = tieCommentary(candidate.playerName, scoreLabel(competition, candidate.scoreValue), label);
+        const { headline, body } = tieCommentary(
+          candidate.playerName,
+          scoreLabel(competition, candidate.scoreValue),
+          label,
+          candidate.thru,
+          candidate.otherLeaderNames,
+        );
         await evaluateAndPublish(req, {
           category: "tie",
           championshipId,
@@ -116,7 +126,7 @@ export async function generateRaceTrackerPosts(
           post: { category: "tie", competition, headline, body, championship: championshipId, player: candidate.playerId, scoreRelative: candidate.scoreValue },
         } satisfies TriggerCandidate, config);
       } else if (candidate.kind === "lead-extends") {
-        const { headline, body } = leadExtendsCommentary(candidate.playerName, candidate.leadMargin ?? 0, label);
+        const { headline, body } = leadExtendsCommentary(candidate.playerName, candidate.leadMargin ?? 0, label, candidate.thru);
         await evaluateAndPublish(req, {
           category: "lead-extends",
           championshipId,
@@ -127,7 +137,7 @@ export async function generateRaceTrackerPosts(
           post: { category: "lead-extends", competition, headline, body, championship: championshipId, player: candidate.playerId, scoreRelative: candidate.scoreValue },
         } satisfies TriggerCandidate, config);
       } else if (candidate.kind === "entering-contention") {
-        const { headline, body } = enteringContentionCommentary(candidate.playerName, label);
+        const { headline, body } = enteringContentionCommentary(candidate.playerName, label, candidate.scoreValue, marginUnit(competition), candidate.thru);
         await evaluateAndPublish(req, {
           category: "entering-contention",
           championshipId,
@@ -138,7 +148,7 @@ export async function generateRaceTrackerPosts(
           post: { category: "entering-contention", competition, headline, body, championship: championshipId, player: candidate.playerId },
         } satisfies TriggerCandidate, config);
       } else if (candidate.kind === "leaving-contention") {
-        const { headline, body } = leavingContentionCommentary(candidate.playerName, label);
+        const { headline, body } = leavingContentionCommentary(candidate.playerName, label, candidate.scoreValue, marginUnit(competition), candidate.thru);
         await evaluateAndPublish(req, {
           category: "leaving-contention",
           championshipId,
