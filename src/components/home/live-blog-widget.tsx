@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
 import { cn, playerSlug } from "@/lib/utils";
-import { CATEGORY_META, formatTime, formatDate } from "@/components/live-blog/live-blog-feed";
+import { CATEGORY_META, COMPETITION_LABEL, COMPETITION_BADGE_CLASS, formatTime, formatDate } from "@/components/live-blog/live-blog-feed";
 import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { LiveBlogEntry } from "@/lib/data/live-blog";
 
@@ -40,15 +40,22 @@ export function LiveBlogWidget({ entries }: LiveBlogWidgetProps) {
                 className={cn("border-b border-black/10 p-4 last:border-0", meta.cardClass ?? "bg-white")}
               >
                 <div className="mb-2 flex items-center justify-between gap-3">
-                  <span
-                    className={cn(
-                      "inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide",
-                      isColored ? "bg-white/15 text-white" : meta.chipClass,
-                    )}
-                  >
-                    <Icon className="h-3 w-3" />
-                    {meta.label}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide",
+                        isColored ? "bg-white/15 text-white" : meta.chipClass,
+                      )}
+                    >
+                      <Icon className="h-3 w-3" />
+                      {meta.label}
+                    </span>
+                    {entry.competition ? (
+                      <span className={cn("px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide", COMPETITION_BADGE_CLASS[entry.competition])}>
+                        {COMPETITION_LABEL[entry.competition]}
+                      </span>
+                    ) : null}
+                  </div>
                   <span className={cn("text-[11px] tabular-nums", isColored ? "text-white/70" : "text-black/50")}>
                     {formatTime(entry.postedAt)} · {formatDate(entry.postedAt)}
                   </span>

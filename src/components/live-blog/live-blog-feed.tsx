@@ -65,10 +65,18 @@ export const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: type
   },
 };
 
-const COMPETITION_LABEL: Record<LiveBlogCompetition, string> = {
+export const COMPETITION_LABEL: Record<LiveBlogCompetition, string> = {
   main: "Main",
   stableford: "Stableford",
   scratch: "Scratch",
+};
+
+/** A separate, solidly-coloured pill (distinct from the category chip's own colour) so which
+ * board a post relates to reads at a glance instead of being buried as small inline text. */
+export const COMPETITION_BADGE_CLASS: Record<LiveBlogCompetition, string> = {
+  main: "bg-primary text-primary-foreground",
+  stableford: "bg-[#2269AB] text-white",
+  scratch: "bg-[#6B7280] text-white",
 };
 
 export function formatTime(iso: string): string {
@@ -169,16 +177,22 @@ export function LiveBlogFeed({
               style={{ gridRow: index + 1 }}
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-                <span
-                  className={cn(
-                    "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wide",
-                    isColored ? "bg-white/15 text-white" : meta.chipClass,
-                  )}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {meta.label}
-                  {entry.competition ? ` · ${COMPETITION_LABEL[entry.competition]}` : ""}
-                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wide",
+                      isColored ? "bg-white/15 text-white" : meta.chipClass,
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {meta.label}
+                  </span>
+                  {entry.competition ? (
+                    <span className={cn("px-2.5 py-1 text-xs font-bold uppercase tracking-wide", COMPETITION_BADGE_CLASS[entry.competition])}>
+                      {COMPETITION_LABEL[entry.competition]}
+                    </span>
+                  ) : null}
+                </div>
                 <span className={cn("font-display text-sm tabular-nums", isColored ? "text-white/70" : "text-black/50")}>
                   {formatTime(entry.postedAt)} · {formatDate(entry.postedAt)}
                 </span>
