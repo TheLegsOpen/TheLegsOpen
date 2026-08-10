@@ -5,7 +5,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
 import { formatAge } from "@/lib/data/records";
-import type { RecordsData } from "@/lib/data/records";
+import type { RecordsData, ChampionEntry } from "@/lib/data/records";
+
+/** "Carnwath · 65 (-4)" for Main/Scratch, "Carnwath · 40 pts" for Stableford -- venue on its own when the score isn't known yet. */
+function championSub(c: ChampionEntry, mode: "toPar" | "points"): string {
+  if (c.score === undefined) return c.venueName;
+  const scoreLabel = mode === "points" ? `${c.score} pts` : `${c.score} (${formatToPar(c.scoreToPar ?? 0)})`;
+  return `${c.venueName} · ${scoreLabel}`;
+}
 
 function Section({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
   return (
@@ -102,7 +109,7 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
                       c.name
                     )
                   }
-                  sub={c.venueName}
+                  sub={championSub(c, "toPar")}
                   right={c.year}
                 />
               ))
@@ -114,10 +121,18 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
       <Section title="Stableford & Scratch Golfer Of The Year" description="Winners of the other two competitions, where recorded.">
         <Accordion type="multiple">
           <Category value="stableford-winners" title="Stableford" count={championsStableford.length}>
-            {championsStableford.length === 0 ? <Empty /> : championsStableford.map((c) => <RecordRow key={c.year} left={c.name} right={c.year} />)}
+            {championsStableford.length === 0 ? (
+              <Empty />
+            ) : (
+              championsStableford.map((c) => <RecordRow key={c.year} left={c.name} sub={championSub(c, "points")} right={c.year} />)
+            )}
           </Category>
           <Category value="scratch-winners" title="Scratch" count={championsScratch.length}>
-            {championsScratch.length === 0 ? <Empty /> : championsScratch.map((c) => <RecordRow key={c.year} left={c.name} right={c.year} />)}
+            {championsScratch.length === 0 ? (
+              <Empty />
+            ) : (
+              championsScratch.map((c) => <RecordRow key={c.year} left={c.name} sub={championSub(c, "toPar")} right={c.year} />)
+            )}
           </Category>
         </Accordion>
       </Section>

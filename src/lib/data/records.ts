@@ -17,6 +17,10 @@ export interface ChampionEntry {
   country?: string;
   venueName: string;
   slug?: string;
+  /** Main/Scratch: nett/gross total for the round. Stableford: points. */
+  score?: number;
+  /** Main/Scratch only -- Stableford has no par-relative equivalent. */
+  scoreToPar?: number;
 }
 
 export interface VictoryCount {
@@ -223,8 +227,11 @@ function wholeYearsAge(years: number): AgeBreakdown {
 interface AutoFacts {
   stablefordWinnerName?: string;
   stablefordWinnerCountry?: string;
+  stablefordWinnerScore?: number;
   scratchWinnerName?: string;
   scratchWinnerCountry?: string;
+  scratchWinnerScore?: number;
+  scratchWinnerScoreToPar?: number;
   runnerUpName?: string;
   runnerUpScore?: number;
   marginStrokes?: number;
@@ -241,39 +248,18 @@ async function computeAutoFacts(championship: ChampionshipWinner): Promise<AutoF
   ]);
   if (!isConcluded(main)) return undefined;
 
-  const winner = main.find((e) => e.position === 1);
-  // The scorecards must agree with the officially confirmed winner before any of this year's
-  // other auto-derived facts (front-9 lead, comeback, margin, runner-up) are trusted — a mismatch
-  // (including a tie, which these 18-hole scorecards can't resolve on their own since a real
-  // playoff would need extra holes this data model doesn't have) means the scorecards don't
-  // reflect the real, confirmed result, and guessing which one is right risks misattributing a
-  // real result to the wrong named player. Falls back to the manual fields for that year instead.
-  if (!winner || winner.tied || winner.player.name !== championship.winnerName) return undefined;
-
+  // Stableford/Scratch are separate competitions from Main and don't depend on which Main player
+  // eventually took the title, so their winner/score resolve regardless of a Main-side tie.
   const stablefordWinner = namesFor(stableford, 1);
   const scratchWinner = namesFor(scratch, 1);
-  const runnerUp = namesFor(main, 2);
-  const runnerUpScratch = runnerUp.playerId ? scratch.find((e) => e.player.id === runnerUp.playerId) : undefined;
-  const runnerUpToPar = main.find((e) => e.position === 2)?.toPar;
-
-  const marginStrokes = winner.toPar !== undefined && runnerUpToPar !== undefined ? runnerUpToPar - winner.toPar : undefined;
+  // Tied-for-1st players share the same score by definition, so it's safe to read from the
+  // first entry at position 1 regardless of whether namesFor found a single winner or a tie.
+  const stablefordWinnerScore = stableford.find((e) => e.position === 1)?.score;
+  const scratchWinnerEntry = scratch.find((e) => e.position === 1);
 
   const cumulative = runningTotalsByPlayer(main);
-  const after9 = leadAtHole(cumulative, 8);
-  const championId = winner.player.id;
-  const championCumulative = cumulative.get(championId);
 
-  let ledOutrightAfter9 = false;
-  let deficitAfter9: number | undefined;
-  if (after9 && championId && championCumulative) {
-    if (after9.leaderId === championId) {
-      ledOutrightAfter9 = true;
-    } else {
-      const leaderAt9 = championCumulative[8] - after9.lead;
-      deficitAfter9 = championCumulative[8] - leaderAt9;
-    }
-  }
-
+  // Largest lead by any player at any point doesn't depend on who eventually won either.
   let largestLead: AutoFacts["largestLead"];
   for (let hole = 0; hole < 18; hole++) {
     const lead = leadAtHole(cumulative, hole);
@@ -283,11 +269,49 @@ async function computeAutoFacts(championship: ChampionshipWinner): Promise<AutoF
     }
   }
 
+  const winner = main.find((e) => e.position === 1);
+  // The facts below this point (runner-up, margin, front-9 lead/comeback) all need to know which
+  // specific player is the real, confirmed Main champion -- so they're skipped, not guessed at,
+  // when the scorecards alone don't agree with the officially confirmed winner (including a tie,
+  // which these 18-hole scorecards can't resolve on their own since a real playoff would need
+  // extra holes this data model doesn't have). Falls back to the manual fields for that year
+  // instead. This no longer blanks the Stableford/Scratch/largest-lead facts above, which don't
+  // have the same dependency.
+  const mainWinnerConfirmed = Boolean(winner && !winner.tied && winner.player.name === championship.winnerName);
+
+  let runnerUp: ReturnType<typeof namesFor> = { names: "" };
+  let runnerUpScratch: CompetitionEntry | undefined;
+  let marginStrokes: number | undefined;
+  let ledOutrightAfter9 = false;
+  let deficitAfter9: number | undefined;
+
+  if (mainWinnerConfirmed && winner) {
+    runnerUp = namesFor(main, 2);
+    runnerUpScratch = runnerUp.playerId ? scratch.find((e) => e.player.id === runnerUp.playerId) : undefined;
+    const runnerUpToPar = main.find((e) => e.position === 2)?.toPar;
+    marginStrokes = winner.toPar !== undefined && runnerUpToPar !== undefined ? runnerUpToPar - winner.toPar : undefined;
+
+    const after9 = leadAtHole(cumulative, 8);
+    const championId = winner.player.id;
+    const championCumulative = cumulative.get(championId);
+    if (after9 && championId && championCumulative) {
+      if (after9.leaderId === championId) {
+        ledOutrightAfter9 = true;
+      } else {
+        const leaderAt9 = championCumulative[8] - after9.lead;
+        deficitAfter9 = championCumulative[8] - leaderAt9;
+      }
+    }
+  }
+
   return {
     stablefordWinnerName: stablefordWinner.names || undefined,
     stablefordWinnerCountry: stablefordWinner.country,
+    stablefordWinnerScore,
     scratchWinnerName: scratchWinner.names || undefined,
     scratchWinnerCountry: scratchWinner.country,
+    scratchWinnerScore: scratchWinnerEntry?.score,
+    scratchWinnerScoreToPar: scratchWinnerEntry?.toPar,
     runnerUpName: runnerUp.names || undefined,
     runnerUpScore: runnerUpScratch?.score,
     marginStrokes,
@@ -326,6 +350,8 @@ export async function getRecords(): Promise<RecordsData> {
     country: c.winnerCountry,
     venueName: c.venueName,
     slug: c.winnerPlayerSlug,
+    score: c.winningScore,
+    scoreToPar: c.scoreToPar,
   }));
 
   const championsStableford: ChampionEntry[] = played
@@ -333,7 +359,7 @@ export async function getRecords(): Promise<RecordsData> {
       const auto = autoFactsByYear.get(c.year);
       const name = auto?.stablefordWinnerName ?? c.stablefordWinnerName;
       const country = auto?.stablefordWinnerCountry ?? c.stablefordWinnerCountry;
-      return name ? { year: c.year, name, country, venueName: c.venueName } : undefined;
+      return name ? { year: c.year, name, country, venueName: c.venueName, score: auto?.stablefordWinnerScore } : undefined;
     })
     .filter((c): c is ChampionEntry => Boolean(c));
 
@@ -342,7 +368,9 @@ export async function getRecords(): Promise<RecordsData> {
       const auto = autoFactsByYear.get(c.year);
       const name = auto?.scratchWinnerName ?? c.scratchWinnerName;
       const country = auto?.scratchWinnerCountry ?? c.scratchWinnerCountry;
-      return name ? { year: c.year, name, country, venueName: c.venueName } : undefined;
+      return name
+        ? { year: c.year, name, country, venueName: c.venueName, score: auto?.scratchWinnerScore, scoreToPar: auto?.scratchWinnerScoreToPar }
+        : undefined;
     })
     .filter((c): c is ChampionEntry => Boolean(c));
 
@@ -481,8 +509,8 @@ export async function getRecords(): Promise<RecordsData> {
       return c.championAgeAtWin !== undefined ? { year: c.year, name: c.winnerName, age: wholeYearsAge(c.championAgeAtWin) } : undefined;
     })
     .filter((e): e is AgeEntry => Boolean(e));
-  const oldestChampion = [...agesAtWin].sort((a, b) => b.age.totalDays - a.age.totalDays).slice(0, 3);
-  const youngestChampion = [...agesAtWin].sort((a, b) => a.age.totalDays - b.age.totalDays).slice(0, 3);
+  const oldestChampion = [...agesAtWin].sort((a, b) => b.age.totalDays - a.age.totalDays).slice(0, 1);
+  const youngestChampion = [...agesAtWin].sort((a, b) => a.age.totalDays - b.age.totalDays).slice(0, 1);
 
   // "Competitor" means being in that year's field at all — unlike appearance-count records
   // (which track actual rounds played), a competitor's age is fixed the moment they're entered,
@@ -502,8 +530,8 @@ export async function getRecords(): Promise<RecordsData> {
     const player = playersById.get(p.playerId);
     competitorAges.push({ name: player?.name ?? "Unknown", slug: player ? playerSlug(player) : undefined, age });
   }
-  const oldestCompetitor = [...competitorAges].sort((a, b) => b.age.totalDays - a.age.totalDays).slice(0, 3);
-  const youngestCompetitor = [...competitorAges].sort((a, b) => a.age.totalDays - b.age.totalDays).slice(0, 3);
+  const oldestCompetitor = [...competitorAges].sort((a, b) => b.age.totalDays - a.age.totalDays).slice(0, 1);
+  const youngestCompetitor = [...competitorAges].sort((a, b) => a.age.totalDays - b.age.totalDays).slice(0, 1);
 
   const hostCounts = new Map<string, CourseHostCount>();
   for (const c of championsMain) {
