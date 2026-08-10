@@ -29,6 +29,8 @@ interface StatPreviewBoardProps {
   mainEntries: CompetitionEntry[];
   stablefordEntries: CompetitionEntry[];
   scratchEntries: CompetitionEntry[];
+  /** Pass when showing a specific past championship (e.g. Previous Opens) -- see StatPreviewCard. */
+  championshipYear?: number;
 }
 
 const SECTION_CATEGORIES: Record<CategorySection, keyof StatPreviewBoardProps> = {
@@ -54,6 +56,7 @@ export function StatPreviewBoard(props: StatPreviewBoardProps) {
     drivingCategories,
     approachCategories,
     puttingCategories,
+    championshipYear,
   } = props;
   const [section, setSection] = useState<StatSection>("nett");
   const categories =
@@ -117,7 +120,7 @@ export function StatPreviewBoard(props: StatPreviewBoardProps) {
       ) : (
         <div className="flex flex-col gap-8">
           {categories.map((category) => (
-            <StatPreviewCard key={category.key} category={category} onSelectPlayer={setSelectedPlayerId} />
+            <StatPreviewCard key={category.key} category={category} onSelectPlayer={setSelectedPlayerId} championshipYear={championshipYear} />
           ))}
         </div>
       )}

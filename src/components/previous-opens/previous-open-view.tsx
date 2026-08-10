@@ -210,6 +210,7 @@ export function PreviousOpenView({
 
             <TabsContent value="statistics" className="mt-6">
               <StatPreviewBoard
+                championshipYear={championship.year}
                 nettCategories={results.nettCategories}
                 scratchCategories={results.scratchCategories}
                 streakCategories={results.streakCategories}

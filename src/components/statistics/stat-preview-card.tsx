@@ -10,7 +10,16 @@ import type { StatCategory } from "@/lib/statistics";
 
 const PREVIEW_COUNT = 3;
 
-export function StatPreviewCard({ category, onSelectPlayer }: { category: StatCategory; onSelectPlayer: (playerId: string) => void }) {
+export function StatPreviewCard({
+  category,
+  onSelectPlayer,
+  championshipYear,
+}: {
+  category: StatCategory;
+  onSelectPlayer: (playerId: string) => void;
+  /** Pass when showing a specific past championship (e.g. Previous Opens) so "Full rankings" links to that year's detail page instead of whichever championship is currently active. */
+  championshipYear?: number;
+}) {
   const top = category.rows.slice(0, PREVIEW_COUNT);
 
   return (
@@ -18,7 +27,7 @@ export function StatPreviewCard({ category, onSelectPlayer }: { category: StatCa
       <div className="flex items-center justify-between gap-4 bg-primary px-4 py-3">
         <h3 className="font-display text-lg font-bold uppercase tracking-wide text-primary-foreground">{category.title}</h3>
         <Link
-          href={`/statistics/${category.key}`}
+          href={championshipYear ? `/statistics/${category.key}?year=${championshipYear}` : `/statistics/${category.key}`}
           className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary-foreground/30 px-4 py-2 text-sm font-bold uppercase tracking-wide text-primary-foreground transition-colors hover:border-accent hover:text-accent"
         >
           Full rankings <ChevronRight className="h-4 w-4" />

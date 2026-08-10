@@ -270,31 +270,38 @@ export async function computeAutoFacts(championship: ChampionshipWinner): Promis
   }
 
   const winner = main.find((e) => e.position === 1);
-  // The facts below this point (runner-up, margin, front-9 lead/comeback) all need to know which
-  // specific player is the real, confirmed Main champion -- so they're skipped, not guessed at,
-  // when the scorecards alone don't agree with the officially confirmed winner (including a tie,
-  // which these 18-hole scorecards can't resolve on their own since a real playoff would need
-  // extra holes this data model doesn't have). Falls back to the manual fields for that year
-  // instead. This no longer blanks the Stableford/Scratch/largest-lead facts above, which don't
-  // have the same dependency.
+  // Runner-up/margin genuinely need the raw scorecards to independently agree on who's 1st and
+  // 2nd -- when the top of the board is tied (a real playoff would need extra holes this data
+  // model doesn't have), guessing which tied player is "the runner-up" risks misattributing a
+  // real result. So those two stay gated on the raw data confirming the officially recorded
+  // winner, falling back to the manual fields for that year instead.
   const mainWinnerConfirmed = Boolean(winner && !winner.tied && winner.player.name === championship.winnerName);
 
   let runnerUp: ReturnType<typeof namesFor> = { names: "" };
   let runnerUpScratch: CompetitionEntry | undefined;
   let marginStrokes: number | undefined;
-  let ledOutrightAfter9 = false;
-  let deficitAfter9: number | undefined;
 
   if (mainWinnerConfirmed && winner) {
     runnerUp = namesFor(main, 2);
     runnerUpScratch = runnerUp.playerId ? scratch.find((e) => e.player.id === runnerUp.playerId) : undefined;
     const runnerUpToPar = main.find((e) => e.position === 2)?.toPar;
     marginStrokes = winner.toPar !== undefined && runnerUpToPar !== undefined ? runnerUpToPar - winner.toPar : undefined;
+  }
 
+  // Front-9 lead/comeback, by contrast, doesn't need the raw data to resolve who's 1st -- it just
+  // needs to know who the confirmed champion IS (championship.winnerName, already resolved via
+  // playoff where needed) and look up their own hole-9 cumulative, regardless of whether their
+  // final 18-hole position was tied. This is what was wrongly gated behind mainWinnerConfirmed
+  // before, blanking every playoff year's front-9 story (and the Records "Greatest Comeback" list)
+  // even though the champion is known with certainty.
+  let ledOutrightAfter9 = false;
+  let deficitAfter9: number | undefined;
+  const championEntry = main.find((e) => e.player.name === championship.winnerName);
+  if (championEntry) {
     const after9 = leadAtHole(cumulative, 8);
-    const championId = winner.player.id;
+    const championId = championEntry.player.id;
     const championCumulative = cumulative.get(championId);
-    if (after9 && championId && championCumulative) {
+    if (after9 && championCumulative) {
       if (after9.leaderId === championId) {
         ledOutrightAfter9 = true;
       } else {
@@ -388,10 +395,13 @@ export async function getRecords(): Promise<RecordsData> {
     .sort((a, b) => b.margin - a.margin)
     .slice(0, 5);
 
-  // A year with auto facts is, by construction, a confirmed single (untied) winner — i.e. not a
-  // playoff — so only years without auto facts fall back to checking the manual margin text.
+  // c.margin is set to "Playoff" (by computeChampionshipAutoStats, tie-aware via the real
+  // playoffs resolution) whenever the Main competition needed a tiebreak -- checking it directly
+  // works for every year regardless of whether computeAutoFacts also has an entry for it (that
+  // function returns partial facts even for a tied/playoff year now, so "has auto facts" is no
+  // longer a reliable proxy for "wasn't a playoff").
   const playoffs: YearVenueEntry[] = played
-    .filter((c) => !autoFactsByYear.has(c.year) && c.margin?.toLowerCase() === "playoff")
+    .filter((c) => c.margin?.toLowerCase() === "playoff")
     .map((c) => ({ year: c.year, name: c.winnerName, venueName: c.venueName }));
 
   const yearById = new Map(played.map((c) => [c.id, c.year]));

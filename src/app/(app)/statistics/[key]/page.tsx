@@ -17,21 +17,31 @@ import {
 } from "@/lib/data/scoring-statistics";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getPageBanners } from "@/lib/data/page-banners";
-import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
+import { getCompetitionLeaderboard, getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
+import { getChampionshipByYear } from "@/lib/data/championships";
+import type { Competition, CompetitionEntry } from "@/lib/data/scorecards";
 
 interface StatDetailPageProps {
   params: Promise<{ key: string }>;
+  searchParams: Promise<{ year?: string }>;
 }
 
-export async function generateMetadata({ params }: StatDetailPageProps): Promise<Metadata> {
+/** Resolves a specific past championship's leaderboard when `?year=` is present (e.g. linked from Previous Opens' Statistics tab), otherwise the active one -- same fallback pattern as the category-fetch functions below. */
+async function resolveLeaderboard(competition: Competition, championshipId: string | undefined): Promise<CompetitionEntry[]> {
+  return championshipId ? getCompetitionLeaderboardForChampionshipId(championshipId, competition) : getCompetitionLeaderboard(competition);
+}
+
+export async function generateMetadata({ params, searchParams }: StatDetailPageProps): Promise<Metadata> {
   const { key } = await params;
+  const { year } = await searchParams;
+  const championship = year ? await getChampionshipByYear(Number(year)) : undefined;
   const [nettScoring, scratchScoring, streaks, driving, approach, putting] = await Promise.all([
-    getNettScoringCategories(),
-    getScratchScoringCategories(),
-    getStreakCategories(),
-    getDrivingCategories(),
-    getApproachCategories(),
-    getPuttingCategories(),
+    getNettScoringCategories(championship?.id),
+    getScratchScoringCategories(championship?.id),
+    getStreakCategories(championship?.id),
+    getDrivingCategories(championship?.id),
+    getApproachCategories(championship?.id),
+    getPuttingCategories(championship?.id),
   ]);
   const category = [...nettScoring, ...scratchScoring, ...streaks, ...driving, ...approach, ...putting].find((c) => c.key === key);
   return {
@@ -40,8 +50,10 @@ export async function generateMetadata({ params }: StatDetailPageProps): Promise
   };
 }
 
-export default async function StatDetailPage({ params }: StatDetailPageProps) {
+export default async function StatDetailPage({ params, searchParams }: StatDetailPageProps) {
   const { key } = await params;
+  const { year } = await searchParams;
+  const championship = year ? await getChampionshipByYear(Number(year)) : undefined;
   const [
     nettScoring,
     scratchScoring,
@@ -56,18 +68,18 @@ export default async function StatDetailPage({ params }: StatDetailPageProps) {
     stablefordEntries,
     scratchEntries,
   ] = await Promise.all([
-    getNettScoringCategories(),
-    getScratchScoringCategories(),
-    getStreakCategories(),
-    getDrivingCategories(),
-    getApproachCategories(),
-    getPuttingCategories(),
+    getNettScoringCategories(championship?.id),
+    getScratchScoringCategories(championship?.id),
+    getStreakCategories(championship?.id),
+    getDrivingCategories(championship?.id),
+    getApproachCategories(championship?.id),
+    getPuttingCategories(championship?.id),
     getArticles(),
     getSponsorClock(),
     getPageBanners(),
-    getCompetitionLeaderboard("main"),
-    getCompetitionLeaderboard("stableford"),
-    getCompetitionLeaderboard("scratch"),
+    resolveLeaderboard("main", championship?.id),
+    resolveLeaderboard("stableford", championship?.id),
+    resolveLeaderboard("scratch", championship?.id),
   ]);
 
   const category = [...nettScoring, ...scratchScoring, ...streaks, ...driving, ...approach, ...putting].find((c) => c.key === key);
