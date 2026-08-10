@@ -79,7 +79,13 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     ...(player.turnedPro ? [{ label: "Turned Pro", value: player.turnedPro }] : []),
     ...(debutYear ? [{ label: "Legs Open Debut", value: debutYear }] : []),
     { label: "Championship Handicap", value: player.championshipHandicap ?? "—" },
-    { label: "Previous Opens", value: player.previousOpens },
+    // player.previousOpens is the hand-maintained pre-digital-era count; performances (sorted
+    // newest-first, already filtered to concluded championships) covers every digital-era Legs
+    // Open this player has a real scorecard for -- excluding the most recent of those, since
+    // "previous" means before their latest appearance, not including it. A player whose only
+    // appearance so far is this one correctly shows 0, and this keeps itself current as each new
+    // year concludes with no manual update needed.
+    { label: "Previous Opens", value: player.previousOpens + Math.max(0, performances.length - 1) },
     ...(bestFinish ? [{ label: "Best Legs Open Finish", value: bestFinish }] : []),
   ];
 
