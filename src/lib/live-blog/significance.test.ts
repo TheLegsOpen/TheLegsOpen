@@ -80,16 +80,18 @@ describe("computeSignificance — round-complete", () => {
 });
 
 describe("isCriticalCategory", () => {
-  it("treats lead changes, ties, winner confirmation, pressure moments and aces as critical (bypass cooldown AND the hourly cap)", () => {
+  it("treats lead changes, ties, winner confirmation, pressure moments, playoffs and aces as critical (bypass cooldown AND the hourly cap)", () => {
     expect(isCriticalCategory("leader")).toBe(true);
     expect(isCriticalCategory("tie")).toBe(true);
     expect(isCriticalCategory("winner-confirmed")).toBe(true);
     expect(isCriticalCategory("pressure-moment")).toBe(true);
+    expect(isCriticalCategory("playoff")).toBe(true);
     expect(isCriticalCategory("ace")).toBe(true);
   });
 
-  it("does not treat a routine bogey as critical", () => {
+  it("does not treat a routine bogey, or a leader faltering, as critical", () => {
     expect(isCriticalCategory("bogey")).toBe(false);
+    expect(isCriticalCategory("leader-falters")).toBe(false);
   });
 });
 
@@ -107,6 +109,8 @@ describe("bypassesCooldown", () => {
     expect(bypassesCooldown("trouble")).toBe(true);
     expect(bypassesCooldown("charge")).toBe(true);
     expect(bypassesCooldown("eagle")).toBe(true);
+    expect(bypassesCooldown("leader-falters")).toBe(true);
+    expect(bypassesCooldown("playoff")).toBe(true);
   });
 
   it("exempts every critical category too", () => {
@@ -134,5 +138,20 @@ describe("citesHoleNumber", () => {
   it("is false for categories that never carry a holeNumber at all", () => {
     expect(citesHoleNumber("leader")).toBe(false);
     expect(citesHoleNumber("round-complete")).toBe(false);
+  });
+
+  it("is false for the leader-falters/playoff streak categories, whose copy also describes a run or a result rather than one hole", () => {
+    expect(citesHoleNumber("leader-falters")).toBe(false);
+    expect(citesHoleNumber("playoff")).toBe(false);
+  });
+});
+
+describe("computeSignificance — playoff and leader-falters", () => {
+  it("scores a playoff announcement at the maximum regardless of contention", () => {
+    expect(computeSignificance({ category: "playoff", inContention: false })).toBe(100);
+  });
+
+  it("scores a leader faltering in the closing holes highly regardless of contention", () => {
+    expect(computeSignificance({ category: "leader-falters", inContention: false })).toBeGreaterThanOrEqual(80);
   });
 });

@@ -20,6 +20,7 @@ import {
   birdieRunCommentary,
   movingDownCommentary,
   troubleCommentary,
+  leaderFaltersCommentary,
   enterTopCommentary,
   bigGainCommentary,
   bigDropCommentary,
@@ -70,12 +71,14 @@ function birdiesInWindow(relatives: (number | undefined)[], index: number, windo
  * connection can't see this save's own not-yet-committed write, and leader/round-complete
  * detection ends up one hook invocation stale.
  *
- * Ace/eagle/birdie/bogey and the streak/momentum categories (moving-up, charge, moving-down,
- * trouble) are classified from raw gross strokes vs par -- that's the Scratch competition's own
- * definition, not Main/Nett (which applies handicap strokes per hole) -- so they're tagged
- * competition: "scratch" and use the player's Scratch to-par, not their Main one. The "in top 10"
- * gate for them, leader-through-the-hole, round-complete and clubhouse-leader all still use the
- * Main leaderboard/position, and are tagged competition: "main" accordingly.
+ * Ace and eagle are classified from raw gross strokes vs par and tagged competition: "scratch" --
+ * a hole-in-one or a gross eagle is a remarkable physical feat regardless of anyone's handicap,
+ * the way real golf commentary always means it. Birdie/bogey and the streak/momentum categories
+ * (moving-up, charge, moving-down, trouble, leader-falters), by contrast, are classified from
+ * Main/Nett -- each player's handicap-adjusted score for that hole -- and tagged competition:
+ * "main", since those are about whether a hole actually moved the Main leaderboard. A player who
+ * makes a gross bogey but receives a stroke on that hole nets a birdie in Main terms, and that's
+ * the story that matters for these categories (a gross-only view previously missed it entirely).
  *
  * Every candidate below is routed through evaluateAndPublish (publication-policy.ts) rather than
  * created directly -- that's the single gate that scores significance, applies the cooldown/
@@ -188,7 +191,6 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
 
   const newHoles = doc.holes ?? [];
   const oldHoles = previousDoc?.holes ?? [];
-  const relatives = newHoles.map((h, i) => (h?.strokes != null ? h.strokes - (venueHoles[i]?.par ?? 4) : undefined));
 
   // The Race Tracker's before/after snapshot pair also covers what used to be a separate
   // getCompetitionLeaderboard("main", req) call here -- `snapshots.after.main` is the same data.
@@ -196,13 +198,15 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
   const mainEntries = snapshots?.after.main ?? (await getCompetitionLeaderboard("main", req));
   const mainEntry = mainEntries.find((e) => String(e.player.id) === String(playerId));
   const inTop10 = (mainEntry?.position ?? Infinity) <= TOP_10;
+  const isSoleLeader = mainEntry?.position === 1 && !mainEntry?.tied;
 
-  // Ace/eagle/birdie/bogey and the streak categories below are all classified from raw gross
-  // strokes vs par (see `relative` in the loop) -- that's literally the Scratch competition's own
-  // definition, not Main/Nett (which applies each player's handicap strokes per hole). A "bogey"
-  // here can be a Main par or better for a player who receives a stroke on that hole, so these
-  // posts are tagged competition: "scratch" and show the player's Scratch (gross) to-par, not
-  // their Main one -- otherwise the post reads as being about the Main leaderboard when it isn't.
+  // Birdie/bogey and the streak categories below are classified from Main/Nett -- mainEntry's own
+  // holes[] already carries each hole's handicap-adjusted relative-to-par (see
+  // buildLeaderboardFromDocs in scorecards.ts) -- undefined for a hole not yet played, matching
+  // what trailingStreak/birdiesInWindow need to correctly stop a streak at the edge of play.
+  const nettRelatives = (mainEntry?.holes ?? []).map((h) => (h.value !== undefined ? h.relative : undefined));
+
+  // Ace/eagle stay gross-classified and tagged Scratch -- see the note above the hook.
   const scratchEntries = snapshots?.after.scratch ?? (await getCompetitionLeaderboard("scratch", req));
   const scratchEntry = scratchEntries.find((e) => String(e.player.id) === String(playerId));
 
@@ -214,15 +218,14 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
     if (newStrokes == null || newStrokes === oldStrokes) continue;
 
     const par = venueHoles[i]?.par ?? 4;
-    const relative = newStrokes - par;
+    const grossRelative = newStrokes - par;
+    const nettRelative = nettRelatives[i];
     const holeNumber = i + 1;
-    // Gross-classified (ace/eagle/birdie/bogey/streaks) -- see the scratchEntry note above.
-    const scoreRelative = scratchEntry?.toPar ?? undefined;
     const holesRemaining = 18 - holeNumber;
     const holeNonce = `${saveNonce}:hole-${holeNumber}`;
 
-    if (relative >= 1 && (worstRelativeThisSave === undefined || relative > worstRelativeThisSave)) {
-      worstRelativeThisSave = relative;
+    if (nettRelative !== undefined && nettRelative >= 1 && (worstRelativeThisSave === undefined || nettRelative > worstRelativeThisSave)) {
+      worstRelativeThisSave = nettRelative;
     }
 
     if (newStrokes === 1) {
@@ -242,11 +245,11 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           championship: championshipId as string,
           player: playerId as string,
           holeNumber,
-          scoreRelative,
+          scoreRelative: scratchEntry?.toPar ?? undefined,
           competition: "scratch",
         },
       });
-    } else if (relative <= -2) {
+    } else if (grossRelative <= -2) {
       const { headline, body } = eagleCommentary(player.name, holeNumber);
       await publish({
         category: "eagle",
@@ -263,11 +266,11 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           championship: championshipId as string,
           player: playerId as string,
           holeNumber,
-          scoreRelative,
+          scoreRelative: scratchEntry?.toPar ?? undefined,
           competition: "scratch",
         },
       });
-    } else if (relative === -1) {
+    } else if (nettRelative !== undefined && nettRelative <= -1) {
       const { headline, body } = birdieCommentary(player.name, holeNumber);
       await publish({
         category: "birdie",
@@ -284,12 +287,12 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           championship: championshipId as string,
           player: playerId as string,
           holeNumber,
-          scoreRelative,
-          competition: "scratch",
+          scoreRelative: mainEntry?.toPar ?? undefined,
+          competition: "main",
         },
       });
-    } else if (relative >= 1) {
-      const { headline, body } = bogeyCommentary(player.name, holeNumber, relative);
+    } else if (nettRelative !== undefined && nettRelative >= 1) {
+      const { headline, body } = bogeyCommentary(player.name, holeNumber, nettRelative);
       await publish({
         category: "bogey",
         championshipId: championshipId as string,
@@ -305,15 +308,15 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           championship: championshipId as string,
           player: playerId as string,
           holeNumber,
-          scoreRelative,
-          competition: "scratch",
+          scoreRelative: mainEntry?.toPar ?? undefined,
+          competition: "main",
         },
       });
     }
 
-    if (inTop10) {
-      if (relative <= -1) {
-        const streak = trailingStreak(relatives, i, "under");
+    if (inTop10 && nettRelative !== undefined) {
+      if (nettRelative <= -1) {
+        const streak = trailingStreak(nettRelatives, i, "under");
         if (streak === 2) {
           const { headline, body } = movingUpCommentary(player.name);
           await publish({
@@ -331,8 +334,8 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
               championship: championshipId as string,
               player: playerId as string,
               holeNumber,
-              scoreRelative,
-              competition: "scratch",
+              scoreRelative: mainEntry?.toPar ?? undefined,
+              competition: "main",
             },
           });
         } else if (streak === 3) {
@@ -352,8 +355,8 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
               championship: championshipId as string,
               player: playerId as string,
               holeNumber,
-              scoreRelative,
-              competition: "scratch",
+              scoreRelative: mainEntry?.toPar ?? undefined,
+              competition: "main",
             },
           });
         }
@@ -362,8 +365,8 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         // streak above (which already covers the stronger version of this same narrative beat,
         // so skip here when streak is exactly 3 to avoid a duplicate "charge" post for one hole).
         if (streak !== 3) {
-          const windowCount = birdiesInWindow(relatives, i, 4);
-          const previousWindowCount = birdiesInWindow(relatives, i - 1, 4);
+          const windowCount = birdiesInWindow(nettRelatives, i, 4);
+          const previousWindowCount = birdiesInWindow(nettRelatives, i - 1, 4);
           if (windowCount >= 3 && previousWindowCount < 3) {
             const { headline, body } = birdieRunCommentary(player.name, windowCount, 4);
             await publish({
@@ -381,15 +384,39 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
                 championship: championshipId as string,
                 player: playerId as string,
                 holeNumber,
-                scoreRelative,
-                competition: "scratch",
+                scoreRelative: mainEntry?.toPar ?? undefined,
+                competition: "main",
               },
             });
           }
         }
-      } else if (relative >= 1) {
-        const streak = trailingStreak(relatives, i, "over");
-        if (streak === 2) {
+      } else if (nettRelative >= 1) {
+        const streak = trailingStreak(nettRelatives, i, "over");
+        // The leader wobbling in the closing holes is a bigger story than a generic "moving
+        // down" for anyone else -- takes priority so the same streak doesn't also post as
+        // ordinary moving-down/trouble.
+        if (streak >= 2 && isSoleLeader && holeNumber >= 16) {
+          const { headline, body } = leaderFaltersCommentary(player.name, streak);
+          await publish({
+            category: "leader-falters",
+            championshipId: championshipId as string,
+            playerId: playerId as string,
+            playerName: player.name,
+            holeNumber,
+            saveNonce: `${holeNonce}:leader-falters`,
+            significance: { category: "leader-falters", inContention: true, holesRemaining },
+            post: {
+              category: "leader-falters",
+              headline,
+              body,
+              championship: championshipId as string,
+              player: playerId as string,
+              holeNumber,
+              scoreRelative: mainEntry?.toPar ?? undefined,
+              competition: "main",
+            },
+          });
+        } else if (streak === 2) {
           const { headline, body } = movingDownCommentary(player.name);
           await publish({
             category: "moving-down",
@@ -406,8 +433,8 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
               championship: championshipId as string,
               player: playerId as string,
               holeNumber,
-              scoreRelative,
-              competition: "scratch",
+              scoreRelative: mainEntry?.toPar ?? undefined,
+              competition: "main",
             },
           });
         } else if (streak === 3) {
@@ -427,8 +454,8 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
               championship: championshipId as string,
               player: playerId as string,
               holeNumber,
-              scoreRelative,
-              competition: "scratch",
+              scoreRelative: mainEntry?.toPar ?? undefined,
+              competition: "main",
             },
           });
         }

@@ -4,6 +4,7 @@ import { getCompetitionLeaderboardForChampionshipId, getAllScorecardParticipatio
 import { resolveTiebreak } from "@/lib/data/playoffs";
 import { isConcluded } from "@/lib/leaderboard";
 import type { Competition, CompetitionEntry } from "@/lib/data/scorecards";
+import type { TiebreakStepResult } from "@/lib/data/playoffs";
 import type { Player } from "@/types/player";
 import type { Scorecard } from "@/payload-types";
 
@@ -76,6 +77,10 @@ export interface WinnerResolution {
   winnerEntry?: CompetitionEntry;
   runnerUp?: CompetitionEntry;
   viaTiebreak: boolean;
+  /** The deciding tiebreak's full step-by-step countback, when viaTiebreak is true -- lets a caller show the actual scores that decided it (e.g. "-2 to E"), not just who won. */
+  steps?: TiebreakStepResult[];
+  /** Every player tied for the top spot before the tiebreak resolved it, when viaTiebreak is true -- e.g. for announcing "X and Y are headed to a playoff" before the result itself is known. */
+  tiedEntries?: CompetitionEntry[];
 }
 
 /**
@@ -108,11 +113,11 @@ export function resolveCompetitionWinner(entries: CompetitionEntry[], competitio
       return { winner: eligible[0].player, winnerEntry: eligible[0], runnerUp, viaTiebreak: false };
     }
 
-    const { winner, stillTied } = resolveTiebreak(eligible, competition);
+    const { winner, stillTied, steps } = resolveTiebreak(eligible, competition);
     if (!winner || stillTied) return { viaTiebreak: false }; // genuinely shared title -- don't guess
     const winnerEntry = eligible.find((e) => e.player.id === winner.id);
     const runnerUp = eligible.find((e) => e.player.id !== winner.id);
-    return { winner, winnerEntry, runnerUp, viaTiebreak: true };
+    return { winner, winnerEntry, runnerUp, viaTiebreak: true, steps, tiedEntries: eligible };
   }
 
   return { viaTiebreak: false };

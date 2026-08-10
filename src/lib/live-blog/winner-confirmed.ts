@@ -2,7 +2,7 @@ import type { PayloadRequest } from "payload";
 
 import { isConcluded, formatToPar } from "@/lib/leaderboard";
 import { resolveCompetitionWinner, type WinnerResolution } from "@/lib/data/championship-stats";
-import { winnerConfirmedCommentary } from "@/lib/live-blog/commentary";
+import { winnerConfirmedCommentary, playoffCommentary } from "@/lib/live-blog/commentary";
 import { evaluateAndPublish, type PublicationConfig, type TriggerCandidate } from "@/lib/live-blog/publication-policy";
 import type { Competition, CompetitionEntry, LeaderboardSnapshotPair } from "@/lib/data/scorecards";
 
@@ -10,6 +10,18 @@ const COMPETITION_LABEL: Record<Competition, string> = { main: "Main", stablefor
 
 function scoreLabel(competition: Competition, entry: CompetitionEntry): string {
   return competition === "stableford" ? `${entry.score ?? 0} pts` : formatToPar(entry.toPar ?? 0);
+}
+
+/** "beating Bobby Ferguson on countback (-2 to E)" -- the deciding step's own scores, matching the same detail the Records page shows for a past playoff. Undefined if there's no countback to describe (shouldn't happen when viaTiebreak is true, but resolveCompetitionWinner's steps/tiedEntries are optional). */
+function playoffDetail(result: WinnerResolution, competition: Competition): string | undefined {
+  if (!result.winner || !result.steps || result.steps.length === 0) return undefined;
+  const decidingStep = result.steps[result.steps.length - 1];
+  const winnerScore = decidingStep.contenders.find((c) => c.player.id === result.winner!.id)?.display;
+  const runnerUpContender = decidingStep.contenders
+    .filter((c) => c.player.id !== result.winner!.id)
+    .sort((a, b) => (competition === "stableford" ? b.value - a.value : a.value - b.value))[0];
+  if (!winnerScore || !runnerUpContender) return undefined;
+  return `Beat ${runnerUpContender.player.name} on countback, ${winnerScore} to ${runnerUpContender.display}.`;
 }
 
 /**
@@ -60,7 +72,41 @@ export async function generateWinnerConfirmedPosts(
   for (const { competition, result } of jobs) {
     if (!result.winner || !result.winnerEntry) continue;
 
-    const { headline, body } = winnerConfirmedCommentary(result.winner.name, COMPETITION_LABEL[competition], scoreLabel(competition, result.winnerEntry));
+    // Main only: the drama of a genuine playoff gets its own announcement first ("it's going to
+    // a playoff between X and Y"), then a second post for the result -- rather than jumping
+    // straight to "winner confirmed" as if the tie never happened. Stableford/Scratch keep the
+    // single result post; the site's own "playoff" framing is specifically about the Main title.
+    if (competition === "main" && result.viaTiebreak && result.tiedEntries && result.tiedEntries.length >= 2) {
+      const names = result.tiedEntries.map((e) => e.player.name);
+      const { headline: playoffHeadline, body: playoffBody } = playoffCommentary(
+        names,
+        COMPETITION_LABEL[competition],
+        scoreLabel(competition, result.tiedEntries[0]),
+      );
+      await evaluateAndPublish(
+        req,
+        {
+          category: "playoff",
+          championshipId,
+          playerId: result.winner.id,
+          playerName: result.winner.name,
+          saveNonce: `${saveNonce}:${competition}:playoff-tie`,
+          significance: { category: "playoff", inContention: true },
+          post: {
+            category: "playoff",
+            competition,
+            headline: playoffHeadline,
+            body: playoffBody,
+            championship: championshipId,
+            scoreRelative: result.tiedEntries[0].toPar,
+          },
+        } satisfies TriggerCandidate,
+        config,
+      );
+    }
+
+    const detail = competition === "main" && result.viaTiebreak ? playoffDetail(result, competition) : undefined;
+    const { headline, body } = winnerConfirmedCommentary(result.winner.name, COMPETITION_LABEL[competition], scoreLabel(competition, result.winnerEntry), detail);
     const candidate: TriggerCandidate = {
       category: "winner-confirmed",
       championshipId,

@@ -27,6 +27,14 @@ export interface PageBanners {
   recordsEyebrow: string;
   recordsTitle: string;
   recordsDescription: string;
+  liveBlogUrl?: string;
+  liveBlogEyebrow: string;
+  liveBlogTitle: string;
+  liveBlogDescription: string;
+  latestUrl?: string;
+  latestEyebrow: string;
+  latestTitle: string;
+  latestDescription: string;
   playerProfileUrl?: string;
   playerProfileEyebrow: string;
 }
@@ -49,6 +57,12 @@ const DEFAULTS = {
   recordsEyebrow: "Since 2013",
   recordsTitle: "Records & Statistics",
   recordsDescription: "The roll of honour, milestones and scoring records from The Legs Open's history.",
+  liveBlogEyebrow: "Championship Week",
+  liveBlogTitle: "Live Blog",
+  liveBlogDescription: "Every notable moment from the course, as it happens.",
+  latestEyebrow: "Latest",
+  latestTitle: "News and features",
+  latestDescription: "The greatest stories in golf, from championship week and beyond.",
   playerProfileEyebrow: "Player Profile",
 } as const;
 
@@ -80,6 +94,14 @@ export async function getPageBanners(): Promise<PageBanners> {
     recordsEyebrow: settings.recordsEyebrow || DEFAULTS.recordsEyebrow,
     recordsTitle: settings.recordsTitle || DEFAULTS.recordsTitle,
     recordsDescription: settings.recordsDescription || DEFAULTS.recordsDescription,
+    liveBlogUrl: mediaUrl(settings.liveBlog),
+    liveBlogEyebrow: settings.liveBlogEyebrow || DEFAULTS.liveBlogEyebrow,
+    liveBlogTitle: settings.liveBlogTitle || DEFAULTS.liveBlogTitle,
+    liveBlogDescription: settings.liveBlogDescription || DEFAULTS.liveBlogDescription,
+    latestUrl: mediaUrl(settings.latest),
+    latestEyebrow: settings.latestEyebrow || DEFAULTS.latestEyebrow,
+    latestTitle: settings.latestTitle || DEFAULTS.latestTitle,
+    latestDescription: settings.latestDescription || DEFAULTS.latestDescription,
     playerProfileUrl: mediaUrl(settings.playerProfile),
     playerProfileEyebrow: settings.playerProfileEyebrow || DEFAULTS.playerProfileEyebrow,
   };

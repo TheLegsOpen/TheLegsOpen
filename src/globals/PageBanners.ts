@@ -88,6 +88,26 @@ export const PageBanners: GlobalConfig = {
     },
     {
       type: "collapsible",
+      label: "Live Blog",
+      fields: [
+        { name: "liveBlog", type: "upload", relationTo: "media", label: "Banner Image", admin: { description: RECOMMENDED_COMPACT } },
+        { name: "liveBlogEyebrow", type: "text", label: "Eyebrow" },
+        { name: "liveBlogTitle", type: "text", label: "Title" },
+        { name: "liveBlogDescription", type: "textarea", label: "Description" },
+      ],
+    },
+    {
+      type: "collapsible",
+      label: "Latest News",
+      fields: [
+        { name: "latest", type: "upload", relationTo: "media", label: "Banner Image", admin: { description: RECOMMENDED } },
+        { name: "latestEyebrow", type: "text", label: "Eyebrow" },
+        { name: "latestTitle", type: "text", label: "Title" },
+        { name: "latestDescription", type: "textarea", label: "Description" },
+      ],
+    },
+    {
+      type: "collapsible",
       label: "Player Profiles",
       fields: [
         {

@@ -17,6 +17,7 @@ export type LiveBlogCategory =
   | "charge"
   | "moving-down"
   | "trouble"
+  | "leader-falters"
   | "leader"
   | "tie"
   | "lead-extends"
@@ -27,6 +28,7 @@ export type LiveBlogCategory =
   | "clubhouse-leader"
   | "round-complete"
   | "winner-confirmed"
+  | "playoff"
   | "last-group"
   | "championship"
   | "instagram";

@@ -13,6 +13,7 @@ export const CRITICAL_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<Trigger
   "tie",
   "pressure-moment",
   "winner-confirmed",
+  "playoff",
   "ace",
 ]);
 
@@ -33,9 +34,11 @@ export interface SignificanceInput {
 /** Base significance per category, before the contention/closing-hole adjustments below -- deliberately not a flat re-statement of the spec's example table, but calibrated so the site's existing "good" posts (aces, eagles, in-contention birdies, all leaderboard-movement/race-tracker events, round completions, winner confirmation) clear the default minimumSignificance, while an ordinary bogey or birdie for a player with no realistic path to a result does not. */
 const BASE_SIGNIFICANCE: Record<TriggerCategory, number> = {
   "winner-confirmed": 100,
+  playoff: 100,
   leader: 95,
   tie: 90,
   "pressure-moment": 85,
+  "leader-falters": 80,
   "clubhouse-leader": 80,
   ace: 95,
   eagle: 80,

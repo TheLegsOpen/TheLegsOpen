@@ -12,16 +12,18 @@ import {
   NEUTRAL_TILE_CLASS,
   AnimatedValue,
 } from "@/components/leaderboard/leaderboard-table";
-import type { CompetitionEntry } from "@/lib/data/scorecards";
+import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
 
 interface HoleByHoleTableProps {
   entries: CompetitionEntry[];
   onSelectPlayer: (playerId: string) => void;
+  /** holeScorePillClass's eagle/birdie/par/bogey colouring assumes lower-is-better (strokes-to-par), the opposite of Stableford's higher-is-better points -- applying it there paints birdies navy and bogeys red. Stableford instead uses the same neutral tile as every other pill on the row until there's a meaningful Stableford-specific colour scale to replace it with. */
+  competition: Competition;
 }
 
 const HOLE_INDICES = Array.from({ length: 18 }, (_, i) => i);
 
-export function HoleByHoleTable({ entries, onSelectPlayer }: HoleByHoleTableProps) {
+export function HoleByHoleTable({ entries, onSelectPlayer, competition }: HoleByHoleTableProps) {
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-surface-dark-foreground/20 py-16 text-center">
@@ -99,7 +101,13 @@ export function HoleByHoleTable({ entries, onSelectPlayer }: HoleByHoleTableProp
                 </td>
                 {entry.holes.map((hole) => (
                   <td key={hole.holeNumber} className="px-1 py-1 text-center">
-                    <span className={cn(TILE_CLASS, "min-w-0 w-9", hole.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS)}>
+                    <span
+                      className={cn(
+                        TILE_CLASS,
+                        "min-w-0 w-9",
+                        competition !== "stableford" && hole.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS,
+                      )}
+                    >
                       <AnimatedValue value={hole.value ?? ""} />
                     </span>
                   </td>

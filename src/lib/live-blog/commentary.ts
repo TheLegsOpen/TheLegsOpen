@@ -144,6 +144,26 @@ export function troubleCommentary(playerName: string, streak: number): Commentar
   return { headline, body };
 }
 
+export function leaderFaltersCommentary(playerName: string, streak: number): Commentary {
+  const headline = pick(["Leader falters", `${playerName.split(" ").slice(-1)[0]} under pressure`]);
+  const body = pick([
+    `${playerName} has dropped shots on ${streak} straight holes coming down the stretch — the pressure is showing at the top.`,
+    `Signs of nerves from the leader: ${playerName} has gone ${streak} holes in a row dropping shots as the finish nears.`,
+    `${playerName}'s advantage is looking shaky — ${streak} dropped shots in a row in the closing holes.`,
+  ]);
+  return { headline, body };
+}
+
+export function playoffCommentary(names: string[], competitionLabel: string, scoreLabel: string): Commentary {
+  const joined = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}` : (names[0] ?? "");
+  const headline = pick(["Playoff!", "It's a playoff"]);
+  const body = pick([
+    `${joined} are locked together at ${scoreLabel} after 18 holes — the ${competitionLabel} title goes to a playoff.`,
+    `Level at the top on ${scoreLabel}. ${joined} will settle the ${competitionLabel} title on countback.`,
+  ]);
+  return { headline, body };
+}
+
 export function leaderThroughCommentary(playerName: string, holesCompleted: number, toPar: number, tied: boolean): Commentary {
   const headline = pick(["Through", `${playerName.split(" ").slice(-1)[0]} leads`]);
   const shareWord = tied ? "shares the lead" : "leads";
@@ -248,12 +268,14 @@ export function pressureMomentCommentary(playerName: string, margin: number, uni
   return { headline, body };
 }
 
-export function winnerConfirmedCommentary(playerName: string, competitionLabel: string, scoreLabel: string): Commentary {
+/** `playoffDetail`, when supplied (e.g. "beating Bobby Ferguson on countback, -2 to E"), is appended so the result post names who was beaten and how -- not just that a title was won. */
+export function winnerConfirmedCommentary(playerName: string, competitionLabel: string, scoreLabel: string, playoffDetail?: string): Commentary {
   const headline = pick(["Champion confirmed", `${playerName.split(" ").slice(-1)[0]} takes the title`]);
+  const suffix = playoffDetail ? ` ${playoffDetail}` : "";
   const body = pick([
-    `With the field home, ${playerName} is confirmed as the ${competitionLabel} winner on ${scoreLabel}.`,
-    `${playerName} has won the ${competitionLabel} competition, finishing on ${scoreLabel}.`,
-    `That's the competition decided — ${playerName} is champion of the ${competitionLabel} on ${scoreLabel}.`,
+    `With the field home, ${playerName} is confirmed as the ${competitionLabel} winner on ${scoreLabel}.${suffix}`,
+    `${playerName} has won the ${competitionLabel} competition, finishing on ${scoreLabel}.${suffix}`,
+    `That's the competition decided — ${playerName} is champion of the ${competitionLabel} on ${scoreLabel}.${suffix}`,
   ]);
   return { headline, body };
 }

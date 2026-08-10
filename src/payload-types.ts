@@ -488,6 +488,14 @@ export interface PageBannersGlobal {
   recordsEyebrow?: string | null;
   recordsTitle?: string | null;
   recordsDescription?: string | null;
+  liveBlog?: (string | Media) | null;
+  liveBlogEyebrow?: string | null;
+  liveBlogTitle?: string | null;
+  liveBlogDescription?: string | null;
+  latest?: (string | Media) | null;
+  latestEyebrow?: string | null;
+  latestTitle?: string | null;
+  latestDescription?: string | null;
   playerProfile?: (string | Media) | null;
   playerProfileEyebrow?: string | null;
   updatedAt?: string | null;
@@ -716,6 +724,7 @@ export interface LiveBlogPost {
     | "charge"
     | "moving-down"
     | "trouble"
+    | "leader-falters"
     | "leader"
     | "tie"
     | "lead-extends"
@@ -726,6 +735,7 @@ export interface LiveBlogPost {
     | "clubhouse-leader"
     | "round-complete"
     | "winner-confirmed"
+    | "playoff"
     | "last-group"
     | "championship"
     | "instagram";

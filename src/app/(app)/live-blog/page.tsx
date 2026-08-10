@@ -9,6 +9,7 @@ import { getLiveBlogPosts } from "@/lib/data/live-blog";
 import { getArticles } from "@/lib/data/articles";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
+import { getPageBanners } from "@/lib/data/page-banners";
 import {
   getNettScoringCategories,
   getScratchScoringCategories,
@@ -28,6 +29,7 @@ export default async function LiveBlogPage() {
     liveBlogPage,
     articles,
     clockConfig,
+    banners,
     mainEntries,
     stablefordEntries,
     scratchEntries,
@@ -41,6 +43,7 @@ export default async function LiveBlogPage() {
     getLiveBlogPosts(),
     getArticles(),
     getSponsorClock(),
+    getPageBanners(),
     getCompetitionLeaderboard("main"),
     getCompetitionLeaderboard("stableford"),
     getCompetitionLeaderboard("scratch"),
@@ -58,9 +61,10 @@ export default async function LiveBlogPage() {
         variant="photo"
         size="compact"
         imageLabel="Gallery watching on the 18th at Seabrook Old Course"
-        eyebrow="Championship Week"
-        title="Live Blog"
-        description="Every notable moment from the course, as it happens."
+        imageUrl={banners.liveBlogUrl}
+        eyebrow={banners.liveBlogEyebrow}
+        title={banners.liveBlogTitle}
+        description={banners.liveBlogDescription}
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Live Blog" }]}
       />
       <ChampionshipWeekSwitcher />
