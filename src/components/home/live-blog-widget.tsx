@@ -1,23 +1,55 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { CountryFlag } from "@/components/shared/country-flag";
+import { PlayerPopup } from "@/components/leaderboard/player-popup";
+import { useFavorites } from "@/hooks/use-favorites";
 import { formatToPar } from "@/lib/leaderboard";
-import { cn, playerSlug } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { CATEGORY_META, COMPETITION_LABEL, COMPETITION_BADGE_CLASS, formatTime, formatDate } from "@/components/live-blog/live-blog-feed";
 import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { LiveBlogEntry } from "@/lib/data/live-blog";
+import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
+import type { StatCategory } from "@/lib/statistics";
 
 const WIDGET_POST_COUNT = 3;
 
 interface LiveBlogWidgetProps {
   entries: LiveBlogEntry[];
+  mainEntries: CompetitionEntry[];
+  stablefordEntries: CompetitionEntry[];
+  scratchEntries: CompetitionEntry[];
+  nettCategories: StatCategory[];
+  scratchCategories: StatCategory[];
+  streakCategories: StatCategory[];
+  drivingCategories: StatCategory[];
+  approachCategories: StatCategory[];
+  puttingCategories: StatCategory[];
 }
 
-export function LiveBlogWidget({ entries }: LiveBlogWidgetProps) {
+export function LiveBlogWidget({
+  entries,
+  mainEntries,
+  stablefordEntries,
+  scratchEntries,
+  nettCategories,
+  scratchCategories,
+  streakCategories,
+  drivingCategories,
+  approachCategories,
+  puttingCategories,
+}: LiveBlogWidgetProps) {
   const top = entries.slice(0, WIDGET_POST_COUNT);
+  const { favorites, toggleFavorite } = useFavorites();
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [popupCompetition, setPopupCompetition] = useState<Competition>("main");
+  const selectedMain = mainEntries.find((e) => e.player.id === selectedPlayerId);
+  const selectedStableford = stablefordEntries.find((e) => e.player.id === selectedPlayerId);
+  const selectedScratch = scratchEntries.find((e) => e.player.id === selectedPlayerId);
+  const leaderToPar = mainEntries[0]?.toPar ?? 0;
 
   return (
     <div className="flex h-full flex-col border border-surface-dark-foreground/15">
@@ -66,8 +98,12 @@ export function LiveBlogWidget({ entries }: LiveBlogWidgetProps) {
                 ) : null}
                 <div className="flex items-center gap-3">
                   {entry.player ? (
-                    <Link
-                      href={`/players/${playerSlug(entry.player)}`}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedPlayerId(entry.player!.id);
+                        setPopupCompetition(entry.competition ?? "main");
+                      }}
                       className={cn(
                         "inline-flex items-center gap-1.5 text-xs font-semibold hover:underline",
                         isColored ? "text-white" : "text-accent",
@@ -75,7 +111,7 @@ export function LiveBlogWidget({ entries }: LiveBlogWidgetProps) {
                     >
                       <CountryFlag code={entry.player.countryCode} className="h-3 w-4" />
                       {entry.player.name}
-                    </Link>
+                    </button>
                   ) : null}
                   {entry.scoreRelative !== undefined ? (
                     <span className={cn(TILE_CLASS, "text-[11px]", isStableford ? NEUTRAL_TILE_CLASS : scorePillClass(entry.scoreRelative))}>
@@ -96,6 +132,26 @@ export function LiveBlogWidget({ entries }: LiveBlogWidgetProps) {
         Full live blog
         <ArrowRight className="h-4 w-4" />
       </Link>
+
+      <PlayerPopup
+        main={selectedMain}
+        stableford={selectedStableford}
+        scratch={selectedScratch}
+        nettCategories={nettCategories}
+        scratchCategories={scratchCategories}
+        streakCategories={streakCategories}
+        drivingCategories={drivingCategories}
+        approachCategories={approachCategories}
+        puttingCategories={puttingCategories}
+        initialCompetition={popupCompetition}
+        leaderToPar={leaderToPar}
+        isFav={selectedPlayerId ? favorites.includes(selectedPlayerId) : false}
+        onToggleFavorite={() => selectedPlayerId && toggleFavorite(selectedPlayerId)}
+        open={!!selectedMain}
+        onOpenChange={(next) => {
+          if (!next) setSelectedPlayerId(null);
+        }}
+      />
     </div>
   );
 }

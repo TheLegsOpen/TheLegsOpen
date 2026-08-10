@@ -70,8 +70,12 @@ function birdiesInWindow(relatives: (number | undefined)[], index: number, windo
  * connection can't see this save's own not-yet-committed write, and leader/round-complete
  * detection ends up one hook invocation stale.
  *
- * Streaks, "top 10", leader-through-the-hole, and clubhouse leader are all based on the
- * Main competition only, matching how Round Complete already worked.
+ * Ace/eagle/birdie/bogey and the streak/momentum categories (moving-up, charge, moving-down,
+ * trouble) are classified from raw gross strokes vs par -- that's the Scratch competition's own
+ * definition, not Main/Nett (which applies handicap strokes per hole) -- so they're tagged
+ * competition: "scratch" and use the player's Scratch to-par, not their Main one. The "in top 10"
+ * gate for them, leader-through-the-hole, round-complete and clubhouse-leader all still use the
+ * Main leaderboard/position, and are tagged competition: "main" accordingly.
  *
  * Every candidate below is routed through evaluateAndPublish (publication-policy.ts) rather than
  * created directly -- that's the single gate that scores significance, applies the cooldown/
@@ -193,6 +197,15 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
   const mainEntry = mainEntries.find((e) => String(e.player.id) === String(playerId));
   const inTop10 = (mainEntry?.position ?? Infinity) <= TOP_10;
 
+  // Ace/eagle/birdie/bogey and the streak categories below are all classified from raw gross
+  // strokes vs par (see `relative` in the loop) -- that's literally the Scratch competition's own
+  // definition, not Main/Nett (which applies each player's handicap strokes per hole). A "bogey"
+  // here can be a Main par or better for a player who receives a stroke on that hole, so these
+  // posts are tagged competition: "scratch" and show the player's Scratch (gross) to-par, not
+  // their Main one -- otherwise the post reads as being about the Main leaderboard when it isn't.
+  const scratchEntries = snapshots?.after.scratch ?? (await getCompetitionLeaderboard("scratch", req));
+  const scratchEntry = scratchEntries.find((e) => String(e.player.id) === String(playerId));
+
   let worstRelativeThisSave: number | undefined;
 
   for (let i = 0; i < newHoles.length; i++) {
@@ -203,7 +216,8 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
     const par = venueHoles[i]?.par ?? 4;
     const relative = newStrokes - par;
     const holeNumber = i + 1;
-    const scoreRelative = mainEntry?.toPar ?? undefined;
+    // Gross-classified (ace/eagle/birdie/bogey/streaks) -- see the scratchEntry note above.
+    const scoreRelative = scratchEntry?.toPar ?? undefined;
     const holesRemaining = 18 - holeNumber;
     const holeNonce = `${saveNonce}:hole-${holeNumber}`;
 
@@ -221,7 +235,16 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         holeNumber,
         saveNonce: holeNonce,
         significance: { category: "ace", inContention: true, holesRemaining },
-        post: { category: "ace", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
+        post: {
+          category: "ace",
+          headline,
+          body,
+          championship: championshipId as string,
+          player: playerId as string,
+          holeNumber,
+          scoreRelative,
+          competition: "scratch",
+        },
       });
     } else if (relative <= -2) {
       const { headline, body } = eagleCommentary(player.name, holeNumber);
@@ -233,7 +256,16 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         holeNumber,
         saveNonce: holeNonce,
         significance: { category: "eagle", inContention: true, holesRemaining },
-        post: { category: "eagle", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
+        post: {
+          category: "eagle",
+          headline,
+          body,
+          championship: championshipId as string,
+          player: playerId as string,
+          holeNumber,
+          scoreRelative,
+          competition: "scratch",
+        },
       });
     } else if (relative === -1) {
       const { headline, body } = birdieCommentary(player.name, holeNumber);
@@ -245,7 +277,16 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         holeNumber,
         saveNonce: holeNonce,
         significance: { category: "birdie", inContention: inTop10, holesRemaining },
-        post: { category: "birdie", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
+        post: {
+          category: "birdie",
+          headline,
+          body,
+          championship: championshipId as string,
+          player: playerId as string,
+          holeNumber,
+          scoreRelative,
+          competition: "scratch",
+        },
       });
     } else if (relative >= 1) {
       const { headline, body } = bogeyCommentary(player.name, holeNumber, relative);
@@ -257,7 +298,16 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         holeNumber,
         saveNonce: holeNonce,
         significance: { category: "bogey", inContention: inTop10, holesRemaining },
-        post: { category: "bogey", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
+        post: {
+          category: "bogey",
+          headline,
+          body,
+          championship: championshipId as string,
+          player: playerId as string,
+          holeNumber,
+          scoreRelative,
+          competition: "scratch",
+        },
       });
     }
 
@@ -274,7 +324,16 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
             holeNumber,
             saveNonce: `${holeNonce}:streak`,
             significance: { category: "moving-up", inContention: true, holesRemaining },
-            post: { category: "moving-up", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
+            post: {
+              category: "moving-up",
+              headline,
+              body,
+              championship: championshipId as string,
+              player: playerId as string,
+              holeNumber,
+              scoreRelative,
+              competition: "scratch",
+            },
           });
         } else if (streak === 3) {
           const { headline, body } = chargeCommentary(player.name, streak);
@@ -286,7 +345,16 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
             holeNumber,
             saveNonce: `${holeNonce}:streak`,
             significance: { category: "charge", inContention: true, holesRemaining },
-            post: { category: "charge", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
+            post: {
+              category: "charge",
+              headline,
+              body,
+              championship: championshipId as string,
+              player: playerId as string,
+              holeNumber,
+              scoreRelative,
+              competition: "scratch",
+            },
           });
         }
 
@@ -306,7 +374,16 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
               holeNumber,
               saveNonce: `${holeNonce}:run`,
               significance: { category: "charge", inContention: true, holesRemaining },
-              post: { category: "charge", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
+              post: {
+                category: "charge",
+                headline,
+                body,
+                championship: championshipId as string,
+                player: playerId as string,
+                holeNumber,
+                scoreRelative,
+                competition: "scratch",
+              },
             });
           }
         }
@@ -322,7 +399,16 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
             holeNumber,
             saveNonce: `${holeNonce}:streak`,
             significance: { category: "moving-down", inContention: true, holesRemaining },
-            post: { category: "moving-down", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
+            post: {
+              category: "moving-down",
+              headline,
+              body,
+              championship: championshipId as string,
+              player: playerId as string,
+              holeNumber,
+              scoreRelative,
+              competition: "scratch",
+            },
           });
         } else if (streak === 3) {
           const { headline, body } = troubleCommentary(player.name, streak);
@@ -334,7 +420,16 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
             holeNumber,
             saveNonce: `${holeNonce}:streak`,
             significance: { category: "trouble", inContention: true, holesRemaining },
-            post: { category: "trouble", headline, body, championship: championshipId as string, player: playerId as string, holeNumber, scoreRelative },
+            post: {
+              category: "trouble",
+              headline,
+              body,
+              championship: championshipId as string,
+              player: playerId as string,
+              holeNumber,
+              scoreRelative,
+              competition: "scratch",
+            },
           });
         }
       }
@@ -359,6 +454,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         championship: championshipId as string,
         player: playerId as string,
         scoreRelative: mainEntry.toPar ?? undefined,
+        competition: "main",
       },
     });
 
@@ -391,6 +487,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
             championship: championshipId as string,
             player: playerId as string,
             scoreRelative: bestFinished.toPar ?? undefined,
+            competition: "main",
           },
         });
       }
@@ -414,6 +511,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         championship: championshipId as string,
         player: playerId as string,
         scoreRelative: mainEntry.toPar ?? undefined,
+        competition: "main",
       },
     });
   }
@@ -441,6 +539,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
             championship: championshipId as string,
             player: playerId as string,
             scoreRelative: mainEntry?.toPar ?? undefined,
+            competition: "main",
           },
         });
       } else if (movement.kind === "big-gain") {
@@ -459,6 +558,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
             championship: championshipId as string,
             player: playerId as string,
             scoreRelative: mainEntry?.toPar ?? undefined,
+            competition: "main",
           },
         });
       } else if (movement.kind === "big-drop") {
@@ -478,6 +578,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
             championship: championshipId as string,
             player: playerId as string,
             scoreRelative: mainEntry?.toPar ?? undefined,
+            competition: "main",
           },
         });
       }
@@ -505,6 +606,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
             championship: championshipId as string,
             player: playerId as string,
             scoreRelative: mainEntry.toPar ?? undefined,
+            competition: "main",
           },
         });
       }

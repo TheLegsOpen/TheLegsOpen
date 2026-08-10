@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Clock } from "lucide-react";
+import { ArrowRight, Clock, Star } from "lucide-react";
 
 import { CountryFlag } from "@/components/shared/country-flag";
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
@@ -43,11 +43,16 @@ export function LeaderboardWidget({
   puttingCategories,
   championWinnerBadgeUrl,
 }: LeaderboardWidgetProps) {
-  const top = entries.slice(0, WIDGET_ROW_COUNT);
   const { favorites, toggleFavorite } = useFavorites();
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [popupCompetition, setPopupCompetition] = useState<Competition>("main");
   const concluded = isConcluded(entries);
+
+  // Favorites are starred site-wide (main leaderboard, player popups, statistics) via the shared
+  // useFavorites hook, so switching this on shows every favorited player, not just whichever of
+  // them happen to already be in the widget's normal top-10 cut.
+  const visible = favoritesOnly ? entries.filter((entry) => favorites.includes(entry.player.id)) : entries.slice(0, WIDGET_ROW_COUNT);
 
   const selectedMain = entries.find((e) => e.player.id === selectedPlayerId);
   const selectedStableford = stableford.find((e) => e.player.id === selectedPlayerId);
@@ -56,12 +61,31 @@ export function LeaderboardWidget({
 
   return (
     <div className="flex h-full flex-col border border-surface-dark-foreground/15">
-      <div className="bg-primary px-5 py-3">
+      <div className="flex items-center justify-between gap-3 bg-primary px-5 py-3">
         <h2 className="font-menu text-sm font-bold uppercase tracking-wide text-primary-foreground">Leaderboard</h2>
+        <button
+          type="button"
+          onClick={() => setFavoritesOnly((v) => !v)}
+          aria-pressed={favoritesOnly}
+          aria-label={favoritesOnly ? "Show full leaderboard" : "Show favorites only"}
+          title={favoritesOnly ? "Show full leaderboard" : "Show favorites only"}
+          className={cn(
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors",
+            favoritesOnly
+              ? "border-accent bg-accent/20 text-accent"
+              : "border-primary-foreground/40 text-primary-foreground/80 hover:border-primary-foreground hover:text-primary-foreground",
+          )}
+        >
+          <Star className={cn("h-4 w-4", favoritesOnly && "fill-current")} />
+        </button>
       </div>
 
-      {top.length === 0 ? (
+      {entries.length === 0 ? (
         <p className="flex-1 bg-primary p-5 text-sm text-surface-dark-foreground/60">The field will appear here once tee times are generated.</p>
+      ) : favoritesOnly && visible.length === 0 ? (
+        <p className="flex-1 bg-primary p-5 text-sm text-surface-dark-foreground/60">
+          No favorites yet. Star a player anywhere on the site to track them here.
+        </p>
       ) : (
         <div className="no-scrollbar flex-1 overflow-x-auto bg-primary">
           <table className="w-full table-fixed border-collapse text-sm">
@@ -84,7 +108,7 @@ export function LeaderboardWidget({
               </tr>
             </thead>
             <tbody>
-              {top.map((entry) => {
+              {visible.map((entry) => {
                 const { surname, firstName } = splitSurnameFirst(entry.player.name);
                 return (
                   <tr key={entry.player.id} className="bg-accent/90 text-accent-foreground hover:bg-accent">

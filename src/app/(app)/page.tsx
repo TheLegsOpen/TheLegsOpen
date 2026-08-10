@@ -90,7 +90,18 @@ export default async function HomePage() {
             puttingCategories={puttingCategories}
             championWinnerBadgeUrl={theme.championWinnerBadgeUrl}
           />
-          <LiveBlogWidget entries={liveBlogPage.entries} />
+          <LiveBlogWidget
+            entries={liveBlogPage.entries}
+            mainEntries={leaderboard}
+            stablefordEntries={stableford}
+            scratchEntries={scratch}
+            nettCategories={nettCategories}
+            scratchCategories={scratchCategories}
+            streakCategories={streakCategories}
+            drivingCategories={drivingCategories}
+            approachCategories={approachCategories}
+            puttingCategories={puttingCategories}
+          />
         </Container>
       </section>
       <HomepageSections sections={sections} />
