@@ -4,12 +4,24 @@ import configPromise from "@/payload.config";
 import { mapPlayer } from "@/lib/data/players";
 import { formatWeekdayDate } from "@/lib/utils";
 import type { TeeTimeRound } from "@/types/championship";
-import type { Player as PayloadPlayer } from "@/payload-types";
+import type { Player as PayloadPlayer, TeeTimeRound as PayloadTeeTimeRound } from "@/payload-types";
 
 /**
  * Data-access seam for tee time pairings — now backed by the
  * TeeTimeRounds collection in Payload/Postgres.
  */
+function mapTeeTimeRounds(docs: PayloadTeeTimeRound[]): TeeTimeRound[] {
+  return docs.map((doc) => ({
+    round: doc.round,
+    date: doc.date ? formatWeekdayDate(doc.date) : "",
+    groups: (doc.groups ?? []).map((group) => ({
+      time: group.time,
+      tee: group.tee,
+      players: group.players.map((p) => mapPlayer(p as PayloadPlayer)),
+    })),
+  }));
+}
+
 export async function getTeeTimes(): Promise<TeeTimeRound[]> {
   const payload = await getPayload({ config: configPromise });
   const result = await payload.find({
@@ -22,13 +34,19 @@ export async function getTeeTimes(): Promise<TeeTimeRound[]> {
     limit: 50,
   });
 
-  return result.docs.map((doc) => ({
-    round: doc.round,
-    date: doc.date ? formatWeekdayDate(doc.date) : "",
-    groups: (doc.groups ?? []).map((group) => ({
-      time: group.time,
-      tee: group.tee,
-      players: group.players.map((p) => mapPlayer(p as PayloadPlayer)),
-    })),
-  }));
+  return mapTeeTimeRounds(result.docs);
+}
+
+/** Same as `getTeeTimes`, but for a specific (possibly past, possibly archived) championship rather than whichever is currently active -- used by Previous Opens to show a concluded year's tee sheet regardless of its archived flag. */
+export async function getTeeTimesForChampionshipId(championshipId: string): Promise<TeeTimeRound[]> {
+  const payload = await getPayload({ config: configPromise });
+  const result = await payload.find({
+    collection: "tee-time-rounds",
+    where: { championship: { equals: championshipId } },
+    sort: "id",
+    depth: 2,
+    limit: 50,
+  });
+
+  return mapTeeTimeRounds(result.docs);
 }

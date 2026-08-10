@@ -1,13 +1,26 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 
 import { Container } from "@/components/shared/container";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
-import { PlaceholderArt } from "@/components/shared/placeholder-art";
+import { PreviousOpenView, type PreviousOpenResults } from "@/components/previous-opens/previous-open-view";
 import { getAllChampionshipYears, getChampionshipByYear } from "@/lib/data/championships";
-import { formatToPar } from "@/lib/leaderboard";
-import { formatDate } from "@/lib/utils";
+import { computeAutoFacts } from "@/lib/data/records";
+import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
+import { getPlayoffs, applyPlayoffToEntries } from "@/lib/data/playoffs";
+import { getTeeTimesForChampionshipId } from "@/lib/data/tee-times";
+import { getLiveBlogPosts } from "@/lib/data/live-blog";
+import { getArticles } from "@/lib/data/articles";
+import { getSponsorClock } from "@/lib/data/sponsor-clock";
+import {
+  getNettScoringCategories,
+  getScratchScoringCategories,
+  getStreakCategories,
+  getDrivingCategories,
+  getApproachCategories,
+  getPuttingCategories,
+  getToughestHoles,
+} from "@/lib/data/scoring-statistics";
 
 interface YearPageProps {
   params: Promise<{ year: string }>;
@@ -30,10 +43,73 @@ export async function generateMetadata({ params }: YearPageProps): Promise<Metad
   };
 }
 
+/** Full results (Leaderboard/Tee Times/Statistics/Live Blog) only get fetched once a championship is marked Completed -- until then Results shows a "not yet recorded" state, matching a year that only has roll-of-honour data. */
+async function loadResults(championshipId: string): Promise<PreviousOpenResults> {
+  const [
+    mainRaw,
+    stablefordRaw,
+    scratchRaw,
+    playoffs,
+    rounds,
+    nettCategories,
+    scratchCategories,
+    streakCategories,
+    drivingCategories,
+    approachCategories,
+    puttingCategories,
+    toughestHolesNett,
+    toughestHolesScratch,
+    liveBlogPage,
+    articles,
+    clockConfig,
+  ] = await Promise.all([
+    getCompetitionLeaderboardForChampionshipId(championshipId, "main"),
+    getCompetitionLeaderboardForChampionshipId(championshipId, "stableford"),
+    getCompetitionLeaderboardForChampionshipId(championshipId, "scratch"),
+    getPlayoffs(championshipId),
+    getTeeTimesForChampionshipId(championshipId),
+    getNettScoringCategories(championshipId),
+    getScratchScoringCategories(championshipId),
+    getStreakCategories(championshipId),
+    getDrivingCategories(championshipId),
+    getApproachCategories(championshipId),
+    getPuttingCategories(championshipId),
+    getToughestHoles("nett", championshipId),
+    getToughestHoles("scratch", championshipId),
+    getLiveBlogPosts(1, undefined, championshipId),
+    getArticles(),
+    getSponsorClock(),
+  ]);
+
+  return {
+    main: applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main")),
+    stableford: applyPlayoffToEntries(stablefordRaw, playoffs.find((p) => p.competition === "stableford")),
+    scratch: applyPlayoffToEntries(scratchRaw, playoffs.find((p) => p.competition === "scratch")),
+    rounds,
+    nettCategories,
+    scratchCategories,
+    streakCategories,
+    drivingCategories,
+    approachCategories,
+    puttingCategories,
+    toughestHolesNett,
+    toughestHolesScratch,
+    playoffs,
+    liveBlogPage,
+    featuredArticle: articles[0],
+    clockConfig,
+  };
+}
+
 export default async function PreviousOpenYearPage({ params }: YearPageProps) {
   const { year } = await params;
   const championship = await getChampionshipByYear(Number(year));
   if (!championship) notFound();
+
+  const [autoFacts, results] = await Promise.all([
+    computeAutoFacts(championship),
+    championship.completed ? loadResults(championship.id) : Promise.resolve(undefined),
+  ]);
 
   return (
     <Container className="flex flex-col gap-10 py-10 sm:py-14">
@@ -45,55 +121,7 @@ export default async function PreviousOpenYearPage({ params }: YearPageProps) {
         ]}
       />
 
-      <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
-        <div className="flex flex-col gap-3">
-          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
-            {championship.date ? formatDate(championship.date) : championship.year}
-          </span>
-          <h1 className="font-display font-bold text-display-lg text-balance">{championship.venueName}</h1>
-          <p className="text-lg text-muted-foreground">
-            {championship.winnerName ? (
-              <>
-                Won by{" "}
-                {championship.winnerPlayerSlug ? (
-                  <Link href={`/players/${championship.winnerPlayerSlug}`} className="font-semibold text-primary hover:underline">
-                    {championship.winnerName}
-                  </Link>
-                ) : (
-                  <span className="font-semibold text-foreground">{championship.winnerName}</span>
-                )}
-                {championship.winnerCountry ? ` of ${championship.winnerCountry}` : null}
-              </>
-            ) : (
-              "Championship not yet played."
-            )}
-          </p>
-        </div>
-        <PlaceholderArt
-          label={championship.winnerName ? `${championship.winnerName} at ${championship.venueName}` : championship.venueName}
-          tone="navy"
-          ratio="4/3"
-          showCaption
-        />
-      </div>
-
-      <dl className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-        {[
-          { label: "Champion", value: championship.winnerName ?? "TBD" },
-          { label: "Score", value: championship.scoreToPar !== undefined ? formatToPar(championship.scoreToPar) : "—" },
-          { label: "Margin", value: championship.margin ?? "—" },
-          { label: "Venue", value: championship.venueName },
-        ].map((stat) => (
-          <div key={stat.label} className="flex flex-col gap-1 border border-border p-4">
-            <dt className="text-xs uppercase tracking-wide text-muted-foreground">{stat.label}</dt>
-            <dd className="font-display text-lg font-bold">{stat.value}</dd>
-          </div>
-        ))}
-      </dl>
-
-      <Link href={`/venues/${championship.venueSlug}`} className="w-fit text-sm font-medium text-primary hover:underline">
-        View {championship.venueName} →
-      </Link>
+      <PreviousOpenView championship={championship} autoFacts={autoFacts} results={results} />
     </Container>
   );
 }

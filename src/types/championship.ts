@@ -4,6 +4,8 @@ export interface ChampionshipWinner {
   id: string;
   year: number;
   date?: string;
+  isActive?: boolean;
+  completed?: boolean;
   venueSlug: string;
   venueName: string;
   venueTotalPar?: number;

@@ -56,10 +56,15 @@ function assignPositions(rows: StatRow[]): void {
   });
 }
 
-/** Fetches every scorecard for the active championship and reduces it to each player's per-hole nett or scratch score. */
-async function getPlayerScoresByMode(mode: ScoringMode): Promise<{ holeInfos: HoleInfo[]; playerScores: PlayerHoleScores[] }> {
+/** Fetches every scorecard for the given (or, if omitted, the active) championship and reduces it to each player's per-hole nett or scratch score. */
+async function getPlayerScoresByMode(
+  mode: ScoringMode,
+  championshipId?: string,
+): Promise<{ holeInfos: HoleInfo[]; playerScores: PlayerHoleScores[] }> {
   const payload = await getPayload({ config: configPromise });
-  const championship = await getActiveChampionship(payload);
+  const championship = championshipId
+    ? await payload.findByID({ collection: "championships", id: championshipId }).catch(() => undefined)
+    : await getActiveChampionship(payload);
   if (!championship) return { holeInfos: [], playerScores: [] };
 
   const venue = typeof championship.venue === "object" ? (championship.venue as Venue) : undefined;
@@ -96,8 +101,8 @@ async function getPlayerScoresByMode(mode: ScoringMode): Promise<{ holeInfos: Ho
  * stats that were never wired to anything. `mode` picks whether the underlying per-hole
  * score is nett (gross minus handicap strokes) or scratch (raw gross, no handicap).
  */
-async function getScoringCategories(mode: ScoringMode): Promise<StatCategory[]> {
-  const { holeInfos, playerScores } = await getPlayerScoresByMode(mode);
+async function getScoringCategories(mode: ScoringMode, championshipId?: string): Promise<StatCategory[]> {
+  const { holeInfos, playerScores } = await getPlayerScoresByMode(mode, championshipId);
   if (holeInfos.length === 0) return [];
 
   const holeFieldAverage = holeInfos.map((_, i) => {
@@ -186,12 +191,12 @@ async function getScoringCategories(mode: ScoringMode): Promise<StatCategory[]> 
   ];
 }
 
-export async function getNettScoringCategories(): Promise<StatCategory[]> {
-  return getScoringCategories("nett");
+export async function getNettScoringCategories(championshipId?: string): Promise<StatCategory[]> {
+  return getScoringCategories("nett", championshipId);
 }
 
-export async function getScratchScoringCategories(): Promise<StatCategory[]> {
-  return getScoringCategories("scratch");
+export async function getScratchScoringCategories(championshipId?: string): Promise<StatCategory[]> {
+  return getScoringCategories("scratch", championshipId);
 }
 
 type StreakKind = "par-or-better" | "par" | "bogey-or-worse";
@@ -214,8 +219,8 @@ function longestStreak(scoreByHole: (number | undefined)[], holeInfos: HoleInfo[
   return longest;
 }
 
-async function getStreakCategoriesForMode(mode: ScoringMode): Promise<StatCategory[]> {
-  const { holeInfos, playerScores } = await getPlayerScoresByMode(mode);
+async function getStreakCategoriesForMode(mode: ScoringMode, championshipId?: string): Promise<StatCategory[]> {
+  const { holeInfos, playerScores } = await getPlayerScoresByMode(mode, championshipId);
   if (holeInfos.length === 0) return [];
 
   const parOrBetterRows: StatRow[] = [];
@@ -248,8 +253,11 @@ async function getStreakCategoriesForMode(mode: ScoringMode): Promise<StatCatego
   ];
 }
 
-export async function getStreakCategories(): Promise<StatCategory[]> {
-  const [nett, scratch] = await Promise.all([getStreakCategoriesForMode("nett"), getStreakCategoriesForMode("scratch")]);
+export async function getStreakCategories(championshipId?: string): Promise<StatCategory[]> {
+  const [nett, scratch] = await Promise.all([
+    getStreakCategoriesForMode("nett", championshipId),
+    getStreakCategoriesForMode("scratch", championshipId),
+  ]);
   return [...nett, ...scratch];
 }
 
@@ -258,8 +266,8 @@ export async function getStreakCategories(): Promise<StatCategory[]> {
  * player), ranked by average score relative to par. Holes nobody has played yet still show up
  * (with the course setup data) but sort to the bottom, unranked, until scores start coming in.
  */
-export async function getToughestHoles(mode: ScoringMode): Promise<HoleToughnessRow[]> {
-  const { holeInfos, playerScores } = await getPlayerScoresByMode(mode);
+export async function getToughestHoles(mode: ScoringMode, championshipId?: string): Promise<HoleToughnessRow[]> {
+  const { holeInfos, playerScores } = await getPlayerScoresByMode(mode, championshipId);
   if (holeInfos.length === 0) return [];
 
   const rows: HoleToughnessRow[] = holeInfos.map((info, i) => {
@@ -323,9 +331,11 @@ interface PlayerSkillHoles {
  * via the standard Payload scorecard edit screen) -- unlike strokes they don't depend on
  * handicap, so there's no nett/scratch split here.
  */
-async function getPlayerSkillHoles(): Promise<{ holeInfos: HoleInfo[]; players: PlayerSkillHoles[] }> {
+async function getPlayerSkillHoles(championshipId?: string): Promise<{ holeInfos: HoleInfo[]; players: PlayerSkillHoles[] }> {
   const payload = await getPayload({ config: configPromise });
-  const championship = await getActiveChampionship(payload);
+  const championship = championshipId
+    ? await payload.findByID({ collection: "championships", id: championshipId }).catch(() => undefined)
+    : await getActiveChampionship(payload);
   if (!championship) return { holeInfos: [], players: [] };
 
   const venue = typeof championship.venue === "object" ? (championship.venue as Venue) : undefined;
@@ -398,8 +408,8 @@ function rateRows(players: PlayerSkillHoles[], holeIndices: number[], pick: (p: 
   return rows;
 }
 
-export async function getDrivingCategories(): Promise<StatCategory[]> {
-  const { holeInfos, players } = await getPlayerSkillHoles();
+export async function getDrivingCategories(championshipId?: string): Promise<StatCategory[]> {
+  const { holeInfos, players } = await getPlayerSkillHoles(championshipId);
   if (holeInfos.length === 0) return [];
 
   // Fairways aren't a meaningful concept on Par 3s, so they're excluded from both the hit-rate and the field average.
@@ -417,8 +427,8 @@ export async function getDrivingCategories(): Promise<StatCategory[]> {
   ];
 }
 
-export async function getApproachCategories(): Promise<StatCategory[]> {
-  const { holeInfos, players } = await getPlayerSkillHoles();
+export async function getApproachCategories(championshipId?: string): Promise<StatCategory[]> {
+  const { holeInfos, players } = await getPlayerSkillHoles(championshipId);
   if (holeInfos.length === 0) return [];
 
   const allHoles = holeInfos.map((_, i) => i);
@@ -435,8 +445,8 @@ export async function getApproachCategories(): Promise<StatCategory[]> {
   ];
 }
 
-export async function getPuttingCategories(): Promise<StatCategory[]> {
-  const { holeInfos, players } = await getPlayerSkillHoles();
+export async function getPuttingCategories(championshipId?: string): Promise<StatCategory[]> {
+  const { holeInfos, players } = await getPlayerSkillHoles(championshipId);
   if (holeInfos.length === 0) return [];
 
   const puttsRows: StatRow[] = [];

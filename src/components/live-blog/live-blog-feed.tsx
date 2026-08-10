@@ -99,6 +99,8 @@ interface LiveBlogFeedProps {
   drivingCategories: StatCategory[];
   approachCategories: StatCategory[];
   puttingCategories: StatCategory[];
+  /** Pass when showing a specific past championship (e.g. Previous Opens) rather than whichever is currently active, so "Load more" keeps paging that same year. */
+  championshipId?: string;
 }
 
 export function LiveBlogFeed({
@@ -113,6 +115,7 @@ export function LiveBlogFeed({
   drivingCategories,
   approachCategories,
   puttingCategories,
+  championshipId,
 }: LiveBlogFeedProps) {
   const [entries, setEntries] = useState(initialEntries);
   const [page, setPage] = useState(1);
@@ -130,7 +133,8 @@ export function LiveBlogFeed({
     setLoadingMore(true);
     try {
       const nextPage = page + 1;
-      const res = await fetch(`/api/live-blog-feed?page=${nextPage}`);
+      const query = championshipId ? `page=${nextPage}&championshipId=${championshipId}` : `page=${nextPage}`;
+      const res = await fetch(`/api/live-blog-feed?${query}`);
       if (!res.ok) throw new Error("Failed to load more posts");
       const data: LiveBlogPage = await res.json();
       setEntries((prev) => [...prev, ...data.entries]);

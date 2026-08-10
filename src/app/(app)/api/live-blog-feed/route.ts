@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Provide a valid positive integer ?page=" }, { status: 400 });
   }
 
-  const result = await getLiveBlogPosts(page);
+  const championshipId = request.nextUrl.searchParams.get("championshipId") ?? undefined;
+  const result = await getLiveBlogPosts(page, undefined, championshipId);
   return NextResponse.json(result);
 }

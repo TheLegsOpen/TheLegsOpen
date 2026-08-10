@@ -39,6 +39,8 @@ function mapChampionship(doc: PayloadChampionship): ChampionshipWinner {
     id: String(doc.id),
     year: doc.year,
     date: doc.date ?? undefined,
+    isActive: doc.isActive ?? undefined,
+    completed: doc.completed ?? undefined,
     venueSlug: venue.slug ?? slugify(venue.name),
     venueName: venue.name,
     venueTotalPar: venue.totalPar ?? undefined,

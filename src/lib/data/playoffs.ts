@@ -1,4 +1,4 @@
-import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
+import { getCompetitionLeaderboard, getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
 import { formatToPar, isConcluded } from "@/lib/leaderboard";
 import type { Competition, CompetitionEntry } from "@/lib/data/scorecards";
 import type { Player } from "@/types/player";
@@ -212,9 +212,16 @@ export function applyPlayoffToEntries(entries: CompetitionEntry[], playoff: Play
  * extra rule: the Main champion can't also win Stableford, so if they're part of a Stableford
  * tie they're pulled out of contention before the tiebreak runs.
  */
-export async function getPlayoffs(): Promise<PlayoffResult[]> {
+export async function getPlayoffs(championshipId?: string): Promise<PlayoffResult[]> {
   const competitions: Competition[] = ["main", "stableford", "scratch"];
-  const entriesByCompetition = new Map(await Promise.all(competitions.map(async (c) => [c, await getCompetitionLeaderboard(c)] as const)));
+  const entriesByCompetition = new Map(
+    await Promise.all(
+      competitions.map(
+        async (c) =>
+          [c, championshipId ? await getCompetitionLeaderboardForChampionshipId(championshipId, c) : await getCompetitionLeaderboard(c)] as const,
+      ),
+    ),
+  );
 
   const mainEntries = entriesByCompetition.get("main") ?? [];
   const mainWinnerIds = new Set(getWinners(mainEntries, "main").map((player) => player.id));

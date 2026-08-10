@@ -53,9 +53,11 @@ export interface LiveBlogPage {
 
 const LIVE_BLOG_PAGE_SIZE = 40;
 
-export async function getLiveBlogPosts(page = 1, limit = LIVE_BLOG_PAGE_SIZE): Promise<LiveBlogPage> {
+export async function getLiveBlogPosts(page = 1, limit = LIVE_BLOG_PAGE_SIZE, championshipId?: string): Promise<LiveBlogPage> {
   const payload = await getPayload({ config: configPromise });
-  const championship = await getActiveChampionship(payload);
+  const championship = championshipId
+    ? await payload.findByID({ collection: "championships", id: championshipId }).catch(() => undefined)
+    : await getActiveChampionship(payload);
   if (!championship) return { entries: [], hasNextPage: false, nextPage: null };
 
   const result = await payload.find({

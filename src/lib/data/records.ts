@@ -224,7 +224,7 @@ function wholeYearsAge(years: number): AgeBreakdown {
 }
 
 /** Auto-derived facts for a single concluded championship, computed straight from that year's real scorecards — nothing here is hand-entered. */
-interface AutoFacts {
+export interface AutoFacts {
   stablefordWinnerName?: string;
   stablefordWinnerCountry?: string;
   stablefordWinnerScore?: number;
@@ -240,7 +240,7 @@ interface AutoFacts {
   largestLead?: { holderName: string; margin: number; afterHole: number };
 }
 
-async function computeAutoFacts(championship: ChampionshipWinner): Promise<AutoFacts | undefined> {
+export async function computeAutoFacts(championship: ChampionshipWinner): Promise<AutoFacts | undefined> {
   const [main, stableford, scratch] = await Promise.all([
     getCompetitionLeaderboardForChampionshipId(championship.id, "main"),
     getCompetitionLeaderboardForChampionshipId(championship.id, "stableford"),
