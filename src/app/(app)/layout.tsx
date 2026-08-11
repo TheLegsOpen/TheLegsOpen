@@ -143,7 +143,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             officialSuppliers={sponsors.officialSuppliers}
             socialLinks={socialLinks}
           />
-          <CookieBanner />
+          <CookieBanner logoUrl={theme.logoUrl} />
         </MotionProvider>
       </body>
     </html>
