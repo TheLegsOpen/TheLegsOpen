@@ -2,14 +2,19 @@ import type { PayloadRequest } from "payload";
 
 import { formatToPar } from "@/lib/leaderboard";
 import type { Competition, LeaderboardSnapshotPair } from "@/lib/data/scorecards";
-import { buildRaceTracker, diffRaceTrackers } from "@/lib/live-blog/race-tracker";
+import { buildRaceTracker, diffRaceTrackers, type RaceCandidate, type RaceEventKind } from "@/lib/live-blog/race-tracker";
 import { evaluateAndPublish, type PublicationConfig, type TriggerCandidate } from "@/lib/live-blog/publication-policy";
 import {
   leaderCommentary,
+  leaderCommentaryMulti,
   tieCommentary,
+  tieCommentaryMulti,
   leadExtendsCommentary,
+  leadExtendsCommentaryMulti,
   enteringContentionCommentary,
+  enteringContentionCommentaryMulti,
   leavingContentionCommentary,
+  leavingContentionCommentaryMulti,
 } from "@/lib/live-blog/commentary";
 
 const COMPETITION_LABEL: Record<Competition, string> = { main: "Main", stableford: "Stableford", scratch: "Scratch" };
@@ -61,6 +66,13 @@ async function lastContentionDirection(
   return category === "entering-contention" || category === "leaving-contention" ? category : undefined;
 }
 
+interface GroupedRaceCandidate {
+  kind: RaceEventKind;
+  playerId: string;
+  playerName: string;
+  outcomes: { competition: Competition; candidate: RaceCandidate }[];
+}
+
 /**
  * Race Tracker pass: given the before/after leaderboard snapshot pair for this scorecard save
  * (see getLeaderboardSnapshotPair), diffs the Race Tracker for all three competitions and
@@ -68,6 +80,14 @@ async function lastContentionDirection(
  * generateLiveBlogPosts (src/lib/live-blog/generate.ts) alongside the existing per-hole
  * eagle/birdie/bogey/streak detection, which already has this same snapshot's "after" side
  * (`snapshots.after.main`) available as `mainEntries` -- no second fetch needed.
+ *
+ * Candidates are collected across all three competitions BEFORE publishing, then grouped by
+ * (kind, player) -- the same real-world moment (one player's hole) can cross the same threshold
+ * on Main, Stableford, and Scratch simultaneously, and without this grouping that produced two or
+ * three near-identical posts seconds apart ("David Clee ties for the Main lead" / "...the
+ * Stableford lead" / "...the Scratch lead"). A group with more than one competition publishes as
+ * a single merged post naming every board involved, via the *Multi commentary variants; a group
+ * with just one -- the common case once the field spreads out -- publishes exactly as before.
  */
 export async function generateRaceTrackerPosts(
   req: PayloadRequest,
@@ -76,6 +96,8 @@ export async function generateRaceTrackerPosts(
   saveNonce: string,
   config: PublicationConfig,
 ): Promise<void> {
+  const grouped = new Map<string, GroupedRaceCandidate>();
+
   for (const competition of ALL_COMPETITIONS) {
     const startedCount = snapshots.after[competition].filter((e) => e.started).length;
     if (startedCount < MIN_STARTED_FOR_RACE_EVENTS) continue;
@@ -87,7 +109,6 @@ export async function generateRaceTrackerPosts(
       new Set(beforeTracker.members.map((m) => m.playerId)),
     );
     const candidates = diffRaceTrackers(beforeTracker, afterTracker);
-    const label = COMPETITION_LABEL[competition];
 
     for (const candidate of candidates) {
       if (candidate.kind === "entering-contention" || candidate.kind === "leaving-contention") {
@@ -95,70 +116,118 @@ export async function generateRaceTrackerPosts(
         if (lastDirection === candidate.kind) continue;
       }
 
-      const saveNonceForCandidate = `${saveNonce}:${competition}:${candidate.kind}:${candidate.playerId}`;
+      const key = `${candidate.kind}:${candidate.playerId}`;
+      const group = grouped.get(key) ?? { kind: candidate.kind, playerId: candidate.playerId, playerName: candidate.playerName, outcomes: [] };
+      group.outcomes.push({ competition, candidate });
+      grouped.set(key, group);
+    }
+  }
 
-      if (candidate.kind === "new-leader") {
-        const { headline, body } = leaderCommentary(candidate.playerName, scoreLabel(competition, candidate.scoreValue), label, candidate.thru);
-        await evaluateAndPublish(req, {
+  for (const { kind, playerId, playerName, outcomes } of grouped.values()) {
+    const competitions = outcomes.map((o) => o.competition);
+    const labels = competitions.map((c) => COMPETITION_LABEL[c]);
+    const thru = outcomes[0].candidate.thru;
+    const saveNonceForGroup = `${saveNonce}:${competitions.slice().sort().join("+")}:${kind}:${playerId}`;
+    // Only a single-competition group carries a scoreRelative/competition on the post -- once
+    // merged across boards there's no single score left to show as the tile.
+    const single = outcomes.length === 1 ? outcomes[0] : undefined;
+
+    if (kind === "new-leader") {
+      const scoreLabels = outcomes.map((o) => scoreLabel(o.competition, o.candidate.scoreValue));
+      const { headline, body } = single
+        ? leaderCommentary(playerName, scoreLabels[0], labels[0], thru)
+        : leaderCommentaryMulti(playerName, labels, scoreLabels, thru);
+      await evaluateAndPublish(req, {
+        category: "leader",
+        championshipId,
+        playerId,
+        playerName,
+        saveNonce: saveNonceForGroup,
+        significance: { category: "leader", inContention: true },
+        post: {
           category: "leader",
-          championshipId,
-          playerId: candidate.playerId,
-          playerName: candidate.playerName,
-          saveNonce: saveNonceForCandidate,
-          significance: { category: "leader", inContention: true },
-          post: { category: "leader", competition, headline, body, championship: championshipId, player: candidate.playerId, scoreRelative: candidate.scoreValue },
-        } satisfies TriggerCandidate, config);
-      } else if (candidate.kind === "tie-for-lead") {
-        const { headline, body } = tieCommentary(
-          candidate.playerName,
-          scoreLabel(competition, candidate.scoreValue),
-          label,
-          candidate.thru,
-          candidate.otherLeaderNames,
-        );
-        await evaluateAndPublish(req, {
+          competition: single?.competition,
+          headline,
+          body,
+          championship: championshipId,
+          player: playerId,
+          scoreRelative: single?.candidate.scoreValue,
+        },
+      } satisfies TriggerCandidate, config);
+    } else if (kind === "tie-for-lead") {
+      const scoreLabels = outcomes.map((o) => scoreLabel(o.competition, o.candidate.scoreValue));
+      const { headline, body } = single
+        ? tieCommentary(playerName, scoreLabels[0], labels[0], thru, single.candidate.otherLeaderNames)
+        : tieCommentaryMulti(playerName, labels, scoreLabels, thru);
+      await evaluateAndPublish(req, {
+        category: "tie",
+        championshipId,
+        playerId,
+        playerName,
+        saveNonce: saveNonceForGroup,
+        significance: { category: "tie", inContention: true },
+        post: {
           category: "tie",
-          championshipId,
-          playerId: candidate.playerId,
-          playerName: candidate.playerName,
-          saveNonce: saveNonceForCandidate,
-          significance: { category: "tie", inContention: true },
-          post: { category: "tie", competition, headline, body, championship: championshipId, player: candidate.playerId, scoreRelative: candidate.scoreValue },
-        } satisfies TriggerCandidate, config);
-      } else if (candidate.kind === "lead-extends") {
-        const { headline, body } = leadExtendsCommentary(candidate.playerName, candidate.leadMargin ?? 0, label, candidate.thru);
-        await evaluateAndPublish(req, {
+          competition: single?.competition,
+          headline,
+          body,
+          championship: championshipId,
+          player: playerId,
+          scoreRelative: single?.candidate.scoreValue,
+        },
+      } satisfies TriggerCandidate, config);
+    } else if (kind === "lead-extends") {
+      const leadMargins = outcomes.map((o) => o.candidate.leadMargin ?? 0);
+      const { headline, body } = single
+        ? leadExtendsCommentary(playerName, leadMargins[0], labels[0], thru)
+        : leadExtendsCommentaryMulti(playerName, labels, leadMargins, thru);
+      await evaluateAndPublish(req, {
+        category: "lead-extends",
+        championshipId,
+        playerId,
+        playerName,
+        saveNonce: saveNonceForGroup,
+        significance: { category: "lead-extends", inContention: true },
+        post: {
           category: "lead-extends",
-          championshipId,
-          playerId: candidate.playerId,
-          playerName: candidate.playerName,
-          saveNonce: saveNonceForCandidate,
-          significance: { category: "lead-extends", inContention: true },
-          post: { category: "lead-extends", competition, headline, body, championship: championshipId, player: candidate.playerId, scoreRelative: candidate.scoreValue },
-        } satisfies TriggerCandidate, config);
-      } else if (candidate.kind === "entering-contention") {
-        const { headline, body } = enteringContentionCommentary(candidate.playerName, label, candidate.scoreValue, marginUnit(competition), candidate.thru);
-        await evaluateAndPublish(req, {
-          category: "entering-contention",
-          championshipId,
-          playerId: candidate.playerId,
-          playerName: candidate.playerName,
-          saveNonce: saveNonceForCandidate,
-          significance: { category: "entering-contention", inContention: true },
-          post: { category: "entering-contention", competition, headline, body, championship: championshipId, player: candidate.playerId },
-        } satisfies TriggerCandidate, config);
-      } else if (candidate.kind === "leaving-contention") {
-        const { headline, body } = leavingContentionCommentary(candidate.playerName, label, candidate.scoreValue, marginUnit(competition), candidate.thru);
-        await evaluateAndPublish(req, {
-          category: "leaving-contention",
-          championshipId,
-          playerId: candidate.playerId,
-          playerName: candidate.playerName,
-          saveNonce: saveNonceForCandidate,
-          significance: { category: "leaving-contention", inContention: true },
-          post: { category: "leaving-contention", competition, headline, body, championship: championshipId, player: candidate.playerId },
-        } satisfies TriggerCandidate, config);
-      }
+          competition: single?.competition,
+          headline,
+          body,
+          championship: championshipId,
+          player: playerId,
+          scoreRelative: single?.candidate.scoreValue,
+        },
+      } satisfies TriggerCandidate, config);
+    } else if (kind === "entering-contention") {
+      const margins = outcomes.map((o) => o.candidate.scoreValue);
+      const units = outcomes.map((o) => marginUnit(o.competition));
+      const { headline, body } = single
+        ? enteringContentionCommentary(playerName, labels[0], margins[0], units[0], thru)
+        : enteringContentionCommentaryMulti(playerName, labels, margins, units, thru);
+      await evaluateAndPublish(req, {
+        category: "entering-contention",
+        championshipId,
+        playerId,
+        playerName,
+        saveNonce: saveNonceForGroup,
+        significance: { category: "entering-contention", inContention: true },
+        post: { category: "entering-contention", competition: single?.competition, headline, body, championship: championshipId, player: playerId },
+      } satisfies TriggerCandidate, config);
+    } else if (kind === "leaving-contention") {
+      const margins = outcomes.map((o) => o.candidate.scoreValue);
+      const units = outcomes.map((o) => marginUnit(o.competition));
+      const { headline, body } = single
+        ? leavingContentionCommentary(playerName, labels[0], margins[0], units[0], thru)
+        : leavingContentionCommentaryMulti(playerName, labels, margins, units, thru);
+      await evaluateAndPublish(req, {
+        category: "leaving-contention",
+        championshipId,
+        playerId,
+        playerName,
+        saveNonce: saveNonceForGroup,
+        significance: { category: "leaving-contention", inContention: true },
+        post: { category: "leaving-contention", competition: single?.competition, headline, body, championship: championshipId, player: playerId },
+      } satisfies TriggerCandidate, config);
     }
   }
 }

@@ -1,4 +1,4 @@
-import type { PayloadRequest } from "payload";
+import type { PayloadRequest, Where } from "payload";
 
 import { computeSignificance, isCriticalCategory, bypassesCooldown, citesHoleNumber, type SignificanceInput, type TriggerCategory } from "@/lib/live-blog/significance";
 import type { LiveBlogPost } from "@/payload-types";
@@ -87,15 +87,28 @@ export interface TriggerCandidate {
   post: Omit<LiveBlogPost, "id" | "postedAt" | "updatedAt" | "createdAt">;
 }
 
+/**
+ * The cooldown lookup is scoped to this player's own last birdie/bogey (the only cooldown-gated
+ * categories -- see bypassesCooldown) rather than the championship's most recent post of any
+ * kind. Otherwise an unrelated player's leader/tie/contention post -- which fires constantly once
+ * several groups are out on course at once -- resets the clock and silently blocks a completely
+ * different player's own, genuinely fresh birdie or bogey. The rate limit stays championship-wide
+ * by design -- that's a real overall throughput cap, not a per-player spam guard.
+ */
 async function loadCooldownAndRateLimitState(
   req: PayloadRequest,
   championshipId: string,
+  playerId: string | undefined,
   now: Date,
 ): Promise<{ lastPublishedAt: Date | undefined; postsInLastHour: number }> {
+  const cooldownWhere: Where = playerId
+    ? { and: [{ championship: { equals: championshipId } }, { player: { equals: playerId } }, { category: { in: ["birdie", "bogey"] } }] }
+    : { and: [{ championship: { equals: championshipId } }, { category: { in: ["birdie", "bogey"] } }] };
+
   const [latest, hourCount] = await Promise.all([
     req.payload.find({
       collection: "live-blog-posts",
-      where: { championship: { equals: championshipId } },
+      where: cooldownWhere,
       sort: "-postedAt",
       limit: 1,
       depth: 0,
@@ -158,7 +171,7 @@ export async function evaluateAndPublish(
     }
 
     const now = new Date();
-    const { lastPublishedAt, postsInLastHour } = await loadCooldownAndRateLimitState(req, candidate.championshipId, now);
+    const { lastPublishedAt, postsInLastHour } = await loadCooldownAndRateLimitState(req, candidate.championshipId, candidate.playerId, now);
     const decision = decidePublication({
       enabled: config.enabled,
       significance,

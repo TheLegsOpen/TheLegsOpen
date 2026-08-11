@@ -26,6 +26,18 @@ function joinNames(names: string[]): string {
   return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`;
 }
 
+/** Same idea as joinNames but with a prose "and" -- used for lists inside a sentence (competition names) rather than a list of people. */
+function joinAnd(items: string[]): string {
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+}
+
+/** "Main (-2), Stableford (7 pts) and Scratch (+1)" -- pairs each competition with its own score so a merged, multi-board post stays exactly as factual as three separate ones. */
+function joinCompetitionScores(competitionLabels: string[], scoreLabels: string[]): string {
+  return joinAnd(competitionLabels.map((label, i) => `${label} (${scoreLabels[i]})`));
+}
+
 function marginLabel(margin: number, unit: "shot" | "point"): string {
   return `${margin} ${unit}${margin === 1 ? "" : "s"} behind the leader`;
 }
@@ -75,6 +87,18 @@ export function leaderCommentary(playerName: string, scoreLabel: string, competi
     `${playerName} moves to the top of the ${competitionLabel} leaderboard at ${scoreLabel}${suffix}.`,
     `${playerName} now holds the outright lead in the ${competitionLabel} standings on ${scoreLabel}${suffix}.`,
     `A new name at the top — ${playerName} leads the ${competitionLabel} competition at ${scoreLabel}${suffix}.`,
+  ]);
+  return { headline, body };
+}
+
+/** Same real-world moment can cross the same threshold on Main, Stableford, and Scratch at once -- one merged post naming every board involved, instead of the same story told two or three times seconds apart. */
+export function leaderCommentaryMulti(playerName: string, competitionLabels: string[], scoreLabels: string[], thru?: string): Commentary {
+  const suffix = thruSuffix(thru);
+  const list = joinCompetitionScores(competitionLabels, scoreLabels);
+  const headline = pick(["New leader", `${playerName.split(" ").slice(-1)[0]} takes control`]);
+  const body = pick([
+    `${playerName} moves to the top of the ${list} leaderboards${suffix}.`,
+    `A clean sweep at the top — ${playerName} now leads the ${list} standings${suffix}.`,
   ]);
   return { headline, body };
 }
@@ -217,6 +241,18 @@ export function tieCommentary(
   return { headline, body };
 }
 
+/** Merged tie post -- deliberately drops otherLeaderNames (unlike tieCommentary), since who else shares the lead can differ board to board and naming them here risks misattributing a co-leader to a board they aren't actually tied on. */
+export function tieCommentaryMulti(playerName: string, competitionLabels: string[], scoreLabels: string[], thru?: string): Commentary {
+  const suffix = thruSuffix(thru);
+  const list = joinCompetitionScores(competitionLabels, scoreLabels);
+  const headline = pick(["Tie at the top", `${playerName.split(" ").slice(-1)[0]} draws level`]);
+  const body = pick([
+    `${playerName} draws level at the top of the ${list} leaderboards${suffix}.`,
+    `A share of the lead on multiple boards — ${playerName} moves level in the ${list} standings${suffix}.`,
+  ]);
+  return { headline, body };
+}
+
 export function leadExtendsCommentary(playerName: string, leadMargin: number, competitionLabel: string, thru?: string): Commentary {
   const suffix = thruSuffix(thru);
   const headline = pick(["Advantage grows", `${playerName.split(" ").slice(-1)[0]} pulls clear`]);
@@ -224,6 +260,17 @@ export function leadExtendsCommentary(playerName: string, leadMargin: number, co
     `${playerName} extends the ${competitionLabel} lead to ${leadMargin}${suffix}.`,
     `The gap grows — ${playerName} now leads by ${leadMargin} in the ${competitionLabel} competition${suffix}.`,
     `${playerName} stretches clear at the top, the lead now out to ${leadMargin}${suffix}.`,
+  ]);
+  return { headline, body };
+}
+
+export function leadExtendsCommentaryMulti(playerName: string, competitionLabels: string[], leadMargins: number[], thru?: string): Commentary {
+  const suffix = thruSuffix(thru);
+  const list = joinAnd(competitionLabels.map((label, i) => `${label} (by ${leadMargins[i]})`));
+  const headline = pick(["Advantage grows", `${playerName.split(" ").slice(-1)[0]} pulls clear`]);
+  const body = pick([
+    `${playerName} extends the lead across the ${list} competitions${suffix}.`,
+    `The gap grows on multiple boards — ${playerName} stretches clear in the ${list} competitions${suffix}.`,
   ]);
   return { headline, body };
 }
@@ -245,6 +292,23 @@ export function enteringContentionCommentary(
   return { headline, body };
 }
 
+export function enteringContentionCommentaryMulti(
+  playerName: string,
+  competitionLabels: string[],
+  margins: number[],
+  units: ("shot" | "point")[],
+  thru?: string,
+): Commentary {
+  const list = joinAnd(competitionLabels.map((label, i) => `${label} (${marginLabel(margins[i], units[i])})`));
+  const suffix = thruSuffix(thru);
+  const headline = pick(["Into contention", `${playerName.split(" ").slice(-1)[0]} joins the race`]);
+  const body = pick([
+    `${playerName} moves into contention across the ${list}${suffix}.`,
+    `A real move — ${playerName} climbs into contention in the ${list}${suffix}.`,
+  ]);
+  return { headline, body };
+}
+
 export function leavingContentionCommentary(
   playerName: string,
   competitionLabel: string,
@@ -258,6 +322,23 @@ export function leavingContentionCommentary(
     `${playerName} drops outside the ${competitionLabel} race.${detail}`,
     `${playerName} slips out of contention in the ${competitionLabel} competition.${detail}`,
     `The gap tells — ${playerName} falls back from the ${competitionLabel} race.${detail}`,
+  ]);
+  return { headline, body };
+}
+
+export function leavingContentionCommentaryMulti(
+  playerName: string,
+  competitionLabels: string[],
+  margins: number[],
+  units: ("shot" | "point")[],
+  thru?: string,
+): Commentary {
+  const list = joinAnd(competitionLabels.map((label, i) => `${label} (${marginLabel(margins[i], units[i])})`));
+  const suffix = thruSuffix(thru);
+  const headline = pick(["Pressure eases", `${playerName.split(" ").slice(-1)[0]} drops back`]);
+  const body = pick([
+    `${playerName} drops out of contention across the ${list}${suffix}.`,
+    `The gap tells — ${playerName} falls back from the ${list}${suffix}.`,
   ]);
   return { headline, body };
 }
