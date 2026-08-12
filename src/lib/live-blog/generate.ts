@@ -61,10 +61,10 @@ const DOWNWARD_MOMENTUM_LAST_HOLE = 14;
 const FALTERS_MIN_STREAK = 2;
 const FALTERS_FROM_HOLE = 15;
 
-/** Shared by the hole-10 "through" checkpoint and the closing-stretch "pressure moment" -- leading
- * or within this many shots of the leader qualifies for both. */
+/** Shared by the "through" thread (hole 10 onward) and the closing-stretch "pressure moment" --
+ * leading or within this many shots of the leader qualifies for both. */
 const WITHIN_TWO_SHOTS = 2;
-const THROUGH_CHECKPOINT_HOLE = 10;
+const THROUGH_START_HOLE = 10;
 const PRESSURE_WINDOW_START = 16;
 
 /** The streak length at which "charge" (fires at exactly 3) escalates to its own, bigger story. */
@@ -775,13 +775,14 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
   }
 
   const progressed = (doc.holesCompleted ?? 0) > (previousDoc?.holesCompleted ?? 0);
-  // Single hole-10 checkpoint now, not one on every hole: fires once, for the leader(s) or anyone
-  // within 2 shots, and only if their hole 10 was a par -- a birdie/eagle/bogey/double-bogey there
-  // already gets its own, more specific post, so reporting "through" on top would be redundant.
-  const justReachedThroughCheckpoint = (doc.holesCompleted ?? 0) === THROUGH_CHECKPOINT_HOLE && (previousDoc?.holesCompleted ?? 0) < THROUGH_CHECKPOINT_HOLE;
-  const scoredParAtCheckpoint = nettRelatives[THROUGH_CHECKPOINT_HOLE - 1] === 0;
+  // Fires on every hole from 10 onward, not just once -- keeps the leader(s)/close contenders
+  // visible on an otherwise "quiet" par, since birdie/eagle/bogey/double-bogey already get their
+  // own, more specific post for any other result. Not a one-time checkpoint: this is meant to be
+  // an ongoing "still safely through" thread alongside those, from hole 10 to the finish.
+  const pastThroughStart = (doc.holesCompleted ?? 0) >= THROUGH_START_HOLE;
+  const scoredParThisHole = nettRelatives[(doc.holesCompleted ?? 1) - 1] === 0;
   const inThroughRange = mainEntry?.position === 1 || (marginToLeader !== undefined && marginToLeader <= WITHIN_TWO_SHOTS);
-  if (progressed && justReachedThroughCheckpoint && scoredParAtCheckpoint && mainEntry && inThroughRange) {
+  if (progressed && pastThroughStart && scoredParThisHole && mainEntry && inThroughRange) {
     const { headline, body } = throughCommentary(player.name, doc.holesCompleted ?? 0, mainEntry.toPar ?? 0, marginToLeader ?? 0, mainEntry.tied);
     await publish({
       category: "through",
