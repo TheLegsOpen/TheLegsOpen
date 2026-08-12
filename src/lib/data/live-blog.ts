@@ -37,6 +37,7 @@ export type LiveBlogCategory =
   | "playoff"
   | "no-return"
   | "defending-champion"
+  | "turn-report"
   | "last-group"
   | "championship"
   | "instagram";

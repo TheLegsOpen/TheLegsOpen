@@ -29,6 +29,7 @@ import {
   challengeFaltersCommentary,
   noReturnCommentary,
   defendingChampionUnderwayCommentary,
+  turnReportCommentary,
   enterTopCommentary,
   bigGainCommentary,
   bigDropCommentary,
@@ -38,6 +39,7 @@ import {
   bestGrossRoundCommentary,
 } from "@/lib/live-blog/commentary";
 import type { Scorecard, Player, Championship, Venue, LiveBlogPost } from "@/payload-types";
+import type { CompetitionEntry } from "@/lib/data/scorecards";
 
 /** "Leading, or within this many nett shots of the leader" -- the always-show threshold for the
  * four per-hole Main categories (nett eagle-or-better, birdie, bogey, double-bogey-or-worse) and
@@ -95,6 +97,52 @@ function birdiesInWindow(relatives: (number | undefined)[], index: number, windo
     if (r <= -1) count++;
   }
   return count;
+}
+
+const MIN_HOLE_STAT_SAMPLE = 4;
+const TOUGH_HOLE_THRESHOLD = 0.5;
+
+/** Average gross strokes-relative-to-par across every player who has played this hole so far --
+ * computed straight from scratchEntries (already fetched for the ace/eagle checks below), no
+ * extra query needed. Used only to add real, verifiable context to an eagle/albatross ("a hole
+ * that's been playing tough today"); never invents anything about the shot itself, only cites a
+ * number every other player's own scorecard already backs up. Requires a minimum sample so an
+ * early-round outlier of one or two scores can't mislabel a hole as "tough". */
+function fieldHoleIsPlayingTough(entries: CompetitionEntry[], holeNumber: number): boolean {
+  const played = entries.map((e) => e.holes[holeNumber - 1]).filter((h) => h !== undefined && h.value !== undefined);
+  if (played.length < MIN_HOLE_STAT_SAMPLE) return false;
+  const average = played.reduce((sum, h) => sum + h.relative, 0) / played.length;
+  return average >= TOUGH_HOLE_THRESHOLD;
+}
+
+const TURN_HOLE = 9;
+const TURN_THRESHOLD_RATIO = 0.5;
+
+/** Nett-to-par for exactly the first `holeNumber` holes -- undefined if any of them isn't played
+ * yet. Deliberately not the player's *current* toPar (which could reflect several holes past the
+ * turn by the time this fires for a field that started at different tee times) -- summing each
+ * hole's own already-handicap-adjusted `relative` gives a genuine "through 9" figure regardless of
+ * how far the player has actually progressed by now. */
+function toParThroughHole(entry: CompetitionEntry, holeNumber: number): number | undefined {
+  let total = 0;
+  for (let i = 0; i < holeNumber; i++) {
+    const hole = entry.holes[i];
+    if (!hole || hole.value === undefined) return undefined;
+    total += hole.relative;
+  }
+  return total;
+}
+
+interface TurnFigure {
+  entry: CompetitionEntry;
+  toParAtTurn: number;
+}
+
+function turnFigures(entries: CompetitionEntry[]): TurnFigure[] {
+  return entries
+    .filter((e) => e.started && !e.noReturn)
+    .map((entry) => ({ entry, toParAtTurn: toParThroughHole(entry, TURN_HOLE) }))
+    .filter((f): f is TurnFigure => f.toParAtTurn !== undefined);
 }
 
 /**
@@ -411,7 +459,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         },
       });
     } else if (grossRelative <= -3) {
-      const { headline, body } = albatrossCommentary(player.name, holeNumber);
+      const { headline, body } = albatrossCommentary(player.name, holeNumber, fieldHoleIsPlayingTough(scratchEntries, holeNumber));
       await publish({
         category: "albatross",
         championshipId: championshipId as string,
@@ -432,7 +480,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         },
       });
     } else if (grossRelative === -2) {
-      const { headline, body } = eagleCommentary(player.name, holeNumber);
+      const { headline, body } = eagleCommentary(player.name, holeNumber, fieldHoleIsPlayingTough(scratchEntries, holeNumber));
       await publish({
         category: "eagle",
         championshipId: championshipId as string,
@@ -968,6 +1016,45 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           competition: "main",
         },
       });
+    }
+
+    // Front-nine turn report: fires once, the save that pushes at least half the started field
+    // through hole 9. A field-wide scene-setting post, not about this specific player -- matches
+    // the "championship"/"last-group" pattern (no `player` on the post).
+    const beforeTurnCount = turnFigures(snapshots.before.main).length;
+    const afterTurnFigures = turnFigures(snapshots.after.main);
+    const startedNow = snapshots.after.main.filter((e) => e.started && !e.noReturn).length;
+    const turnThreshold = Math.max(2, Math.ceil(startedNow * TURN_THRESHOLD_RATIO));
+    const justCrossedTurnThreshold = beforeTurnCount < turnThreshold && afterTurnFigures.length >= turnThreshold;
+    if (justCrossedTurnThreshold) {
+      const alreadyPosted = await req.payload.find({
+        collection: "live-blog-posts",
+        where: { and: [{ championship: { equals: championshipId } }, { category: { equals: "turn-report" } }] },
+        limit: 1,
+        depth: 0,
+        req,
+      });
+      if (alreadyPosted.docs.length === 0) {
+        const leaderToPar = Math.min(...afterTurnFigures.map((f) => f.toParAtTurn));
+        const leaderFigures = afterTurnFigures.filter((f) => f.toParAtTurn === leaderToPar);
+        const fieldAverageToPar = afterTurnFigures.reduce((sum, f) => sum + f.toParAtTurn, 0) / afterTurnFigures.length;
+        const challengerNames = afterTurnFigures
+          .filter((f) => f.toParAtTurn > leaderToPar && f.toParAtTurn - leaderToPar <= STRIKING_DISTANCE)
+          .map((f) => f.entry.player.name);
+        const { headline, body } = turnReportCommentary(
+          leaderFigures.map((f) => f.entry.player.name),
+          leaderToPar,
+          fieldAverageToPar,
+          challengerNames,
+        );
+        await publish({
+          category: "turn-report",
+          championshipId: championshipId as string,
+          saveNonce: `${saveNonce}:turn-report`,
+          significance: { category: "turn-report", inContention: true },
+          post: { category: "turn-report", headline, body, championship: championshipId as string, competition: "main" },
+        });
+      }
     }
 
     // Race Tracker: new leader / tie for the lead / lead extension / entering & leaving contention,

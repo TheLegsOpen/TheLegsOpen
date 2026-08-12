@@ -18,6 +18,7 @@ import {
   LogOut,
   Loader2,
   Medal,
+  Newspaper,
   Rocket,
   Shield,
   Sparkles,
@@ -78,6 +79,7 @@ export const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: type
     icon: Shield,
     chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground",
   },
+  "turn-report": { label: "Front-nine report", icon: Newspaper, chipClass: "bg-accent text-accent-foreground" },
   "last-group": { label: "Last group out", icon: Users, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
   championship: { label: "Championship", icon: Trophy, chipClass: "bg-accent text-accent-foreground" },
   instagram: {

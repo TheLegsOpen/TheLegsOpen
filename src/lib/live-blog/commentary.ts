@@ -42,23 +42,26 @@ function marginLabel(margin: number, unit: "shot" | "point"): string {
   return `${margin} ${unit}${margin === 1 ? "" : "s"} behind the leader`;
 }
 
-/** Three or more shots under par, gross -- previously lumped in with eagle (grossRelative <= -2), now its own rarer, bigger story. */
-export function albatrossCommentary(playerName: string, holeNumber: number): Commentary {
+/** Three or more shots under par, gross -- previously lumped in with eagle (grossRelative <= -2), now its own rarer, bigger story. `playingTough`, when true, cites the field's own average on this hole -- a real, checkable number, not a guess. */
+export function albatrossCommentary(playerName: string, holeNumber: number, playingTough?: boolean): Commentary {
+  const suffix = playingTough ? " It's been one of the toughest holes on the course today." : "";
   const headline = pick(["ALBATROSS!", `${playerName.split(" ").slice(-1)[0]} makes history`, "Once-in-a-lifetime"]);
   const body = pick([
-    `${playerName} holes out for an albatross at the ${ordinal(holeNumber)} — a shot you might never see again.`,
-    `Extraordinary scenes at the ${ordinal(holeNumber)} — ${playerName} cards an albatross.`,
-    `${playerName} produces something truly special at the ${ordinal(holeNumber)}, three under the card in one.`,
+    `${playerName} holes out for an albatross at the ${ordinal(holeNumber)} — a shot you might never see again.${suffix}`,
+    `Extraordinary scenes at the ${ordinal(holeNumber)} — ${playerName} cards an albatross.${suffix}`,
+    `${playerName} produces something truly special at the ${ordinal(holeNumber)}, three under the card in one.${suffix}`,
   ]);
   return { headline, body };
 }
 
-export function eagleCommentary(playerName: string, holeNumber: number): Commentary {
+/** `playingTough`, when true, cites the field's own average on this hole -- a real, checkable number, not a guess. */
+export function eagleCommentary(playerName: string, holeNumber: number, playingTough?: boolean): Commentary {
+  const suffix = playingTough ? " It's been one of the toughest holes on the course today." : "";
   const headline = pick(["Eagle!", `${playerName.split(" ").slice(-1)[0]} soars`, "Two shots gone in one"]);
   const body = pick([
-    `${playerName} rolls in an eagle at the ${ordinal(holeNumber)}. That's the shot of the day so far.`,
-    `A brilliant eagle from ${playerName} on the ${ordinal(holeNumber)} — two shots clawed back at a stroke.`,
-    `${playerName} finds something special at the ${ordinal(holeNumber)}, carding an eagle to light up the board.`,
+    `${playerName} rolls in an eagle at the ${ordinal(holeNumber)}. That's the shot of the day so far.${suffix}`,
+    `A brilliant eagle from ${playerName} on the ${ordinal(holeNumber)} — two shots clawed back at a stroke.${suffix}`,
+    `${playerName} finds something special at the ${ordinal(holeNumber)}, carding an eagle to light up the board.${suffix}`,
   ]);
   return { headline, body };
 }
@@ -129,6 +132,23 @@ export function leaderCommentaryMulti(playerName: string, competitionLabels: str
   const body = pick([
     `${playerName} moves to the top of the ${list} leaderboards${suffix}.`,
     `A clean sweep at the top — ${playerName} now leads the ${list} standings${suffix}.`,
+  ]);
+  return { headline, body };
+}
+
+/** Fires once, when enough of the field has reached the turn. Every figure (leader, average,
+ * challengers) is each player's own toPar through exactly hole 9, not their current standing --
+ * see toParThroughHole in generate.ts for why that distinction matters for a field still spread
+ * across different tee times. */
+export function turnReportCommentary(leaderNames: string[], leaderToPar: number, fieldAverageToPar: number, challengerNames: string[]): Commentary {
+  const leaders = joinNames(leaderNames);
+  const leadWord = leaderNames.length > 1 ? "share the lead" : "leads";
+  const lurkWord = challengerNames.length > 1 ? "lurk" : "lurks";
+  const challengerClause = challengerNames.length > 0 ? ` ${joinNames(challengerNames)} ${lurkWord} within range.` : "";
+  const headline = pick(["At the turn", "Front-nine picture"]);
+  const body = pick([
+    `At the turn, ${leaders} ${leadWord} the Main on ${formatToPar(leaderToPar)}, with the field averaging ${formatToPar(Math.round(fieldAverageToPar))} through the front nine.${challengerClause}`,
+    `Front-nine picture: ${leaders} ${leadWord} at ${formatToPar(leaderToPar)}, the field averaging ${formatToPar(Math.round(fieldAverageToPar))} so far.${challengerClause}`,
   ]);
   return { headline, body };
 }

@@ -59,6 +59,7 @@ const SAMPLES: [string, (...args: never[]) => commentary.Commentary][] = [
   ["challengeFaltersCommentary", commentary.challengeFaltersCommentary as never],
   ["noReturnCommentary", commentary.noReturnCommentary as never],
   ["defendingChampionUnderwayCommentary", commentary.defendingChampionUnderwayCommentary as never],
+  ["turnReportCommentary", commentary.turnReportCommentary as never],
   ["playoffCommentary", commentary.playoffCommentary as never],
   ["throughCommentary", commentary.throughCommentary as never],
   ["tieCommentary", commentary.tieCommentary as never],
@@ -83,8 +84,14 @@ const SAMPLES: [string, (...args: never[]) => commentary.Commentary][] = [
 // (e.g. doubleBogeyCommentary's relativeToPar, bigDropCommentary/enterTopCommentary/bigGainCommentary
 // both with and without their optional cause label).
 const SAMPLE_ARGS: Record<string, unknown[][]> = {
-  albatrossCommentary: [["Test Player", 5]],
-  eagleCommentary: [["Test Player", 5]],
+  albatrossCommentary: [
+    ["Test Player", 5],
+    ["Test Player", 5, true],
+  ],
+  eagleCommentary: [
+    ["Test Player", 5],
+    ["Test Player", 5, true],
+  ],
   birdieCommentary: [["Test Player", 5]],
   nettEagleCommentary: [["Test Player", 5]],
   bogeyCommentary: [["Test Player", 5]],
@@ -107,6 +114,10 @@ const SAMPLE_ARGS: Record<string, unknown[][]> = {
   challengeFaltersCommentary: [["Test Player", 2]],
   noReturnCommentary: [["Test Player", 5]],
   defendingChampionUnderwayCommentary: [["Test Player", 1]],
+  turnReportCommentary: [
+    [["Test Player"], -2, 3.5, []],
+    [["Test Player", "Other Player"], -2, 3.5, ["Third Player", "Fourth Player"]],
+  ],
   playoffCommentary: [[["Player A", "Player B"], "Main", "-2"]],
   throughCommentary: [
     ["Test Player", 10, -2, 0, false],

@@ -53,6 +53,7 @@ const BASE_SIGNIFICANCE: Record<TriggerCategory, number> = {
   "challenge-falters": 75,
   "no-return": 70,
   "defending-champion": 70,
+  "turn-report": 70,
   "clubhouse-leader": 80,
   ace: 95,
   albatross: 100,
