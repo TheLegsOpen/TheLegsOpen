@@ -28,6 +28,7 @@ import {
   leaderFaltersCommentary,
   challengeFaltersCommentary,
   noReturnCommentary,
+  defendingChampionUnderwayCommentary,
   enterTopCommentary,
   bigGainCommentary,
   bigDropCommentary,
@@ -170,6 +171,42 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
 
   const justStarted = (previousDoc?.holesCompleted ?? 0) === 0 && (doc.holesCompleted ?? 0) > 0;
 
+  // Only ever true on a player's first hole of the championship (their first-ever post is the
+  // only moment "no prior post yet" can be true), so both checks are scoped inside justStarted --
+  // no need to re-run these two extra queries on every single save all tournament.
+  let isDefendingChampionFirstMention = false;
+
+  if (justStarted) {
+    const priorChampionships = await req.payload.find({
+      collection: "championships",
+      where: { year: { less_than: championship.year } },
+      sort: "-year",
+      limit: 1,
+      depth: 1,
+      req,
+    });
+    const priorChampionship = priorChampionships.docs[0];
+    let isDefendingChampion = false;
+    if (priorChampionship) {
+      const winnerPlayerId = typeof priorChampionship.winnerPlayer === "object" ? priorChampionship.winnerPlayer?.id : priorChampionship.winnerPlayer;
+      if (winnerPlayerId) {
+        isDefendingChampion = String(winnerPlayerId) === String(playerId);
+      } else if (priorChampionship.winnerName) {
+        isDefendingChampion = priorChampionship.winnerName.trim().toLowerCase() === player.name.trim().toLowerCase();
+      }
+    }
+    if (isDefendingChampion) {
+      const priorPosts = await req.payload.find({
+        collection: "live-blog-posts",
+        where: { and: [{ championship: { equals: championshipId } }, { player: { equals: playerId } }] },
+        limit: 1,
+        depth: 0,
+        req,
+      });
+      isDefendingChampionFirstMention = priorPosts.docs.length === 0;
+    }
+  }
+
   if (justStarted) {
     const startedElsewhere = await req.payload.find({
       collection: "scorecards",
@@ -259,6 +296,33 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
   // buildLeaderboardFromDocs in scorecards.ts) -- undefined for a hole not yet played, matching
   // what trailingStreak/birdiesInWindow need to correctly stop a streak at the edge of play.
   const nettRelatives = (mainEntry?.holes ?? []).map((h) => (h.value !== undefined ? h.relative : undefined));
+
+  // Defending champion, first hole of their title defence, par: the one gap none of the per-hole
+  // categories below cover. A birdie-or-better or bogey-or-worse first hole already gets its own
+  // post via the normal nett-eagle/birdie/bogey/double-bogey rules below (which name them same as
+  // anyone else) -- this only needs to fill in when the very first hole is a non-event on the
+  // scoreboard, so the audience still hears that the defending champion is out and under way.
+  if (isDefendingChampionFirstMention && justStarted && nettRelatives[(doc.holesCompleted ?? 1) - 1] === 0) {
+    const { headline, body } = defendingChampionUnderwayCommentary(player.name, doc.holesCompleted ?? 1);
+    await publish({
+      category: "defending-champion",
+      championshipId: championshipId as string,
+      playerId: playerId as string,
+      playerName: player.name,
+      holeNumber: doc.holesCompleted ?? 1,
+      saveNonce: `${saveNonce}:defending-champion`,
+      significance: { category: "defending-champion", inContention: true },
+      post: {
+        category: "defending-champion",
+        headline,
+        body,
+        championship: championshipId as string,
+        player: playerId as string,
+        holeNumber: doc.holesCompleted ?? 1,
+        competition: "main",
+      },
+    });
+  }
 
   // Ace/eagle stay gross-classified and tagged Scratch -- see the note above the hook.
   const scratchEntries = snapshots?.after.scratch ?? (await getCompetitionLeaderboard("scratch", req));

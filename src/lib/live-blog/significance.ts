@@ -19,6 +19,7 @@ export const CRITICAL_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<Trigger
   "eagle",
   "albatross",
   "no-return",
+  "defending-champion",
 ]);
 
 export interface SignificanceInput {
@@ -51,6 +52,7 @@ const BASE_SIGNIFICANCE: Record<TriggerCategory, number> = {
   "leader-falters": 80,
   "challenge-falters": 75,
   "no-return": 70,
+  "defending-champion": 70,
   "clubhouse-leader": 80,
   ace: 95,
   albatross: 100,
@@ -181,6 +183,7 @@ const HOLE_CITING_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<TriggerCate
   "bogey",
   "double-bogey",
   "no-return",
+  "defending-champion",
 ]);
 
 export function citesHoleNumber(category: TriggerCategory): boolean {

@@ -32,6 +32,9 @@ function matches(doc: Doc, where: WhereClause | undefined): boolean {
     if ("equals" in cond && String(value) !== String(cond.equals)) return false;
     if ("not_equals" in cond && String(value) === String(cond.not_equals)) return false;
     if ("greater_than" in cond && !(Number(value) > Number(cond.greater_than))) return false;
+    if ("greater_than_equal" in cond && !(Number(value) >= Number(cond.greater_than_equal))) return false;
+    if ("less_than" in cond && !(Number(value) < Number(cond.less_than))) return false;
+    if ("less_than_equal" in cond && !(Number(value) <= Number(cond.less_than_equal))) return false;
     if ("in" in cond && !(cond.in as unknown[]).some((v) => String(v) === String(value))) return false;
   }
   return true;

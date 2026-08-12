@@ -743,6 +743,7 @@ export interface LiveBlogPost {
     | "winner-confirmed"
     | "playoff"
     | "no-return"
+    | "defending-champion"
     | "last-group"
     | "championship"
     | "instagram";

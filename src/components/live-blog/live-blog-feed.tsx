@@ -19,6 +19,7 @@ import {
   Loader2,
   Medal,
   Rocket,
+  Shield,
   Sparkles,
   Star,
   Swords,
@@ -72,6 +73,11 @@ export const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: type
   "winner-confirmed": { label: "Winner confirmed", icon: Trophy, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },
   playoff: { label: "Playoff", icon: Swords, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },
   "no-return": { label: "No return", icon: XCircle, chipClass: "bg-[#08325A] text-white", cardClass: "bg-[#08325A] text-white" },
+  "defending-champion": {
+    label: "Defending champion",
+    icon: Shield,
+    chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground",
+  },
   "last-group": { label: "Last group out", icon: Users, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
   championship: { label: "Championship", icon: Trophy, chipClass: "bg-accent text-accent-foreground" },
   instagram: {

@@ -250,6 +250,19 @@ export function challengeFaltersCommentary(playerName: string, streak: number): 
   return { headline, body };
 }
 
+/** Fires at most once per player per championship, only when a defending champion's first hole of
+ * their title defence is a par -- a birdie-or-better or bogey-or-worse first hole already gets its
+ * own post via the normal per-hole categories, this only fills the gap when the scoreboard itself
+ * has nothing to say. */
+export function defendingChampionUnderwayCommentary(playerName: string, holeNumber: number): Commentary {
+  const headline = pick(["Defending champion under way", `${playerName.split(" ").slice(-1)[0]} begins the defence`]);
+  const body = pick([
+    `Defending champion ${playerName} is under way, matching par at the ${ordinal(holeNumber)}.`,
+    `${playerName}, defending the title, gets started with a par at the ${ordinal(holeNumber)}.`,
+  ]);
+  return { headline, body };
+}
+
 export function noReturnCommentary(playerName: string, holeNumber: number): Commentary {
   const headline = pick(["Picked up", `${playerName.split(" ").slice(-1)[0]} picks up`]);
   const body = pick([

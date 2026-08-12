@@ -52,6 +52,7 @@ export const LiveBlogPosts: CollectionConfig = {
         { label: "Playoff", value: "playoff" },
         { label: "Winner confirmed", value: "winner-confirmed" },
         { label: "No return", value: "no-return" },
+        { label: "Defending champion under way", value: "defending-champion" },
         { label: "Last group out", value: "last-group" },
         { label: "Championship", value: "championship" },
         { label: "Instagram", value: "instagram" },
