@@ -78,6 +78,11 @@ const SAMPLES: [string, (...args: never[]) => commentary.Commentary][] = [
   ["winnerConfirmedCommentary", commentary.winnerConfirmedCommentary as never],
   ["clubhouseLeaderCommentary", commentary.clubhouseLeaderCommentary as never],
   ["bestGrossRoundCommentary", commentary.bestGrossRoundCommentary as never],
+  ["courseRecordPaceCommentary", commentary.courseRecordPaceCommentary as never],
+  ["courseRecordCommentary", commentary.courseRecordCommentary as never],
+  ["recordLeadCommentary", commentary.recordLeadCommentary as never],
+  ["recordMarginCommentary", commentary.recordMarginCommentary as never],
+  ["recordLowScoreCommentary", commentary.recordLowScoreCommentary as never],
 ];
 
 // Args tailored to each function's real signature -- values chosen to exercise every branch
@@ -155,6 +160,20 @@ const SAMPLE_ARGS: Record<string, unknown[][]> = {
   ],
   clubhouseLeaderCommentary: [["Test Player", -2]],
   bestGrossRoundCommentary: [["Test Player", 5]],
+  courseRecordPaceCommentary: [["Test Player", "Test Venue", 12, 65, "Prior Holder", 2019]],
+  courseRecordCommentary: [
+    ["Test Player", "Test Venue", 64, -8, "Prior Holder", 2019, false],
+    ["Test Player", "Test Venue", 65, -7, "Prior Holder", 2019, true],
+  ],
+  recordLeadCommentary: [
+    ["Test Player", 6, "Prior Holder", 2019],
+    ["Test Player", 1, "Prior Holder", 2019],
+  ],
+  recordMarginCommentary: [
+    ["Test Player", 5, "Prior Holder", 2019],
+    ["Test Player", 1, "Prior Holder", 2019],
+  ],
+  recordLowScoreCommentary: [["Test Player", -8, "Prior Holder", 2019]],
 };
 
 describe("commentary copy never asserts invented shot detail", () => {

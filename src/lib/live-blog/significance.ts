@@ -20,6 +20,10 @@ export const CRITICAL_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<Trigger
   "albatross",
   "no-return",
   "defending-champion",
+  "course-record",
+  "record-lead",
+  "record-margin",
+  "record-low-score",
 ]);
 
 export interface SignificanceInput {
@@ -54,6 +58,11 @@ const BASE_SIGNIFICANCE: Record<TriggerCategory, number> = {
   "no-return": 70,
   "defending-champion": 70,
   "turn-report": 70,
+  "course-record": 100,
+  "course-record-pace": 80,
+  "record-lead": 100,
+  "record-margin": 100,
+  "record-low-score": 100,
   "clubhouse-leader": 80,
   ace: 95,
   albatross: 100,

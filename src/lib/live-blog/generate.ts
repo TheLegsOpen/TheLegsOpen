@@ -37,7 +37,12 @@ import {
   throughCommentary,
   clubhouseLeaderCommentary,
   bestGrossRoundCommentary,
+  courseRecordPaceCommentary,
+  courseRecordCommentary,
+  recordLeadCommentary,
 } from "@/lib/live-blog/commentary";
+import { getCourseRecord, toParGrossThroughHole } from "@/lib/live-blog/course-record";
+import { getLargestLeadRecord } from "@/lib/live-blog/championship-records";
 import type { Scorecard, Player, Championship, Venue, LiveBlogPost } from "@/payload-types";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 
@@ -117,6 +122,18 @@ function fieldHoleIsPlayingTough(entries: CompetitionEntry[], holeNumber: number
 
 const TURN_HOLE = 9;
 const TURN_THRESHOLD_RATIO = 0.5;
+
+/** Course-record pace can't fire before this many holes (too small a sample to mean anything) or
+ * on the last hole (the course-record confirmation in the finishedNow block covers that moment
+ * more definitively). The margin requires being clearly, not marginally, ahead of the record
+ * round's own pace through the same holes -- avoids a photo-finish "pace" claim that flips back
+ * and forth hole to hole. */
+const COURSE_RECORD_PACE_MIN_HOLES = 9;
+const COURSE_RECORD_PACE_MARGIN = 2;
+
+/** A real, substantial lead before the (relatively expensive, full-history) largest-lead record
+ * check even runs -- most saves never get close, so this pre-check keeps the common case cheap. */
+const LARGEST_LEAD_PRECHECK_THRESHOLD = 5;
 
 /** Nett-to-par for exactly the first `holeNumber` holes -- undefined if any of them isn't played
  * yet. Deliberately not the player's *current* toPar (which could reflect several holes past the
@@ -884,6 +901,45 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         });
       }
     }
+
+    // Course record: the lowest gross round ever recorded at this venue, across every
+    // championship played there -- distinct from best-gross-round above, which only tracks the
+    // best round of today. getCourseRecord excludes this scorecard itself, so a null result here
+    // (the very first complete round ever played at this venue) correctly stays silent -- there's
+    // nothing to have broken yet.
+    if (venue && scratchEntry && !scratchEntry.noReturn) {
+      const record = await getCourseRecord(req, venue.id, championshipId);
+      const grossTotal = doc.grossTotal ?? 0;
+      if (record && grossTotal <= record.grossTotal) {
+        const tied = grossTotal === record.grossTotal;
+        const { headline: crHeadline, body: crBody } = courseRecordCommentary(
+          player.name,
+          venue.name,
+          grossTotal,
+          doc.toParGross ?? 0,
+          record.playerName,
+          record.year,
+          tied,
+        );
+        await publish({
+          category: "course-record",
+          championshipId: championshipId as string,
+          playerId: playerId as string,
+          playerName: player.name,
+          saveNonce: `${saveNonce}:course-record`,
+          significance: { category: "course-record", inContention: true },
+          post: {
+            category: "course-record",
+            headline: crHeadline,
+            body: crBody,
+            championship: championshipId as string,
+            player: playerId as string,
+            scoreRelative: doc.toParGross ?? undefined,
+            competition: "scratch",
+          },
+        });
+      }
+    }
   }
 
   const progressed = (doc.holesCompleted ?? 0) > (previousDoc?.holesCompleted ?? 0);
@@ -913,6 +969,111 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         competition: "main",
       },
     });
+  }
+
+  // Course record pace: fires at most once per player per championship, from hole 9 onward,
+  // while they're still clearly ahead of the record round's own pace through the same number of
+  // holes -- computed by walking that historical round's actual hole-by-hole strokes, not a
+  // guess. "Ahead of pace" is a true, checkable comparison against a real figure, never a claim
+  // that they will actually break it. Skipped on the last hole -- the course-record confirmation
+  // below (finishedNow block) covers that moment definitively instead.
+  const holesCompletedNow = doc.holesCompleted ?? 0;
+  if (progressed && venue && scratchEntry && holesCompletedNow >= COURSE_RECORD_PACE_MIN_HOLES && holesCompletedNow < 18) {
+    const record = await getCourseRecord(req, venue.id, championshipId);
+    if (record) {
+      const recordPaceThroughHole = toParGrossThroughHole(record.holeStrokes, venueHoles, holesCompletedNow);
+      const currentToParThroughHole = toParThroughHole(scratchEntry, holesCompletedNow);
+      if (
+        recordPaceThroughHole !== undefined &&
+        currentToParThroughHole !== undefined &&
+        recordPaceThroughHole - currentToParThroughHole >= COURSE_RECORD_PACE_MARGIN
+      ) {
+        const alreadyPosted = await req.payload.find({
+          collection: "live-blog-posts",
+          where: {
+            and: [
+              { championship: { equals: championshipId } },
+              { player: { equals: playerId } },
+              { category: { equals: "course-record-pace" } },
+            ],
+          },
+          limit: 1,
+          depth: 0,
+          req,
+        });
+        if (alreadyPosted.docs.length === 0) {
+          const { headline, body } = courseRecordPaceCommentary(
+            player.name,
+            venue.name,
+            holesCompletedNow,
+            record.grossTotal,
+            record.playerName,
+            record.year,
+          );
+          await publish({
+            category: "course-record-pace",
+            championshipId: championshipId as string,
+            playerId: playerId as string,
+            playerName: player.name,
+            saveNonce: `${saveNonce}:course-record-pace`,
+            significance: { category: "course-record-pace", inContention: true, holesRemaining: 18 - holesCompletedNow },
+            post: {
+              category: "course-record-pace",
+              headline,
+              body,
+              championship: championshipId as string,
+              player: playerId as string,
+              scoreRelative: scratchEntry.toPar ?? undefined,
+              competition: "scratch",
+            },
+          });
+        }
+      }
+    }
+  }
+
+  // Record lead: fires at most once per player per championship, the save this player's lead over
+  // 2nd place first clears the biggest lead ever held by anyone in championship history (mirrors
+  // the Records page's "Largest lead by any player"). The pre-check keeps the (relatively
+  // expensive, full-history) record lookup from running on the vast majority of ordinary saves.
+  if (isSoleLeader && mainEntry?.toPar !== undefined) {
+    const sortedStarted = startedMainEntries.slice().sort((a, b) => (a.toPar ?? Infinity) - (b.toPar ?? Infinity));
+    const currentLead =
+      sortedStarted.length >= 2 && sortedStarted[1].toPar !== undefined ? sortedStarted[1].toPar - mainEntry.toPar : undefined;
+    if (currentLead !== undefined && currentLead >= LARGEST_LEAD_PRECHECK_THRESHOLD) {
+      const leadRecord = await getLargestLeadRecord(req, championshipId);
+      if (leadRecord && currentLead > leadRecord.margin) {
+        const alreadyPosted = await req.payload.find({
+          collection: "live-blog-posts",
+          where: {
+            and: [{ championship: { equals: championshipId } }, { player: { equals: playerId } }, { category: { equals: "record-lead" } }],
+          },
+          limit: 1,
+          depth: 0,
+          req,
+        });
+        if (alreadyPosted.docs.length === 0) {
+          const { headline, body } = recordLeadCommentary(player.name, currentLead, leadRecord.holderName, leadRecord.year);
+          await publish({
+            category: "record-lead",
+            championshipId: championshipId as string,
+            playerId: playerId as string,
+            playerName: player.name,
+            saveNonce: `${saveNonce}:record-lead`,
+            significance: { category: "record-lead", inContention: true },
+            post: {
+              category: "record-lead",
+              headline,
+              body,
+              championship: championshipId as string,
+              player: playerId as string,
+              scoreRelative: mainEntry.toPar ?? undefined,
+              competition: "main",
+            },
+          });
+        }
+      }
+    }
   }
 
   if (snapshots) {

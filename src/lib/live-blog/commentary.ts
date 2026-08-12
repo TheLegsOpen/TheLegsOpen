@@ -543,3 +543,72 @@ export function bestGrossRoundCommentary(playerName: string, toPar: number): Com
   ]);
   return { headline, body };
 }
+
+/** All-time course record, not just the day's best (see bestGrossRoundCommentary for that) -- the
+ * lowest gross round ever played at this venue, across every championship held there. "Ahead of
+ * pace" is a true statement about their position against a real historical figure at the same
+ * point in the round, not a prediction dressed as fact -- it never claims they will break it. */
+export function courseRecordPaceCommentary(playerName: string, venueName: string, holesCompleted: number, recordGrossTotal: number, recordHolderName: string, recordYear: number): Commentary {
+  const headline = pick(["Record pace", `${playerName.split(" ").slice(-1)[0]} chasing history`, "Course record in sight"]);
+  const body = pick([
+    `${playerName} is ahead of course-record pace at ${venueName} through ${holesCompleted} holes — ${recordHolderName} holds the mark, a gross ${recordGrossTotal} set in ${recordYear}.`,
+    `Keep an eye on ${playerName} — they're tracking inside the course record through ${holesCompleted} holes. ${recordHolderName}'s ${recordGrossTotal} from ${recordYear} is the one to catch.`,
+    `${playerName} is on course-record pace at ${venueName}, ${holesCompleted} holes in. The mark to beat: a gross ${recordGrossTotal}, set by ${recordHolderName} in ${recordYear}.`,
+  ]);
+  return { headline, body };
+}
+
+/** Largest lead ever held by any player, at any point in a round, across championship history --
+ * mirrors the Records page's "Largest lead by any player". Fires once, the save a live lead first
+ * clears the all-time mark (see the LARGEST_LEAD gating in generate.ts). */
+export function recordLeadCommentary(playerName: string, margin: number, previousHolderName: string, previousYear: number): Commentary {
+  const shots = `${margin} shot${margin === 1 ? "" : "s"}`;
+  const headline = pick(["Record lead", `${playerName.split(" ").slice(-1)[0]} out in front like never before`, "Biggest lead in championship history"]);
+  const body = pick([
+    `${playerName} now holds the biggest lead in championship history — ${shots} clear. The previous mark was ${previousHolderName}'s lead in ${previousYear}.`,
+    `A lead like no other — ${playerName} is ${shots} clear at the top, beyond anything seen before. ${previousHolderName} held the previous record, set in ${previousYear}.`,
+  ]);
+  return { headline, body };
+}
+
+/** Biggest winning margin ever recorded -- mirrors "Largest margin of victory". */
+export function recordMarginCommentary(playerName: string, margin: number, previousHolderName: string, previousYear: number): Commentary {
+  const shots = `${margin} shot${margin === 1 ? "" : "s"}`;
+  const headline = pick(["Record winning margin", `${playerName.split(" ").slice(-1)[0]} wins like no one before`]);
+  const body = pick([
+    `${playerName} wins by ${shots} — the largest winning margin in championship history. The previous record was set by ${previousHolderName} in ${previousYear}.`,
+    `A record-breaking margin of victory — ${playerName} takes the title by ${shots}, beating ${previousHolderName}'s ${previousYear} mark.`,
+  ]);
+  return { headline, body };
+}
+
+/** Lowest winning total ever recorded -- mirrors "Lowest winning total in relation to par" / "Lowest score in a round by a champion". */
+export function recordLowScoreCommentary(playerName: string, toPar: number, previousHolderName: string, previousYear: number): Commentary {
+  const headline = pick(["Record winning score", `${playerName.split(" ").slice(-1)[0]} sets a new mark`]);
+  const body = pick([
+    `${playerName} wins on ${formatToPar(toPar)} — the lowest winning total in championship history. The previous record was ${previousHolderName}'s, in ${previousYear}.`,
+    `A new record winning score — ${playerName} takes the title on ${formatToPar(toPar)}, beating the mark ${previousHolderName} set in ${previousYear}.`,
+  ]);
+  return { headline, body };
+}
+
+export function courseRecordCommentary(playerName: string, venueName: string, grossTotal: number, grossToPar: number, previousHolderName: string, previousYear: number, tied: boolean): Commentary {
+  const headline = pick(
+    tied
+      ? ["Course record equalled", `${playerName.split(" ").slice(-1)[0]} matches the mark`]
+      : ["NEW COURSE RECORD!", `${playerName.split(" ").slice(-1)[0]} makes history`, "Record broken"],
+  );
+  const body = pick(
+    tied
+      ? [
+          `${playerName} matches the lowest round ever recorded at ${venueName}, a gross ${grossTotal} (${formatToPar(grossToPar)}) — level with ${previousHolderName}'s ${previousYear} mark.`,
+          `${playerName} equals the course record at ${venueName} — a gross ${grossTotal}, matching ${previousHolderName}'s round from ${previousYear}.`,
+        ]
+      : [
+          `${playerName} breaks the course record at ${venueName} — a gross ${grossTotal} (${formatToPar(grossToPar)}). The previous mark was set by ${previousHolderName} in ${previousYear}.`,
+          `A new course record at ${venueName} — ${playerName} closes with a gross ${grossTotal}, going past ${previousHolderName}'s ${previousYear} mark.`,
+          `History at ${venueName}: ${playerName} posts a gross ${grossTotal}, the lowest round ever recorded there, ahead of ${previousHolderName}'s ${previousYear} mark.`,
+        ],
+  );
+  return { headline, body };
+}

@@ -3,6 +3,7 @@ import type { PayloadRequest } from "payload";
 
 import { generateLiveBlogPosts } from "@/lib/live-blog/generate";
 import { computeScorecardTotals } from "@/lib/scoring";
+import { CRITICAL_CATEGORIES } from "@/lib/live-blog/significance";
 import { createFakePayload } from "@/lib/live-blog/__fixtures__/fake-payload";
 import { CHAMPIONSHIP, PLAYERS, VENUE, VENUE_HOLES, TEE_TIME_ROUND, findPlayer } from "@/lib/live-blog/__fixtures__/2013-replay-fixtures";
 import replayEventsJson from "@/lib/live-blog/__fixtures__/2013-replay-events.json";
@@ -193,7 +194,11 @@ describe("2013 replay (real production data through the real production hook)", 
   it("never publishes more than one non-critical, same-competition post for the same player from a single hook invocation (the per-player-per-competition priority filter)", async () => {
     const { postsByInvocation } = await runFullReplay();
 
-    const CRITICAL = new Set(["leader", "tie", "pressure-moment", "winner-confirmed", "playoff", "ace", "eagle", "no-return"]);
+    // Sourced from the real significance.ts set (not a hand-duplicated local list) so this test
+    // can't silently drift out of sync the way it did before -- it was still checking an old,
+    // smaller CRITICAL list (missing albatross, defending-champion, and eventually course-record)
+    // that happened not to matter until a newly-critical category first co-occurred with another
+    // post for the same player in this fixture.
     // The four per-hole Main categories carry a criticalOverride when the player is leading or
     // within striking distance (generate.ts), which -- like a genuinely critical category --
     // exempts that one candidate from the priority filter's grouping entirely. That candidate
@@ -208,7 +213,7 @@ describe("2013 replay (real production data through the real production hook)", 
     for (const invocationPosts of postsByInvocation) {
       const byPlayerAndCompetition = new Map<string, LiveBlogPost[]>();
       for (const post of invocationPosts) {
-        if (CRITICAL.has(post.category) || !post.player || !post.competition) continue;
+        if (CRITICAL_CATEGORIES.has(post.category) || !post.player || !post.competition) continue;
         const key = `${String(post.player)}:${post.competition}`;
         const group = byPlayerAndCompetition.get(key) ?? [];
         group.push(post);

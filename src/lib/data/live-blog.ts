@@ -38,6 +38,11 @@ export type LiveBlogCategory =
   | "no-return"
   | "defending-champion"
   | "turn-report"
+  | "course-record-pace"
+  | "course-record"
+  | "record-lead"
+  | "record-margin"
+  | "record-low-score"
   | "last-group"
   | "championship"
   | "instagram";

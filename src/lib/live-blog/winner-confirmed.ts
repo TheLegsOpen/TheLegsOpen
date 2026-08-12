@@ -2,7 +2,8 @@ import type { PayloadRequest } from "payload";
 
 import { isConcluded, formatToPar } from "@/lib/leaderboard";
 import { resolveCompetitionWinner, type WinnerResolution } from "@/lib/data/championship-stats";
-import { winnerConfirmedCommentary, playoffCommentary } from "@/lib/live-blog/commentary";
+import { winnerConfirmedCommentary, playoffCommentary, recordMarginCommentary, recordLowScoreCommentary } from "@/lib/live-blog/commentary";
+import { getLargestMarginRecord, getLowestWinningScoreRecord } from "@/lib/live-blog/championship-records";
 import type { TriggerCandidate } from "@/lib/live-blog/publication-policy";
 import type { Competition, CompetitionEntry, LeaderboardSnapshotPair } from "@/lib/data/scorecards";
 
@@ -126,6 +127,65 @@ export async function buildWinnerConfirmedCandidates(
         scoreRelative: competition === "stableford" ? result.winnerEntry.score : result.winnerEntry.toPar,
       },
     } satisfies TriggerCandidate);
+
+    // Two more championship-wide records, Main only -- mirror the Records page's "Largest margin
+    // of victory" and "Lowest winning total in relation to par" / "Lowest score in a round by a
+    // champion", checked the moment this year's own Main winner is confirmed.
+    if (competition === "main" && result.winnerEntry.toPar !== undefined) {
+      // Margin needs a clean, undisputed win by strokes -- a title decided by countback has no
+      // real stroke margin to compare (mirrors computeAutoFacts' own !winner.tied gate).
+      if (!result.viaTiebreak) {
+        const runnerUp = mainAfter.find((e) => e.position === 2 && e.thru === "F");
+        if (runnerUp?.toPar !== undefined) {
+          const margin = runnerUp.toPar - result.winnerEntry.toPar;
+          if (margin > 0) {
+            const marginRecord = await getLargestMarginRecord(req, championshipId);
+            if (marginRecord && margin > marginRecord.margin) {
+              const { headline: mHeadline, body: mBody } = recordMarginCommentary(result.winner.name, margin, marginRecord.holderName, marginRecord.year);
+              candidates.push({
+                category: "record-margin",
+                championshipId,
+                playerId: result.winner.id,
+                playerName: result.winner.name,
+                saveNonce: `${saveNonce}:record-margin`,
+                significance: { category: "record-margin", inContention: true },
+                post: {
+                  category: "record-margin",
+                  competition: "main",
+                  headline: mHeadline,
+                  body: mBody,
+                  championship: championshipId,
+                  player: result.winner.id,
+                  scoreRelative: result.winnerEntry.toPar,
+                },
+              } satisfies TriggerCandidate);
+            }
+          }
+        }
+      }
+
+      const scoreRecord = await getLowestWinningScoreRecord(req, championshipId);
+      if (scoreRecord && result.winnerEntry.toPar < scoreRecord.toParNett) {
+        const { headline: sHeadline, body: sBody } = recordLowScoreCommentary(result.winner.name, result.winnerEntry.toPar, scoreRecord.holderName, scoreRecord.year);
+        candidates.push({
+          category: "record-low-score",
+          championshipId,
+          playerId: result.winner.id,
+          playerName: result.winner.name,
+          saveNonce: `${saveNonce}:record-low-score`,
+          significance: { category: "record-low-score", inContention: true },
+          post: {
+            category: "record-low-score",
+            competition: "main",
+            headline: sHeadline,
+            body: sBody,
+            championship: championshipId,
+            player: result.winner.id,
+            scoreRelative: result.winnerEntry.toPar,
+          },
+        } satisfies TriggerCandidate);
+      }
+    }
   }
 
   return candidates;

@@ -274,15 +274,21 @@ export async function getCompetitionLeaderboard(competition: Competition, req?: 
   return buildLeaderboardFromDocs(competition, holeInfos, docs, teeTimeByPlayer);
 }
 
-/** Same as `getCompetitionLeaderboard`, but for a specific (possibly past) championship rather than whichever is currently active — used by Records to auto-derive stats from a concluded year's real scorecards. */
+/** Same as `getCompetitionLeaderboard`, but for a specific (possibly past) championship rather
+ * than whichever is currently active — used by Records to auto-derive stats from a concluded
+ * year's real scorecards. Pass `req` when calling from inside a Payload hook (e.g. the live-blog
+ * pipeline's championship-records checks) so this reads within that same in-flight transaction
+ * instead of opening a fresh connection — required for the fake-payload test harness too, which
+ * never initializes a real Payload instance at all. */
 export async function getCompetitionLeaderboardForChampionshipId(
   championshipId: string,
   competition: Competition,
+  req?: PayloadRequest,
 ): Promise<CompetitionEntry[]> {
-  const payload = await getPayload({ config: configPromise });
-  const championship = await payload.findByID({ collection: "championships", id: championshipId }).catch(() => undefined);
+  const payload = req?.payload ?? (await getPayload({ config: configPromise }));
+  const championship = await payload.findByID({ collection: "championships", id: championshipId, req }).catch(() => undefined);
   if (!championship) return [];
-  const { holeInfos, docs, teeTimeByPlayer } = await loadLeaderboardInputs(payload, undefined, championship);
+  const { holeInfos, docs, teeTimeByPlayer } = await loadLeaderboardInputs(payload, req, championship);
   return buildLeaderboardFromDocs(competition, holeInfos, docs, teeTimeByPlayer);
 }
 
