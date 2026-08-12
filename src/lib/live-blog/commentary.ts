@@ -449,14 +449,15 @@ export function bigDropCommentary(playerName: string, beforePosition: number, af
   return { headline, body };
 }
 
-/** Fires on entry to holes 16-18, not just the 18th -- copy names the actual hole rather than
- * claiming "the last", which used to read as inaccurate for a hole-16 or hole-17 trigger. */
-export function pressureMomentCommentary(playerName: string, holeNumber: number, margin: number, unit: "shot" | "point", competitionLabel: string): Commentary {
+/** Fires on entry to holes 16-18, not just the 18th -- copy deliberately stays general ("the
+ * closing holes of the championship") rather than naming one exact hole, so it never risks reading
+ * as inaccurate whichever of the three holes triggered it. */
+export function pressureMomentCommentary(playerName: string, margin: number, unit: "shot" | "point", competitionLabel: string): Commentary {
   const marginLabel = margin === 0 ? `level with the lead` : `${margin} ${unit}${margin === 1 ? "" : "s"} off the lead`;
   const headline = pick(["Pressure moment", `${playerName.split(" ").slice(-1)[0]} enters the closing stretch`]);
   const body = pick([
-    `${playerName} reaches the ${ordinal(holeNumber)} ${marginLabel} in the ${competitionLabel} competition.`,
-    `Into the closing holes for ${playerName}, ${marginLabel} at the ${ordinal(holeNumber)}.`,
+    `${playerName} reaches the closing holes of the championship ${marginLabel} in the ${competitionLabel} competition.`,
+    `Into the closing holes of the championship for ${playerName}, ${marginLabel}.`,
   ]);
   return { headline, body };
 }

@@ -872,7 +872,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
     const enteringPressureWindow = (doc.holesCompleted ?? 0) >= PRESSURE_WINDOW_START && (previousDoc?.holesCompleted ?? 0) < PRESSURE_WINDOW_START;
     const inPressureMomentRange = mainEntry?.position === 1 || (marginToLeader !== undefined && marginToLeader <= WITHIN_TWO_SHOTS);
     if (progressed && enteringPressureWindow && mainEntry && inPressureMomentRange) {
-      const { headline, body } = pressureMomentCommentary(player.name, doc.holesCompleted ?? 0, marginToLeader ?? 0, "shot", "Main");
+      const { headline, body } = pressureMomentCommentary(player.name, marginToLeader ?? 0, "shot", "Main");
       await publish({
         category: "pressure-moment",
         championshipId: championshipId as string,
