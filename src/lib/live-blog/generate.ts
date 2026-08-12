@@ -5,9 +5,10 @@ import { getLiveBlogConfig } from "@/lib/data/live-blog";
 import { evaluateAndPublish, findLowerPriorityCandidates, type TriggerCandidate } from "@/lib/live-blog/publication-policy";
 import { buildRaceTrackerCandidates } from "@/lib/live-blog/race-events";
 import { buildWinnerConfirmedCandidates } from "@/lib/live-blog/winner-confirmed";
-import { buildRaceTracker, diffPositionMovement } from "@/lib/live-blog/race-tracker";
+import { diffPositionMovement } from "@/lib/live-blog/race-tracker";
 import {
   aceCommentary,
+  albatrossCommentary,
   eagleCommentary,
   nettEagleCommentary,
   birdieCommentary,
@@ -19,26 +20,54 @@ import {
   lastGroupOutCommentary,
   movingUpCommentary,
   chargeCommentary,
+  hotStreakCommentary,
   birdieRunCommentary,
   movingDownCommentary,
   troubleCommentary,
   leaderFaltersCommentary,
+  challengeFaltersCommentary,
   noReturnCommentary,
   enterTopCommentary,
   bigGainCommentary,
   bigDropCommentary,
   pressureMomentCommentary,
-  leaderThroughCommentary,
+  throughCommentary,
   clubhouseLeaderCommentary,
+  bestGrossRoundCommentary,
 } from "@/lib/live-blog/commentary";
 import type { Scorecard, Player, Championship, Venue, LiveBlogPost } from "@/payload-types";
 
-const TOP_10 = 10;
 /** "Leading, or within this many nett shots of the leader" -- the always-show threshold for the
- * four per-hole Main categories (nett eagle-or-better, birdie, bogey, double-bogey-or-worse).
- * Deliberately margin-based rather than position-based: a player 3 shots back in 9th is still a
- * real part of the story; someone 8 shots back in 4th (a thin, bunched field) is not. */
+ * four per-hole Main categories (nett eagle-or-better, birdie, bogey, double-bogey-or-worse) and
+ * for Challenge Falters. Deliberately margin-based rather than position-based: a player 3 shots
+ * back in 9th is still a real part of the story; someone 8 shots back in 4th (a thin, bunched
+ * field) is not. */
 const STRIKING_DISTANCE = 3;
+
+/** Moving-up/charge's contention margin -- 4 shots through hole 14, tightening to 2 shots in the
+ * closing stretch where the same climb matters more. */
+function momentumMargin(holeNumber: number): number {
+  return holeNumber >= 15 ? 2 : 4;
+}
+
+/** Moving-down/trouble's contention margin -- stops firing entirely from hole 15 on, superseded
+ * by the more specific Leader Falters / Challenge Falters, which name exactly who is collapsing
+ * rather than a generic "slipping down the board". */
+const DOWNWARD_MOMENTUM_MARGIN = 4;
+const DOWNWARD_MOMENTUM_LAST_HOLE = 14;
+
+/** Leader/Challenge Falters both need at least this many bad holes in a row, from this hole on. */
+const FALTERS_MIN_STREAK = 2;
+const FALTERS_FROM_HOLE = 15;
+
+/** Shared by the hole-10 "through" checkpoint and the closing-stretch "pressure moment" -- leading
+ * or within this many shots of the leader qualifies for both. */
+const WITHIN_TWO_SHOTS = 2;
+const THROUGH_CHECKPOINT_HOLE = 10;
+const PRESSURE_WINDOW_START = 16;
+
+/** The streak length at which "charge" (fires at exactly 3) escalates to its own, bigger story. */
+const HOT_STREAK_LENGTH = 4;
 
 /** Walks backward from `index` counting consecutive holes all under (or all over) par. Stops at the first unplayed or opposite-direction hole. */
 function trailingStreak(relatives: (number | undefined)[], index: number, direction: "under" | "over"): number {
@@ -222,10 +251,6 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
   const leaderToPar = startedMainEntries.length > 0 ? Math.min(...startedMainEntries.map((e) => e.toPar ?? Infinity)) : undefined;
   const marginToLeader = mainEntry?.toPar !== undefined && leaderToPar !== undefined ? mainEntry.toPar - leaderToPar : undefined;
   const inStrikingDistance = marginToLeader !== undefined && marginToLeader <= STRIKING_DISTANCE;
-  // The streak/momentum categories below keep the looser top-10: a player charging from outside
-  // the top 10 towards it is exactly the "climbing the leaderboard" story worth telling, even
-  // before they're within striking distance of the lead.
-  const inTop10 = (mainEntry?.position ?? Infinity) <= TOP_10;
   const isSoleLeader = mainEntry?.position === 1 && !mainEntry?.tied;
 
   // Birdie/bogey and the streak categories below are classified from Main/Nett -- mainEntry's own
@@ -312,7 +337,28 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           competition: "scratch",
         },
       });
-    } else if (grossRelative <= -2) {
+    } else if (grossRelative <= -3) {
+      const { headline, body } = albatrossCommentary(player.name, holeNumber);
+      await publish({
+        category: "albatross",
+        championshipId: championshipId as string,
+        playerId: playerId as string,
+        playerName: player.name,
+        holeNumber,
+        saveNonce: holeNonce,
+        significance: { category: "albatross", inContention: true, holesRemaining },
+        post: {
+          category: "albatross",
+          headline,
+          body,
+          championship: championshipId as string,
+          player: playerId as string,
+          holeNumber,
+          scoreRelative: scratchEntry?.toPar ?? undefined,
+          competition: "scratch",
+        },
+      });
+    } else if (grossRelative === -2) {
       const { headline, body } = eagleCommentary(player.name, holeNumber);
       await publish({
         category: "eagle",
@@ -423,8 +469,9 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
       });
     }
 
-    if (inTop10 && nettRelative !== undefined) {
-      if (nettRelative <= -1) {
+    if (nettRelative !== undefined) {
+      const inUpwardMomentumRange = marginToLeader !== undefined && marginToLeader <= momentumMargin(holeNumber);
+      if (nettRelative <= -1 && inUpwardMomentumRange) {
         const streak = trailingStreak(nettRelatives, i, "under");
         if (streak === 2) {
           const { headline, body } = movingUpCommentary(player.name);
@@ -468,6 +515,30 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
               competition: "main",
             },
           });
+        } else if (streak === HOT_STREAK_LENGTH) {
+          // Fires once, the hole the streak first extends past "charge" -- an even longer run
+          // (5, 6...) is so rare in practice that a second escalation tier isn't worth the
+          // complexity; the story has already been told as emphatically as it needs to be.
+          const { headline, body } = hotStreakCommentary(player.name, streak);
+          await publish({
+            category: "hot-streak",
+            championshipId: championshipId as string,
+            playerId: playerId as string,
+            playerName: player.name,
+            holeNumber,
+            saveNonce: `${holeNonce}:streak`,
+            significance: { category: "hot-streak", inContention: true, holesRemaining },
+            post: {
+              category: "hot-streak",
+              headline,
+              body,
+              championship: championshipId as string,
+              player: playerId as string,
+              holeNumber,
+              scoreRelative: mainEntry?.toPar ?? undefined,
+              competition: "main",
+            },
+          });
         }
 
         // Looser "3 birdies in the last 4 holes" pattern -- distinct from the strict 3-in-a-row
@@ -501,10 +572,13 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         }
       } else if (nettRelative >= 1) {
         const streak = trailingStreak(nettRelatives, i, "over");
-        // The leader wobbling in the closing holes is a bigger story than a generic "moving
-        // down" for anyone else -- takes priority so the same streak doesn't also post as
-        // ordinary moving-down/trouble.
-        if (streak >= 2 && isSoleLeader && holeNumber >= 16) {
+        const isChallenger = !isSoleLeader && inStrikingDistance;
+        // The leader or a genuine challenger wobbling in the closing holes is a bigger, more
+        // specific story than a generic "moving down" for anyone else -- takes priority so the
+        // same streak doesn't also post as ordinary moving-down/trouble. Leader wins if somehow
+        // both conditions were true (they can't be simultaneously -- isSoleLeader and isChallenger
+        // are mutually exclusive by construction -- but the ordering documents the intent).
+        if (streak >= FALTERS_MIN_STREAK && isSoleLeader && holeNumber >= FALTERS_FROM_HOLE) {
           const { headline, body } = leaderFaltersCommentary(player.name, streak);
           await publish({
             category: "leader-falters",
@@ -525,48 +599,71 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
               competition: "main",
             },
           });
-        } else if (streak === 2) {
-          const { headline, body } = movingDownCommentary(player.name);
+        } else if (streak >= FALTERS_MIN_STREAK && isChallenger && holeNumber >= FALTERS_FROM_HOLE) {
+          const { headline, body } = challengeFaltersCommentary(player.name, streak);
           await publish({
-            category: "moving-down",
+            category: "challenge-falters",
             championshipId: championshipId as string,
             playerId: playerId as string,
             playerName: player.name,
             holeNumber,
-            saveNonce: `${holeNonce}:streak`,
-            significance: { category: "moving-down", inContention: true, holesRemaining },
+            saveNonce: `${holeNonce}:challenge-falters`,
+            significance: { category: "challenge-falters", inContention: true, holesRemaining },
             post: {
+              category: "challenge-falters",
+              headline,
+              body,
+              championship: championshipId as string,
+              player: playerId as string,
+              holeNumber,
+              scoreRelative: mainEntry?.toPar ?? undefined,
+              competition: "main",
+            },
+          });
+        } else if (holeNumber <= DOWNWARD_MOMENTUM_LAST_HOLE && marginToLeader !== undefined && marginToLeader <= DOWNWARD_MOMENTUM_MARGIN) {
+          if (streak === 2) {
+            const { headline, body } = movingDownCommentary(player.name);
+            await publish({
               category: "moving-down",
-              headline,
-              body,
-              championship: championshipId as string,
-              player: playerId as string,
+              championshipId: championshipId as string,
+              playerId: playerId as string,
+              playerName: player.name,
               holeNumber,
-              scoreRelative: mainEntry?.toPar ?? undefined,
-              competition: "main",
-            },
-          });
-        } else if (streak === 3) {
-          const { headline, body } = troubleCommentary(player.name, streak);
-          await publish({
-            category: "trouble",
-            championshipId: championshipId as string,
-            playerId: playerId as string,
-            playerName: player.name,
-            holeNumber,
-            saveNonce: `${holeNonce}:streak`,
-            significance: { category: "trouble", inContention: true, holesRemaining },
-            post: {
+              saveNonce: `${holeNonce}:streak`,
+              significance: { category: "moving-down", inContention: true, holesRemaining },
+              post: {
+                category: "moving-down",
+                headline,
+                body,
+                championship: championshipId as string,
+                player: playerId as string,
+                holeNumber,
+                scoreRelative: mainEntry?.toPar ?? undefined,
+                competition: "main",
+              },
+            });
+          } else if (streak === 3) {
+            const { headline, body } = troubleCommentary(player.name, streak);
+            await publish({
               category: "trouble",
-              headline,
-              body,
-              championship: championshipId as string,
-              player: playerId as string,
+              championshipId: championshipId as string,
+              playerId: playerId as string,
+              playerName: player.name,
               holeNumber,
-              scoreRelative: mainEntry?.toPar ?? undefined,
-              competition: "main",
-            },
-          });
+              saveNonce: `${holeNonce}:streak`,
+              significance: { category: "trouble", inContention: true, holesRemaining },
+              post: {
+                category: "trouble",
+                headline,
+                body,
+                championship: championshipId as string,
+                player: playerId as string,
+                holeNumber,
+                scoreRelative: mainEntry?.toPar ?? undefined,
+                competition: "main",
+              },
+            });
+          }
         }
       }
     }
@@ -628,11 +725,55 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         });
       }
     }
+
+    // Mirrors the clubhouse-leader check above, but for gross/Scratch rather than nett/Main --
+    // the tournament's best gross round so far, live. Same dedup pattern: only posts again once a
+    // different player actually takes over the spot.
+    const finishedScratchEntries = scratchEntries.filter((e) => e.score !== undefined);
+    const bestGrossFinished = finishedScratchEntries.slice().sort((a, b) => (a.toPar ?? 0) - (b.toPar ?? 0))[0];
+    if (scratchEntry && !scratchEntry.noReturn && bestGrossFinished && String(bestGrossFinished.player.id) === String(playerId)) {
+      const latestBestGrossPosts = await req.payload.find({
+        collection: "live-blog-posts",
+        where: { and: [{ championship: { equals: championshipId } }, { category: { equals: "best-gross-round" } }] },
+        sort: "-postedAt",
+        limit: 1,
+        depth: 0,
+        req,
+      });
+      const lastPost = latestBestGrossPosts.docs[0];
+      const lastBestGrossId = lastPost ? (typeof lastPost.player === "object" ? lastPost.player?.id : lastPost.player) : undefined;
+      if (String(lastBestGrossId) !== String(playerId)) {
+        const { headline: bgHeadline, body: bgBody } = bestGrossRoundCommentary(player.name, bestGrossFinished.toPar ?? 0);
+        await publish({
+          category: "best-gross-round",
+          championshipId: championshipId as string,
+          playerId: playerId as string,
+          playerName: player.name,
+          saveNonce: `${saveNonce}:best-gross-round`,
+          significance: { category: "best-gross-round", inContention: true },
+          post: {
+            category: "best-gross-round",
+            headline: bgHeadline,
+            body: bgBody,
+            championship: championshipId as string,
+            player: playerId as string,
+            scoreRelative: bestGrossFinished.toPar ?? undefined,
+            competition: "scratch",
+          },
+        });
+      }
+    }
   }
 
   const progressed = (doc.holesCompleted ?? 0) > (previousDoc?.holesCompleted ?? 0);
-  if (progressed && mainEntry && mainEntry.position === 1) {
-    const { headline, body } = leaderThroughCommentary(player.name, doc.holesCompleted ?? 0, mainEntry.toPar ?? 0, mainEntry.tied);
+  // Single hole-10 checkpoint now, not one on every hole: fires once, for the leader(s) or anyone
+  // within 2 shots, and only if their hole 10 was a par -- a birdie/eagle/bogey/double-bogey there
+  // already gets its own, more specific post, so reporting "through" on top would be redundant.
+  const justReachedThroughCheckpoint = (doc.holesCompleted ?? 0) === THROUGH_CHECKPOINT_HOLE && (previousDoc?.holesCompleted ?? 0) < THROUGH_CHECKPOINT_HOLE;
+  const scoredParAtCheckpoint = nettRelatives[THROUGH_CHECKPOINT_HOLE - 1] === 0;
+  const inThroughRange = mainEntry?.position === 1 || (marginToLeader !== undefined && marginToLeader <= WITHIN_TWO_SHOTS);
+  if (progressed && justReachedThroughCheckpoint && scoredParAtCheckpoint && mainEntry && inThroughRange) {
+    const { headline, body } = throughCommentary(player.name, doc.holesCompleted ?? 0, mainEntry.toPar ?? 0, marginToLeader ?? 0, mainEntry.tied);
     await publish({
       category: "through",
       championshipId: championshipId as string,
@@ -722,36 +863,33 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
       }
     }
 
-    // Closing-stretch pressure: a Race Tracker member (genuinely in contention, but not the
-    // outright leader -- leaderThroughCommentary above already covers the leader's own progress)
-    // reaching holes 16-18. Fires once, on the save where they FIRST cross into the window (not
-    // on every hole within it), so a contender in the exact right spot at 16, 17, or 18 gets one
+    // Closing-stretch pressure: leading or within 2 shots of the leader, reaching holes 16-18 --
+    // now includes the leader themselves (previously excluded, since "through" covered them
+    // separately; "through" is now just a single hole-10 checkpoint, so this is the leader's own
+    // closing-stretch moment too). Fires once, on the save where they FIRST cross into the window
+    // (not on every hole within it), so anyone in the exact right spot at 16, 17, or 18 gets one
     // post, never three.
-    const PRESSURE_WINDOW_START = 16;
     const enteringPressureWindow = (doc.holesCompleted ?? 0) >= PRESSURE_WINDOW_START && (previousDoc?.holesCompleted ?? 0) < PRESSURE_WINDOW_START;
-    if (progressed && enteringPressureWindow && mainEntry && mainEntry.position !== 1) {
-      const mainAfterTracker = buildRaceTracker(snapshots.after.main, "main");
-      const trackerMember = mainAfterTracker.members.find((m) => String(m.playerId) === String(playerId));
-      if (trackerMember) {
-        const { headline, body } = pressureMomentCommentary(player.name, trackerMember.margin, "shot", "Main");
-        await publish({
+    const inPressureMomentRange = mainEntry?.position === 1 || (marginToLeader !== undefined && marginToLeader <= WITHIN_TWO_SHOTS);
+    if (progressed && enteringPressureWindow && mainEntry && inPressureMomentRange) {
+      const { headline, body } = pressureMomentCommentary(player.name, marginToLeader ?? 0, "shot", "Main");
+      await publish({
+        category: "pressure-moment",
+        championshipId: championshipId as string,
+        playerId: playerId as string,
+        playerName: player.name,
+        saveNonce: `${saveNonce}:pressure-moment`,
+        significance: { category: "pressure-moment", inContention: true, holesRemaining: 18 - (doc.holesCompleted ?? 0) },
+        post: {
           category: "pressure-moment",
-          championshipId: championshipId as string,
-          playerId: playerId as string,
-          playerName: player.name,
-          saveNonce: `${saveNonce}:pressure-moment`,
-          significance: { category: "pressure-moment", inContention: true, holesRemaining: 18 - (doc.holesCompleted ?? 0) },
-          post: {
-            category: "pressure-moment",
-            headline,
-            body,
-            championship: championshipId as string,
-            player: playerId as string,
-            scoreRelative: mainEntry.toPar ?? undefined,
-            competition: "main",
-          },
-        });
-      }
+          headline,
+          body,
+          championship: championshipId as string,
+          player: playerId as string,
+          scoreRelative: mainEntry.toPar ?? undefined,
+          competition: "main",
+        },
+      });
     }
 
     // Race Tracker: new leader / tie for the lead / lead extension / entering & leaving contention,

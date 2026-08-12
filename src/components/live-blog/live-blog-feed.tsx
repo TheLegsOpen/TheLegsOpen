@@ -14,8 +14,10 @@ import {
   FlagTriangleRight,
   Flame,
   Frown,
+  Gem,
   LogOut,
   Loader2,
+  Medal,
   Rocket,
   Sparkles,
   Star,
@@ -27,6 +29,7 @@ import {
   Trophy,
   Users,
   XCircle,
+  Zap,
 } from "lucide-react";
 
 import { CountryFlag } from "@/components/shared/country-flag";
@@ -43,16 +46,19 @@ import type { StatCategory } from "@/lib/statistics";
 /** `cardClass` colours the whole post like the scoring-indicator dots (Eagle/Birdie/Bogey only) -- everything else stays a plain white card with just a coloured chip. */
 export const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: typeof Star; chipClass: string; cardClass?: string }> = {
   ace: { label: "Hole in one", icon: Sparkles, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },
+  albatross: { label: "Albatross", icon: Gem, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },
   eagle: { label: "Eagle", icon: Star, chipClass: "bg-[#910149] text-white", cardClass: "bg-[#910149] text-white" },
   "nett-eagle": { label: "Nett eagle", icon: Star, chipClass: "bg-[#910149] text-white", cardClass: "bg-[#910149] text-white" },
   birdie: { label: "Birdie", icon: ArrowUpCircle, chipClass: "bg-[#CB333B] text-white", cardClass: "bg-[#CB333B] text-white" },
   "moving-up": { label: "Moving up", icon: TrendingUp, chipClass: "bg-[#CB333B] text-white" },
   charge: { label: "Making a charge", icon: Flame, chipClass: "bg-[#910149] text-white" },
+  "hot-streak": { label: "Hot streak", icon: Zap, chipClass: "bg-[#910149] text-white", cardClass: "bg-[#910149] text-white" },
   bogey: { label: "Bogey", icon: ArrowDownCircle, chipClass: "bg-[#08325A] text-white", cardClass: "bg-[#08325A] text-white" },
   "double-bogey": { label: "Double bogey or worse", icon: ChevronsDown, chipClass: "bg-[#4D91C6] text-white", cardClass: "bg-[#4D91C6] text-white" },
   "moving-down": { label: "Moving down", icon: TrendingDown, chipClass: "bg-[#08325A] text-white" },
   trouble: { label: "Trouble", icon: AlertTriangle, chipClass: "bg-[#08325A] text-white" },
   "leader-falters": { label: "Leader falters", icon: Frown, chipClass: "bg-[#08325A] text-white", cardClass: "bg-[#08325A] text-white" },
+  "challenge-falters": { label: "Challenge falters", icon: Frown, chipClass: "bg-[#08325A] text-white" },
   leader: { label: "Leader", icon: Crown, chipClass: "bg-accent text-accent-foreground" },
   tie: { label: "Tie for lead", icon: Equal, chipClass: "bg-accent text-accent-foreground" },
   "lead-extends": { label: "Lead extends", icon: Rocket, chipClass: "bg-accent text-accent-foreground" },
@@ -61,6 +67,7 @@ export const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: type
   "pressure-moment": { label: "Pressure moment", icon: Timer, chipClass: "bg-accent text-accent-foreground" },
   through: { label: "Through", icon: FlagTriangleRight, chipClass: "bg-accent text-accent-foreground" },
   "clubhouse-leader": { label: "Clubhouse leader", icon: Building2, chipClass: "bg-accent text-accent-foreground" },
+  "best-gross-round": { label: "Best gross round", icon: Medal, chipClass: "bg-accent text-accent-foreground" },
   "round-complete": { label: "In the clubhouse", icon: Flag, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
   "winner-confirmed": { label: "Winner confirmed", icon: Trophy, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },
   playoff: { label: "Playoff", icon: Swords, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },

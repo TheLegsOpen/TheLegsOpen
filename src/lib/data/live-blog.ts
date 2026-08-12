@@ -10,6 +10,7 @@ import type { Player as PayloadPlayer } from "@/payload-types";
 
 export type LiveBlogCategory =
   | "ace"
+  | "albatross"
   | "eagle"
   | "nett-eagle"
   | "birdie"
@@ -17,9 +18,11 @@ export type LiveBlogCategory =
   | "double-bogey"
   | "moving-up"
   | "charge"
+  | "hot-streak"
   | "moving-down"
   | "trouble"
   | "leader-falters"
+  | "challenge-falters"
   | "leader"
   | "tie"
   | "lead-extends"
@@ -28,6 +31,7 @@ export type LiveBlogCategory =
   | "pressure-moment"
   | "through"
   | "clubhouse-leader"
+  | "best-gross-round"
   | "round-complete"
   | "winner-confirmed"
   | "playoff"

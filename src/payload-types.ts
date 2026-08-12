@@ -717,6 +717,7 @@ export interface LiveBlogPost {
   id: string;
   category:
     | "ace"
+    | "albatross"
     | "eagle"
     | "nett-eagle"
     | "birdie"
@@ -724,9 +725,11 @@ export interface LiveBlogPost {
     | "double-bogey"
     | "moving-up"
     | "charge"
+    | "hot-streak"
     | "moving-down"
     | "trouble"
     | "leader-falters"
+    | "challenge-falters"
     | "leader"
     | "tie"
     | "lead-extends"
@@ -735,6 +738,7 @@ export interface LiveBlogPost {
     | "pressure-moment"
     | "through"
     | "clubhouse-leader"
+    | "best-gross-round"
     | "round-complete"
     | "winner-confirmed"
     | "playoff"

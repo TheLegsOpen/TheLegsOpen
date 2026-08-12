@@ -42,6 +42,17 @@ function marginLabel(margin: number, unit: "shot" | "point"): string {
   return `${margin} ${unit}${margin === 1 ? "" : "s"} behind the leader`;
 }
 
+/** Three or more shots under par, gross -- previously lumped in with eagle (grossRelative <= -2), now its own rarer, bigger story. */
+export function albatrossCommentary(playerName: string, holeNumber: number): Commentary {
+  const headline = pick(["ALBATROSS!", `${playerName.split(" ").slice(-1)[0]} makes history`, "Once-in-a-lifetime"]);
+  const body = pick([
+    `${playerName} holes out for an albatross at the ${ordinal(holeNumber)} — a shot you might never see again.`,
+    `Extraordinary scenes at the ${ordinal(holeNumber)} — ${playerName} cards an albatross.`,
+    `${playerName} produces something truly special at the ${ordinal(holeNumber)}, three under the card in one.`,
+  ]);
+  return { headline, body };
+}
+
 export function eagleCommentary(playerName: string, holeNumber: number): Commentary {
   const headline = pick(["Eagle!", `${playerName.split(" ").slice(-1)[0]} soars`, "Two shots gone in one"]);
   const body = pick([
@@ -171,6 +182,17 @@ export function chargeCommentary(playerName: string, streak: number): Commentary
   return { headline, body };
 }
 
+/** Fires once, the hole a strict consecutive run first extends past chargeCommentary's 3 -- an escalation, not a replacement, so the copy should read as "still going", not restate the charge. */
+export function hotStreakCommentary(playerName: string, streak: number): Commentary {
+  const headline = pick(["Can't be stopped", `${playerName.split(" ").slice(-1)[0]} is on fire`, "Relentless"]);
+  const body = pick([
+    `${playerName} just keeps going — ${streak} holes in a row under par now, one of the great streaks of the day.`,
+    `Still under par: ${playerName} has gone ${streak} straight holes now, a genuinely rare run.`,
+    `${playerName} shows no sign of stopping — ${streak} in a row and counting.`,
+  ]);
+  return { headline, body };
+}
+
 /** Distinct from chargeCommentary -- that one asserts a strict consecutive run ("N straight holes"), which would be inaccurate for this looser "N birdies within the last `windowSize` holes" pattern (there may be a par mixed in). */
 export function birdieRunCommentary(playerName: string, birdieCount: number, windowSize: number): Commentary {
   const headline = pick(["Hot streak", `${playerName.split(" ").slice(-1)[0]} is heating up`]);
@@ -211,6 +233,17 @@ export function leaderFaltersCommentary(playerName: string, streak: number): Com
   return { headline, body };
 }
 
+/** Same idea as leaderFaltersCommentary but for a genuine challenger (within striking distance, not the outright leader) collapsing in the closing stretch -- names them specifically rather than a generic "moving down". */
+export function challengeFaltersCommentary(playerName: string, streak: number): Commentary {
+  const headline = pick(["Challenge falters", `${playerName.split(" ").slice(-1)[0]} fades`]);
+  const body = pick([
+    `${playerName}'s challenge is fading — ${streak} dropped shots in a row coming down the stretch.`,
+    `The pressure tells on ${playerName}, who has gone ${streak} holes in a row dropping shots as the finish nears.`,
+    `A real setback for ${playerName} — ${streak} straight holes lost in the closing stretch.`,
+  ]);
+  return { headline, body };
+}
+
 export function noReturnCommentary(playerName: string, holeNumber: number): Commentary {
   const headline = pick(["Picked up", `${playerName.split(" ").slice(-1)[0]} picks up`]);
   const body = pick([
@@ -230,12 +263,13 @@ export function playoffCommentary(names: string[], competitionLabel: string, sco
   return { headline, body };
 }
 
-export function leaderThroughCommentary(playerName: string, holesCompleted: number, toPar: number, tied: boolean): Commentary {
-  const headline = pick(["Through", `${playerName.split(" ").slice(-1)[0]} leads`]);
-  const shareWord = tied ? "shares the lead" : "leads";
+/** `margin` is shots behind the leader (0 for the leader themselves) -- covers both the leader's own checkpoint and a close follower's, since both now get the same single hole-10 report. */
+export function throughCommentary(playerName: string, holesCompleted: number, toPar: number, margin: number, tied: boolean): Commentary {
+  const headline = pick(["Through", `${playerName.split(" ").slice(-1)[0]}${margin === 0 ? " leads" : " stays close"}`]);
+  const positionPhrase = margin === 0 ? (tied ? "shares the lead" : "leads") : `sits ${margin} shot${margin === 1 ? "" : "s"} back`;
   const body = pick([
-    `${playerName} ${shareWord} through ${holesCompleted} at ${formatToPar(toPar)}.`,
-    `Through ${holesCompleted} holes, ${playerName} ${shareWord} at ${formatToPar(toPar)}.`,
+    `${playerName} ${positionPhrase} through ${holesCompleted} at ${formatToPar(toPar)}.`,
+    `Through ${holesCompleted} holes, ${playerName} ${positionPhrase} at ${formatToPar(toPar)}.`,
   ]);
   return { headline, body };
 }
@@ -432,6 +466,17 @@ export function clubhouseLeaderCommentary(playerName: string, toPar: number): Co
     `${playerName} is the new clubhouse leader at ${formatToPar(toPar)} — the target for those still out on the course.`,
     `${playerName} posts ${formatToPar(toPar)} to take over as clubhouse leader.`,
     `That's the new mark to beat — ${playerName} leads the clubhouse at ${formatToPar(toPar)}.`,
+  ]);
+  return { headline, body };
+}
+
+/** Mirrors clubhouseLeaderCommentary but for gross/Scratch -- the tournament's best gross round so far, live. */
+export function bestGrossRoundCommentary(playerName: string, toPar: number): Commentary {
+  const headline = pick(["Best of the day (gross)", `${playerName.split(" ").slice(-1)[0]} sets the Scratch target`]);
+  const body = pick([
+    `${playerName} posts the lowest gross round of the day so far, ${formatToPar(toPar)} — the new Scratch target.`,
+    `That's the new mark to beat, gross — ${playerName} leads the Scratch clubhouse at ${formatToPar(toPar)}.`,
+    `${playerName} sets the pace on gross scoring, in at ${formatToPar(toPar)}.`,
   ]);
   return { headline, body };
 }
