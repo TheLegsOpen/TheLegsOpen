@@ -64,14 +64,13 @@ export function eagleCommentary(playerName: string, holeNumber: number): Comment
 }
 
 export function birdieCommentary(playerName: string, holeNumber: number): Commentary {
-  const headline = pick(["Birdie", `${playerName.split(" ").slice(-1)[0]} makes a move`, "Under the card", "One back"]);
+  const headline = pick(["Birdie", `${playerName.split(" ").slice(-1)[0]} makes a move`, "One back"]);
   const body = pick([
     `${playerName} rolls in a birdie at the ${ordinal(holeNumber)}.`,
-    `A confident putt drops for ${playerName} at the ${ordinal(holeNumber)} — birdie there.`,
-    `${playerName} picks up a shot at the ${ordinal(holeNumber)}, the putt never in doubt.`,
+    `${playerName} picks up a shot at the ${ordinal(holeNumber)}.`,
     `Good hole for ${playerName} — a birdie at the ${ordinal(holeNumber)} moves them the right way.`,
-    `${playerName} finds the front of the cup at the ${ordinal(holeNumber)} for a birdie.`,
     `A shot gained for ${playerName} at the ${ordinal(holeNumber)}.`,
+    `${playerName} goes one under at the ${ordinal(holeNumber)}.`,
   ]);
   return { headline, body };
 }
@@ -94,9 +93,8 @@ export function bogeyCommentary(playerName: string, holeNumber: number): Comment
   const body = pick([
     `${playerName} drops a shot at the ${ordinal(holeNumber)}.`,
     `A bogey at the ${ordinal(holeNumber)} for ${playerName}.`,
-    `${playerName} can't get up and down at the ${ordinal(holeNumber)} — one shot gone.`,
-    `${playerName} misses the green at the ${ordinal(holeNumber)} and drops a shot.`,
     `A shot lost for ${playerName} at the ${ordinal(holeNumber)}.`,
+    `${playerName} goes one over at the ${ordinal(holeNumber)}.`,
   ]);
   return { headline, body };
 }
@@ -199,11 +197,14 @@ export function hotStreakCommentary(playerName: string, streak: number): Comment
 }
 
 /** Distinct from chargeCommentary -- that one asserts a strict consecutive run ("N straight holes"), which would be inaccurate for this looser "N birdies within the last `windowSize` holes" pattern (there may be a par mixed in). */
+/** `birdieCount` actually counts birdie-OR-BETTER holes (an eagle in the window still counts), so
+ * the copy deliberately says "sub-par holes" rather than "birdies" -- calling an eagle a birdie
+ * would be a factual error, not just loose phrasing. */
 export function birdieRunCommentary(playerName: string, birdieCount: number, windowSize: number): Commentary {
   const headline = pick(["Hot streak", `${playerName.split(" ").slice(-1)[0]} is heating up`]);
   const body = pick([
     `${playerName} has gone under par ${birdieCount} times in the last ${windowSize} holes — climbing fast.`,
-    `${birdieCount} birdies in the last ${windowSize} holes for ${playerName}. A real hot streak.`,
+    `${birdieCount} sub-par holes in the last ${windowSize} for ${playerName}. A real hot streak.`,
   ]);
   return { headline, body };
 }
@@ -412,6 +413,14 @@ export function bogeyMissLabel(relativeToPar: number): string | undefined {
   return undefined;
 }
 
+/** Mirrors bogeyMissLabel for the positive direction -- names the hole result (nett) behind a big
+ * climb up the board, the same way bogeyMissLabel names the result behind a big drop. */
+export function birdieGainLabel(relativeToPar: number): string | undefined {
+  if (relativeToPar === -1) return "birdie";
+  if (relativeToPar <= -2) return "nett eagle";
+  return undefined;
+}
+
 export function aceCommentary(playerName: string, holeNumber: number): Commentary {
   const headline = pick(["HOLE IN ONE!", `${playerName.split(" ").slice(-1)[0]} makes an ace`]);
   const body = pick([
@@ -421,30 +430,37 @@ export function aceCommentary(playerName: string, holeNumber: number): Commentar
   return { headline, body };
 }
 
-export function enterTopCommentary(playerName: string, topN: number, position: number): Commentary {
+/** `gainLabel`/`gainHole` (from birdieGainLabel + the actual hole that produced this save's best
+ * nett result), when known, name what caused the move -- matches bigDropCommentary naming the
+ * mistake behind a fall. Omitted when the move spans a save with no single clear cause (e.g. a
+ * position change with nothing better than par this save). */
+export function enterTopCommentary(playerName: string, topN: number, position: number, gainLabel?: string, gainHole?: number): Commentary {
+  const cause = gainLabel && gainHole ? ` after a ${gainLabel} at the ${ordinal(gainHole)}` : "";
   const headline = pick([`Into the top ${topN}`, `${playerName.split(" ").slice(-1)[0]} breaks into the top ${topN}`]);
   const body = pick([
-    `${playerName} moves into the top ${topN}, up to ${ordinal(position)}.`,
-    `A big move — ${playerName} climbs into the top ${topN} at ${ordinal(position)}.`,
+    `${playerName} moves into the top ${topN}${cause}, up to ${ordinal(position)}.`,
+    `A big move — ${playerName} climbs into the top ${topN} at ${ordinal(position)}${cause}.`,
   ]);
   return { headline, body };
 }
 
-export function bigGainCommentary(playerName: string, positionsGained: number, position: number): Commentary {
+export function bigGainCommentary(playerName: string, positionsGained: number, position: number, gainLabel?: string, gainHole?: number): Commentary {
+  const cause = gainLabel && gainHole ? ` with a ${gainLabel} at the ${ordinal(gainHole)}` : "";
   const headline = pick(["Big mover", `${playerName.split(" ").slice(-1)[0]} surges up the board`]);
   const body = pick([
-    `${playerName} climbs ${positionsGained} places to ${ordinal(position)}.`,
-    `A real surge — ${playerName} moves up ${positionsGained} spots to ${ordinal(position)}.`,
+    `${playerName} climbs ${positionsGained} places to ${ordinal(position)}${cause}.`,
+    `A real surge — ${playerName} moves up ${positionsGained} spots to ${ordinal(position)}${cause}.`,
   ]);
   return { headline, body };
 }
 
-/** `missLabel` (e.g. "double bogey"), when known, names the mistake that caused the fall -- matches the pattern the field's example used ("A costly double bogey drops ... from second to eighth."). */
-export function bigDropCommentary(playerName: string, beforePosition: number, afterPosition: number, missLabel?: string): Commentary {
+/** `missLabel` (e.g. "double bogey"), when known, names the mistake that caused the fall -- matches the pattern the field's example used ("A costly double bogey drops ... from second to eighth."). `missHole`, when also known, names where. */
+export function bigDropCommentary(playerName: string, beforePosition: number, afterPosition: number, missLabel?: string, missHole?: number): Commentary {
   const fromTo = `from ${ordinal(beforePosition)} to ${ordinal(afterPosition)}`;
+  const at = missHole ? ` at the ${ordinal(missHole)}` : "";
   const headline = pick(["Costly spell", `${playerName.split(" ").slice(-1)[0]} slips back`]);
   const body = missLabel
-    ? pick([`A costly ${missLabel} drops ${playerName} ${fromTo}.`, `${playerName} tumbles ${fromTo} after a ${missLabel}.`])
+    ? pick([`A costly ${missLabel}${at} drops ${playerName} ${fromTo}.`, `${playerName} tumbles ${fromTo} after a ${missLabel}${at}.`])
     : pick([`${playerName} slips ${fromTo} after a tough stretch.`, `A difficult spell sees ${playerName} fall ${fromTo}.`]);
   return { headline, body };
 }

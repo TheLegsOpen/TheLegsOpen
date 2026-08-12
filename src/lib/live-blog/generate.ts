@@ -15,6 +15,7 @@ import {
   bogeyCommentary,
   doubleBogeyCommentary,
   bogeyMissLabel,
+  birdieGainLabel,
   roundCompleteCommentary,
   competitionUnderwayCommentary,
   lastGroupOutCommentary,
@@ -264,6 +265,9 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
   const scratchEntry = scratchEntries.find((e) => String(e.player.id) === String(playerId));
 
   let worstRelativeThisSave: number | undefined;
+  let worstHoleThisSave: number | undefined;
+  let bestRelativeThisSave: number | undefined;
+  let bestHoleThisSave: number | undefined;
 
   // A no-return on any hole disqualifies the whole card for Main/Scratch (Stableford keeps
   // accumulating -- see computeScorecardTotals). Announce the moment it happens, once, then stop
@@ -314,6 +318,11 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
 
     if (nettRelative !== undefined && nettRelative >= 1 && (worstRelativeThisSave === undefined || nettRelative > worstRelativeThisSave)) {
       worstRelativeThisSave = nettRelative;
+      worstHoleThisSave = holeNumber;
+    }
+    if (nettRelative !== undefined && nettRelative <= -1 && (bestRelativeThisSave === undefined || nettRelative < bestRelativeThisSave)) {
+      bestRelativeThisSave = nettRelative;
+      bestHoleThisSave = holeNumber;
     }
 
     if (newStrokes === 1) {
@@ -795,15 +804,17 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
 
   if (snapshots) {
     // Significant Main leaderboard movement for this player: into the top 5/10, or a 5+ position
-    // swing either way. `worstRelativeThisSave` (tracked in the per-hole loop above) names the
-    // mistake behind a fall when there is one, matching "a costly double bogey drops ... from
-    // second to eighth."
+    // swing either way. `worstRelativeThisSave`/`bestRelativeThisSave` (tracked in the per-hole
+    // loop above) name the actual hole result behind the move when there is one, matching "a
+    // costly double bogey at the 12th drops ... from second to eighth" -- both are read directly
+    // off this save's own hole data, never invented.
     // A no-return causes a real Main position collapse, but it's already covered by its own
     // announcement above -- not a "costly double bogey" story, so skip movement detection for it.
     const movement = mainEntry?.noReturn ? undefined : diffPositionMovement(snapshots.before.main, snapshots.after.main, playerId as string);
     if (movement) {
+      const gainLabel = bestRelativeThisSave !== undefined ? birdieGainLabel(bestRelativeThisSave) : undefined;
       if (movement.kind === "enter-top-5" || movement.kind === "enter-top-10") {
-        const { headline, body } = enterTopCommentary(player.name, movement.kind === "enter-top-5" ? 5 : 10, movement.position);
+        const { headline, body } = enterTopCommentary(player.name, movement.kind === "enter-top-5" ? 5 : 10, movement.position, gainLabel, bestHoleThisSave);
         await publish({
           category: "moving-up",
           championshipId: championshipId as string,
@@ -822,7 +833,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           },
         });
       } else if (movement.kind === "big-gain") {
-        const { headline, body } = bigGainCommentary(player.name, movement.positionsChanged, movement.position);
+        const { headline, body } = bigGainCommentary(player.name, movement.positionsChanged, movement.position, gainLabel, bestHoleThisSave);
         await publish({
           category: "moving-up",
           championshipId: championshipId as string,
@@ -842,7 +853,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         });
       } else if (movement.kind === "big-drop") {
         const missLabel = worstRelativeThisSave !== undefined ? bogeyMissLabel(worstRelativeThisSave) : undefined;
-        const { headline, body } = bigDropCommentary(player.name, movement.beforePosition, movement.position, missLabel);
+        const { headline, body } = bigDropCommentary(player.name, movement.beforePosition, movement.position, missLabel, worstHoleThisSave);
         await publish({
           category: "moving-down",
           championshipId: championshipId as string,

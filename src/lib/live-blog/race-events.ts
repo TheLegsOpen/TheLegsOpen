@@ -140,9 +140,24 @@ export async function buildRaceTrackerCandidates(
     }
   }
 
+  // Becoming the leader or tying for it already implies "entering contention" in the strongest
+  // possible sense -- reporting both for the same (player, competition) in the same save reads as
+  // a redundant, weaker retelling of the moment that just happened. Drop the entering-contention
+  // outcome for any competition already covered by a leader/tie event for the same player here.
+  for (const group of grouped.values()) {
+    if (group.kind !== "entering-contention") continue;
+    const leaderGroup = grouped.get(`new-leader:${group.playerId}`);
+    const tieGroup = grouped.get(`tie-for-lead:${group.playerId}`);
+    const covered = new Set([...(leaderGroup?.outcomes.map((o) => o.competition) ?? []), ...(tieGroup?.outcomes.map((o) => o.competition) ?? [])]);
+    if (covered.size > 0) {
+      group.outcomes = group.outcomes.filter((o) => !covered.has(o.competition));
+    }
+  }
+
   const candidates: TriggerCandidate[] = [];
 
   for (const { kind, playerId, playerName, outcomes } of grouped.values()) {
+    if (outcomes.length === 0) continue;
     const competitions = outcomes.map((o) => o.competition);
     const labels = competitions.map((c) => COMPETITION_LABEL[c]);
     const thru = outcomes[0].candidate.thru;
