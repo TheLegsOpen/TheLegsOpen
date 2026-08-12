@@ -64,12 +64,14 @@ export function eagleCommentary(playerName: string, holeNumber: number): Comment
 }
 
 export function birdieCommentary(playerName: string, holeNumber: number): Commentary {
-  const headline = pick(["Birdie", `${playerName.split(" ").slice(-1)[0]} makes a move`, "Under the card"]);
+  const headline = pick(["Birdie", `${playerName.split(" ").slice(-1)[0]} makes a move`, "Under the card", "One back"]);
   const body = pick([
     `${playerName} rolls in a birdie at the ${ordinal(holeNumber)}.`,
     `A confident putt drops for ${playerName} at the ${ordinal(holeNumber)} — birdie there.`,
     `${playerName} picks up a shot at the ${ordinal(holeNumber)}, the putt never in doubt.`,
     `Good hole for ${playerName} — a birdie at the ${ordinal(holeNumber)} moves them the right way.`,
+    `${playerName} finds the front of the cup at the ${ordinal(holeNumber)} for a birdie.`,
+    `A shot gained for ${playerName} at the ${ordinal(holeNumber)}.`,
   ]);
   return { headline, body };
 }
@@ -88,11 +90,13 @@ export function nettEagleCommentary(playerName: string, holeNumber: number): Com
 }
 
 export function bogeyCommentary(playerName: string, holeNumber: number): Commentary {
-  const headline = pick(["Bogey", "Shot dropped"]);
+  const headline = pick(["Bogey", "Shot dropped", `${playerName.split(" ").slice(-1)[0]} slips`]);
   const body = pick([
     `${playerName} drops a shot at the ${ordinal(holeNumber)}.`,
     `A bogey at the ${ordinal(holeNumber)} for ${playerName}.`,
     `${playerName} can't get up and down at the ${ordinal(holeNumber)} — one shot gone.`,
+    `${playerName} misses the green at the ${ordinal(holeNumber)} and drops a shot.`,
+    `A shot lost for ${playerName} at the ${ordinal(holeNumber)}.`,
   ]);
   return { headline, body };
 }
@@ -163,11 +167,12 @@ export function lastGroupOutCommentary(venueName: string): Commentary {
 }
 
 export function movingUpCommentary(playerName: string): Commentary {
-  const headline = pick(["Moving up", `${playerName.split(" ").slice(-1)[0]} on the move`]);
+  const headline = pick(["Moving up", `${playerName.split(" ").slice(-1)[0]} on the move`, "Climbing"]);
   const body = pick([
     `${playerName} has gone under par on two straight holes — climbing the leaderboard.`,
     `Back-to-back birdies for ${playerName}, who's moving up the leaderboard.`,
     `Two in a row for ${playerName} — a real move up the standings.`,
+    `${playerName} finds some form, under par on two in a row.`,
   ]);
   return { headline, body };
 }
@@ -270,6 +275,8 @@ export function throughCommentary(playerName: string, holesCompleted: number, to
   const body = pick([
     `${playerName} ${positionPhrase} through ${holesCompleted} at ${formatToPar(toPar)}.`,
     `Through ${holesCompleted} holes, ${playerName} ${positionPhrase} at ${formatToPar(toPar)}.`,
+    `Checkpoint: ${playerName} ${positionPhrase} through ${holesCompleted}, at ${formatToPar(toPar)}.`,
+    `${holesCompleted} down, ${18 - holesCompleted} to play — ${playerName} ${positionPhrase} at ${formatToPar(toPar)}.`,
   ]);
   return { headline, body };
 }
@@ -283,11 +290,12 @@ export function tieCommentary(
 ): Commentary {
   const suffix = thruSuffix(thru);
   const withOthers = otherLeaderNames.length > 0 ? ` with ${joinNames(otherLeaderNames)}` : "";
-  const headline = pick(["Tie at the top", `${playerName.split(" ").slice(-1)[0]} draws level`]);
+  const headline = pick(["Tie at the top", `${playerName.split(" ").slice(-1)[0]} draws level`, "Level at the summit"]);
   const body = pick([
     `${playerName} joins the lead in the ${competitionLabel} competition${withOthers} at ${scoreLabel}${suffix}.`,
     `We have a share of the lead — ${playerName} moves level at the top${withOthers} on ${scoreLabel}${suffix}.`,
     `${playerName} draws level at the summit of the ${competitionLabel} standings${withOthers}, on ${scoreLabel}${suffix}.`,
+    `${playerName} catches up${withOthers} at the top of the ${competitionLabel} leaderboard, ${scoreLabel}${suffix}.`,
   ]);
   return { headline, body };
 }
@@ -306,11 +314,12 @@ export function tieCommentaryMulti(playerName: string, competitionLabels: string
 
 export function leadExtendsCommentary(playerName: string, leadMargin: number, competitionLabel: string, thru?: string): Commentary {
   const suffix = thruSuffix(thru);
-  const headline = pick(["Advantage grows", `${playerName.split(" ").slice(-1)[0]} pulls clear`]);
+  const headline = pick(["Advantage grows", `${playerName.split(" ").slice(-1)[0]} pulls clear`, "Stretching away"]);
   const body = pick([
     `${playerName} extends the ${competitionLabel} lead to ${leadMargin}${suffix}.`,
     `The gap grows — ${playerName} now leads by ${leadMargin} in the ${competitionLabel} competition${suffix}.`,
     `${playerName} stretches clear at the top, the lead now out to ${leadMargin}${suffix}.`,
+    `${playerName} opens up some daylight, the ${competitionLabel} lead now ${leadMargin}${suffix}.`,
   ]);
   return { headline, body };
 }
@@ -334,11 +343,12 @@ export function enteringContentionCommentary(
   thru?: string,
 ): Commentary {
   const detail = ` They lie ${marginLabel(margin, unit)}${thruSuffix(thru)}.`;
-  const headline = pick(["Into contention", `${playerName.split(" ").slice(-1)[0]} joins the race`]);
+  const headline = pick(["Into contention", `${playerName.split(" ").slice(-1)[0]} joins the race`, "In the mix"]);
   const body = pick([
     `${playerName} moves into the ${competitionLabel} race.${detail}`,
     `${playerName} is now firmly in contention in the ${competitionLabel} competition.${detail}`,
     `A real move — ${playerName} climbs into the ${competitionLabel} race.${detail}`,
+    `${playerName} is right in the mix in the ${competitionLabel} competition now.${detail}`,
   ]);
   return { headline, body };
 }
@@ -368,11 +378,12 @@ export function leavingContentionCommentary(
   thru?: string,
 ): Commentary {
   const detail = ` They're now ${marginLabel(margin, unit)}${thruSuffix(thru)}.`;
-  const headline = pick(["Pressure eases", `${playerName.split(" ").slice(-1)[0]} drops back`]);
+  const headline = pick(["Pressure eases", `${playerName.split(" ").slice(-1)[0]} drops back`, "Falling away"]);
   const body = pick([
     `${playerName} drops outside the ${competitionLabel} race.${detail}`,
     `${playerName} slips out of contention in the ${competitionLabel} competition.${detail}`,
     `The gap tells — ${playerName} falls back from the ${competitionLabel} race.${detail}`,
+    `${playerName} loses touch with the ${competitionLabel} lead.${detail}`,
   ]);
   return { headline, body };
 }
@@ -438,12 +449,14 @@ export function bigDropCommentary(playerName: string, beforePosition: number, af
   return { headline, body };
 }
 
-export function pressureMomentCommentary(playerName: string, margin: number, unit: "shot" | "point", competitionLabel: string): Commentary {
+/** Fires on entry to holes 16-18, not just the 18th -- copy names the actual hole rather than
+ * claiming "the last", which used to read as inaccurate for a hole-16 or hole-17 trigger. */
+export function pressureMomentCommentary(playerName: string, holeNumber: number, margin: number, unit: "shot" | "point", competitionLabel: string): Commentary {
   const marginLabel = margin === 0 ? `level with the lead` : `${margin} ${unit}${margin === 1 ? "" : "s"} off the lead`;
-  const headline = pick(["Pressure moment", `${playerName.split(" ").slice(-1)[0]} reaches the last`]);
+  const headline = pick(["Pressure moment", `${playerName.split(" ").slice(-1)[0]} enters the closing stretch`]);
   const body = pick([
-    `${playerName} reaches the final hole ${marginLabel} in the ${competitionLabel} competition.`,
-    `Down to the last for ${playerName}, ${marginLabel}.`,
+    `${playerName} reaches the ${ordinal(holeNumber)} ${marginLabel} in the ${competitionLabel} competition.`,
+    `Into the closing holes for ${playerName}, ${marginLabel} at the ${ordinal(holeNumber)}.`,
   ]);
   return { headline, body };
 }

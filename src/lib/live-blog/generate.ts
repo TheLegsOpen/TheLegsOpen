@@ -379,7 +379,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           competition: "scratch",
         },
       });
-    } else if (nettRelative !== undefined && nettRelative <= -2) {
+    } else if (nettRelative !== undefined && nettRelative <= -2 && inStrikingDistance) {
       const { headline, body } = nettEagleCommentary(player.name, holeNumber);
       await publish({
         category: "nett-eagle",
@@ -388,8 +388,8 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         playerName: player.name,
         holeNumber,
         saveNonce: holeNonce,
-        significance: { category: "nett-eagle", inContention: inStrikingDistance, holesRemaining },
-        criticalOverride: inStrikingDistance,
+        significance: { category: "nett-eagle", inContention: true, holesRemaining },
+        criticalOverride: true,
         post: {
           category: "nett-eagle",
           headline,
@@ -401,7 +401,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           competition: "main",
         },
       });
-    } else if (nettRelative !== undefined && nettRelative === -1) {
+    } else if (nettRelative !== undefined && nettRelative === -1 && inStrikingDistance) {
       const { headline, body } = birdieCommentary(player.name, holeNumber);
       await publish({
         category: "birdie",
@@ -410,8 +410,8 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         playerName: player.name,
         holeNumber,
         saveNonce: holeNonce,
-        significance: { category: "birdie", inContention: inStrikingDistance, holesRemaining },
-        criticalOverride: inStrikingDistance,
+        significance: { category: "birdie", inContention: true, holesRemaining },
+        criticalOverride: true,
         post: {
           category: "birdie",
           headline,
@@ -423,7 +423,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           competition: "main",
         },
       });
-    } else if (nettRelative !== undefined && nettRelative === 1) {
+    } else if (nettRelative !== undefined && nettRelative === 1 && inStrikingDistance) {
       const { headline, body } = bogeyCommentary(player.name, holeNumber);
       await publish({
         category: "bogey",
@@ -432,8 +432,8 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         playerName: player.name,
         holeNumber,
         saveNonce: holeNonce,
-        significance: { category: "bogey", inContention: inStrikingDistance, holesRemaining },
-        criticalOverride: inStrikingDistance,
+        significance: { category: "bogey", inContention: true, holesRemaining },
+        criticalOverride: true,
         post: {
           category: "bogey",
           headline,
@@ -445,7 +445,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           competition: "main",
         },
       });
-    } else if (nettRelative !== undefined && nettRelative >= 2) {
+    } else if (nettRelative !== undefined && nettRelative >= 2 && inStrikingDistance) {
       const { headline, body } = doubleBogeyCommentary(player.name, holeNumber, nettRelative);
       await publish({
         category: "double-bogey",
@@ -454,8 +454,8 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         playerName: player.name,
         holeNumber,
         saveNonce: holeNonce,
-        significance: { category: "double-bogey", inContention: inStrikingDistance, holesRemaining },
-        criticalOverride: inStrikingDistance,
+        significance: { category: "double-bogey", inContention: true, holesRemaining },
+        criticalOverride: true,
         post: {
           category: "double-bogey",
           headline,
@@ -872,12 +872,13 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
     const enteringPressureWindow = (doc.holesCompleted ?? 0) >= PRESSURE_WINDOW_START && (previousDoc?.holesCompleted ?? 0) < PRESSURE_WINDOW_START;
     const inPressureMomentRange = mainEntry?.position === 1 || (marginToLeader !== undefined && marginToLeader <= WITHIN_TWO_SHOTS);
     if (progressed && enteringPressureWindow && mainEntry && inPressureMomentRange) {
-      const { headline, body } = pressureMomentCommentary(player.name, marginToLeader ?? 0, "shot", "Main");
+      const { headline, body } = pressureMomentCommentary(player.name, doc.holesCompleted ?? 0, marginToLeader ?? 0, "shot", "Main");
       await publish({
         category: "pressure-moment",
         championshipId: championshipId as string,
         playerId: playerId as string,
         playerName: player.name,
+        holeNumber: doc.holesCompleted ?? 0,
         saveNonce: `${saveNonce}:pressure-moment`,
         significance: { category: "pressure-moment", inContention: true, holesRemaining: 18 - (doc.holesCompleted ?? 0) },
         post: {
@@ -886,6 +887,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           body,
           championship: championshipId as string,
           player: playerId as string,
+          holeNumber: doc.holesCompleted ?? 0,
           scoreRelative: mainEntry.toPar ?? undefined,
           competition: "main",
         },

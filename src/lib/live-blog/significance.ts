@@ -181,6 +181,7 @@ const HOLE_CITING_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<TriggerCate
   "bogey",
   "double-bogey",
   "no-return",
+  "pressure-moment",
 ]);
 
 export function citesHoleNumber(category: TriggerCategory): boolean {
