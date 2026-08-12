@@ -26,12 +26,13 @@ export function scorePillClass(relativeToPar: number): string {
   return "bg-white text-[#08325A]";
 }
 
-/** Per-hole colours — full eagle/birdie/par/bogey-or-worse scale, only meaningful at the single-hole level. Par is a neutral grey here (rather than the round-total pill's dark green) since with 18 small cells in a row, dark green and dark navy (bogey) read as nearly the same colour -- grey stays clearly distinct from every other tier. */
+/** Per-hole colours — full eagle/birdie/par/bogey/double-bogey-or-worse scale, only meaningful at the single-hole level. Par is a neutral grey here (rather than the round-total pill's dark green) since with 18 small cells in a row, dark green and dark navy (bogey) read as nearly the same colour -- grey stays clearly distinct from every other tier. Double bogey or worse gets its own lighter blue (rather than reusing bogey's navy) so a genuinely bad hole reads as visually distinct from an ordinary one-shot bogey. */
 export function holeScorePillClass(relativeToPar: number): string {
   if (relativeToPar <= -2) return "bg-[#910149] text-white";
   if (relativeToPar === -1) return "bg-[#CB333B] text-white";
   if (relativeToPar === 0) return "bg-[#B0B0B0] text-black";
-  return "bg-[#08325A] text-white";
+  if (relativeToPar === 1) return "bg-[#08325A] text-white";
+  return "bg-[#4D91C6] text-white";
 }
 
 const COMPETITION_LABEL: Record<Competition, string> = {

@@ -47,9 +47,12 @@ export const LiveBlogConfig: GlobalConfig = {
       name: "maxPostsPerHour",
       type: "number",
       required: true,
-      defaultValue: 8,
+      defaultValue: 16,
       min: 1,
-      admin: { description: "Ceiling on automated posts per championship per rolling hour. Same bypass list as the cooldown above." },
+      admin: {
+        description:
+          "Ceiling on automated posts per championship per rolling hour. Same bypass list as the cooldown above. 8 (the old default) was untested at real pacing -- a full 18-hole replay with several groups posting concurrently hit the cap repeatedly even at 100. 16 is a more realistic starting point for a real event.",
+      },
     },
   ],
 };

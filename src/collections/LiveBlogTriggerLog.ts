@@ -42,6 +42,7 @@ export const LiveBlogTriggerLog: CollectionConfig = {
         { label: "Max posts per hour", value: "MAX_PER_HOUR" },
         { label: "Duplicate candidate", value: "DUPLICATE" },
         { label: "Fact validation failed", value: "FACT_VALIDATION_FAILED" },
+        { label: "Lower priority than another candidate for this player", value: "LOWER_PRIORITY" },
       ],
     },
     { name: "post", type: "relationship", relationTo: "live-blog-posts", admin: { readOnly: true, description: "The published post this candidate produced, if any." } },

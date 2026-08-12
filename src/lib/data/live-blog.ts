@@ -11,8 +11,10 @@ import type { Player as PayloadPlayer } from "@/payload-types";
 export type LiveBlogCategory =
   | "ace"
   | "eagle"
+  | "nett-eagle"
   | "birdie"
   | "bogey"
+  | "double-bogey"
   | "moving-up"
   | "charge"
   | "moving-down"

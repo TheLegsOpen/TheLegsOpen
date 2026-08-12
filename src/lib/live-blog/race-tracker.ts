@@ -37,11 +37,16 @@ export interface RaceCandidate {
   otherLeaderNames?: string[];
 }
 
-/** How many holes (or points, for Stableford) back of the lead still counts as "in the race". Main tightens on the closing holes. */
+/** How many holes (or points, for Stableford) back of the lead still counts as "in the race". All three tighten on the closing holes -- Stableford/Scratch previously stayed flat at every stage, which is why a player 5 points back with half the round still to play kept getting flagged as "entering contention". */
 function contentionMargin(competition: Competition, holesRemaining: number): number {
-  if (competition === "stableford") return 5;
-  if (competition === "scratch") return 3;
+  if (competition === "stableford") return holesRemaining <= 6 ? 2 : 5;
+  if (competition === "scratch") return holesRemaining <= 6 ? 1 : 3;
   return holesRemaining <= 6 ? 1 : 3;
+}
+
+/** Stableford/Scratch also require a top-5 position, not just a close margin -- being "technically" 3 points back while sitting 9th isn't a real contention story. Main doesn't need this: its tighter margin already keeps the member list close to the leading edge. */
+function contentionRankCeiling(competition: Competition): number {
+  return competition === "main" ? Number.POSITIVE_INFINITY : 5;
 }
 
 function holesRemaining(entry: CompetitionEntry): number {
@@ -129,12 +134,19 @@ export interface MovementCandidate {
 
 const BIG_MOVE_THRESHOLD = 5;
 
+/** Entering the top 5/10 only counts as a contention story within this many shots of the lead --
+ * being technically top-10 while 12 shots back isn't a real title story. A big-gain/big-drop of
+ * 5+ places is still worth a post regardless of margin (that's a story about the player's own
+ * round, not about the title race), so this only gates the two top-N tiers. */
+const ENTRY_MARGIN_CEILING = 4;
+
 /**
  * One player's position change on a single leaderboard (Main only, in practice -- see
  * generate.ts) between the before/after snapshot. Only fires for genuinely large swings: moving
- * into the top 5 or top 10, or a 5+ position gain/drop -- small week-to-week jitter in a 36-40
- * player field isn't worth a post. Both entries must be `started`, so a not-yet-teed-off
- * player's baseline sort position doesn't register as a "move" once they actually begin.
+ * into the top 5 or top 10 (within striking distance of the lead), or a 5+ position gain/drop --
+ * small week-to-week jitter in a 36-40 player field isn't worth a post. Both entries must be
+ * `started`, so a not-yet-teed-off player's baseline sort position doesn't register as a "move"
+ * once they actually begin.
  */
 export function diffPositionMovement(
   beforeEntries: CompetitionEntry[],
@@ -145,11 +157,19 @@ export function diffPositionMovement(
   const after = afterEntries.find((e) => e.player.id === playerId);
   if (!before || !after || !before.started || !after.started) return undefined;
 
+  const leaderValue = afterEntries
+    .filter((e) => e.started && !e.noReturn)
+    .reduce((best, e) => {
+      const v = metricValue(e, "main");
+      return v < best ? v : best;
+    }, metricValue(after, "main"));
+  const withinStrikingDistance = marginBehind(metricValue(after, "main"), leaderValue, "main") <= ENTRY_MARGIN_CEILING;
+
   const gained = before.position - after.position;
   if (gained > 0) {
     const base = { playerId, playerName: after.player.name, beforePosition: before.position, position: after.position, positionsChanged: gained };
-    if (before.position > 5 && after.position <= 5) return { ...base, kind: "enter-top-5" };
-    if (before.position > 10 && after.position <= 10) return { ...base, kind: "enter-top-10" };
+    if (before.position > 5 && after.position <= 5 && withinStrikingDistance) return { ...base, kind: "enter-top-5" };
+    if (before.position > 10 && after.position <= 10 && withinStrikingDistance) return { ...base, kind: "enter-top-10" };
     if (gained >= BIG_MOVE_THRESHOLD) return { ...base, kind: "big-gain" };
     return undefined;
   }

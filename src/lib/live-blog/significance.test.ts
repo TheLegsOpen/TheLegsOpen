@@ -155,3 +155,34 @@ describe("computeSignificance — playoff and leader-falters", () => {
     expect(computeSignificance({ category: "leader-falters", inContention: false })).toBeGreaterThanOrEqual(80);
   });
 });
+
+describe("computeSignificance — Stableford/Scratch secondary-competition penalty", () => {
+  it("scores a Stableford tie lower than the same tie on Main", () => {
+    const main = computeSignificance({ category: "tie", inContention: true, competition: "main" });
+    const stableford = computeSignificance({ category: "tie", inContention: true, competition: "stableford" });
+    expect(stableford).toBeLessThan(main);
+  });
+
+  it("scores a Scratch leader lower than the same lead change on Main", () => {
+    const main = computeSignificance({ category: "leader", inContention: true, competition: "main" });
+    const scratch = computeSignificance({ category: "leader", inContention: true, competition: "scratch" });
+    expect(scratch).toBeLessThan(main);
+  });
+
+  it("does not penalize a merged multi-competition post (no single competition set)", () => {
+    const merged = computeSignificance({ category: "tie", inContention: true });
+    const main = computeSignificance({ category: "tie", inContention: true, competition: "main" });
+    expect(merged).toBe(main);
+  });
+
+  it("does not penalize categories that are always tied to one competition by construction (birdie is always Main, ace is always Scratch)", () => {
+    expect(computeSignificance({ category: "birdie", inContention: true })).toBe(computeSignificance({ category: "birdie", inContention: true, competition: "main" }));
+    expect(computeSignificance({ category: "ace", inContention: true })).toBe(computeSignificance({ category: "ace", inContention: true, competition: "scratch" }));
+  });
+
+  it("does not penalize winner-confirmed or playoff even on a secondary competition -- announcing the Stableford champion still matters", () => {
+    const main = computeSignificance({ category: "winner-confirmed", inContention: true, competition: "main" });
+    const stableford = computeSignificance({ category: "winner-confirmed", inContention: true, competition: "stableford" });
+    expect(stableford).toBe(main);
+  });
+});

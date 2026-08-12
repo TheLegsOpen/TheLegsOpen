@@ -2,15 +2,17 @@ import type { CollectionAfterChangeHook, PayloadRequest } from "payload";
 
 import { getCompetitionLeaderboard, getLeaderboardSnapshotPair, parseTeeTimeMinutes } from "@/lib/data/scorecards";
 import { getLiveBlogConfig } from "@/lib/data/live-blog";
-import { evaluateAndPublish, type TriggerCandidate } from "@/lib/live-blog/publication-policy";
-import { generateRaceTrackerPosts } from "@/lib/live-blog/race-events";
-import { generateWinnerConfirmedPosts } from "@/lib/live-blog/winner-confirmed";
+import { evaluateAndPublish, findLowerPriorityCandidates, type TriggerCandidate } from "@/lib/live-blog/publication-policy";
+import { buildRaceTrackerCandidates } from "@/lib/live-blog/race-events";
+import { buildWinnerConfirmedCandidates } from "@/lib/live-blog/winner-confirmed";
 import { buildRaceTracker, diffPositionMovement } from "@/lib/live-blog/race-tracker";
 import {
   aceCommentary,
   eagleCommentary,
+  nettEagleCommentary,
   birdieCommentary,
   bogeyCommentary,
+  doubleBogeyCommentary,
   bogeyMissLabel,
   roundCompleteCommentary,
   competitionUnderwayCommentary,
@@ -32,6 +34,11 @@ import {
 import type { Scorecard, Player, Championship, Venue, LiveBlogPost } from "@/payload-types";
 
 const TOP_10 = 10;
+/** "Leading, or within this many nett shots of the leader" -- the always-show threshold for the
+ * four per-hole Main categories (nett eagle-or-better, birdie, bogey, double-bogey-or-worse).
+ * Deliberately margin-based rather than position-based: a player 3 shots back in 9th is still a
+ * real part of the story; someone 8 shots back in 4th (a thin, bunched field) is not. */
+const STRIKING_DISTANCE = 3;
 
 /** Walks backward from `index` counting consecutive holes all under (or all over) par. Stops at the first unplayed or opposite-direction hole. */
 function trailingStreak(relatives: (number | undefined)[], index: number, direction: "under" | "over"): number {
@@ -81,12 +88,18 @@ function birdiesInWindow(relatives: (number | undefined)[], index: number, windo
  * makes a gross bogey but receives a stroke on that hole nets a birdie in Main terms, and that's
  * the story that matters for these categories (a gross-only view previously missed it entirely).
  *
- * Every candidate below is routed through evaluateAndPublish (publication-policy.ts) rather than
- * created directly -- that's the single gate that scores significance, applies the cooldown/
- * max-per-hour throttle, dedups via a unique fingerprint, validates the generated copy, and
- * writes an observability row to live-blog-trigger-log, all without changing the detection logic
- * itself. A failure anywhere in that gate is caught internally and never propagates here, so a
- * live-blog problem can never roll back or block the scorecard save.
+ * Every candidate below is collected into `candidates` (via the local `publish` helper) rather
+ * than published as it's detected. Once every source for this save has run -- the per-hole loop,
+ * movement, pressure-moment, and the Race Tracker/winner-confirmed candidates built by
+ * race-events.ts/winner-confirmed.ts -- the full set is run through findLowerPriorityCandidates
+ * (publication-policy.ts) once, which keeps only the single highest-significance non-critical
+ * candidate per player for this save (a birdie, the streak it just completed, and newly entering
+ * contention no longer publish as three separate posts for the same moment). Only then does each
+ * candidate go through evaluateAndPublish, the single gate that scores significance, applies the
+ * cooldown/max-per-hour throttle, dedups via a unique fingerprint, validates the generated copy,
+ * and writes an observability row to live-blog-trigger-log. A failure anywhere in that gate is
+ * caught internally and never propagates here, so a live-blog problem can never roll back or
+ * block the scorecard save.
  */
 export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async ({ doc, previousDoc, req, operation, context }) => {
   if (operation !== "update") return doc;
@@ -113,7 +126,10 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
 
   const config = await getLiveBlogConfig(req);
   const saveNonce = doc.scoreUpdatedAt;
-  const publish = (candidate: TriggerCandidate) => evaluateAndPublish(req, candidate, config);
+  const candidates: TriggerCandidate[] = [];
+  const publish = (candidate: TriggerCandidate) => {
+    candidates.push(candidate);
+  };
 
   const player = (typeof doc.player === "object"
     ? doc.player
@@ -198,6 +214,17 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
   const snapshots = previousDoc ? await getLeaderboardSnapshotPair(req, doc.id, previousDoc) : undefined;
   const mainEntries = snapshots?.after.main ?? (await getCompetitionLeaderboard("main", req));
   const mainEntry = mainEntries.find((e) => String(e.player.id) === String(playerId));
+  // Margin-based, not position-based: the four per-hole Main categories (nett eagle-or-better,
+  // birdie, bogey, double-bogey) always show for the leader or anyone within STRIKING_DISTANCE
+  // shots of them, regardless of raw position -- a player 3 back in 9th is still part of the
+  // story; someone 8 back in 4th (a thin, bunched field) is not.
+  const startedMainEntries = mainEntries.filter((e) => e.started && !e.noReturn);
+  const leaderToPar = startedMainEntries.length > 0 ? Math.min(...startedMainEntries.map((e) => e.toPar ?? Infinity)) : undefined;
+  const marginToLeader = mainEntry?.toPar !== undefined && leaderToPar !== undefined ? mainEntry.toPar - leaderToPar : undefined;
+  const inStrikingDistance = marginToLeader !== undefined && marginToLeader <= STRIKING_DISTANCE;
+  // The streak/momentum categories below keep the looser top-10: a player charging from outside
+  // the top 10 towards it is exactly the "climbing the leaderboard" story worth telling, even
+  // before they're within striking distance of the lead.
   const inTop10 = (mainEntry?.position ?? Infinity) <= TOP_10;
   const isSoleLeader = mainEntry?.position === 1 && !mainEntry?.tied;
 
@@ -306,7 +333,29 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           competition: "scratch",
         },
       });
-    } else if (nettRelative !== undefined && nettRelative <= -1) {
+    } else if (nettRelative !== undefined && nettRelative <= -2) {
+      const { headline, body } = nettEagleCommentary(player.name, holeNumber);
+      await publish({
+        category: "nett-eagle",
+        championshipId: championshipId as string,
+        playerId: playerId as string,
+        playerName: player.name,
+        holeNumber,
+        saveNonce: holeNonce,
+        significance: { category: "nett-eagle", inContention: inStrikingDistance, holesRemaining },
+        criticalOverride: inStrikingDistance,
+        post: {
+          category: "nett-eagle",
+          headline,
+          body,
+          championship: championshipId as string,
+          player: playerId as string,
+          holeNumber,
+          scoreRelative: mainEntry?.toPar ?? undefined,
+          competition: "main",
+        },
+      });
+    } else if (nettRelative !== undefined && nettRelative === -1) {
       const { headline, body } = birdieCommentary(player.name, holeNumber);
       await publish({
         category: "birdie",
@@ -315,7 +364,8 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         playerName: player.name,
         holeNumber,
         saveNonce: holeNonce,
-        significance: { category: "birdie", inContention: inTop10, holesRemaining },
+        significance: { category: "birdie", inContention: inStrikingDistance, holesRemaining },
+        criticalOverride: inStrikingDistance,
         post: {
           category: "birdie",
           headline,
@@ -327,8 +377,8 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           competition: "main",
         },
       });
-    } else if (nettRelative !== undefined && nettRelative >= 1) {
-      const { headline, body } = bogeyCommentary(player.name, holeNumber, nettRelative);
+    } else if (nettRelative !== undefined && nettRelative === 1) {
+      const { headline, body } = bogeyCommentary(player.name, holeNumber);
       await publish({
         category: "bogey",
         championshipId: championshipId as string,
@@ -336,9 +386,32 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         playerName: player.name,
         holeNumber,
         saveNonce: holeNonce,
-        significance: { category: "bogey", inContention: inTop10, holesRemaining },
+        significance: { category: "bogey", inContention: inStrikingDistance, holesRemaining },
+        criticalOverride: inStrikingDistance,
         post: {
           category: "bogey",
+          headline,
+          body,
+          championship: championshipId as string,
+          player: playerId as string,
+          holeNumber,
+          scoreRelative: mainEntry?.toPar ?? undefined,
+          competition: "main",
+        },
+      });
+    } else if (nettRelative !== undefined && nettRelative >= 2) {
+      const { headline, body } = doubleBogeyCommentary(player.name, holeNumber, nettRelative);
+      await publish({
+        category: "double-bogey",
+        championshipId: championshipId as string,
+        playerId: playerId as string,
+        playerName: player.name,
+        holeNumber,
+        saveNonce: holeNonce,
+        significance: { category: "double-bogey", inContention: inStrikingDistance, holesRemaining },
+        criticalOverride: inStrikingDistance,
+        post: {
+          category: "double-bogey",
           headline,
           body,
           championship: championshipId as string,
@@ -649,10 +722,14 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
       }
     }
 
-    // Final-hole pressure: a Race Tracker member (genuinely in contention, but not the outright
-    // leader -- leaderThroughCommentary above already covers the leader's own progress) reaching
-    // the 18th tee.
-    if (progressed && (doc.holesCompleted ?? 0) === 17 && mainEntry && mainEntry.position !== 1) {
+    // Closing-stretch pressure: a Race Tracker member (genuinely in contention, but not the
+    // outright leader -- leaderThroughCommentary above already covers the leader's own progress)
+    // reaching holes 16-18. Fires once, on the save where they FIRST cross into the window (not
+    // on every hole within it), so a contender in the exact right spot at 16, 17, or 18 gets one
+    // post, never three.
+    const PRESSURE_WINDOW_START = 16;
+    const enteringPressureWindow = (doc.holesCompleted ?? 0) >= PRESSURE_WINDOW_START && (previousDoc?.holesCompleted ?? 0) < PRESSURE_WINDOW_START;
+    if (progressed && enteringPressureWindow && mainEntry && mainEntry.position !== 1) {
       const mainAfterTracker = buildRaceTracker(snapshots.after.main, "main");
       const trackerMember = mainAfterTracker.members.find((m) => String(m.playerId) === String(playerId));
       if (trackerMember) {
@@ -663,7 +740,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           playerId: playerId as string,
           playerName: player.name,
           saveNonce: `${saveNonce}:pressure-moment`,
-          significance: { category: "pressure-moment", inContention: true, holesRemaining: 1 },
+          significance: { category: "pressure-moment", inContention: true, holesRemaining: 18 - (doc.holesCompleted ?? 0) },
           post: {
             category: "pressure-moment",
             headline,
@@ -679,11 +756,20 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
 
     // Race Tracker: new leader / tie for the lead / lead extension / entering & leaving contention,
     // across all three competitions, from the before/after snapshot pair computed above.
-    await generateRaceTrackerPosts(req, championshipId as string, snapshots, saveNonce, config);
+    candidates.push(...(await buildRaceTrackerCandidates(req, championshipId as string, snapshots, saveNonce)));
 
     // Winner confirmed: fires at most once per competition, the moment the last player still out
     // on course finishes -- see winner-confirmed.ts for why this needs the before/after pair too.
-    await generateWinnerConfirmedPosts(req, championshipId as string, snapshots, saveNonce, config);
+    candidates.push(...(await buildWinnerConfirmedCandidates(req, championshipId as string, snapshots, saveNonce)));
+  }
+
+  // Every dedup check a candidate source above needs (last-group/clubhouse-leader "already
+  // posted?", entering/leaving-contention's last-direction guard) reads real DB history from
+  // before this save, not from other candidates collected during it -- so it's safe to gather
+  // everything first and filter once, right before anything actually publishes.
+  const lowerPriority = findLowerPriorityCandidates(candidates);
+  for (const candidate of candidates) {
+    await evaluateAndPublish(req, candidate, config, lowerPriority.has(candidate) ? "LOWER_PRIORITY" : undefined);
   }
 
   return doc;

@@ -3,7 +3,7 @@ import type { PayloadRequest } from "payload";
 import { isConcluded, formatToPar } from "@/lib/leaderboard";
 import { resolveCompetitionWinner, type WinnerResolution } from "@/lib/data/championship-stats";
 import { winnerConfirmedCommentary, playoffCommentary } from "@/lib/live-blog/commentary";
-import { evaluateAndPublish, type PublicationConfig, type TriggerCandidate } from "@/lib/live-blog/publication-policy";
+import type { TriggerCandidate } from "@/lib/live-blog/publication-policy";
 import type { Competition, CompetitionEntry, LeaderboardSnapshotPair } from "@/lib/data/scorecards";
 
 const COMPETITION_LABEL: Record<Competition, string> = { main: "Main", stableford: "Stableford", scratch: "Scratch" };
@@ -37,17 +37,21 @@ function playoffDetail(result: WinnerResolution, competition: Competition): stri
  * scorecard's holesCompleted), so a single "did Main just conclude?" check gates all three.
  * No-return (disqualified) players are filtered out of Main/Scratch before resolution -- see the
  * note below on why resolveCompetitionWinner can't be trusted with them included.
+ *
+ * Returns the built candidates rather than publishing them directly -- both categories here
+ * (playoff, winner-confirmed) are critical, so they're always exempt from generate.ts's
+ * per-player priority filter regardless, but returning keeps every candidate source in this
+ * pipeline consistent and lets that filter's caller stay the single place anything is published.
  */
-export async function generateWinnerConfirmedPosts(
+export async function buildWinnerConfirmedCandidates(
   req: PayloadRequest,
   championshipId: string,
   snapshots: LeaderboardSnapshotPair,
   saveNonce: string,
-  config: PublicationConfig,
-): Promise<void> {
+): Promise<TriggerCandidate[]> {
   const mainBefore = snapshots.before.main.filter((e) => !e.noReturn);
   const mainAfter = snapshots.after.main.filter((e) => !e.noReturn);
-  if (isConcluded(mainBefore) || !isConcluded(mainAfter)) return;
+  if (isConcluded(mainBefore) || !isConcluded(mainAfter)) return [];
 
   const mainResult = resolveCompetitionWinner(mainAfter, "main", new Set());
 
@@ -69,6 +73,8 @@ export async function generateWinnerConfirmedPosts(
     { competition: "scratch", result: scratchResult },
   ];
 
+  const candidates: TriggerCandidate[] = [];
+
   for (const { competition, result } of jobs) {
     if (!result.winner || !result.winnerEntry) continue;
 
@@ -83,31 +89,27 @@ export async function generateWinnerConfirmedPosts(
         COMPETITION_LABEL[competition],
         scoreLabel(competition, result.tiedEntries[0]),
       );
-      await evaluateAndPublish(
-        req,
-        {
+      candidates.push({
+        category: "playoff",
+        championshipId,
+        playerId: result.winner.id,
+        playerName: result.winner.name,
+        saveNonce: `${saveNonce}:${competition}:playoff-tie`,
+        significance: { category: "playoff", inContention: true },
+        post: {
           category: "playoff",
-          championshipId,
-          playerId: result.winner.id,
-          playerName: result.winner.name,
-          saveNonce: `${saveNonce}:${competition}:playoff-tie`,
-          significance: { category: "playoff", inContention: true },
-          post: {
-            category: "playoff",
-            competition,
-            headline: playoffHeadline,
-            body: playoffBody,
-            championship: championshipId,
-            scoreRelative: result.tiedEntries[0].toPar,
-          },
-        } satisfies TriggerCandidate,
-        config,
-      );
+          competition,
+          headline: playoffHeadline,
+          body: playoffBody,
+          championship: championshipId,
+          scoreRelative: result.tiedEntries[0].toPar,
+        },
+      } satisfies TriggerCandidate);
     }
 
     const detail = competition === "main" && result.viaTiebreak ? playoffDetail(result, competition) : undefined;
     const { headline, body } = winnerConfirmedCommentary(result.winner.name, COMPETITION_LABEL[competition], scoreLabel(competition, result.winnerEntry), detail);
-    const candidate: TriggerCandidate = {
+    candidates.push({
       category: "winner-confirmed",
       championshipId,
       playerId: result.winner.id,
@@ -123,7 +125,8 @@ export async function generateWinnerConfirmedPosts(
         player: result.winner.id,
         scoreRelative: competition === "stableford" ? result.winnerEntry.score : result.winnerEntry.toPar,
       },
-    };
-    await evaluateAndPublish(req, candidate, config);
+    } satisfies TriggerCandidate);
   }
+
+  return candidates;
 }

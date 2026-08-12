@@ -3,7 +3,7 @@ import type { PayloadRequest, Where } from "payload";
 import { computeSignificance, isCriticalCategory, bypassesCooldown, citesHoleNumber, type SignificanceInput, type TriggerCategory } from "@/lib/live-blog/significance";
 import type { LiveBlogPost } from "@/payload-types";
 
-export type SuppressionReason = "DISABLED" | "LOW_SIGNIFICANCE" | "COOLDOWN" | "MAX_PER_HOUR" | "DUPLICATE" | "FACT_VALIDATION_FAILED";
+export type SuppressionReason = "DISABLED" | "LOW_SIGNIFICANCE" | "COOLDOWN" | "MAX_PER_HOUR" | "DUPLICATE" | "FACT_VALIDATION_FAILED" | "LOWER_PRIORITY";
 
 export interface PublicationConfig {
   enabled: boolean;
@@ -23,7 +23,7 @@ export const DEFAULT_PUBLICATION_CONFIG: PublicationConfig = {
   enabled: true,
   minimumSignificance: 35,
   cooldownSeconds: 90,
-  maxPostsPerHour: 8,
+  maxPostsPerHour: 16,
 };
 
 export function buildFingerprint(input: { championshipId: string; category: string; playerId?: string; holeNumber?: number; saveNonce: string }): string {
@@ -85,6 +85,60 @@ export interface TriggerCandidate {
   saveNonce: string;
   significance: SignificanceInput;
   post: Omit<LiveBlogPost, "id" | "postedAt" | "updatedAt" | "createdAt">;
+  /** Set by the caller (generate.ts) to treat this one candidate as critical -- bypassing cooldown,
+   * the hourly cap, and the story-selection filter below -- regardless of its category's default.
+   * Exists for categories that should "always show" only conditionally: a nett eagle/birdie/bogey/
+   * double-bogey for the leader or a player within 3 shots of them should never be held back by
+   * cooldown or story selection, but the same category for a player with no realistic path to a
+   * result should still be spam-guarded as normal. */
+  criticalOverride?: boolean;
+}
+
+/**
+ * Within one scorecard-save-triggered hook run, a single player can accumulate several
+ * legitimately-qualifying non-critical candidates at once on the SAME leaderboard -- a birdie, the
+ * 2-hole streak it just completed, newly entering contention -- that all describe the same real
+ * moment. Publishing every one reads as spam (see the "spell of three posts" feedback from the
+ * 2013 replay). Grouping is scoped to (player, competition), not just player -- a player can
+ * genuinely make two distinct pieces of news on the same hole on two different boards (the 2013
+ * replay caught exactly this: David Clee both extended his Scratch lead AND was the outright Main
+ * leader through 2 holes on the same save), and collapsing those into one would lose real,
+ * unrelated information rather than trim redundant retellings of the same one. Candidates with no
+ * competition set (a field-wide post, a merged multi-competition post, a no-return announcement)
+ * are exempt for the same reason -- there's no single board to collide on. Critical categories
+ * (leader, tie, pressure-moment, winner-confirmed, playoff, ace) are exempt and always publish
+ * independently regardless. Pure and DB-free so it's directly unit-testable; the caller
+ * (generate.ts) is expected to run this once over every candidate collected from every source for
+ * one hook invocation, then publish survivors normally and force-suppress the rest via
+ * evaluateAndPublish's forceSuppressReason.
+ */
+export function findLowerPriorityCandidates(candidates: TriggerCandidate[]): Set<TriggerCandidate> {
+  const byPlayerAndCompetition = new Map<string, TriggerCandidate[]>();
+  for (const candidate of candidates) {
+    if (isCriticalCategory(candidate.category) || candidate.criticalOverride || !candidate.playerId || !candidate.post.competition) continue;
+    const key = `${candidate.playerId}:${candidate.post.competition}`;
+    const group = byPlayerAndCompetition.get(key) ?? [];
+    group.push(candidate);
+    byPlayerAndCompetition.set(key, group);
+  }
+
+  const lowerPriority = new Set<TriggerCandidate>();
+  for (const group of byPlayerAndCompetition.values()) {
+    if (group.length <= 1) continue;
+    let best = group[0];
+    let bestSignificance = computeSignificance(best.significance);
+    for (const candidate of group.slice(1)) {
+      const significance = computeSignificance(candidate.significance);
+      if (significance > bestSignificance) {
+        lowerPriority.add(best);
+        best = candidate;
+        bestSignificance = significance;
+      } else {
+        lowerPriority.add(candidate);
+      }
+    }
+  }
+  return lowerPriority;
 }
 
 /**
@@ -138,11 +192,13 @@ export async function evaluateAndPublish(
   req: PayloadRequest,
   candidate: TriggerCandidate,
   config: PublicationConfig = DEFAULT_PUBLICATION_CONFIG,
+  /** Set by the caller when findLowerPriorityCandidates has already decided this candidate loses out to a same-player, same-save candidate with higher significance -- still logged (with its real significance/threshold) for observability, just short-circuited before the cooldown/rate-limit/publish steps. */
+  forceSuppressReason?: SuppressionReason,
 ): Promise<{ published: boolean; reason?: SuppressionReason | "ERROR" }> {
   try {
     const significance = computeSignificance(candidate.significance);
-    const critical = isCriticalCategory(candidate.category);
-    const cooldownExempt = bypassesCooldown(candidate.category);
+    const critical = candidate.criticalOverride === true || isCriticalCategory(candidate.category);
+    const cooldownExempt = critical || bypassesCooldown(candidate.category);
     const fingerprint = buildFingerprint(candidate);
 
     let logId: string;
@@ -168,6 +224,13 @@ export async function evaluateAndPublish(
       // Unique fingerprint violation: this exact candidate (same championship/category/player/
       // hole/triggering save) was already evaluated, published or not. Retry/replay-safe no-op.
       return { published: false, reason: "DUPLICATE" };
+    }
+
+    if (forceSuppressReason) {
+      await req.payload
+        .update({ collection: "live-blog-trigger-log", id: logId, data: { suppressionReason: forceSuppressReason }, req })
+        .catch(() => undefined);
+      return { published: false, reason: forceSuppressReason };
     }
 
     const now = new Date();

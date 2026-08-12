@@ -718,8 +718,10 @@ export interface LiveBlogPost {
   category:
     | "ace"
     | "eagle"
+    | "nett-eagle"
     | "birdie"
     | "bogey"
+    | "double-bogey"
     | "moving-up"
     | "charge"
     | "moving-down"
@@ -766,7 +768,7 @@ export interface LiveBlogTriggerLog {
   threshold: number;
   selected?: boolean | null;
   suppressed?: boolean | null;
-  suppressionReason?: ('DISABLED' | 'LOW_SIGNIFICANCE' | 'COOLDOWN' | 'MAX_PER_HOUR' | 'DUPLICATE' | 'FACT_VALIDATION_FAILED') | null;
+  suppressionReason?: ('DISABLED' | 'LOW_SIGNIFICANCE' | 'COOLDOWN' | 'MAX_PER_HOUR' | 'DUPLICATE' | 'FACT_VALIDATION_FAILED' | 'LOWER_PRIORITY') | null;
   post?: (string | LiveBlogPost) | null;
   evaluatedAt: string;
   updatedAt: string;

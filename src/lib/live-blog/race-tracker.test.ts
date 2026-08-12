@@ -172,4 +172,19 @@ describe("diffPositionMovement", () => {
     const started = [makeEntry({ player: makePlayer("a"), position: 5, started: true })];
     expect(diffPositionMovement(notStarted, started, "a")).toBeUndefined();
   });
+
+  it("falls back to big-gain rather than enter-top-5 when the player crosses into the top 5 but is still too far behind the leader to be a real title story", () => {
+    const farBefore = [makeEntry({ player: makePlayer("leader"), position: 1, toPar: -6 }), makeEntry({ player: makePlayer("mover"), position: 15, toPar: 8 })];
+    const farAfter = [makeEntry({ player: makePlayer("leader"), position: 1, toPar: -6 }), makeEntry({ player: makePlayer("mover"), position: 4, toPar: 5 })];
+    // 11-place gain, comfortably clears BIG_MOVE_THRESHOLD -- if the margin gate were the only
+    // thing missing, this would still register as *a* story, just not "enter-top-5" specifically,
+    // since "mover" is still 11 shots behind the leader.
+    expect(diffPositionMovement(farBefore, farAfter, "mover")).toEqual(expect.objectContaining({ kind: "big-gain", positionsChanged: 11 }));
+  });
+
+  it("still flags entering the top 5 when within striking distance of the leader", () => {
+    const closeBefore = [makeEntry({ player: makePlayer("leader"), position: 1, toPar: -6 }), makeEntry({ player: makePlayer("mover"), position: 7, toPar: -2 })];
+    const closeAfter = [makeEntry({ player: makePlayer("leader"), position: 1, toPar: -6 }), makeEntry({ player: makePlayer("mover"), position: 4, toPar: -4 })];
+    expect(diffPositionMovement(closeBefore, closeAfter, "mover")).toEqual(expect.objectContaining({ kind: "enter-top-5" }));
+  });
 });

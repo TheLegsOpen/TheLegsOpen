@@ -1,0 +1,1190 @@
+[
+  {
+    "ts": "2026-08-11T12:09:05.929Z",
+    "holeNumber": 1,
+    "playerName": "John Pow",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T12:09:05.929Z",
+    "holeNumber": 1,
+    "playerName": "Bobby Ferguson",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T12:17:14.312Z",
+    "holeNumber": 1,
+    "playerName": "Toby Stanton",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T12:17:14.312Z",
+    "holeNumber": 1,
+    "playerName": "John Taylor",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T12:17:14.312Z",
+    "holeNumber": 1,
+    "playerName": "David Clee",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T12:18:35.056Z",
+    "holeNumber": 2,
+    "playerName": "John Pow",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T12:18:35.056Z",
+    "holeNumber": 2,
+    "playerName": "Bobby Ferguson",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T12:25:34.957Z",
+    "holeNumber": 2,
+    "playerName": "Toby Stanton",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T12:25:34.957Z",
+    "holeNumber": 2,
+    "playerName": "John Taylor",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T12:25:34.957Z",
+    "holeNumber": 2,
+    "playerName": "David Clee",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T12:26:49.338Z",
+    "holeNumber": 1,
+    "playerName": "Scott Ingram",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T12:26:49.338Z",
+    "holeNumber": 1,
+    "playerName": "Robert Hamilton",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T12:26:49.338Z",
+    "holeNumber": 1,
+    "playerName": "Mark Alston",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T12:31:39.157Z",
+    "holeNumber": 3,
+    "playerName": "John Pow",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T12:31:39.157Z",
+    "holeNumber": 3,
+    "playerName": "Bobby Ferguson",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T12:36:16.107Z",
+    "holeNumber": 1,
+    "playerName": "David Pow",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T12:36:16.107Z",
+    "holeNumber": 1,
+    "playerName": "Iain MacLeod",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T12:36:16.107Z",
+    "holeNumber": 1,
+    "playerName": "Alastair Campbell",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T12:36:44.496Z",
+    "holeNumber": 2,
+    "playerName": "Scott Ingram",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T12:36:44.496Z",
+    "holeNumber": 2,
+    "playerName": "Robert Hamilton",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T12:36:44.496Z",
+    "holeNumber": 2,
+    "playerName": "Mark Alston",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T12:38:08.672Z",
+    "holeNumber": 3,
+    "playerName": "Toby Stanton",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T12:38:08.672Z",
+    "holeNumber": 3,
+    "playerName": "John Taylor",
+    "strokes": 9
+  },
+  {
+    "ts": "2026-08-11T12:38:08.672Z",
+    "holeNumber": 3,
+    "playerName": "David Clee",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T12:40:33.953Z",
+    "holeNumber": 4,
+    "playerName": "John Pow",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T12:40:33.953Z",
+    "holeNumber": 4,
+    "playerName": "Bobby Ferguson",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T12:44:58.776Z",
+    "holeNumber": 2,
+    "playerName": "David Pow",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T12:44:58.776Z",
+    "holeNumber": 2,
+    "playerName": "Iain MacLeod",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T12:44:58.776Z",
+    "holeNumber": 2,
+    "playerName": "Alastair Campbell",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T12:46:21.397Z",
+    "holeNumber": 4,
+    "playerName": "Toby Stanton",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T12:46:21.397Z",
+    "holeNumber": 4,
+    "playerName": "John Taylor",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T12:46:21.397Z",
+    "holeNumber": 4,
+    "playerName": "David Clee",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T12:50:17.527Z",
+    "holeNumber": 3,
+    "playerName": "Scott Ingram",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T12:50:17.527Z",
+    "holeNumber": 3,
+    "playerName": "Robert Hamilton",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T12:50:17.527Z",
+    "holeNumber": 3,
+    "playerName": "Mark Alston",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T12:54:15.108Z",
+    "holeNumber": 5,
+    "playerName": "John Pow",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T12:54:15.108Z",
+    "holeNumber": 5,
+    "playerName": "Bobby Ferguson",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T12:57:15.282Z",
+    "holeNumber": 3,
+    "playerName": "David Pow",
+    "strokes": 7
+  },
+  {
+    "ts": "2026-08-11T12:57:15.282Z",
+    "holeNumber": 3,
+    "playerName": "Iain MacLeod",
+    "strokes": 8
+  },
+  {
+    "ts": "2026-08-11T12:57:15.282Z",
+    "holeNumber": 3,
+    "playerName": "Alastair Campbell",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T12:59:53.148Z",
+    "holeNumber": 4,
+    "playerName": "Scott Ingram",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T12:59:53.148Z",
+    "holeNumber": 4,
+    "playerName": "Robert Hamilton",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T12:59:53.148Z",
+    "holeNumber": 4,
+    "playerName": "Mark Alston",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T13:00:07.923Z",
+    "holeNumber": 5,
+    "playerName": "Toby Stanton",
+    "strokes": 9
+  },
+  {
+    "ts": "2026-08-11T13:00:07.923Z",
+    "holeNumber": 5,
+    "playerName": "John Taylor",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T13:00:07.923Z",
+    "holeNumber": 5,
+    "playerName": "David Clee",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T13:05:22.747Z",
+    "holeNumber": 4,
+    "playerName": "David Pow",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T13:05:22.747Z",
+    "holeNumber": 4,
+    "playerName": "Iain MacLeod",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T13:05:22.747Z",
+    "holeNumber": 4,
+    "playerName": "Alastair Campbell",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T13:08:01.536Z",
+    "holeNumber": 6,
+    "playerName": "John Pow",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:08:01.536Z",
+    "holeNumber": 6,
+    "playerName": "Bobby Ferguson",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:12:33.947Z",
+    "holeNumber": 5,
+    "playerName": "Scott Ingram",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T13:12:33.947Z",
+    "holeNumber": 5,
+    "playerName": "Robert Hamilton",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T13:12:33.947Z",
+    "holeNumber": 5,
+    "playerName": "Mark Alston",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T13:13:59.453Z",
+    "holeNumber": 6,
+    "playerName": "Toby Stanton",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:13:59.453Z",
+    "holeNumber": 6,
+    "playerName": "John Taylor",
+    "strokes": 7
+  },
+  {
+    "ts": "2026-08-11T13:13:59.453Z",
+    "holeNumber": 6,
+    "playerName": "David Clee",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:17:49.435Z",
+    "holeNumber": 5,
+    "playerName": "David Pow",
+    "strokes": 7
+  },
+  {
+    "ts": "2026-08-11T13:17:49.435Z",
+    "holeNumber": 5,
+    "playerName": "Iain MacLeod",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T13:17:49.435Z",
+    "holeNumber": 5,
+    "playerName": "Alastair Campbell",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:24:50.548Z",
+    "holeNumber": 7,
+    "playerName": "John Pow",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:24:50.548Z",
+    "holeNumber": 7,
+    "playerName": "Bobby Ferguson",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T13:25:10.168Z",
+    "holeNumber": 6,
+    "playerName": "Scott Ingram",
+    "strokes": 7
+  },
+  {
+    "ts": "2026-08-11T13:25:10.168Z",
+    "holeNumber": 6,
+    "playerName": "Robert Hamilton",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:25:10.168Z",
+    "holeNumber": 6,
+    "playerName": "Mark Alston",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:30:12.596Z",
+    "holeNumber": 7,
+    "playerName": "Toby Stanton",
+    "strokes": 8
+  },
+  {
+    "ts": "2026-08-11T13:30:12.596Z",
+    "holeNumber": 7,
+    "playerName": "John Taylor",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T13:30:12.596Z",
+    "holeNumber": 7,
+    "playerName": "David Clee",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:30:48.434Z",
+    "holeNumber": 6,
+    "playerName": "David Pow",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T13:30:48.434Z",
+    "holeNumber": 6,
+    "playerName": "Iain MacLeod",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T13:30:48.434Z",
+    "holeNumber": 6,
+    "playerName": "Alastair Campbell",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T13:38:21.716Z",
+    "holeNumber": 8,
+    "playerName": "John Pow",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:38:21.716Z",
+    "holeNumber": 8,
+    "playerName": "Bobby Ferguson",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:41:38.554Z",
+    "holeNumber": 7,
+    "playerName": "Scott Ingram",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T13:41:38.554Z",
+    "holeNumber": 7,
+    "playerName": "Robert Hamilton",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:41:38.554Z",
+    "holeNumber": 7,
+    "playerName": "Mark Alston",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T13:42:21.907Z",
+    "holeNumber": 8,
+    "playerName": "Toby Stanton",
+    "strokes": 8
+  },
+  {
+    "ts": "2026-08-11T13:42:21.907Z",
+    "holeNumber": 8,
+    "playerName": "John Taylor",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T13:42:21.907Z",
+    "holeNumber": 8,
+    "playerName": "David Clee",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:47:23.864Z",
+    "holeNumber": 7,
+    "playerName": "David Pow",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:47:23.864Z",
+    "holeNumber": 7,
+    "playerName": "Iain MacLeod",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:47:23.864Z",
+    "holeNumber": 7,
+    "playerName": "Alastair Campbell",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T13:51:40.165Z",
+    "holeNumber": 9,
+    "playerName": "John Pow",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T13:51:40.165Z",
+    "holeNumber": 9,
+    "playerName": "Bobby Ferguson",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T13:53:59.318Z",
+    "holeNumber": 8,
+    "playerName": "Scott Ingram",
+    "strokes": 7
+  },
+  {
+    "ts": "2026-08-11T13:53:59.318Z",
+    "holeNumber": 8,
+    "playerName": "Robert Hamilton",
+    "strokes": 8
+  },
+  {
+    "ts": "2026-08-11T13:53:59.318Z",
+    "holeNumber": 8,
+    "playerName": "Mark Alston",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T13:56:07.142Z",
+    "holeNumber": 9,
+    "playerName": "Toby Stanton",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T13:56:07.142Z",
+    "holeNumber": 9,
+    "playerName": "John Taylor",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T13:56:07.142Z",
+    "holeNumber": 9,
+    "playerName": "David Clee",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T14:00:26.084Z",
+    "holeNumber": 10,
+    "playerName": "John Pow",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:00:26.084Z",
+    "holeNumber": 10,
+    "playerName": "Bobby Ferguson",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T14:00:55.937Z",
+    "holeNumber": 8,
+    "playerName": "David Pow",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T14:00:55.937Z",
+    "holeNumber": 8,
+    "playerName": "Iain MacLeod",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T14:00:55.937Z",
+    "holeNumber": 8,
+    "playerName": "Alastair Campbell",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T14:05:17.694Z",
+    "holeNumber": 10,
+    "playerName": "Toby Stanton",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T14:05:17.694Z",
+    "holeNumber": 10,
+    "playerName": "John Taylor",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:05:17.694Z",
+    "holeNumber": 10,
+    "playerName": "David Clee",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:07:02.360Z",
+    "holeNumber": 9,
+    "playerName": "Scott Ingram",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T14:07:02.360Z",
+    "holeNumber": 9,
+    "playerName": "Robert Hamilton",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:07:02.360Z",
+    "holeNumber": 9,
+    "playerName": "Mark Alston",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:12:59.078Z",
+    "holeNumber": 11,
+    "playerName": "John Pow",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:12:59.078Z",
+    "holeNumber": 11,
+    "playerName": "Bobby Ferguson",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:14:03.750Z",
+    "holeNumber": 9,
+    "playerName": "David Pow",
+    "strokes": 10
+  },
+  {
+    "ts": "2026-08-11T14:14:03.750Z",
+    "holeNumber": 9,
+    "playerName": "Iain MacLeod",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T14:14:03.750Z",
+    "holeNumber": 9,
+    "playerName": "Alastair Campbell",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:15:39.152Z",
+    "holeNumber": 10,
+    "playerName": "Scott Ingram",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:15:39.152Z",
+    "holeNumber": 10,
+    "playerName": "Robert Hamilton",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:15:39.152Z",
+    "holeNumber": 10,
+    "playerName": "Mark Alston",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T14:19:05.999Z",
+    "holeNumber": 11,
+    "playerName": "Toby Stanton",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:19:05.999Z",
+    "holeNumber": 11,
+    "playerName": "John Taylor",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:19:05.999Z",
+    "holeNumber": 11,
+    "playerName": "David Clee",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:23:45.766Z",
+    "holeNumber": 10,
+    "playerName": "David Pow",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T14:23:45.766Z",
+    "holeNumber": 10,
+    "playerName": "Iain MacLeod",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T14:23:45.766Z",
+    "holeNumber": 10,
+    "playerName": "Alastair Campbell",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T14:25:03.177Z",
+    "holeNumber": 12,
+    "playerName": "John Pow",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T14:25:03.177Z",
+    "holeNumber": 12,
+    "playerName": "Bobby Ferguson",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:28:37.543Z",
+    "holeNumber": 11,
+    "playerName": "Scott Ingram",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T14:28:37.543Z",
+    "holeNumber": 11,
+    "playerName": "Robert Hamilton",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T14:28:37.543Z",
+    "holeNumber": 11,
+    "playerName": "Mark Alston",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:32:30.953Z",
+    "holeNumber": 12,
+    "playerName": "Toby Stanton",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T14:32:30.953Z",
+    "holeNumber": 12,
+    "playerName": "John Taylor",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:32:30.953Z",
+    "holeNumber": 12,
+    "playerName": "David Clee",
+    "strokes": 7
+  },
+  {
+    "ts": "2026-08-11T14:36:16.694Z",
+    "holeNumber": 11,
+    "playerName": "David Pow",
+    "strokes": 9
+  },
+  {
+    "ts": "2026-08-11T14:36:16.694Z",
+    "holeNumber": 11,
+    "playerName": "Iain MacLeod",
+    "strokes": 8
+  },
+  {
+    "ts": "2026-08-11T14:36:16.694Z",
+    "holeNumber": 11,
+    "playerName": "Alastair Campbell",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:38:20.319Z",
+    "holeNumber": 13,
+    "playerName": "John Pow",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:38:20.319Z",
+    "holeNumber": 13,
+    "playerName": "Bobby Ferguson",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T14:40:40.510Z",
+    "holeNumber": 12,
+    "playerName": "Scott Ingram",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:40:40.510Z",
+    "holeNumber": 12,
+    "playerName": "Robert Hamilton",
+    "strokes": 8
+  },
+  {
+    "ts": "2026-08-11T14:40:40.510Z",
+    "holeNumber": 12,
+    "playerName": "Mark Alston",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T14:46:05.017Z",
+    "holeNumber": 13,
+    "playerName": "Toby Stanton",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T14:46:05.017Z",
+    "holeNumber": 13,
+    "playerName": "John Taylor",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T14:46:05.017Z",
+    "holeNumber": 13,
+    "playerName": "David Clee",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T14:48:54.372Z",
+    "holeNumber": 12,
+    "playerName": "David Pow",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T14:48:54.372Z",
+    "holeNumber": 12,
+    "playerName": "Iain MacLeod",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T14:48:54.372Z",
+    "holeNumber": 12,
+    "playerName": "Alastair Campbell",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:51:26.741Z",
+    "holeNumber": 14,
+    "playerName": "John Pow",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:51:26.741Z",
+    "holeNumber": 14,
+    "playerName": "Bobby Ferguson",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:53:49.776Z",
+    "holeNumber": 13,
+    "playerName": "Scott Ingram",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:53:49.776Z",
+    "holeNumber": 13,
+    "playerName": "Robert Hamilton",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:53:49.776Z",
+    "holeNumber": 13,
+    "playerName": "Mark Alston",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T14:59:50.415Z",
+    "holeNumber": 14,
+    "playerName": "Toby Stanton",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T14:59:50.415Z",
+    "holeNumber": 14,
+    "playerName": "John Taylor",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T14:59:50.415Z",
+    "holeNumber": 14,
+    "playerName": "David Clee",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T15:02:46.330Z",
+    "holeNumber": 13,
+    "playerName": "David Pow",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T15:02:46.330Z",
+    "holeNumber": 13,
+    "playerName": "Iain MacLeod",
+    "strokes": 7
+  },
+  {
+    "ts": "2026-08-11T15:02:46.330Z",
+    "holeNumber": 13,
+    "playerName": "Alastair Campbell",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T15:04:45.756Z",
+    "holeNumber": 15,
+    "playerName": "John Pow",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:04:45.756Z",
+    "holeNumber": 15,
+    "playerName": "Bobby Ferguson",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:07:05.717Z",
+    "holeNumber": 14,
+    "playerName": "Scott Ingram",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:07:05.717Z",
+    "holeNumber": 14,
+    "playerName": "Robert Hamilton",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:07:05.717Z",
+    "holeNumber": 14,
+    "playerName": "Mark Alston",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T15:13:17.828Z",
+    "holeNumber": 15,
+    "playerName": "Toby Stanton",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T15:13:17.828Z",
+    "holeNumber": 15,
+    "playerName": "John Taylor",
+    "strokes": 7
+  },
+  {
+    "ts": "2026-08-11T15:13:17.828Z",
+    "holeNumber": 15,
+    "playerName": "David Clee",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T15:14:58.733Z",
+    "holeNumber": 14,
+    "playerName": "David Pow",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T15:14:58.733Z",
+    "holeNumber": 14,
+    "playerName": "Iain MacLeod",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T15:14:58.733Z",
+    "holeNumber": 14,
+    "playerName": "Alastair Campbell",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T15:17:15.252Z",
+    "holeNumber": 16,
+    "playerName": "John Pow",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T15:17:15.252Z",
+    "holeNumber": 16,
+    "playerName": "Bobby Ferguson",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T15:20:50.332Z",
+    "holeNumber": 15,
+    "playerName": "Scott Ingram",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T15:20:50.332Z",
+    "holeNumber": 15,
+    "playerName": "Robert Hamilton",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T15:20:50.332Z",
+    "holeNumber": 15,
+    "playerName": "Mark Alston",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:26:10.481Z",
+    "holeNumber": 16,
+    "playerName": "Toby Stanton",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T15:26:10.481Z",
+    "holeNumber": 16,
+    "playerName": "John Taylor",
+    "strokes": 7
+  },
+  {
+    "ts": "2026-08-11T15:26:10.481Z",
+    "holeNumber": 16,
+    "playerName": "David Clee",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:27:50.293Z",
+    "holeNumber": 15,
+    "playerName": "David Pow",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T15:27:50.293Z",
+    "holeNumber": 15,
+    "playerName": "Iain MacLeod",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T15:27:50.293Z",
+    "holeNumber": 15,
+    "playerName": "Alastair Campbell",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:31:13.580Z",
+    "holeNumber": 17,
+    "playerName": "John Pow",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:31:13.580Z",
+    "holeNumber": 17,
+    "playerName": "Bobby Ferguson",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T15:34:25.282Z",
+    "holeNumber": 16,
+    "playerName": "Scott Ingram",
+    "strokes": 7
+  },
+  {
+    "ts": "2026-08-11T15:34:25.282Z",
+    "holeNumber": 16,
+    "playerName": "Robert Hamilton",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T15:34:25.282Z",
+    "holeNumber": 16,
+    "playerName": "Mark Alston",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:39:31.019Z",
+    "holeNumber": 17,
+    "playerName": "Toby Stanton",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:39:31.019Z",
+    "holeNumber": 17,
+    "playerName": "John Taylor",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:39:31.019Z",
+    "holeNumber": 17,
+    "playerName": "David Clee",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T15:41:27.385Z",
+    "holeNumber": 16,
+    "playerName": "David Pow",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T15:41:27.385Z",
+    "holeNumber": 16,
+    "playerName": "Iain MacLeod",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T15:41:27.385Z",
+    "holeNumber": 16,
+    "playerName": "Alastair Campbell",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:44:37.118Z",
+    "holeNumber": 18,
+    "playerName": "John Pow",
+    "strokes": 4
+  },
+  {
+    "ts": "2026-08-11T15:44:37.118Z",
+    "holeNumber": 18,
+    "playerName": "Bobby Ferguson",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:46:46.605Z",
+    "holeNumber": 17,
+    "playerName": "Scott Ingram",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T15:46:46.605Z",
+    "holeNumber": 17,
+    "playerName": "Robert Hamilton",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:46:46.605Z",
+    "holeNumber": 17,
+    "playerName": "Mark Alston",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:51:51.304Z",
+    "holeNumber": 18,
+    "playerName": "Toby Stanton",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:51:51.304Z",
+    "holeNumber": 18,
+    "playerName": "John Taylor",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:51:51.304Z",
+    "holeNumber": 18,
+    "playerName": "David Clee",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:54:02.618Z",
+    "holeNumber": 17,
+    "playerName": "David Pow",
+    "strokes": 3
+  },
+  {
+    "ts": "2026-08-11T15:54:02.618Z",
+    "holeNumber": 17,
+    "playerName": "Iain MacLeod",
+    "strokes": 10
+  },
+  {
+    "ts": "2026-08-11T15:54:02.618Z",
+    "holeNumber": 17,
+    "playerName": "Alastair Campbell",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:59:04.920Z",
+    "holeNumber": 18,
+    "playerName": "Scott Ingram",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T15:59:04.920Z",
+    "holeNumber": 18,
+    "playerName": "Robert Hamilton",
+    "strokes": 7
+  },
+  {
+    "ts": "2026-08-11T15:59:04.920Z",
+    "holeNumber": 18,
+    "playerName": "Mark Alston",
+    "strokes": 6
+  },
+  {
+    "ts": "2026-08-11T16:07:47.090Z",
+    "holeNumber": 18,
+    "playerName": "David Pow",
+    "strokes": 9
+  },
+  {
+    "ts": "2026-08-11T16:07:47.090Z",
+    "holeNumber": 18,
+    "playerName": "Iain MacLeod",
+    "strokes": 5
+  },
+  {
+    "ts": "2026-08-11T16:07:47.090Z",
+    "holeNumber": 18,
+    "playerName": "Alastair Campbell",
+    "strokes": 4
+  }
+]

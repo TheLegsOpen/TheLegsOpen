@@ -259,7 +259,11 @@ export function LeaderboardView({
               </div>
               <div className="flex items-center gap-3">
                 <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: "#08325A" }} />
-                Over par / Bogey or worse
+                Over par / Bogey
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: "#4D91C6" }} />
+                Double bogey or worse (Hole by hole only)
               </div>
             </div>
           </div>

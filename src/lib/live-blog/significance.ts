@@ -1,4 +1,5 @@
 import type { LiveBlogPost } from "@/payload-types";
+import type { Competition } from "@/lib/data/scorecards";
 
 export type TriggerCategory = LiveBlogPost["category"];
 
@@ -15,6 +16,8 @@ export const CRITICAL_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<Trigger
   "winner-confirmed",
   "playoff",
   "ace",
+  "eagle",
+  "no-return",
 ]);
 
 export interface SignificanceInput {
@@ -29,6 +32,12 @@ export interface SignificanceInput {
   finishPosition?: number;
   /** Both "entering the top 5/10" and "a big gain/drop of places" publish under the same "moving-up"/"moving-down" DB category (see race-tracker.ts's MovementEventKind) -- this distinguishes them for significance purposes without needing a separate category. */
   movementKind?: "enter-top-5" | "enter-top-10" | "big-gain" | "big-drop";
+  /** Which leaderboard this candidate is about, for the small set of categories that can fire on
+   * any of the three (leader/tie/lead-extends/entering-contention/leaving-contention) -- see
+   * SECONDARY_COMPETITION_PENALTY. Leave undefined for a category that's always tied to one
+   * competition by construction (birdie is always Main, ace is always Scratch...) or for a post
+   * merged across multiple competitions at once (nothing to penalize -- it already includes Main). */
+  competition?: Competition;
 }
 
 /** Base significance per category, before the contention/closing-hole adjustments below -- deliberately not a flat re-statement of the spec's example table, but calibrated so the site's existing "good" posts (aces, eagles, in-contention birdies, all leaderboard-movement/race-tracker events, round completions, winner confirmation) clear the default minimumSignificance, while an ordinary bogey or birdie for a player with no realistic path to a result does not. */
@@ -52,12 +61,19 @@ const BASE_SIGNIFICANCE: Record<TriggerCategory, number> = {
   "moving-down": 40,
   through: 55,
   "round-complete": 45,
+  "nett-eagle": 70,
   birdie: 20,
   bogey: 12,
+  "double-bogey": 20,
   "last-group": 100,
   championship: 100,
   instagram: 100,
 };
+
+/** The four per-hole Main/nett outcomes -- these get the in-contention significance bonus (and,
+ * separately in publication-policy.ts, can be force-published when the player is leading or
+ * within 3 shots, regardless of cooldown). */
+const PER_HOLE_MAIN_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<TriggerCategory>(["nett-eagle", "birdie", "bogey", "double-bogey"]);
 
 const CLOSING_HOLE_BONUS_TIGHT = 20; // holesRemaining <= 3
 const CLOSING_HOLE_BONUS_LOOSE = 10; // holesRemaining <= 5
@@ -71,6 +87,19 @@ const MOVEMENT_KIND_BONUS: Record<NonNullable<SignificanceInput["movementKind"]>
   "big-drop": 0,
 };
 
+/** Main is the primary competition and carries the full weight of these categories. Stableford
+ * and Scratch are still worth covering, but need to clear a higher bar -- the same lead-change/
+ * tie/contention machinery runs on all three boards, and without this every Stableford blip
+ * scored exactly as high as the real Main title race. */
+const SECONDARY_COMPETITION_GATED_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<TriggerCategory>([
+  "leader",
+  "tie",
+  "lead-extends",
+  "entering-contention",
+  "leaving-contention",
+]);
+const SECONDARY_COMPETITION_PENALTY = 20;
+
 /**
  * Deterministic 0-100 significance score for one trigger candidate. Pure function -- no
  * database access -- so the same facts always produce the same score, and it's directly unit
@@ -79,10 +108,10 @@ const MOVEMENT_KIND_BONUS: Record<NonNullable<SignificanceInput["movementKind"]>
 export function computeSignificance(input: SignificanceInput): number {
   let score = BASE_SIGNIFICANCE[input.category] ?? 0;
 
-  // Per-hole birdie/bogey are the two categories that fire regardless of the player's actual
-  // chances -- everything else already implies some leaderboard significance by construction
-  // (a "leaving contention" event only exists for a player who was in contention a moment ago).
-  if (input.category === "birdie" || input.category === "bogey") {
+  // Per-hole Main/nett categories fire regardless of the player's actual chances -- everything
+  // else already implies some leaderboard significance by construction (a "leaving contention"
+  // event only exists for a player who was in contention a moment ago).
+  if (PER_HOLE_MAIN_CATEGORIES.has(input.category)) {
     score += input.inContention ? CONTENTION_BONUS : 0;
   }
 
@@ -103,6 +132,10 @@ export function computeSignificance(input: SignificanceInput): number {
     score += TOP_3_FINISH_BONUS;
   }
 
+  if (input.competition && input.competition !== "main" && SECONDARY_COMPETITION_GATED_CATEGORIES.has(input.category)) {
+    score -= SECONDARY_COMPETITION_PENALTY;
+  }
+
   return Math.max(0, Math.min(100, score));
 }
 
@@ -111,28 +144,38 @@ export function isCriticalCategory(category: TriggerCategory): boolean {
 }
 
 /**
- * Birdie and bogey are the only categories that can genuinely recur many times for the same
- * player in a round, so they're the only ones a cooldown meaningfully protects against. Every
- * other category (a lead change, entering/leaving contention, a big position swing, an eagle...)
- * already represents a one-off state change by construction -- it isn't a spam vector, so a flat
- * cooldown shouldn't hold it back just because it landed in the same burst of near-simultaneous
- * saves that real tee-time-staggered play regularly produces (several groups posting scores
- * within the same minute).
+ * The four per-hole Main/nett categories are the only ones that can genuinely recur many times
+ * for the same player in a round, so they're the only ones a cooldown meaningfully protects
+ * against. Every other category (a lead change, entering/leaving contention, a big position
+ * swing, a gross eagle...) already represents a one-off state change by construction -- it isn't
+ * a spam vector, so a flat cooldown shouldn't hold it back just because it landed in the same
+ * burst of near-simultaneous saves that real tee-time-staggered play regularly produces (several
+ * groups posting scores within the same minute). Note: publication-policy.ts's criticalOverride
+ * lets any one of these four bypass cooldown anyway when the player is leading or within 3 shots
+ * -- this set only governs the *default*, out-of-contention case.
  */
-const COOLDOWN_GATED_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<TriggerCategory>(["birdie", "bogey"]);
+const COOLDOWN_GATED_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<TriggerCategory>(["nett-eagle", "birdie", "bogey", "double-bogey"]);
 
 export function bypassesCooldown(category: TriggerCategory): boolean {
   return isCriticalCategory(category) || !COOLDOWN_GATED_CATEGORIES.has(category);
 }
 
 /**
- * Only these four categories' commentary templates (see commentary.ts) actually cite a specific
+ * Only these categories' commentary templates (see commentary.ts) actually cite a specific
  * hole by number -- e.g. "birdie at the 15th". Streak/momentum categories (moving-up, charge,
  * trouble...) also carry a holeNumber (the hole that triggered detection), but their copy
  * deliberately describes a run across multiple holes ("two straight holes", "3 in the last 4")
  * rather than naming one, so fact-validation shouldn't require that number to appear literally.
  */
-const HOLE_CITING_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<TriggerCategory>(["ace", "eagle", "birdie", "bogey", "no-return"]);
+const HOLE_CITING_CATEGORIES: ReadonlySet<TriggerCategory> = new Set<TriggerCategory>([
+  "ace",
+  "eagle",
+  "nett-eagle",
+  "birdie",
+  "bogey",
+  "double-bogey",
+  "no-return",
+]);
 
 export function citesHoleNumber(category: TriggerCategory): boolean {
   return HOLE_CITING_CATEGORIES.has(category);

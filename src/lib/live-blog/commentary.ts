@@ -63,20 +63,37 @@ export function birdieCommentary(playerName: string, holeNumber: number): Commen
   return { headline, body };
 }
 
-export function bogeyCommentary(playerName: string, holeNumber: number, relativeToPar: number): Commentary {
-  const isDouble = relativeToPar >= 2;
-  const headline = isDouble ? pick(["Dropped shots", `Trouble at the ${ordinal(holeNumber)}`]) : pick(["Bogey", "Shot dropped"]);
-  const body = isDouble
-    ? pick([
-        `A difficult ${ordinal(holeNumber)} for ${playerName} — ${relativeToPar} over the hole.`,
-        `${playerName} finds trouble at the ${ordinal(holeNumber)}, dropping ${relativeToPar} shots.`,
-        `Not the hole ${playerName} wanted at the ${ordinal(holeNumber)} — a costly one there.`,
-      ])
-    : pick([
-        `${playerName} drops a shot at the ${ordinal(holeNumber)}.`,
-        `A bogey at the ${ordinal(holeNumber)} for ${playerName}.`,
-        `${playerName} can't get up and down at the ${ordinal(holeNumber)} — one shot gone.`,
-      ]);
+/** Nett eagle-or-better -- two or more shots under par once handicap strokes are applied. Distinct
+ * from the gross-based `eagleCommentary` (Scratch): this is a Main-competition story, so the copy
+ * says "nett" explicitly to avoid reading as a second claim of the same gross feat. */
+export function nettEagleCommentary(playerName: string, holeNumber: number): Commentary {
+  const headline = pick(["Nett eagle!", `${playerName.split(" ").slice(-1)[0]} surges`, "Huge in the Main"]);
+  const body = pick([
+    `${playerName} cards a nett eagle at the ${ordinal(holeNumber)} — a huge move in the Main.`,
+    `Two shots clawed back at the ${ordinal(holeNumber)}, nett, for ${playerName} — a real statement in the Main race.`,
+    `${playerName} rockets up the Main leaderboard with a nett eagle at the ${ordinal(holeNumber)}.`,
+  ]);
+  return { headline, body };
+}
+
+export function bogeyCommentary(playerName: string, holeNumber: number): Commentary {
+  const headline = pick(["Bogey", "Shot dropped"]);
+  const body = pick([
+    `${playerName} drops a shot at the ${ordinal(holeNumber)}.`,
+    `A bogey at the ${ordinal(holeNumber)} for ${playerName}.`,
+    `${playerName} can't get up and down at the ${ordinal(holeNumber)} — one shot gone.`,
+  ]);
+  return { headline, body };
+}
+
+/** Double bogey or worse, nett -- a bigger story than an ordinary bogey, so it's its own category rather than a copy variant inside bogeyCommentary. */
+export function doubleBogeyCommentary(playerName: string, holeNumber: number, relativeToPar: number): Commentary {
+  const headline = pick(["Dropped shots", `Trouble at the ${ordinal(holeNumber)}`]);
+  const body = pick([
+    `A difficult ${ordinal(holeNumber)} for ${playerName} — ${relativeToPar} over the hole, nett.`,
+    `${playerName} finds trouble at the ${ordinal(holeNumber)}, dropping ${relativeToPar} shots.`,
+    `Not the hole ${playerName} wanted at the ${ordinal(holeNumber)} — a costly one there.`,
+  ]);
   return { headline, body };
 }
 
