@@ -20,22 +20,34 @@ export function useLiveBlogRealtime(championshipId: string | null | undefined, o
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
 
-    const channel = supabase
-      .channel(`live-blog-posts-${championshipId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "live_blog_posts",
-          filter: `championship_id=eq.${championshipId}`,
-        },
-        () => onNewPostRef.current(),
-      )
-      .subscribe();
+    // Realtime is an optional enhancement -- nothing here may ever throw uncaught and take the
+    // page down with it (see the comment on getSupabaseBrowserClient for why that's not
+    // hypothetical). Any failure here just means the page falls back to no live push.
+    try {
+      const channel = supabase
+        .channel(`live-blog-posts-${championshipId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "live_blog_posts",
+            filter: `championship_id=eq.${championshipId}`,
+          },
+          () => onNewPostRef.current(),
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      return () => {
+        try {
+          supabase.removeChannel(channel);
+        } catch (err) {
+          console.error("Failed to remove live-blog realtime channel", err);
+        }
+      };
+    } catch (err) {
+      console.error("Live-blog realtime subscription disabled", err);
+      return undefined;
+    }
   }, [championshipId]);
 }
