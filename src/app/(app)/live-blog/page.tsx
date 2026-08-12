@@ -74,6 +74,7 @@ export default async function LiveBlogPage() {
           <LiveBlogFeed
             initialEntries={liveBlogPage.entries}
             initialHasNextPage={liveBlogPage.hasNextPage}
+            realtimeChampionshipId={liveBlogPage.championshipId}
             mainEntries={mainEntries}
             stablefordEntries={stablefordEntries}
             scratchEntries={scratchEntries}

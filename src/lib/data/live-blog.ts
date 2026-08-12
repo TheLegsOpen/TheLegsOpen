@@ -60,6 +60,10 @@ export interface LiveBlogPage {
   entries: LiveBlogEntry[];
   hasNextPage: boolean;
   nextPage: number | null;
+  /** The championship these entries belong to (resolved from championshipId, or whichever is
+   * currently active when not given) -- lets client components scope a Supabase Realtime
+   * subscription to just this championship's posts. Null when there's no active championship. */
+  championshipId: string | null;
 }
 
 const LIVE_BLOG_PAGE_SIZE = 40;
@@ -69,7 +73,7 @@ export async function getLiveBlogPosts(page = 1, limit = LIVE_BLOG_PAGE_SIZE, ch
   const championship = championshipId
     ? await payload.findByID({ collection: "championships", id: championshipId }).catch(() => undefined)
     : await getActiveChampionship(payload);
-  if (!championship) return { entries: [], hasNextPage: false, nextPage: null };
+  if (!championship) return { entries: [], hasNextPage: false, nextPage: null, championshipId: null };
 
   const result = await payload.find({
     collection: "live-blog-posts",
@@ -95,6 +99,7 @@ export async function getLiveBlogPosts(page = 1, limit = LIVE_BLOG_PAGE_SIZE, ch
     })),
     hasNextPage: result.hasNextPage,
     nextPage: result.nextPage ?? null,
+    championshipId: String(championship.id),
   };
 }
 

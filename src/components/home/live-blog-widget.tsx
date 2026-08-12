@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { CountryFlag } from "@/components/shared/country-flag";
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { useFavorites } from "@/hooks/use-favorites";
+import { useLiveBlogRealtime } from "@/hooks/use-live-blog-realtime";
 import { formatToPar } from "@/lib/leaderboard";
 import { cn } from "@/lib/utils";
 import { CATEGORY_META, COMPETITION_LABEL, COMPETITION_BADGE_CLASS, formatTime, formatDate } from "@/components/live-blog/live-blog-feed";
@@ -28,6 +30,7 @@ interface LiveBlogWidgetProps {
   drivingCategories: StatCategory[];
   approachCategories: StatCategory[];
   puttingCategories: StatCategory[];
+  championshipId?: string | null;
 }
 
 export function LiveBlogWidget({
@@ -41,7 +44,14 @@ export function LiveBlogWidget({
   drivingCategories,
   approachCategories,
   puttingCategories,
+  championshipId,
 }: LiveBlogWidgetProps) {
+  const router = useRouter();
+  // The homepage already re-fetches this whole page every 10s (see AutoRefresh) -- realtime just
+  // triggers that same refresh immediately instead of waiting out the interval, so a new post
+  // (and any leaderboard change alongside it) appears without the delay.
+  useLiveBlogRealtime(championshipId, () => router.refresh());
+
   const top = entries.slice(0, WIDGET_POST_COUNT);
   const { favorites, toggleFavorite } = useFavorites();
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);

@@ -41,6 +41,7 @@ import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/lea
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { InstagramEmbed } from "@/components/live-blog/instagram-embed";
 import { useFavorites } from "@/hooks/use-favorites";
+import { useLiveBlogRealtime } from "@/hooks/use-live-blog-realtime";
 import type { LiveBlogCategory, LiveBlogCompetition, LiveBlogEntry, LiveBlogPage } from "@/lib/data/live-blog";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { StatCategory } from "@/lib/statistics";
@@ -125,6 +126,10 @@ interface LiveBlogFeedProps {
   puttingCategories: StatCategory[];
   /** Pass when showing a specific past championship (e.g. Previous Opens) rather than whichever is currently active, so "Load more" keeps paging that same year. */
   championshipId?: string;
+  /** The resolved championship these initialEntries belong to (see LiveBlogPage.championshipId) --
+   * distinct from championshipId above, which is only ever passed for a past year. This is always
+   * set when there's an active championship, so realtime works for the live "currently active" case too. */
+  realtimeChampionshipId?: string | null;
 }
 
 export function LiveBlogFeed({
@@ -140,11 +145,24 @@ export function LiveBlogFeed({
   approachCategories,
   puttingCategories,
   championshipId,
+  realtimeChampionshipId,
 }: LiveBlogFeedProps) {
   const [entries, setEntries] = useState(initialEntries);
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(initialHasNextPage);
   const [loadingMore, setLoadingMore] = useState(false);
+
+  useLiveBlogRealtime(realtimeChampionshipId, async () => {
+    const query = championshipId ? `page=1&championshipId=${championshipId}` : "page=1";
+    const res = await fetch(`/api/live-blog-feed?${query}`);
+    if (!res.ok) return;
+    const data: LiveBlogPage = await res.json();
+    setEntries((prev) => {
+      const existingIds = new Set(prev.map((e) => e.id));
+      const fresh = data.entries.filter((e) => !existingIds.has(e.id));
+      return fresh.length ? [...fresh, ...prev] : prev;
+    });
+  });
 
   const { favorites, toggleFavorite } = useFavorites();
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);

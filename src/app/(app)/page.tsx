@@ -92,6 +92,7 @@ export default async function HomePage() {
           />
           <LiveBlogWidget
             entries={liveBlogPage.entries}
+            championshipId={liveBlogPage.championshipId}
             mainEntries={leaderboard}
             stablefordEntries={stableford}
             scratchEntries={scratch}
