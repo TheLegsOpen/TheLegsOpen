@@ -15,7 +15,9 @@ function formatRelative(value?: number): string {
 
 const COLUMNS = ["Rank", "Hole", "Par", "Yards", "Avg", "+/-", "Eagle-", "Birdie", "Par", "Bogey", "Dbl Bogey", "Dbl Bogey+"];
 
-/** Out/In/Total summary row, matching the convention on tour course-stats pages -- par/yardage/scoring-average summed across the range, with per-hole occurrence counts left blank (a "total eagles" figure isn't a meaningful single number the way a summed par or scoring average is). */
+/** Out/In/Total summary row, matching the convention on tour course-stats pages -- par/yardage/
+ * scoring-average summed across the range, plus a straight sum of each occurrence count (total
+ * eagles, birdies, pars, bogeys etc. made across that range of holes). */
 function summaryRow(label: string, rows: HoleToughnessRow[]) {
   const holes = rows.filter((r) => r.holeNumber >= (label === "In" ? 10 : 1) && r.holeNumber <= (label === "Out" ? 9 : 18));
   const par = holes.reduce((sum, r) => sum + r.par, 0);
@@ -23,6 +25,7 @@ function summaryRow(label: string, rows: HoleToughnessRow[]) {
   const playedHoles = holes.filter((r) => r.average !== undefined);
   const average = playedHoles.length > 0 ? playedHoles.reduce((sum, r) => sum + (r.average ?? 0), 0) : undefined;
   const relative = average !== undefined ? average - holes.filter((r) => r.average !== undefined).reduce((sum, r) => sum + r.par, 0) : undefined;
+  const sumCount = (key: keyof HoleToughnessRow) => holes.reduce((sum, r) => sum + (Number(r[key]) || 0), 0);
 
   return (
     <tr key={label} className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/10 font-bold text-surface-dark-foreground last:border-0">
@@ -34,12 +37,12 @@ function summaryRow(label: string, rows: HoleToughnessRow[]) {
       <td className={cn("px-3 py-2 text-right tabular-nums", relative !== undefined && relative > 0 && "text-[#CB333B]")}>
         {formatRelative(relative)}
       </td>
-      <td className="px-3 py-2 text-right tabular-nums">—</td>
-      <td className="px-3 py-2 text-right tabular-nums">—</td>
-      <td className="px-3 py-2 text-right tabular-nums">—</td>
-      <td className="px-3 py-2 text-right tabular-nums">—</td>
-      <td className="px-3 py-2 text-right tabular-nums">—</td>
-      <td className="px-3 py-2 text-right tabular-nums">—</td>
+      <td className="px-3 py-2 text-right tabular-nums">{sumCount("eagleOrBetter")}</td>
+      <td className="px-3 py-2 text-right tabular-nums">{sumCount("birdie")}</td>
+      <td className="px-3 py-2 text-right tabular-nums">{sumCount("parCount")}</td>
+      <td className="px-3 py-2 text-right tabular-nums">{sumCount("bogey")}</td>
+      <td className="px-3 py-2 text-right tabular-nums">{sumCount("doubleBogey")}</td>
+      <td className="px-3 py-2 text-right tabular-nums">{sumCount("doubleBogeyPlus")}</td>
     </tr>
   );
 }
