@@ -47,7 +47,9 @@ export function CookieBanner({ logoUrl, title, bodyParagraph1, bodyParagraph2, a
         className="w-full max-w-[380px] rounded-lg border border-border bg-card p-8 text-center shadow-card-hover animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
       >
         {logoUrl ? (
-          <Image src={logoUrl} alt="" width={56} height={56} className="mx-auto h-14 w-14 rounded-full object-contain" />
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary p-2.5">
+            <Image src={logoUrl} alt="" width={56} height={56} className="h-full w-full object-contain" />
+          </span>
         ) : (
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-primary text-sm font-bold text-primary">
             LO
