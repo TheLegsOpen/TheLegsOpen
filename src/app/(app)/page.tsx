@@ -26,6 +26,15 @@ import {
 
 const PAGE_SIZE = 6;
 
+// Hard ceiling on ISR staleness for this live-scoring page. On-demand revalidation
+// (revalidateSite, fired on every scorecard save) alone isn't enough on a low-traffic hostname --
+// Vercel's edge cache is keyed per-hostname, and a custom domain that isn't being hit as often as
+// the .vercel.app one can sit on a stale cached copy far longer than the traffic-heavy domain
+// (observed 800+ seconds stale on thelegsopen.com vs ~150s on the-legs-open.vercel.app, at the
+// same moment). This forces a fresh render at least this often regardless of traffic patterns,
+// matching the client-side auto-refresh interval so neither is the bottleneck.
+export const revalidate = 10;
+
 export default async function HomePage() {
   const [
     { items: initialArticles, hasMore: initialHasMore },

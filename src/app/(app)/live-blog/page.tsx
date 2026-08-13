@@ -24,6 +24,11 @@ export const metadata: Metadata = {
   description: "Live updates from The Legs Open — birdies, bogeys and lead changes as they happen.",
 };
 
+// See the comment on this same export in src/app/(app)/page.tsx -- fixes ISR staleness that
+// compounds badly on a low-traffic custom domain (observed 800+s stale vs ~150s on the busier
+// .vercel.app hostname, at the same moment).
+export const revalidate = 10;
+
 export default async function LiveBlogPage() {
   const [
     liveBlogPage,
