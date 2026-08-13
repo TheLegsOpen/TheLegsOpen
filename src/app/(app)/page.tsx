@@ -78,18 +78,23 @@ export default async function HomePage() {
       <Hero currentChampion={currentChampion} clockConfig={clockConfig} weather={weather} />
       <section className="bg-surface-dark py-16 text-surface-dark-foreground sm:py-24">
         <Container className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-          <LeaderboardWidget
-            entries={leaderboard}
-            stableford={stableford}
-            scratch={scratch}
-            nettCategories={nettCategories}
-            scratchCategories={scratchCategories}
-            streakCategories={streakCategories}
-            drivingCategories={drivingCategories}
-            approachCategories={approachCategories}
-            puttingCategories={puttingCategories}
-            championWinnerBadgeUrl={theme.championWinnerBadgeUrl}
-          />
+          {/* Breaks out of the Container's own side padding below `lg` (matches
+              aigwomensopen.com's edge-to-edge mobile leaderboard) -- resets to normal once it's
+              sharing the row with the live blog widget at `lg` and up. */}
+          <div className="-mx-4 sm:-mx-6 lg:mx-0">
+            <LeaderboardWidget
+              entries={leaderboard}
+              stableford={stableford}
+              scratch={scratch}
+              nettCategories={nettCategories}
+              scratchCategories={scratchCategories}
+              streakCategories={streakCategories}
+              drivingCategories={drivingCategories}
+              approachCategories={approachCategories}
+              puttingCategories={puttingCategories}
+              championWinnerBadgeUrl={theme.championWinnerBadgeUrl}
+            />
+          </div>
           <LiveBlogWidget
             entries={liveBlogPage.entries}
             championshipId={liveBlogPage.championshipId}
