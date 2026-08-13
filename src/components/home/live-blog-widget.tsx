@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 
 import { CountryFlag } from "@/components/shared/country-flag";
@@ -105,6 +106,11 @@ export function LiveBlogWidget({
                 <h3 className={cn("mb-1 font-display text-sm font-bold", isColored ? "text-white" : "text-primary")}>{entry.headline}</h3>
                 {entry.body ? (
                   <p className={cn("mb-2 text-sm leading-relaxed", isColored ? "text-white/90" : "text-black/70")}>{entry.body}</p>
+                ) : null}
+                {entry.imageUrl ? (
+                  <div className="mb-2 overflow-hidden rounded-md">
+                    <Image src={entry.imageUrl} alt="" width={480} height={270} className="h-auto w-full object-cover" />
+                  </div>
                 ) : null}
                 <div className="flex items-center gap-3">
                   {entry.player ? (
