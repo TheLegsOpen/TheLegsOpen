@@ -14,12 +14,14 @@ export interface SiteTheme {
   championWinnerBadgeUrl?: string;
   championTrophyGraphicUrl?: string;
   fontPreset: FontPreset;
+  showBreadcrumbs: boolean;
 }
 
 const DEFAULTS: SiteTheme = {
   primaryColor: "#06051E",
   accentColor: "#FFB800",
   fontPreset: "fraunces-inter",
+  showBreadcrumbs: true,
 };
 
 export async function getSiteTheme(): Promise<SiteTheme> {
@@ -35,5 +37,6 @@ export async function getSiteTheme(): Promise<SiteTheme> {
     championWinnerBadgeUrl: mediaUrl(settings.branding?.championWinnerBadge),
     championTrophyGraphicUrl: mediaUrl(settings.branding?.championTrophyGraphic),
     fontPreset: settings.fontPreset || DEFAULTS.fontPreset,
+    showBreadcrumbs: settings.showBreadcrumbs ?? DEFAULTS.showBreadcrumbs,
   };
 }

@@ -410,6 +410,7 @@ export interface SiteThemeGlobal {
     championTrophyGraphic?: (string | Media) | null;
   };
   fontPreset: 'fraunces-inter' | 'playfair-source-sans' | 'newsreader-manrope';
+  showBreadcrumbs?: boolean | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }

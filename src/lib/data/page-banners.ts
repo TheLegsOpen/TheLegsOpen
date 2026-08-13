@@ -5,11 +5,11 @@ import { mediaUrl } from "@/lib/utils";
 
 export interface PageBanners {
   leaderboardUrl?: string;
-  leaderboardEyebrow: string;
+  leaderboardEyebrow?: string;
   leaderboardTitle: string;
   leaderboardDescription: string;
   teeTimesUrl?: string;
-  teeTimesEyebrow: string;
+  teeTimesEyebrow?: string;
   teeTimesTitle: string;
   teeTimesDescription: string;
   venuesUrl?: string;
@@ -17,10 +17,10 @@ export interface PageBanners {
   venuesTitle: string;
   venuesDescription: string;
   fieldUrl?: string;
-  fieldEyebrow: string;
+  fieldEyebrow?: string;
   fieldTitle: string;
   statisticsUrl?: string;
-  statisticsEyebrow: string;
+  statisticsEyebrow?: string;
   statisticsTitle: string;
   statisticsDescription: string;
   recordsUrl?: string;
@@ -28,7 +28,7 @@ export interface PageBanners {
   recordsTitle: string;
   recordsDescription: string;
   liveBlogUrl?: string;
-  liveBlogEyebrow: string;
+  liveBlogEyebrow?: string;
   liveBlogTitle: string;
   liveBlogDescription: string;
   latestUrl?: string;
@@ -40,24 +40,19 @@ export interface PageBanners {
 }
 
 const DEFAULTS = {
-  leaderboardEyebrow: "Championship Week",
   leaderboardTitle: "Leaderboard",
   leaderboardDescription: "Live scoring from Seabrook Old Course. Star a player to follow them throughout the week.",
-  teeTimesEyebrow: "Championship Week",
   teeTimesTitle: "Tee times",
   teeTimesDescription: "Starting times for every round, grouped by day. Star a player on the leaderboard to see them highlighted here.",
   venuesEyebrow: "The Rotation",
   venuesTitle: "Venues",
   venuesDescription: "The links courses that make up The Legs Open rotation, past and future.",
-  fieldEyebrow: "Championship Week",
   fieldTitle: "The Field",
-  statisticsEyebrow: "Championship Week",
   statisticsTitle: "Statistics",
   statisticsDescription: "Scoring statistics computed live from every player's scorecard.",
   recordsEyebrow: "Since 2013",
   recordsTitle: "Records & Statistics",
   recordsDescription: "The roll of honour, milestones and scoring records from The Legs Open's history.",
-  liveBlogEyebrow: "Championship Week",
   liveBlogTitle: "Live Blog",
   liveBlogDescription: "Every notable moment from the course, as it happens.",
   latestEyebrow: "Latest",
@@ -72,11 +67,11 @@ export async function getPageBanners(): Promise<PageBanners> {
 
   return {
     leaderboardUrl: mediaUrl(settings.leaderboard),
-    leaderboardEyebrow: settings.leaderboardEyebrow || DEFAULTS.leaderboardEyebrow,
+    leaderboardEyebrow: settings.leaderboardEyebrow || undefined,
     leaderboardTitle: settings.leaderboardTitle || DEFAULTS.leaderboardTitle,
     leaderboardDescription: settings.leaderboardDescription || DEFAULTS.leaderboardDescription,
     teeTimesUrl: mediaUrl(settings.teeTimes),
-    teeTimesEyebrow: settings.teeTimesEyebrow || DEFAULTS.teeTimesEyebrow,
+    teeTimesEyebrow: settings.teeTimesEyebrow || undefined,
     teeTimesTitle: settings.teeTimesTitle || DEFAULTS.teeTimesTitle,
     teeTimesDescription: settings.teeTimesDescription || DEFAULTS.teeTimesDescription,
     venuesUrl: mediaUrl(settings.venues),
@@ -84,10 +79,10 @@ export async function getPageBanners(): Promise<PageBanners> {
     venuesTitle: settings.venuesTitle || DEFAULTS.venuesTitle,
     venuesDescription: settings.venuesDescription || DEFAULTS.venuesDescription,
     fieldUrl: mediaUrl(settings.field),
-    fieldEyebrow: settings.fieldEyebrow || DEFAULTS.fieldEyebrow,
+    fieldEyebrow: settings.fieldEyebrow || undefined,
     fieldTitle: settings.fieldTitle || DEFAULTS.fieldTitle,
     statisticsUrl: mediaUrl(settings.statistics),
-    statisticsEyebrow: settings.statisticsEyebrow || DEFAULTS.statisticsEyebrow,
+    statisticsEyebrow: settings.statisticsEyebrow || undefined,
     statisticsTitle: settings.statisticsTitle || DEFAULTS.statisticsTitle,
     statisticsDescription: settings.statisticsDescription || DEFAULTS.statisticsDescription,
     recordsUrl: mediaUrl(settings.records),
@@ -95,7 +90,7 @@ export async function getPageBanners(): Promise<PageBanners> {
     recordsTitle: settings.recordsTitle || DEFAULTS.recordsTitle,
     recordsDescription: settings.recordsDescription || DEFAULTS.recordsDescription,
     liveBlogUrl: mediaUrl(settings.liveBlog),
-    liveBlogEyebrow: settings.liveBlogEyebrow || DEFAULTS.liveBlogEyebrow,
+    liveBlogEyebrow: settings.liveBlogEyebrow || undefined,
     liveBlogTitle: settings.liveBlogTitle || DEFAULTS.liveBlogTitle,
     liveBlogDescription: settings.liveBlogDescription || DEFAULTS.liveBlogDescription,
     latestUrl: mediaUrl(settings.latest),

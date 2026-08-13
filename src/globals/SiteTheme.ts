@@ -105,5 +105,11 @@ export const SiteTheme: GlobalConfig = {
       ],
       admin: { description: "Display (headline) + body font pairing for the whole site." },
     },
+    {
+      name: "showBreadcrumbs",
+      type: "checkbox",
+      defaultValue: true,
+      admin: { description: "Show the Home / Page trail near the top of every page. Turn off to hide breadcrumbs site-wide." },
+    },
   ],
 };

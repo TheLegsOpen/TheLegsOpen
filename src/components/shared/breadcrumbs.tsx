@@ -1,12 +1,17 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
+import { getSiteTheme } from "@/lib/data/site-theme";
+
 interface Crumb {
   label: string;
   href?: string;
 }
 
-export function Breadcrumbs({ items }: { items: Crumb[] }) {
+export async function Breadcrumbs({ items }: { items: Crumb[] }) {
+  const theme = await getSiteTheme();
+  if (!theme.showBreadcrumbs) return null;
+
   return (
     <nav aria-label="Breadcrumb">
       <ol className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
