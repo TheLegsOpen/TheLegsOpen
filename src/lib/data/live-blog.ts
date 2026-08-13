@@ -5,6 +5,7 @@ import configPromise from "@/payload.config";
 import { getActiveChampionship } from "@/lib/data/scorecards";
 import { mapPlayer } from "@/lib/data/players";
 import { DEFAULT_PUBLICATION_CONFIG, type PublicationConfig } from "@/lib/live-blog/publication-policy";
+import { mediaUrl } from "@/lib/utils";
 import type { Player } from "@/types/player";
 import type { Player as PayloadPlayer } from "@/payload-types";
 
@@ -54,6 +55,7 @@ export interface LiveBlogEntry {
   competition?: LiveBlogCompetition;
   headline: string;
   body: string;
+  imageUrl?: string;
   instagramUrl?: string;
   player?: Player;
   holeNumber?: number;
@@ -96,6 +98,7 @@ export async function getLiveBlogPosts(page = 1, limit = LIVE_BLOG_PAGE_SIZE, ch
       competition: doc.competition ?? undefined,
       headline: doc.headline,
       body: doc.body,
+      imageUrl: mediaUrl(doc.image),
       instagramUrl: doc.instagramUrl ?? undefined,
       player: typeof doc.player === "object" && doc.player ? mapPlayer(doc.player as PayloadPlayer) : undefined,
       holeNumber: doc.holeNumber ?? undefined,

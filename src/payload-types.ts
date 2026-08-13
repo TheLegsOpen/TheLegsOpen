@@ -769,6 +769,7 @@ export interface LiveBlogPost {
     | "instagram";
   headline: string;
   body: string;
+  image?: (string | Media) | null;
   instagramUrl?: string | null;
   competition?: ("main" | "stableford" | "scratch") | null;
   championship: string | Championship;

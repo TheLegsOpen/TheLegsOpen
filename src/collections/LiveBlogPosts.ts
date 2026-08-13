@@ -67,6 +67,12 @@ export const LiveBlogPosts: CollectionConfig = {
     { name: "headline", type: "text", required: true },
     { name: "body", type: "textarea", required: true },
     {
+      name: "image",
+      type: "upload",
+      relationTo: "media",
+      admin: { description: "Optional. Shown inline on this post -- useful for a hand-added post the auto-generator wouldn't cover." },
+    },
+    {
       name: "instagramUrl",
       type: "text",
       admin: {

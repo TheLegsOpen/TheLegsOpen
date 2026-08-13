@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import Image from "next/image";
 import {
   ArrowDownCircle,
   ArrowUpCircle,
@@ -254,6 +255,11 @@ export function LiveBlogFeed({
               <h3 className={cn("mb-1.5 font-display text-lg font-bold", isColored ? "text-white" : "text-primary")}>{entry.headline}</h3>
               {entry.body ? (
                 <p className={cn("text-base leading-relaxed", isColored ? "text-white/90" : "text-black/70")}>{entry.body}</p>
+              ) : null}
+              {entry.imageUrl ? (
+                <div className="mt-3 overflow-hidden rounded-md">
+                  <Image src={entry.imageUrl} alt="" width={640} height={360} className="h-auto w-full object-cover" />
+                </div>
               ) : null}
               {entry.category === "instagram" && entry.instagramUrl ? (
                 <div className="mt-3 flex justify-center overflow-hidden [&_iframe]:!max-w-full">
