@@ -27,13 +27,16 @@ export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "
   if (variant === "photo") {
     return (
       <section
-        className={cn("relative w-full overflow-hidden", !heightPx && (size === "compact" ? "h-[30vh] min-h-[220px]" : "h-[60vh] min-h-[420px]"))}
+        className={cn(
+          "relative w-full overflow-hidden",
+          !heightPx && (size === "compact" ? "h-[22vh] min-h-[160px] sm:h-[30vh] sm:min-h-[220px]" : "h-[60vh] min-h-[420px]"),
+        )}
         style={heightPx ? { height: heightPx } : undefined}
       >
         <PlaceholderArt label={imageLabel ?? title} imageUrl={imageUrl} tone="navy" fill />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.8)_45%,rgba(0,0,0,0.25)_75%,rgba(0,0,0,0.05)_100%)]" />
 
-        <Container className="relative z-10 flex h-full flex-col justify-end gap-5 pb-10 text-white sm:pb-14">
+        <Container className={cn("relative z-10 flex h-full flex-col justify-end text-white", size === "compact" ? "gap-2 pb-4 sm:gap-5 sm:pb-14" : "gap-5 pb-10 sm:pb-14")}>
           {breadcrumbs?.length ? (
             <div className="[&_a]:text-white/70 [&_a:hover]:text-accent [&_span]:text-white">
               <Breadcrumbs items={breadcrumbs} />
@@ -44,7 +47,9 @@ export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "
               <span className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">{eyebrow}</span>
             ) : null}
             <h1 className="font-display font-bold text-display-lg text-balance">{title}</h1>
-            {description ? <p className="max-w-2xl text-base text-white/85 sm:text-lg">{description}</p> : null}
+            {description ? (
+              <p className={cn("max-w-2xl text-base text-white/85 sm:text-lg", size === "compact" && "hidden sm:block")}>{description}</p>
+            ) : null}
           </div>
         </Container>
       </section>

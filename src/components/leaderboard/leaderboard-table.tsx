@@ -49,6 +49,11 @@ const CHAMPION_LABEL: Record<Competition, string> = {
 
 const ROW_TRANSITION = { type: "spring" as const, stiffness: 380, damping: 34, mass: 0.9 };
 
+/** Shrinks the Par/Hole/Score pills below `sm` so all three fit alongside a readable player name
+ * without forcing horizontal scroll -- TILE_CLASS itself stays untouched since it's shared with
+ * hole-by-hole-table/leaderboard-widget/player-popup, which don't need this override. */
+const RESPONSIVE_TILE = "min-w-9 px-1 sm:min-w-[2.75rem] sm:px-2";
+
 /** Flat, square-cornered, shadow-free tiles for Par/Hole/Score — matches theopen.com's leaderboard cell styling exactly (no radius, no shadow). Top edge replicates their .score-cell--has-border:before: a 3px solid-black line at 15% opacity, not a bordered colour. */
 export const TILE_CLASS = "inline-block min-w-[2.75rem] px-2 py-1 text-xs font-bold tabular-nums border-t-[3px] border-black/15";
 export const NEUTRAL_TILE_CLASS = "bg-[#FFD062] text-black";
@@ -102,7 +107,7 @@ function LeaderboardRow({
       )}
       style={{ position: "relative" }}
     >
-      <td className="px-4 py-3">
+      <td className="px-1 py-3 sm:px-4">
         <button
           type="button"
           onClick={() => onToggleFavorite(entry.player.id)}
@@ -157,7 +162,7 @@ function LeaderboardRow({
           </div>
         ) : null}
       </td>
-      <td className="whitespace-nowrap px-2 py-3 text-right text-xs tabular-nums text-accent-foreground/70">
+      <td className="hidden whitespace-nowrap px-2 py-3 text-right text-xs tabular-nums text-accent-foreground/70 sm:table-cell">
         {!entry.started && entry.teeTime ? (
           <span className="inline-flex items-center justify-end gap-1.5 leading-none">
             <Clock className="h-3 w-3 shrink-0" />
@@ -165,26 +170,26 @@ function LeaderboardRow({
           </span>
         ) : null}
       </td>
-      <td className="px-2 py-3 text-right">
+      <td className="px-1 py-3 text-right sm:px-2">
         {entry.noReturn ? (
-          <span className={cn(TILE_CLASS, "bg-white text-[#CB333B]")} title="No return — picked up on a hole, disqualified from this competition">
+          <span className={cn(TILE_CLASS, RESPONSIVE_TILE, "bg-white text-[#CB333B]")} title="No return — picked up on a hole, disqualified from this competition">
             NR
           </span>
         ) : entry.toPar !== undefined ? (
-          <span className={cn(TILE_CLASS, scorePillClass(entry.toPar))}>
+          <span className={cn(TILE_CLASS, RESPONSIVE_TILE, scorePillClass(entry.toPar))}>
             <AnimatedValue value={formatToPar(entry.toPar)} />
           </span>
         ) : (
           <span className="text-accent-foreground/50">—</span>
         )}
       </td>
-      <td className="px-2 py-3 text-right tabular-nums">
-        <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
+      <td className="px-1 py-3 text-right tabular-nums sm:px-2">
+        <span className={cn(TILE_CLASS, RESPONSIVE_TILE, NEUTRAL_TILE_CLASS)}>
           <AnimatedValue value={entry.thru} />
         </span>
       </td>
-      <td className="px-4 py-3 text-right tabular-nums" title={COMPETITION_LABEL[competition]}>
-        <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
+      <td className="px-1 py-3 text-right tabular-nums sm:px-4" title={COMPETITION_LABEL[competition]}>
+        <span className={cn(TILE_CLASS, RESPONSIVE_TILE, NEUTRAL_TILE_CLASS)}>
           <AnimatedValue value={entry.noReturn ? "NR" : entry.started && entry.score !== undefined ? entry.score : "-"} />
         </span>
       </td>
@@ -216,25 +221,25 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
 
   return (
     <div className="no-scrollbar overflow-x-auto border border-surface-dark-foreground/15 bg-primary">
-      <table className="w-full min-w-[640px] table-fixed border-collapse text-sm">
+      <table className="w-full min-w-0 table-fixed border-collapse text-sm sm:min-w-[640px]">
         <colgroup>
-          <col className="w-10" />
-          <col className="w-12" />
+          <col className="w-8 sm:w-10" />
+          <col className="w-10 sm:w-12" />
           <col />
-          <col className="w-20" />
-          <col className="w-16" />
-          <col className="w-16" />
-          <col className="w-20" />
+          <col className="hidden sm:table-column sm:w-20" />
+          <col className="w-12 sm:w-16" />
+          <col className="w-12 sm:w-16" />
+          <col className="w-14 sm:w-20" />
         </colgroup>
         <thead>
           <tr className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 text-left text-xs uppercase tracking-wide text-surface-dark-foreground/60">
-            <th className="w-10 px-4 py-3" aria-label="Favorite" />
+            <th className="w-8 px-1 py-3 sm:w-10 sm:px-4" aria-label="Favorite" />
             <th className="px-2 py-3">Pos</th>
             <th className="px-2 py-3">Player</th>
-            <th className="px-2 py-3 text-right" aria-label="Tee time" />
-            <th className="px-2 py-3 text-right">Par</th>
-            <th className="px-2 py-3 text-right">Hole</th>
-            <th className="px-4 py-3 text-right">Score</th>
+            <th className="hidden px-2 py-3 text-right sm:table-cell" aria-label="Tee time" />
+            <th className="px-1 py-3 text-right sm:px-2">Par</th>
+            <th className="px-1 py-3 text-right sm:px-2">Hole</th>
+            <th className="px-1 py-3 text-right sm:px-4">Score</th>
           </tr>
         </thead>
         <tbody>
