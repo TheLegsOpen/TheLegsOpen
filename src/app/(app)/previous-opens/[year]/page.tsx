@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { Container } from "@/components/shared/container";
-import { Breadcrumbs } from "@/components/shared/breadcrumbs";
+import { PageHero } from "@/components/shared/page-hero";
 import { PreviousOpenView, type PreviousOpenResults } from "@/components/previous-opens/previous-open-view";
+import { formatDate } from "@/lib/utils";
 import { getAllChampionshipYears, getChampionshipByYear } from "@/lib/data/championships";
 import { computeAutoFacts } from "@/lib/data/records";
 import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
@@ -112,16 +113,22 @@ export default async function PreviousOpenYearPage({ params }: YearPageProps) {
   ]);
 
   return (
-    <Container className="flex flex-col gap-10 py-10 sm:py-14">
-      <Breadcrumbs
-        items={[
+    <>
+      <PageHero
+        variant="photo"
+        imageUrl={championship.winnerPhotoUrl}
+        imageLabel={championship.winnerName ? `${championship.winnerName} at ${championship.venueName}` : championship.venueName}
+        eyebrow={championship.date ? formatDate(championship.date) : String(championship.year)}
+        title={championship.venueName}
+        breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Previous Opens", href: "/previous-opens" },
           { label: String(championship.year) },
         ]}
       />
-
-      <PreviousOpenView championship={championship} autoFacts={autoFacts} results={results} />
-    </Container>
+      <Container className="flex flex-col gap-10 py-10 sm:py-14">
+        <PreviousOpenView championship={championship} autoFacts={autoFacts} results={results} />
+      </Container>
+    </>
   );
 }

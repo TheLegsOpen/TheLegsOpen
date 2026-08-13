@@ -3,13 +3,11 @@
 import Link from "next/link";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { LeaderboardView } from "@/components/leaderboard/leaderboard-view";
 import { TeeTimesView } from "@/components/tee-times/tee-times-view";
 import { StatPreviewBoard } from "@/components/statistics/stat-preview-board";
 import { LiveBlogFeed } from "@/components/live-blog/live-blog-feed";
 import { formatToPar } from "@/lib/leaderboard";
-import { formatDate } from "@/lib/utils";
 import type { ChampionshipWinner } from "@/types/championship";
 import type { AutoFacts } from "@/lib/data/records";
 import type { RankedEntry, PlayoffResult } from "@/lib/data/playoffs";
@@ -99,45 +97,31 @@ export function PreviousOpenView({
       </TabsList>
 
       <TabsContent value="overview" className="mt-8">
-        <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
-          <div className="flex flex-col gap-3">
-            <span className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">
-              {championship.date ? formatDate(championship.date) : championship.year}
-            </span>
-            <h1 className="font-display font-bold text-display-lg text-balance">{championship.venueName}</h1>
-            {story.length > 0 ? (
-              <div className="flex flex-col gap-3 text-base text-muted-foreground">
-                {story.map((paragraph, i) => (
-                  <p key={i}>{paragraph}</p>
-                ))}
-              </div>
-            ) : (
-              <p className="text-lg text-muted-foreground">
-                {championship.winnerName ? (
-                  <>
-                    Won by{" "}
-                    {championship.winnerPlayerSlug ? (
-                      <Link href={`/players/${championship.winnerPlayerSlug}`} className="font-semibold text-primary hover:underline">
-                        {championship.winnerName}
-                      </Link>
-                    ) : (
-                      <span className="font-semibold text-foreground">{championship.winnerName}</span>
-                    )}
-                    {championship.winnerCountry ? ` of ${championship.winnerCountry}` : null}
-                  </>
-                ) : (
-                  "Championship not yet played."
-                )}
-              </p>
-            )}
+        {story.length > 0 ? (
+          <div className="flex flex-col gap-3 text-base text-muted-foreground">
+            {story.map((paragraph, i) => (
+              <p key={i}>{paragraph}</p>
+            ))}
           </div>
-          <PlaceholderArt
-            label={championship.winnerName ? `${championship.winnerName} at ${championship.venueName}` : championship.venueName}
-            tone="navy"
-            ratio="4/3"
-            showCaption
-          />
-        </div>
+        ) : (
+          <p className="text-lg text-muted-foreground">
+            {championship.winnerName ? (
+              <>
+                Won by{" "}
+                {championship.winnerPlayerSlug ? (
+                  <Link href={`/players/${championship.winnerPlayerSlug}`} className="font-semibold text-primary hover:underline">
+                    {championship.winnerName}
+                  </Link>
+                ) : (
+                  <span className="font-semibold text-foreground">{championship.winnerName}</span>
+                )}
+                {championship.winnerCountry ? ` of ${championship.winnerCountry}` : null}
+              </>
+            ) : (
+              "Championship not yet played."
+            )}
+          </p>
+        )}
 
         <dl className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-4">
           {[
@@ -146,7 +130,7 @@ export function PreviousOpenView({
             { label: "Margin", value: championship.margin ?? "—" },
             { label: "Venue", value: championship.venueName },
           ].map((stat) => (
-            <div key={stat.label} className="flex flex-col gap-1 border border-border p-4">
+            <div key={stat.label} className="flex flex-col gap-1 border border-border bg-muted p-4">
               <dt className="text-xs uppercase tracking-wide text-muted-foreground">{stat.label}</dt>
               <dd className="font-display text-lg font-bold">{stat.value}</dd>
             </div>
