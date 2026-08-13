@@ -108,6 +108,7 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     'homepage-settings': HomepageSettingsGlobal;
+    'cookie-banner-settings': CookieBannerSettingsGlobal;
     'live-blog-config': LiveBlogConfigGlobal;
     'site-theme': SiteThemeGlobal;
     'sponsor-clock': SponsorClockGlobal;
@@ -441,6 +442,19 @@ export interface SponsorClockGlobal {
 export interface TournamentStatusGlobal {
   id: string;
   competitionComplete?: boolean | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface CookieBannerSettingsGlobal {
+  id: string;
+  title?: string | null;
+  bodyParagraph1?: string | null;
+  bodyParagraph2?: string | null;
+  acceptLabel?: string | null;
+  declineLabel?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }

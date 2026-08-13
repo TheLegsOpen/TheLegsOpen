@@ -10,6 +10,7 @@ import { SITE } from "@/constants/site";
 import { getSiteTheme, type FontPreset } from "@/lib/data/site-theme";
 import { getSponsors } from "@/lib/data/sponsors";
 import { getSocialLinks } from "@/lib/data/social-links";
+import { getCookieBannerText } from "@/lib/data/cookie-banner";
 import { hexToHslTriplet } from "@/lib/utils";
 
 import "./globals.css";
@@ -110,7 +111,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [theme, sponsors, socialLinks] = await Promise.all([getSiteTheme(), getSponsors(), getSocialLinks()]);
+  const [theme, sponsors, socialLinks, cookieBannerText] = await Promise.all([
+    getSiteTheme(),
+    getSponsors(),
+    getSocialLinks(),
+    getCookieBannerText(),
+  ]);
   const fontVars = FONT_PRESET_VARS[theme.fontPreset];
 
   const themeStyle = `:root {
@@ -143,7 +149,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             officialSuppliers={sponsors.officialSuppliers}
             socialLinks={socialLinks}
           />
-          <CookieBanner logoUrl={theme.logoUrl} />
+          <CookieBanner logoUrl={theme.logoUrl} {...cookieBannerText} />
         </MotionProvider>
       </body>
     </html>

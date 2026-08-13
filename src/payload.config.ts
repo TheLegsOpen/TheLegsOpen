@@ -20,6 +20,7 @@ import { Scorecards } from "./collections/Scorecards";
 import { LiveBlogPosts } from "./collections/LiveBlogPosts";
 import { LiveBlogTriggerLog } from "./collections/LiveBlogTriggerLog";
 import { HomepageSettings } from "./globals/HomepageSettings";
+import { CookieBannerSettings } from "./globals/CookieBannerSettings";
 import { LiveBlogConfig } from "./globals/LiveBlogConfig";
 import { SiteTheme } from "./globals/SiteTheme";
 import { SponsorClock } from "./globals/SponsorClock";
@@ -69,6 +70,7 @@ export default buildConfig({
   ],
   globals: [
     HomepageSettings,
+    CookieBannerSettings,
     LiveBlogConfig,
     SiteTheme,
     SponsorClock,

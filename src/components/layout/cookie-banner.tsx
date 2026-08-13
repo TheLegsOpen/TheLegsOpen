@@ -8,7 +8,16 @@ import { Button } from "@/components/ui/button";
 
 const STORAGE_KEY = "legs-open-cookie-consent";
 
-export function CookieBanner({ logoUrl }: { logoUrl?: string }) {
+export interface CookieBannerProps {
+  logoUrl?: string;
+  title: string;
+  bodyParagraph1: string;
+  bodyParagraph2?: string;
+  acceptLabel: string;
+  declineLabel: string;
+}
+
+export function CookieBanner({ logoUrl, title, bodyParagraph1, bodyParagraph2, acceptLabel, declineLabel }: CookieBannerProps) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -45,18 +54,13 @@ export function CookieBanner({ logoUrl }: { logoUrl?: string }) {
           </span>
         )}
 
-        <h2 className="mt-4 font-display text-xl font-bold uppercase tracking-wide text-foreground">Your Cookies</h2>
+        <h2 className="mt-4 font-display text-xl font-bold uppercase tracking-wide text-foreground">{title}</h2>
 
-        <p className="mt-4 text-sm text-muted-foreground text-balance">
-          Accepting all cookies helps this fictional demo site remember your preferences between visits.
-        </p>
-        <p className="mt-3 text-sm text-muted-foreground text-balance">
-          No data leaves your browser and nothing is shared with anyone else — this is a placeholder for learning
-          purposes only.
-        </p>
+        <p className="mt-4 text-sm text-muted-foreground text-balance">{bodyParagraph1}</p>
+        {bodyParagraph2 ? <p className="mt-3 text-sm text-muted-foreground text-balance">{bodyParagraph2}</p> : null}
 
         <Button size="lg" className="mt-6 w-full uppercase tracking-wide" onClick={() => respond("accepted")}>
-          Accept all cookies
+          {acceptLabel}
         </Button>
 
         <div className="mt-4 flex flex-col items-center gap-2 text-sm">
@@ -65,7 +69,7 @@ export function CookieBanner({ logoUrl }: { logoUrl?: string }) {
             onClick={() => respond("declined")}
             className="font-bold text-foreground underline underline-offset-2 hover:text-primary"
           >
-            Decline non-essential cookies
+            {declineLabel}
           </button>
           <Link href="/legal/cookie-policy" className="font-bold text-foreground underline underline-offset-2 hover:text-primary">
             Cookie Policy
