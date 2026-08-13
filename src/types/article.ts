@@ -14,5 +14,6 @@ export interface Article {
   readTimeMinutes: number;
   heroLabel: string;
   imageUrl?: string;
-  body: string[];
+  /** Raw Lexical document -- rendered with @payloadcms/richtext-lexical/react's RichText component so real formatting (lists, links, bold, line breaks) survives, instead of being flattened to plain-text paragraphs. */
+  body: unknown;
 }
