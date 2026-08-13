@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
+import { RichTextBlock } from "@/components/shared/rich-text";
 import { getLegalPages, getLegalPage } from "@/lib/data/legal";
 import { formatDate } from "@/lib/utils";
 
@@ -34,11 +35,7 @@ export default async function LegalDetailPage({ params }: LegalPageProps) {
         breadcrumbs={[{ label: "Home", href: "/" }, { label: page.title }]}
       />
       <Container className="max-w-3xl py-16">
-        <div className="flex flex-col gap-5 text-base leading-relaxed text-foreground">
-          {page.body.map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
-          ))}
-        </div>
+        <RichTextBlock data={page.body} />
       </Container>
     </>
   );

@@ -30,7 +30,8 @@ export interface RichTextSectionData {
   type: "richText";
   id: string;
   heading?: string;
-  paragraphs: string[];
+  /** Raw Lexical document -- render with RichTextBlock (src/components/shared/rich-text.tsx). */
+  body: unknown;
 }
 
 export type HomepageSection = InfoCardGroupSection | CtaBannerSection | RichTextSectionData;

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 
 import { Container } from "@/components/shared/container";
-import { ArticleRichText } from "@/components/news/article-rich-text";
+import { RichTextBlock } from "@/components/shared/rich-text";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { Badge } from "@/components/ui/badge";
@@ -78,7 +78,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           showCaption
         />
 
-        <ArticleRichText data={article.body} className="mx-auto max-w-2xl" />
+        <RichTextBlock data={article.body} className="mx-auto max-w-2xl" />
       </Container>
 
       {related.length > 0 ? (

@@ -16,7 +16,8 @@ export interface Player {
   photoUrl?: string;
   gallery?: PlayerGalleryPhoto[];
   featuredArticleSlugs?: string[];
-  bio: string[];
+  /** Raw Lexical document -- render with RichTextBlock (src/components/shared/rich-text.tsx). */
+  bio: unknown;
 }
 
 export interface PlayerWithChampionshipAge extends Player {

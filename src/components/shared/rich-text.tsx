@@ -3,15 +3,16 @@ import { RichText } from "@payloadcms/richtext-lexical/react";
 import { cn } from "@/lib/utils";
 
 /**
- * Renders an Article's Lexical body with real formatting -- lists, links, bold/italic, and line
+ * Renders a Lexical richText field with real formatting -- lists, links, bold/italic, and line
  * breaks all survive, unlike the old lexicalToPlainParagraphs approach (see src/lib/lexical.ts),
  * which flattened every node down to plain text and silently dropped linebreak nodes entirely.
- * That's what produced a genuinely broken-looking page for any article using a manual list (see
+ * That's what produced a genuinely broken-looking page for any content using a manual list (see
  * the roll-of-honour article) -- Payload's own RichText/defaultJSXConverters handles every node
  * type the editor's toolbar actually offers, so anything an admin formats in the editor now
- * survives to the live page.
+ * survives to the live page. Shared by every richText field on the site (article bodies, player
+ * bios, legal pages, homepage rich-text sections) rather than each having its own flattening logic.
  */
-export function ArticleRichText({ data, className }: { data: unknown; className?: string }) {
+export function RichTextBlock({ data, className }: { data: unknown; className?: string }) {
   return (
     <RichText
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

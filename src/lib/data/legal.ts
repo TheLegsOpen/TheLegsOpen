@@ -1,14 +1,14 @@
 import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
-import { lexicalToPlainParagraphs } from "@/lib/lexical";
 import type { LegalPage as LegalPageDoc } from "@/payload-types";
 
 export interface LegalPage {
   slug: string;
   title: string;
   updated: string;
-  body: string[];
+  /** Raw Lexical document -- render with RichTextBlock (src/components/shared/rich-text.tsx). */
+  body: unknown;
 }
 
 function mapLegalPage(doc: LegalPageDoc): LegalPage {
@@ -16,7 +16,7 @@ function mapLegalPage(doc: LegalPageDoc): LegalPage {
     slug: doc.slug,
     title: doc.title,
     updated: doc.updatedAt,
-    body: lexicalToPlainParagraphs(doc.body),
+    body: doc.body,
   };
 }
 

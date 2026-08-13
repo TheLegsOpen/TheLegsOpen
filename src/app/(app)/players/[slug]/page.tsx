@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Trophy } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
+import { RichTextBlock } from "@/components/shared/rich-text";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { ArticleCard } from "@/components/news/article-card";
@@ -216,11 +217,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           </TabsContent>
 
           <TabsContent value="bio" className="flex flex-col gap-10 pt-8">
-            <div className="flex max-w-2xl flex-col gap-4 text-base leading-relaxed text-muted-foreground">
-              {player.bio.map((paragraph, i) => (
-                <p key={i}>{paragraph}</p>
-              ))}
-            </div>
+            <RichTextBlock data={player.bio} className="max-w-2xl text-muted-foreground" />
             <PlayerGallery playerName={firstName} photos={player.gallery ?? []} />
           </TabsContent>
 

@@ -2,7 +2,6 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { mediaUrl, slugify } from "@/lib/utils";
-import { lexicalToPlainParagraphs } from "@/lib/lexical";
 import type { Article as PayloadArticle, Championship as PayloadChampionship, Venue as PayloadVenue } from "@/payload-types";
 import type { HomepageSection } from "@/types/homepage-section";
 
@@ -98,7 +97,7 @@ export async function getHomepageSections(): Promise<HomepageSection[]> {
       type: "richText",
       id,
       heading: block.heading ?? undefined,
-      paragraphs: lexicalToPlainParagraphs(block.content),
+      body: block.content,
     };
   });
 }

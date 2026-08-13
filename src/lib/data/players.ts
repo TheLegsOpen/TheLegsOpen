@@ -2,7 +2,6 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { mediaUrl, slugify } from "@/lib/utils";
-import { lexicalToPlainParagraphs } from "@/lib/lexical";
 import { getChampionshipHistory, getActiveChampionshipSummary } from "@/lib/data/championships";
 import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
 import type { Player, PlayerWithChampionshipAge } from "@/types/player";
@@ -30,7 +29,7 @@ export function mapPlayer(doc: PayloadPlayer): Player {
     featuredArticleSlugs: (doc.featuredArticles ?? [])
       .map((article) => (typeof article === "object" ? (article.slug ?? slugify(article.title)) : undefined))
       .filter((slug): slug is string => Boolean(slug)),
-    bio: lexicalToPlainParagraphs(doc.bio),
+    bio: doc.bio,
   };
 }
 
