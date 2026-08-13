@@ -44,11 +44,10 @@ export function Hero({ currentChampion: CURRENT_CHAMPION, clockConfig, weather }
                 The {ordinal(CURRENT_CHAMPION.championshipNumber)} {SITE.shortName} Champion
               </span>
               <h1 className="font-display text-[36px] font-semibold leading-[normal] tracking-[0.864px] text-white text-balance">
-                {CURRENT_CHAMPION.winnerName.split(" ")[0]}&rsquo;s coastal masterclass
+                {CURRENT_CHAMPION.articleTitle}
               </h1>
               <p className="max-w-lg font-sans text-[20px] font-normal leading-[24px] tracking-[0px] text-white">
-                {CURRENT_CHAMPION.winnerName} held off the chasing pack at {CURRENT_CHAMPION.venueName} to lift the
-                Claret Vase for the first time, closing at {Math.abs(CURRENT_CHAMPION.scoreToPar)} under par.
+                {CURRENT_CHAMPION.articleDek}
               </p>
               <div className="flex flex-wrap gap-3 pt-1">
                 <Button

@@ -16,6 +16,8 @@ export interface CurrentChampion {
   venueName: string;
   scoreToPar: number;
   articleSlug: string;
+  articleTitle: string;
+  articleDek: string;
   imageUrl?: string;
   imageLabel?: string;
   /** This championship's real ordinal position -- counted from every recorded Championship, not a hand-maintained number. */
@@ -44,6 +46,8 @@ export async function getCurrentChampion(): Promise<CurrentChampion> {
     venueName: venue.name,
     scoreToPar: championship.scoreToPar ?? 0,
     articleSlug: article.slug ?? slugify(article.title),
+    articleTitle: article.title,
+    articleDek: article.dek,
     imageUrl: mediaUrl(article.image),
     imageLabel: article.heroLabel,
     championshipNumber,
