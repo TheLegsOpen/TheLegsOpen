@@ -25,9 +25,16 @@ export interface CurrentChampion {
   secondaryButtonLabel: string;
 }
 
-export async function getCurrentChampion(): Promise<CurrentChampion> {
+/** Undefined when the homepage-settings global hasn't had a Current Champion configured yet (a
+ * brand-new/empty database, e.g. a fresh local dev DB) -- both relationships are required in the
+ * admin, but a global with no data ever saved just returns empty, not a validation error. */
+export async function getCurrentChampion(): Promise<CurrentChampion | undefined> {
   const payload = await getPayload({ config: configPromise });
   const settings = await payload.findGlobal({ slug: "homepage-settings" });
+
+  if (typeof settings.currentChampion?.championship !== "object" || typeof settings.currentChampion?.article !== "object") {
+    return undefined;
+  }
 
   const championship = settings.currentChampion.championship as PayloadChampionship;
   const article = settings.currentChampion.article as PayloadArticle;

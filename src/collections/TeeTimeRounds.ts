@@ -51,7 +51,18 @@ export const TeeTimeRounds: CollectionConfig = {
           relationTo: "players",
           hasMany: true,
           required: true,
+          // filterOptions narrows the admin picker to this season's field ("In Current Field" on
+          // Players) -- deliberately paired with a custom validate so it stays picker-only. Payload's
+          // default relationship validator re-checks filterOptions on every save, not just when a
+          // value is newly picked, so without this, saving ANY old round after removing a
+          // now-retired/moved-on player from the current field (e.g. wrapping up one year's
+          // Championship rounds before setting up the next) fails with "invalid selections" on
+          // players who were perfectly valid when that round actually happened.
           filterOptions: () => ({ inField: { equals: true } }),
+          validate: (value: unknown) => {
+            if (!Array.isArray(value) || value.length === 0) return "This field is required.";
+            return true;
+          },
         },
       ],
     },
