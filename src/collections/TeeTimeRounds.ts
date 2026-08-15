@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 
 import { revalidateSite } from "@/lib/revalidate";
+import { generatePin } from "@/lib/scoring-session";
 
 export const TeeTimeRounds: CollectionConfig = {
   slug: "tee-time-rounds",
@@ -64,10 +65,72 @@ export const TeeTimeRounds: CollectionConfig = {
             return true;
           },
         },
+        {
+          name: "pin",
+          type: "text",
+          admin: {
+            description:
+              "Auto-generated -- lets this group's scorer log in to the on-course scoring app. To reset it, clear this field and save.",
+            readOnly: true,
+          },
+        },
+        {
+          name: "pinVersion",
+          type: "number",
+          defaultValue: 1,
+          admin: { hidden: true },
+        },
       ],
     },
   ],
   hooks: {
+    beforeValidate: [
+      async ({ data, req, originalDoc }) => {
+        if (!data || !Array.isArray(data.groups)) return data;
+
+        const existingRounds = await req.payload.find({
+          collection: "tee-time-rounds",
+          where: { archived: { not_equals: true } },
+          limit: 200,
+          depth: 0,
+          req,
+        });
+        const takenPins = new Set<string>();
+        for (const round of existingRounds.docs) {
+          if (String(round.id) === String(originalDoc?.id)) continue;
+          for (const group of round.groups ?? []) {
+            if (group.pin) takenPins.add(group.pin);
+          }
+        }
+
+        type OriginalGroup = { id?: string | null; pin?: string | null; pinVersion?: number | null };
+        const originalById = new Map<string | null | undefined, OriginalGroup>(
+          ((originalDoc?.groups ?? []) as OriginalGroup[]).map((g) => [g.id, g]),
+        );
+
+        for (const group of data.groups as { id?: string; pin?: string; pinVersion?: number }[]) {
+          const original = group.id ? originalById.get(group.id) : undefined;
+
+          if (!group.pin) {
+            let candidate = generatePin();
+            while (takenPins.has(candidate)) candidate = generatePin();
+            takenPins.add(candidate);
+            group.pin = candidate;
+            group.pinVersion = (original?.pinVersion ?? 0) + 1;
+          } else if (original && group.pin !== original.pin) {
+            // Admin hand-edited the PIN -- keep it (still needs to be unique against everyone
+            // else's, but not against its own previous value) and bump the version so any
+            // already-issued scorer session for this group stops working immediately.
+            takenPins.add(group.pin);
+            group.pinVersion = (original.pinVersion ?? 1) + 1;
+          } else if (!group.pinVersion) {
+            group.pinVersion = 1;
+          }
+        }
+
+        return data;
+      },
+    ],
     afterChange: [
       async ({ doc, req }) => {
         if (doc.round !== "Championship" || !doc.championship) return doc;

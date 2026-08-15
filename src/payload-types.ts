@@ -664,6 +664,8 @@ export interface TeeTimeRound {
         time: string;
         tee: '1st' | '10th';
         players: (string | Player)[];
+        pin?: string | null;
+        pinVersion?: number | null;
         id?: string | null;
       }[]
     | null;
