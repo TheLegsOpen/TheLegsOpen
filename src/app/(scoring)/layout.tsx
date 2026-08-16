@@ -4,6 +4,8 @@ import localFont from "next/font/local";
 
 import { getSiteTheme, type FontPreset } from "@/lib/data/site-theme";
 import { hexToHslTriplet } from "@/lib/utils";
+import { ServiceWorkerRegistration } from "@/components/scoring/service-worker-registration";
+import { IosInstallHint } from "@/components/scoring/ios-install-hint";
 
 import "../(app)/globals.css";
 
@@ -66,6 +68,15 @@ const FONT_PRESET_VARS: Record<FontPreset, { display: string; sans: string }> = 
 export const metadata: Metadata = {
   title: "Scoring — The Legs Open",
   robots: { index: false, follow: false },
+  manifest: "/score/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Legs Open Scoring",
+  },
+  icons: {
+    apple: "/icon-192.png",
+  },
 };
 
 export const viewport: Viewport = {
@@ -97,7 +108,11 @@ export default async function ScoringLayout({ children }: { children: React.Reac
       <head>
         <style dangerouslySetInnerHTML={{ __html: themeStyle }} />
       </head>
-      <body className="min-h-screen bg-primary font-sans text-primary-foreground antialiased">{children}</body>
+      <body className="min-h-screen bg-primary font-sans text-primary-foreground antialiased">
+        <ServiceWorkerRegistration />
+        <IosInstallHint />
+        {children}
+      </body>
     </html>
   );
 }

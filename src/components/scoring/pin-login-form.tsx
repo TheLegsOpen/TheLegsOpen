@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 export function PinLoginForm() {
   const router = useRouter();
@@ -54,13 +55,20 @@ export function PinLoginForm() {
           name="pin"
           autoFocus
           autoComplete="off"
+          autoCorrect="off"
           autoCapitalize="characters"
+          spellCheck={false}
           inputMode="text"
+          enterKeyHint="go"
           maxLength={5}
           value={pin}
-          onChange={(e) => setPin(e.target.value.toUpperCase())}
-          placeholder="XXXXX"
-          className="h-16 text-center font-display text-3xl font-bold uppercase tracking-[0.3em]"
+          // Uppercasing is done visually (the `uppercase` class below) and again server-side on
+          // submit -- forcing it into the controlled value on every keystroke was the culprit
+          // behind a real bug on Samsung's keyboard, where the synchronous value rewrite desynced
+          // the input from React state and the field would go blank on the next re-render.
+          onChange={(e) => setPin(e.target.value)}
+          placeholder="•••••"
+          className="h-16 text-center font-display text-3xl font-bold uppercase tracking-[0.3em] placeholder:font-sans placeholder:text-2xl placeholder:tracking-widest placeholder:text-muted-foreground/40"
           aria-invalid={Boolean(error)}
         />
         {error ? (
@@ -70,8 +78,17 @@ export function PinLoginForm() {
         ) : null}
       </div>
 
-      <Button type="submit" variant="accent" size="lg" disabled={submitting || pin.trim().length === 0} className="w-full uppercase tracking-wide">
-        {submitting ? "Checking…" : "Start Scoring"}
+      <Button
+        type="submit"
+        variant="accent"
+        size="lg"
+        disabled={submitting}
+        className={cn(
+          "w-full uppercase tracking-wide",
+          pin.trim().length === 0 && !submitting && "bg-muted text-muted-foreground hover:bg-muted",
+        )}
+      >
+        {submitting ? "Checking…" : pin.trim().length === 0 ? "Enter your PIN above" : "Start Scoring"}
       </Button>
     </form>
   );
