@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { cacheGroup, getUnsyncedHoles, queueHoleUpdate } from "@/lib/scoring/offline-db";
+import { useOfflineSync } from "@/hooks/use-offline-sync";
 
 export interface ScoringGroupData {
   groupLabel: string;
@@ -43,10 +45,43 @@ export function ScoringApp({ group }: { group: ScoringGroupData }) {
   const [currentHole, setCurrentHole] = useState(() => firstUnplayedHole(group.players));
   const [view, setView] = useState<View>("entry");
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const { pendingCount, syncing, sessionExpired, syncNow } = useOfflineSync();
 
   const holeInfo = group.holeInfos[currentHole - 1];
+
+  // On mount: any hole entered but never synced from a previous visit (tab killed offline, phone
+  // locked mid-round, etc.) takes priority over the server-provided baseline, and the group's data
+  // gets cached locally so this page can render from IndexedDB rather than needing a fresh server
+  // round trip if signal is merely weak -- not a substitute for full offline reload, which needs
+  // the app shell itself served from a service worker (Stage 3), not this.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const unsynced = await getUnsyncedHoles();
+      if (cancelled || unsynced.length === 0) return;
+
+      setHolesState((prev) => {
+        const merged: HolesState = { ...prev };
+        for (const h of unsynced) {
+          if (!merged[h.scorecardId]) continue;
+          const holes = [...merged[h.scorecardId]];
+          holes[h.holeNumber - 1] = { strokes: h.strokes, noReturn: h.noReturn };
+          merged[h.scorecardId] = holes;
+        }
+        setCurrentHole(firstUnplayedHole(group.players.map((p) => ({ ...p, holes: merged[p.scorecardId] ?? p.holes }))));
+        return merged;
+      });
+    })();
+    cacheGroup(group);
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (sessionExpired) window.location.href = "/score/login";
+  }, [sessionExpired]);
 
   function setPlayerHole(scorecardId: string, patch: Partial<{ strokes?: number; noReturn: boolean }>) {
     setHolesState((prev) => {
@@ -57,36 +92,20 @@ export function ScoringApp({ group }: { group: ScoringGroupData }) {
   }
 
   async function saveCurrentHole() {
-    setSaving(true);
-    setSaveError(null);
-
-    const updates = group.players.map((p) => {
+    for (const p of group.players) {
       const hole = holesState[p.scorecardId][currentHole - 1];
-      return { scorecardId: p.scorecardId, holeNumber: currentHole, strokes: hole?.noReturn ? undefined : hole?.strokes, noReturn: hole?.noReturn ?? false };
-    });
-
-    try {
-      const res = await fetch("/api/scoring/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ updates }),
+      await queueHoleUpdate({
+        scorecardId: p.scorecardId,
+        holeNumber: currentHole,
+        strokes: hole?.noReturn ? undefined : hole?.strokes,
+        noReturn: hole?.noReturn ?? false,
       });
-      if (!res.ok && res.status === 401) {
-        window.location.href = "/score/login";
-        return;
-      }
-      if (!res.ok) {
-        setSaveError("Couldn't save that hole -- check your connection and try again.");
-        setSaving(false);
-        return;
-      }
-    } catch {
-      setSaveError("Couldn't reach the server -- check your connection and try again.");
-      setSaving(false);
-      return;
     }
+    // Best-effort immediate sync -- but advance regardless of whether it actually reaches the
+    // server. The whole point of the local queue is that a scorer's progress is never gated on
+    // connectivity; use-offline-sync retries automatically once signal returns.
+    void syncNow();
 
-    setSaving(false);
     if (currentHole === 9) setView("turn-review");
     else if (currentHole === 18) setView("final-review");
     else setCurrentHole((h) => Math.min(18, h + 1));
@@ -210,7 +229,8 @@ export function ScoringApp({ group }: { group: ScoringGroupData }) {
             {holeInfo ? <span className="ml-2 text-base font-normal text-primary-foreground/70">Par {holeInfo.par} · SI {holeInfo.si}</span> : null}
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <SyncStatus pendingCount={pendingCount} syncing={syncing} />
           <Link href="/score/leaderboard" className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/70 hover:text-primary-foreground">
             Leaderboard
           </Link>
@@ -250,18 +270,28 @@ export function ScoringApp({ group }: { group: ScoringGroupData }) {
         })}
       </div>
 
-      {saveError ? <p className="text-center text-sm font-medium text-destructive">{saveError}</p> : null}
-
       <div className="flex gap-3">
         {currentHole > 1 ? (
           <Button variant="outline" size="lg" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" onClick={() => jumpToHole(currentHole - 1)}>
             Back
           </Button>
         ) : null}
-        <Button variant="accent" size="lg" className="flex-1 uppercase tracking-wide" onClick={saveCurrentHole} disabled={saving}>
-          {saving ? "Saving…" : currentHole === 18 ? "Finish Round" : "Save & Next Hole"}
+        <Button variant="accent" size="lg" className="flex-1 uppercase tracking-wide" onClick={saveCurrentHole}>
+          {currentHole === 18 ? "Finish Round" : "Save & Next Hole"}
         </Button>
       </div>
     </div>
+  );
+}
+
+/** Never blocks -- purely informational. A scorer's progress never waits on this. */
+function SyncStatus({ pendingCount, syncing }: { pendingCount: number; syncing: boolean }) {
+  if (pendingCount === 0 && !syncing) {
+    return <span className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/40">Synced</span>;
+  }
+  return (
+    <span className={cn("text-xs font-semibold uppercase tracking-wide", pendingCount > 0 ? "text-accent" : "text-primary-foreground/60")}>
+      {syncing ? "Syncing…" : `${pendingCount} pending`}
+    </span>
   );
 }
