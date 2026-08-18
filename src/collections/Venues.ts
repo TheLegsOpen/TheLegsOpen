@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 
 import { revalidateSite } from "@/lib/revalidate";
+import { geocodeAddress } from "@/lib/geocoding";
 import { COUNTRIES, countryName } from "@/data/countries";
 
 function slugify(value: string): string {
@@ -35,7 +36,10 @@ export const Venues: CollectionConfig = {
         {
           name: "latitude",
           type: "number",
-          admin: { width: "50%", description: "Powers the homepage weather widget when this venue's championship is active." },
+          admin: {
+            width: "50%",
+            description: "Powers the homepage weather widget when this venue's championship is active. Auto-filled from the venue's name/location on save if left blank -- edit directly to override.",
+          },
         },
         { name: "longitude", type: "number", admin: { width: "50%" } },
       ],
@@ -200,12 +204,22 @@ export const Venues: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [
-      ({ data }) => {
+      async ({ data }) => {
         if (data && !data.slug && data.name) {
           data.slug = slugify(data.name);
         }
         if (data && data.countryCode) {
           data.country = countryName(data.countryCode);
+        }
+        // Only when both are blank -- never overwrites a manually entered or previously
+        // auto-filled value, and never re-queries on every subsequent save of the same venue.
+        if (data && data.latitude == null && data.longitude == null && data.location) {
+          const query = [data.name, data.location, data.region, data.country].filter(Boolean).join(", ");
+          const geocoded = await geocodeAddress(query);
+          if (geocoded) {
+            data.latitude = geocoded.latitude;
+            data.longitude = geocoded.longitude;
+          }
         }
         if (data && Array.isArray(data.holes)) {
           data.holes = data.holes.map((hole: Record<string, unknown>, index: number) => ({ ...hole, holeNumber: index + 1 }));
