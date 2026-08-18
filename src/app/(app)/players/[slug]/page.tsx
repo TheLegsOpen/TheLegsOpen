@@ -37,6 +37,12 @@ export async function generateStaticParams() {
   return slugs.map((slug) => ({ slug }));
 }
 
+// Same hard ceiling on ISR staleness as the homepage/leaderboard -- see the comment on
+// src/app/(app)/page.tsx's own `revalidate` for why on-demand revalidation alone isn't enough
+// (per-hostname edge cache can sit stale far longer on a low-traffic custom domain). The
+// Overview tab shows this player's live position/score for the active championship.
+export const revalidate = 10;
+
 export async function generateMetadata({ params }: PlayerPageProps): Promise<Metadata> {
   const { slug } = await params;
   const player = await getPlayerBySlug(slug);

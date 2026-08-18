@@ -22,6 +22,12 @@ export const metadata: Metadata = {
   description: "Round-by-round tee times for The Legs Open at Seabrook Old Course.",
 };
 
+// Same hard ceiling on ISR staleness as the homepage/leaderboard -- see the comment on
+// src/app/(app)/page.tsx's own `revalidate` for why on-demand revalidation alone isn't enough
+// (per-hostname edge cache can sit stale far longer on a low-traffic custom domain). This page
+// shows live per-hole "thru" progress during a round, so it needs the same guarantee.
+export const revalidate = 10;
+
 export default async function TeeTimesPage() {
   const [
     rounds,

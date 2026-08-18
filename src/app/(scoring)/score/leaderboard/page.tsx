@@ -6,6 +6,12 @@ import { ScoreboardView } from "@/components/scoring/scoreboard-view";
 
 // No session check -- this is the same public data /leaderboard already shows on the main site,
 // just in a simpler, mobile-first view so a scorer can check it without leaving the scoring app.
+//
+// Same hard ceiling on ISR staleness as the main site's /leaderboard -- see the comment on
+// src/app/(app)/page.tsx's own `revalidate` for why on-demand revalidation alone isn't enough
+// (per-hostname edge cache can sit stale far longer on a low-traffic custom domain).
+export const revalidate = 10;
+
 export default async function ScoreLeaderboardPage() {
   const [main, stableford, scratch] = await Promise.all([
     getCompetitionLeaderboard("main"),
