@@ -84,6 +84,7 @@ function PlayerChip({
         tone="slate"
         ratio="1/1"
         className="h-20 w-20 shrink-0 rounded-full sm:h-24 sm:w-24"
+        sizes="(min-width: 640px) 96px, 80px"
       />
     </div>
   );

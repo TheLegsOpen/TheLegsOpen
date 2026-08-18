@@ -27,6 +27,7 @@ export function PlayerCard({ player, championYears, championLogoUrl }: PlayerCar
             "transition-transform duration-300 ease-standard group-hover:scale-[1.02]",
             championYears?.length ? "ring-2 ring-accent" : undefined,
           )}
+          sizes="(min-width: 1024px) 20vw, (min-width: 640px) 33vw, 50vw"
         />
         <span className="absolute right-2 top-2 flex items-center gap-1 rounded bg-black/60 px-1.5 py-1 text-white">
           <CountryFlag code={player.countryCode} className="h-2.5 w-4" />

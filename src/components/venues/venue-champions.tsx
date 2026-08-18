@@ -20,7 +20,14 @@ export function VenueChampions({ venueName, champions }: { venueName: string; ch
         {champions.map((champion) => (
           <div key={champion.key} className="flex flex-col gap-3">
             <div className="relative aspect-[3/4] w-full overflow-hidden bg-primary">
-              <PlaceholderArt label={`${champion.name} portrait`} imageUrl={champion.photoUrl} tone="slate" blendBlack fill />
+              <PlaceholderArt
+                label={`${champion.name} portrait`}
+                imageUrl={champion.photoUrl}
+                tone="slate"
+                blendBlack
+                fill
+                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+              />
             </div>
             <div>
               <p className="font-display text-lg font-bold uppercase leading-tight">{champion.name}</p>

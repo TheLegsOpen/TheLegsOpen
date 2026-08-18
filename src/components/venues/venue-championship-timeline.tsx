@@ -61,6 +61,7 @@ export function VenueChampionshipTimeline({
                   tone="slate"
                   blendBlack
                   fill
+                  sizes="(min-width: 640px) 128px, 96px"
                 />
               </div>
               <div className="flex flex-col">

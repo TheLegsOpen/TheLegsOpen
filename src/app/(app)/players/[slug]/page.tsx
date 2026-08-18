@@ -135,7 +135,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         {/* Desktop-only: anchored to the whole hero (not the badge column) so it reads as a full-height decorative element alongside the portrait, matching the earlier desktop treatment. Below lg there's no room for this, so the badge column gets its own smaller corner version instead. */}
         {winYears.length > 0 && theme.championTrophyGraphicUrl ? (
           <div className="pointer-events-none absolute bottom-0 right-0 hidden h-[300px] w-[240px] lg:block" aria-hidden="true">
-            <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill />
+            <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill sizes="240px" />
           </div>
         ) : null}
         <Container className="relative flex h-auto items-end py-10 lg:h-[430px] lg:py-0">
@@ -151,7 +151,14 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
             <div className="order-first flex justify-center lg:order-2 lg:self-end">
               <div className="relative h-[220px] w-[180px] sm:h-[260px] sm:w-[210px] lg:h-[300px] lg:w-[240px]">
-                <PlaceholderArt label={`${player.name} portrait`} imageUrl={player.photoUrl} tone="slate" blendBlack fill />
+                <PlaceholderArt
+                  label={`${player.name} portrait`}
+                  imageUrl={player.photoUrl}
+                  tone="slate"
+                  blendBlack
+                  fill
+                  sizes="(min-width: 1024px) 240px, (min-width: 640px) 210px, 180px"
+                />
               </div>
             </div>
 
@@ -163,7 +170,14 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                     className="pointer-events-none absolute -right-3 -top-4 h-[110px] w-[90px] sm:h-[140px] sm:w-[115px] lg:hidden"
                     aria-hidden="true"
                   >
-                    <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill />
+                    <PlaceholderArt
+                      label=""
+                      imageUrl={theme.championTrophyGraphicUrl}
+                      tone="navy"
+                      blendBlack
+                      fill
+                      sizes="(min-width: 640px) 115px, 90px"
+                    />
                   </div>
                 ) : null}
                 <div className="relative flex items-center gap-2">

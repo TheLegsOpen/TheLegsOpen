@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { cn } from "@/lib/utils";
 
 const TONES = {
@@ -34,6 +36,14 @@ interface PlaceholderArtProps {
    * just dark. Check with a pixel sample before turning this on for a given photo.
    */
   blendBlack?: boolean;
+  /**
+   * Responsive `sizes` hint for `next/image` -- tells the optimizer how wide this image
+   * actually renders so it doesn't serve a viewport-width image to a 110px avatar. Defaults
+   * to full viewport width, which is right for hero/banner treatments; pass a tighter value
+   * (a fixed px width, or a `(min-width: …) Xvw` list) for grid cards, avatars, and carousel
+   * slides that sit inside a narrower container.
+   */
+  sizes?: string;
 }
 
 /**
@@ -43,7 +53,17 @@ interface PlaceholderArtProps {
  * renders of the same card stable across the server/client boundary.
  * Renders an admin-uploaded `imageUrl` instead when one is set.
  */
-export function PlaceholderArt({ label, imageUrl, tone = "navy", ratio = "4/3", className, showCaption = false, fill = false, blendBlack = false }: PlaceholderArtProps) {
+export function PlaceholderArt({
+  label,
+  imageUrl,
+  tone = "navy",
+  ratio = "4/3",
+  className,
+  showCaption = false,
+  fill = false,
+  blendBlack = false,
+  sizes = "100vw",
+}: PlaceholderArtProps) {
   const seed = hashSeed(label);
   const [dark, mid, light] = TONES[tone];
   const horizon = 55 + (seed % 15);
@@ -59,8 +79,7 @@ export function PlaceholderArt({ label, imageUrl, tone = "navy", ratio = "4/3", 
       aria-label={label}
     >
       {imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={imageUrl} alt={label} className={cn("h-full w-full object-cover", blend && "mix-blend-screen")} />
+        <Image src={imageUrl} alt={label} fill sizes={sizes} className={cn("object-cover", blend && "mix-blend-screen")} />
       ) : (
         <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
           <defs>

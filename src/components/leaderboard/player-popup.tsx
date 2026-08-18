@@ -111,6 +111,7 @@ export function PlayerPopup({
               blendBlack
               ratio="3/4"
               className="h-[140px] w-[110px] shrink-0"
+              sizes="110px"
             />
 
             <div>
