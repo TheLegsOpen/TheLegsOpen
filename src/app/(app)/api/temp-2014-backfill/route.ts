@@ -106,11 +106,14 @@ export async function POST(request: NextRequest) {
   }
 
   // Followers only advance once the leader is far enough ahead to owe them a catch-up hole --
-  // converges on the steady gap within 2-3 calls and holds it for the rest of the round.
+  // converges on the steady gap within 2-3 calls and holds it for the rest of the round. Once
+  // the leader has finished (18), there's no one left to create that gap, so a follower still
+  // sitting exactly at the target gap would otherwise never move again -- once the leader is
+  // done, followers just play out their own remaining holes unconditionally.
   for (const g of [1, 2] as const) {
     if (currentHoles[g] >= 18) continue;
     const gapIfSkipped = currentHoles[0] - currentHoles[g];
-    if (gapIfSkipped > DESIRED_GAP[g]) {
+    if (currentHoles[0] >= 18 || gapIfSkipped > DESIRED_GAP[g]) {
       await advanceGroup(g, currentHoles[g] + 1);
     }
   }
