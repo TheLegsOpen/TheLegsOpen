@@ -60,6 +60,8 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
 
   const venues = useMemo(() => {
     const seen = new Map<string, string>();
+    // results is newest-first, so the first sighting of each venue is its most recent edition --
+    // that's what "select a course, land on the latest year" below relies on.
     for (const r of results) if (!seen.has(r.venueSlug)) seen.set(r.venueSlug, r.venueName);
     return Array.from(seen, ([venueSlug, venueName]) => ({ venueSlug, venueName }));
   }, [results]);
@@ -86,15 +88,16 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
     return { wins, second, third, top5, top10, top25, nrs };
   }, [rows]);
 
-  function selectCourse(venueSlug: string) {
+  function selectCourseMode() {
     setMode("course");
-    setSelectedVenueSlug(venueSlug);
+    // venues is newest-first, so the most recent course a player has played is the sane default --
+    // never lands on an empty view.
+    setSelectedVenueSlug((prev) => prev ?? venues[0]?.venueSlug);
     setExpandedYear(null);
   }
 
   function selectTournament() {
     setMode("tournament");
-    setSelectedVenueSlug(undefined);
     setExpandedYear(null);
   }
 
@@ -114,32 +117,53 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={selectTournament}
-          className={cn(
-            "rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-wide transition-colors",
-            mode === "tournament" ? "border-accent bg-accent text-accent-foreground" : "border-border text-muted-foreground hover:border-accent hover:text-accent",
-          )}
-        >
-          Tournament
-        </button>
-        {venues.map((v) => (
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap gap-2">
           <button
-            key={v.venueSlug}
             type="button"
-            onClick={() => selectCourse(v.venueSlug)}
+            onClick={selectTournament}
             className={cn(
               "rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-wide transition-colors",
-              mode === "course" && selectedVenueSlug === v.venueSlug
-                ? "border-accent bg-accent text-accent-foreground"
-                : "border-border text-muted-foreground hover:border-accent hover:text-accent",
+              mode === "tournament" ? "border-accent bg-accent text-accent-foreground" : "border-border text-muted-foreground hover:border-accent hover:text-accent",
             )}
           >
-            {v.venueName}
+            Tournament
           </button>
-        ))}
+          <button
+            type="button"
+            onClick={selectCourseMode}
+            disabled={venues.length === 0}
+            className={cn(
+              "rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-wide transition-colors",
+              mode === "course"
+                ? "border-accent bg-accent text-accent-foreground"
+                : "border-border text-muted-foreground hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border disabled:hover:text-muted-foreground",
+            )}
+          >
+            Course
+          </button>
+        </div>
+
+        {mode === "course" ? (
+          <label className="relative inline-flex w-fit items-center gap-2 rounded-full border border-border px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
+            <span className="sr-only">Select course</span>
+            <select
+              value={selectedVenueSlug}
+              onChange={(e) => {
+                setSelectedVenueSlug(e.target.value);
+                setExpandedYear(null);
+              }}
+              className="cursor-pointer appearance-none bg-transparent pr-5 focus:outline-none"
+            >
+              {venues.map((v) => (
+                <option key={v.venueSlug} value={v.venueSlug}>
+                  {v.venueName.toUpperCase()}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-4 h-4 w-4" />
+          </label>
+        ) : null}
       </div>
 
       <div>
