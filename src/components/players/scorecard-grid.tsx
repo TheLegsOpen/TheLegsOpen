@@ -24,6 +24,14 @@ function sumPars(entry: ScorecardEntry, indices: number[]): number {
 /** Front-9/back-9/out/in/total hole-by-hole scorecard grid, colour-coded per hole relative to par. */
 export function ScorecardGrid({ entry, competition }: { entry: ScorecardEntry; competition: Competition }) {
   const isStableford = competition === "stableford";
+  // holeScorePillClass's eagle/birdie/par/bogey colouring assumes lower-is-better (strokes-to-par),
+  // the opposite of Stableford's higher-is-better points -- applying it there paints birdies navy
+  // and bogeys red. Matches HoleByHoleTable's own Stableford handling: neutral tile for every value
+  // until there's a meaningful Stableford-specific colour scale to replace it with.
+  function pillClass(hole: HoleScore | undefined): string {
+    if (hole?.value === undefined) return NEUTRAL_TILE_CLASS;
+    return isStableford ? NEUTRAL_TILE_CLASS : holeScorePillClass(hole.relative);
+  }
 
   return (
     <div className="no-scrollbar overflow-x-auto border border-surface-dark-foreground/15">
@@ -62,7 +70,7 @@ export function ScorecardGrid({ entry, competition }: { entry: ScorecardEntry; c
               const hole = entry.holes[i];
               return (
                 <td key={i} className="px-0.5 py-1 text-center">
-                  <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hole?.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS)}>
+                  <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", pillClass(hole))}>
                     {hole?.value ?? ""}
                   </span>
                 </td>
@@ -75,7 +83,7 @@ export function ScorecardGrid({ entry, competition }: { entry: ScorecardEntry; c
               const hole = entry.holes[i];
               return (
                 <td key={i} className="px-0.5 py-1 text-center">
-                  <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hole?.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS)}>
+                  <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", pillClass(hole))}>
                     {hole?.value ?? ""}
                   </span>
                 </td>
