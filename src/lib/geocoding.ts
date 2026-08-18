@@ -32,3 +32,29 @@ export async function geocodeAddress(query: string): Promise<GeocodeResult | und
     return undefined;
   }
 }
+
+/**
+ * Tries the venue's own name alone first, then progressively adds more context only if that
+ * fails. Nominatim's free-text search treats comma-separated terms as an address hierarchy
+ * (street/city/county/country) -- confirmed against the real service that a well-known, entirely
+ * unambiguous course name (e.g. "Dundonald Links") resolves cleanly on its own, but appending a
+ * location/region that doesn't precisely match how OSM's own data has that place tagged (its
+ * `location` field said "Troon", OSM has it under Irvine/North Ayrshire) makes the whole query
+ * return nothing. Most-specific-name-only first, broadest-context last, is the order that
+ * actually works in practice rather than the one that looks most "complete".
+ */
+export async function geocodeVenue(parts: { name?: string; location?: string; region?: string; country?: string }): Promise<GeocodeResult | undefined> {
+  const candidates = [
+    parts.name,
+    [parts.name, parts.location].filter(Boolean).join(", "),
+    [parts.name, parts.location, parts.region, parts.country].filter(Boolean).join(", "),
+  ].filter((q): q is string => Boolean(q));
+
+  const uniqueCandidates = candidates.filter((q, i) => q !== candidates[i - 1]);
+
+  for (const query of uniqueCandidates) {
+    const result = await geocodeAddress(query);
+    if (result) return result;
+  }
+  return undefined;
+}

@@ -1,7 +1,7 @@
 import type { CollectionConfig } from "payload";
 
 import { revalidateSite } from "@/lib/revalidate";
-import { geocodeAddress } from "@/lib/geocoding";
+import { geocodeVenue } from "@/lib/geocoding";
 import { COUNTRIES, countryName } from "@/data/countries";
 
 function slugify(value: string): string {
@@ -213,9 +213,8 @@ export const Venues: CollectionConfig = {
         }
         // Only when both are blank -- never overwrites a manually entered or previously
         // auto-filled value, and never re-queries on every subsequent save of the same venue.
-        if (data && data.latitude == null && data.longitude == null && data.location) {
-          const query = [data.name, data.location, data.region, data.country].filter(Boolean).join(", ");
-          const geocoded = await geocodeAddress(query);
+        if (data && data.latitude == null && data.longitude == null && data.name) {
+          const geocoded = await geocodeVenue({ name: data.name, location: data.location, region: data.region, country: data.country });
           if (geocoded) {
             data.latitude = geocoded.latitude;
             data.longitude = geocoded.longitude;
