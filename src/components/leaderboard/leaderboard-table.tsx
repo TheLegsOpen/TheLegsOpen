@@ -89,6 +89,7 @@ function LeaderboardRow({
   onSelectPlayer,
   concluded,
   isTitleHolder,
+  isExcludedChampion,
 }: {
   entry: RankedEntry;
   isFav: boolean;
@@ -97,6 +98,10 @@ function LeaderboardRow({
   onSelectPlayer: (playerId: string) => void;
   concluded: boolean;
   isTitleHolder: boolean;
+  /** True for the Main champion's own row when they also lead this competition outright (no tie
+   * involved -- a genuine tie instead gets `entry.playoffNote` from the site's real countback
+   * logic). Explains why the top score here doesn't carry the "Golfer of the Year" honour. */
+  isExcludedChampion: boolean;
 }) {
   const [isMoving, setIsMoving] = useState(false);
   const { surname, firstName } = splitSurnameFirst(entry.player.name);
@@ -147,6 +152,8 @@ function LeaderboardRow({
           <p className={cn("mt-0.5 text-[10px] font-bold uppercase tracking-wide", entry.playoffNote.won ? "text-primary" : "text-primary/60")}>
             {entry.playoffNote.display ? `${entry.playoffNote.label} (${entry.playoffNote.display})` : entry.playoffNote.label}
           </p>
+        ) : isExcludedChampion ? (
+          <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-primary/60">Ineligible (Already Main Champion)</p>
         ) : null}
         {entry.playoffNote && entry.playoffNote.holeIndices.length > 0 ? (
           <div className="mt-1.5 flex gap-1">
@@ -263,6 +270,7 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
               onSelectPlayer={onSelectPlayer}
               concluded={concluded}
               isTitleHolder={entry.player.id === titleHolderId}
+              isExcludedChampion={Boolean(excludeFromTitle) && entry.player.id === excludeFromTitle && entry.player.id !== titleHolderId}
             />
           ))}
         </tbody>
