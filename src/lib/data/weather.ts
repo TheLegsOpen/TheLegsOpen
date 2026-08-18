@@ -85,7 +85,7 @@ export async function getVenueWeather(): Promise<VenueWeather | null> {
     }));
 
     return {
-      locationName: venue.location,
+      locationName: venue.name,
       currentTemperatureC: data.current.temperature_2m,
       currentWeatherCode: data.current.weather_code,
       isDay: data.current.is_day === 1,
