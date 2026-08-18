@@ -112,6 +112,35 @@ function getWinners(entries: CompetitionEntry[], competition: Competition): Play
   return stillTied ? tied.map((entry) => entry.player) : [];
 }
 
+/**
+ * The real Stableford champion, honestly excluding the Main champion whether or not the raw
+ * leaderboard's own top spot happened to involve a tie. `getWinners`'s own exclusion (used by
+ * `getPlayoffs` above) only ever fires when the Main champion is part of a genuine tie for
+ * Stableford's top spot -- an outright (non-tied) Stableford leader who also happens to be the
+ * Main champion was never being excluded at all, since there was no tie for that logic to run
+ * against. This re-derives the winner directly from each eligible player's own Stableford score
+ * (not their pre-computed `.position`/`.tied`, which describe their rank in the *full* field and
+ * go stale the moment the Main champion is removed from contention), so it's correct in both
+ * cases and callers never need to know which one applies.
+ */
+export function getEligibleStablefordChampion(
+  mainEntries: CompetitionEntry[],
+  stablefordEntries: CompetitionEntry[],
+): CompetitionEntry | undefined {
+  if (!isConcluded(mainEntries)) return undefined;
+
+  const ineligibleIds = new Set(getWinners(mainEntries, "main").map((p) => p.id));
+  const eligible = stablefordEntries.filter((entry) => entry.started && !ineligibleIds.has(entry.player.id));
+  if (eligible.length === 0) return undefined;
+
+  const bestScore = Math.max(...eligible.map((entry) => entry.score ?? 0));
+  const contenders = eligible.filter((entry) => (entry.score ?? 0) === bestScore);
+  if (contenders.length === 1) return contenders[0];
+
+  const { winner } = resolveTiebreak(contenders, "stableford");
+  return contenders.find((entry) => entry.player.id === winner?.id) ?? contenders[0];
+}
+
 export interface PlayoffNote {
   won: boolean;
   /** e.g. "Won First Tiebreaker" / "Lost First Tiebreaker". */

@@ -30,6 +30,9 @@ interface LeaderboardViewProps {
   drivingCategories: StatCategory[];
   approachCategories: StatCategory[];
   puttingCategories: StatCategory[];
+  /** The real, tiebreak-aware Stableford title-holder's player id (see getEligibleStablefordChampion),
+   * computed server-side since it needs Payload data the client can't reach. */
+  stablefordTitleHolderId?: string;
 }
 
 /** Matches the ~10s live-score polling cadence measured on theopen.com/leaderboard. */
@@ -55,6 +58,7 @@ export function LeaderboardView({
   drivingCategories,
   approachCategories,
   puttingCategories,
+  stablefordTitleHolderId,
 }: LeaderboardViewProps) {
   const { favorites, toggleFavorite, hydrated } = useFavorites();
   const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -219,6 +223,7 @@ export function LeaderboardView({
                     favoritesOnly={favoritesOnly}
                     onSelectPlayer={(id) => selectPlayer(id, "stableford")}
                     excludeFromTitle={mainChampionId}
+                    titleHolderId={stablefordTitleHolderId}
                   />
                 )}
               </TabsContent>

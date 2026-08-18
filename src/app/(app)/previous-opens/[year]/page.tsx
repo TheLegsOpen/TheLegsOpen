@@ -8,7 +8,7 @@ import { formatDate } from "@/lib/utils";
 import { getAllChampionshipYears, getChampionshipByYear } from "@/lib/data/championships";
 import { computeAutoFacts } from "@/lib/data/records";
 import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
-import { getPlayoffs, applyPlayoffToEntries } from "@/lib/data/playoffs";
+import { getPlayoffs, applyPlayoffToEntries, getEligibleStablefordChampion } from "@/lib/data/playoffs";
 import { getTeeTimesForChampionshipId } from "@/lib/data/tee-times";
 import { getLiveBlogPosts } from "@/lib/data/live-blog";
 import { getArticles } from "@/lib/data/articles";
@@ -82,10 +82,15 @@ async function loadResults(championshipId: string): Promise<PreviousOpenResults>
     getSponsorClock(),
   ]);
 
+  const main = applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main"));
+  const stableford = applyPlayoffToEntries(stablefordRaw, playoffs.find((p) => p.competition === "stableford"));
+  const scratch = applyPlayoffToEntries(scratchRaw, playoffs.find((p) => p.competition === "scratch"));
+
   return {
-    main: applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main")),
-    stableford: applyPlayoffToEntries(stablefordRaw, playoffs.find((p) => p.competition === "stableford")),
-    scratch: applyPlayoffToEntries(scratchRaw, playoffs.find((p) => p.competition === "scratch")),
+    main,
+    stableford,
+    scratch,
+    stablefordTitleHolderId: getEligibleStablefordChampion(main, stableford)?.player.id,
     rounds,
     nettCategories,
     scratchCategories,

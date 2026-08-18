@@ -4,7 +4,7 @@ import configPromise from "@/payload.config";
 import { getChampionshipHistory } from "@/lib/data/championships";
 import { getPlayers } from "@/lib/data/players";
 import { getCompetitionLeaderboardForChampionshipId, getAllScorecardParticipation } from "@/lib/data/scorecards";
-import { getPlayoffs } from "@/lib/data/playoffs";
+import { getEligibleStablefordChampion, getPlayoffs } from "@/lib/data/playoffs";
 import { playerSlug } from "@/lib/utils";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { ChampionshipWinner } from "@/types/championship";
@@ -270,17 +270,14 @@ export async function computeAutoFacts(championship: ChampionshipWinner): Promis
   ]);
   if (!isConcluded(main)) return undefined;
 
-  // Stableford/Scratch are separate competitions from Main and don't depend on which Main player
-  // eventually took the title, so their winner/score resolve regardless of a Main-side tie.
-  // getPlayoffs already applies the "Main champion is ineligible for Stableford" exclusion and
-  // resolves any genuine tie via countback -- namesFor alone doesn't know about that exclusion,
-  // so it would (wrongly) credit both tied players even when one of them isn't actually eligible.
-  const stablefordPlayoff = playoffResults.find((r) => r.competition === "stableford");
+  // Scratch is a separate competition from Main and doesn't depend on which Main player eventually
+  // took the title, so its winner/score resolve regardless of a Main-side tie.
   const scratchPlayoff = playoffResults.find((r) => r.competition === "scratch");
 
-  const stablefordWinnerEntry = stablefordPlayoff?.winner
-    ? stableford.find((e) => e.player.id === stablefordPlayoff.winner!.id)
-    : undefined;
+  // Stableford excludes the Main champion, whether or not the raw Stableford leaderboard's own top
+  // spot happened to involve a tie -- getEligibleStablefordChampion re-derives the winner from raw
+  // scores so it's correct in both the tied and outright cases (see its own doc comment).
+  const stablefordWinnerEntry = getEligibleStablefordChampion(main, stableford);
   const stablefordWinner = stablefordWinnerEntry
     ? { names: stablefordWinnerEntry.player.name, country: stablefordWinnerEntry.player.country }
     : namesFor(stableford, 1);

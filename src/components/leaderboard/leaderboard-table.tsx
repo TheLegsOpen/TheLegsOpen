@@ -22,6 +22,12 @@ interface LeaderboardTableProps {
    * its bold styling) goes to the next-best eligible player instead. Their raw position number is
    * untouched (they genuinely do have the most points) -- only the title recognition moves. */
   excludeFromTitle?: string;
+  /** The real, tiebreak-aware eligible title-holder's player id, computed server-side (see
+   * getEligibleStablefordChampion). Overrides the naive "first non-excluded entry in sorted order"
+   * fallback below, which can't detect a tie among the runner-up group itself once the champion is
+   * removed from contention (that group's own internal order was never tiebreak-resolved, since
+   * getPlayoffs only ever resolves ties for the raw #1 spot). */
+  titleHolderId?: string;
 }
 
 /** Aggregate (round-total) Par pill — 3-tier, since a multi-hole total doesn't have a meaningful "eagle" case. */
@@ -211,12 +217,14 @@ function LeaderboardRow({
   );
 }
 
-export function LeaderboardTable({ entries, competition, favorites, onToggleFavorite, favoritesOnly, onSelectPlayer, excludeFromTitle }: LeaderboardTableProps) {
+export function LeaderboardTable({ entries, competition, favorites, onToggleFavorite, favoritesOnly, onSelectPlayer, excludeFromTitle, titleHolderId: titleHolderIdOverride }: LeaderboardTableProps) {
   const visible = favoritesOnly ? entries.filter((entry) => favorites.includes(entry.player.id)) : entries;
   const concluded = isConcluded(entries);
   // entries is already position-sorted, so the first entry that isn't the excluded Main champion
   // is the real title-holder -- falls back to entries[0] itself when there's no exclusion active.
-  const titleHolderId = (excludeFromTitle ? entries.find((e) => e.player.id !== excludeFromTitle) : entries[0])?.player.id;
+  // The caller-supplied override takes priority when present (see the prop's own doc comment).
+  const titleHolderId =
+    titleHolderIdOverride ?? (excludeFromTitle ? entries.find((e) => e.player.id !== excludeFromTitle) : entries[0])?.player.id;
 
   if (entries.length === 0) {
     return (

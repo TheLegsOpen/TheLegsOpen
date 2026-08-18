@@ -15,7 +15,7 @@ import {
   getApproachCategories,
   getPuttingCategories,
 } from "@/lib/data/scoring-statistics";
-import { getPlayoffs, applyPlayoffToEntries } from "@/lib/data/playoffs";
+import { getPlayoffs, applyPlayoffToEntries, getEligibleStablefordChampion } from "@/lib/data/playoffs";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
@@ -61,6 +61,7 @@ export default async function LeaderboardPage() {
   const main = applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main"));
   const stableford = applyPlayoffToEntries(stablefordRaw, playoffs.find((p) => p.competition === "stableford"));
   const scratch = applyPlayoffToEntries(scratchRaw, playoffs.find((p) => p.competition === "scratch"));
+  const stablefordTitleHolderId = getEligibleStablefordChampion(main, stableford)?.player.id;
 
   return (
     <>
@@ -86,6 +87,7 @@ export default async function LeaderboardPage() {
         drivingCategories={drivingCategories}
         approachCategories={approachCategories}
         puttingCategories={puttingCategories}
+        stablefordTitleHolderId={stablefordTitleHolderId}
       />
     </>
   );

@@ -22,6 +22,7 @@ export interface PreviousOpenResults {
   main: RankedEntry[];
   stableford: RankedEntry[];
   scratch: RankedEntry[];
+  stablefordTitleHolderId?: string;
   rounds: TeeTimeRound[];
   nettCategories: StatCategory[];
   scratchCategories: StatCategory[];
@@ -172,6 +173,7 @@ export function PreviousOpenView({
                 drivingCategories={results.drivingCategories}
                 approachCategories={results.approachCategories}
                 puttingCategories={results.puttingCategories}
+                stablefordTitleHolderId={results.stablefordTitleHolderId}
               />
             </TabsContent>
 
