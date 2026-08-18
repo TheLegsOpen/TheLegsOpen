@@ -9,29 +9,17 @@ import { CountryFlag } from "@/components/shared/country-flag";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { formatToPar } from "@/lib/leaderboard";
 import { cn, playerSlug, splitSurnameFirst } from "@/lib/utils";
-import { scorePillClass, holeScorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
+import { scorePillClass } from "@/components/leaderboard/leaderboard-table";
 import { PlayerStatPanel } from "@/components/leaderboard/player-stat-panel";
+import { ScorecardGrid } from "@/components/players/scorecard-grid";
 import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
 import type { StatCategory } from "@/lib/statistics";
-
-const FRONT_NINE = Array.from({ length: 9 }, (_, i) => i);
-const BACK_NINE = Array.from({ length: 9 }, (_, i) => i + 9);
 
 const COMPETITION_OPTIONS: { value: Competition; label: string }[] = [
   { value: "main", label: "Main scorecard" },
   { value: "stableford", label: "Stableford scorecard" },
   { value: "scratch", label: "Scratch scorecard" },
 ];
-
-function sumHoles(entry: CompetitionEntry, indices: number[]): number | undefined {
-  const values = indices.map((i) => entry.holes[i]?.value);
-  if (values.some((v) => v === undefined)) return undefined;
-  return (values as number[]).reduce((a, b) => a + b, 0);
-}
-
-function sumPars(entry: CompetitionEntry, indices: number[]): number {
-  return indices.reduce((total, i) => total + (entry.holes[i]?.par ?? 0), 0);
-}
 
 interface PlayerPopupProps {
   main?: CompetitionEntry;
@@ -89,7 +77,6 @@ export function PlayerPopup({
 
   const entryByCompetition: Record<Competition, CompetitionEntry | undefined> = { main, stableford, scratch };
   const activeEntry = entryByCompetition[competition];
-  const isStableford = competition === "stableford";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -163,75 +150,7 @@ export function PlayerPopup({
           </label>
 
           {activeEntry ? (
-            <div className="no-scrollbar overflow-x-auto border border-surface-dark-foreground/15">
-              <table className="w-full border-collapse text-sm">
-                <thead>
-                  <tr className="bg-accent text-center text-xs uppercase tracking-wide text-accent-foreground">
-                    {FRONT_NINE.map((i) => (
-                      <th key={i} className="px-0.5 py-1">
-                        <span className="block">{i + 1}</span>
-                        <span className="block font-normal normal-case text-accent-foreground/60">{activeEntry.holes[i]?.par}</span>
-                      </th>
-                    ))}
-                    <th className="px-0.5 py-1">
-                      <span className="block">Out</span>
-                      <span className="block font-normal normal-case text-accent-foreground/60">{sumPars(activeEntry, FRONT_NINE)}</span>
-                    </th>
-                    {BACK_NINE.map((i) => (
-                      <th key={i} className="px-0.5 py-1">
-                        <span className="block">{i + 1}</span>
-                        <span className="block font-normal normal-case text-accent-foreground/60">{activeEntry.holes[i]?.par}</span>
-                      </th>
-                    ))}
-                    <th className="px-0.5 py-1">
-                      <span className="block">In</span>
-                      <span className="block font-normal normal-case text-accent-foreground/60">{sumPars(activeEntry, BACK_NINE)}</span>
-                    </th>
-                    <th className="px-0.5 py-1">
-                      <span className="block">Tot</span>
-                      <span className="block font-normal normal-case text-accent-foreground/60">
-                        {sumPars(activeEntry, [...FRONT_NINE, ...BACK_NINE])}
-                      </span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    {FRONT_NINE.map((i) => {
-                      const hole = activeEntry.holes[i];
-                      return (
-                        <td key={i} className="px-0.5 py-1 text-center">
-                          <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hole?.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS)}>
-                            {hole?.value ?? ""}
-                          </span>
-                        </td>
-                      );
-                    })}
-                    <td className="px-0.5 py-1 text-center">
-                      <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", NEUTRAL_TILE_CLASS)}>{sumHoles(activeEntry, FRONT_NINE) ?? "—"}</span>
-                    </td>
-                    {BACK_NINE.map((i) => {
-                      const hole = activeEntry.holes[i];
-                      return (
-                        <td key={i} className="px-0.5 py-1 text-center">
-                          <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hole?.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS)}>
-                            {hole?.value ?? ""}
-                          </span>
-                        </td>
-                      );
-                    })}
-                    <td className="px-0.5 py-1 text-center">
-                      <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", NEUTRAL_TILE_CLASS)}>{sumHoles(activeEntry, BACK_NINE) ?? "—"}</span>
-                    </td>
-                    <td className="px-0.5 py-1 text-center">
-                      <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", NEUTRAL_TILE_CLASS)}>
-                        {isStableford ? (activeEntry.score ?? 0) : (activeEntry.score ?? "—")}
-                      </span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <ScorecardGrid entry={activeEntry} competition={competition} />
           ) : (
             <p className="text-sm text-surface-dark-foreground/60">No scorecard yet for this competition.</p>
           )}

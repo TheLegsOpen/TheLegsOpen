@@ -2,10 +2,13 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { mediaUrl, slugify } from "@/lib/utils";
+import { isConcluded } from "@/lib/leaderboard";
 import { getChampionshipHistory, getActiveChampionshipSummary } from "@/lib/data/championships";
-import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
+import { getCompetitionLeaderboardForChampionshipId, type Competition, type HoleScore } from "@/lib/data/scorecards";
+import { getPlayoffs, applyPlayoffToEntries } from "@/lib/data/playoffs";
 import type { Player, PlayerWithChampionshipAge } from "@/types/player";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
+import type { ChampionshipWinner } from "@/types/championship";
 import type { Player as PayloadPlayer } from "@/payload-types";
 
 /**
@@ -77,18 +80,54 @@ export async function getAllPlayerSlugs(): Promise<string[]> {
   return result.docs.map((doc) => doc.slug ?? slugify(doc.name)).filter(Boolean);
 }
 
-export interface PlayerPerformance {
+export interface PlayerCompetitionResult {
+  position: number;
+  tied: boolean;
+  score?: number;
+  /** undefined for stableford (points, not to-par) */
+  toPar?: number;
+  noReturn?: boolean;
+  /** Present only when hasScorecards is true on the parent PlayerYearResult. */
+  holes?: HoleScore[];
+}
+
+export interface PlayerYearResult {
   year: number;
+  championshipId: string;
+  date?: string;
   venueName: string;
+  venueSlug: string;
   /** "Winner" for a confirmed win, or a real computed position (e.g. "T5") — never a guess. */
   finish: string;
   /** Sort/compare key: 1 for a win, the real position otherwise. */
   position: number;
+  /** True once real per-hole scorecard data (all three competitions) is available and trustworthy. */
+  hasScorecards: boolean;
+  main: PlayerCompetitionResult;
+  stableford?: PlayerCompetitionResult;
+  scratch?: PlayerCompetitionResult;
 }
 
-function isConcluded(entries: CompetitionEntry[]): boolean {
-  const started = entries.filter((e) => e.started);
-  return started.length > 0 && started.every((e) => e.thru === "F");
+function toResult(entry: CompetitionEntry): PlayerCompetitionResult {
+  return { position: entry.position, tied: entry.tied, score: entry.score, toPar: entry.toPar, noReturn: entry.noReturn, holes: entry.holes };
+}
+
+function winnerFallback(c: ChampionshipWinner): PlayerYearResult {
+  // A confirmed win (the officially recorded winnerName) is always trustworthy, even when that
+  // year's per-hole scorecards were never digitized -- rather than drop it, show what the
+  // Championship record itself already confirms (its own hand-entered winningScore/scoreToPar),
+  // just without a scorecard to expand.
+  return {
+    year: c.year,
+    championshipId: c.id,
+    date: c.date,
+    venueName: c.venueName,
+    venueSlug: c.venueSlug,
+    finish: "Winner",
+    position: 1,
+    hasScorecards: false,
+    main: { position: 1, tied: false, score: c.winningScore, toPar: c.scoreToPar },
+  };
 }
 
 /**
@@ -98,40 +137,59 @@ function isConcluded(entries: CompetitionEntry[]): boolean {
  * for Records) — otherwise the year is left out rather than guessed, since a regulation round
  * that doesn't match the confirmed result can't be trusted to say where anyone else finished.
  *
- * The confirmed winner just needs to be one of the players sharing the top spot, not necessarily
- * the sole outright leader -- a title decided by playoff/countback still leaves the raw Main
- * leaderboard showing a tie at 1st (the tiebreak is resolved separately, see lib/data/playoffs.ts),
- * and that tie shouldn't make every other player's real, concluded finish untrustworthy. A player
- * who was themselves part of that tied group but isn't the confirmed winner is the tiebreak's
- * runner-up, so their own finish reads as a clean 2nd rather than "tied 1st".
+ * Ties are resolved via the site's real playoff/countback machinery (lib/data/playoffs.ts) rather
+ * than a bespoke special case, so Stableford and Scratch ties get the same treatment as Main: the
+ * confirmed winner just needs to be one of the players sharing the top spot before resolution, not
+ * necessarily the sole outright leader.
  */
-export async function getPlayerPerformances(player: Player): Promise<PlayerPerformance[]> {
+export async function getPlayerResults(player: Player): Promise<PlayerYearResult[]> {
   const history = await getChampionshipHistory();
   const played = history.filter((c) => c.winnerName);
 
   const results = await Promise.all(
-    played.map(async (c): Promise<PlayerPerformance | undefined> => {
-      if (c.winnerName === player.name) {
-        return { year: c.year, venueName: c.venueName, finish: "Winner", position: 1 };
+    played.map(async (c): Promise<PlayerYearResult | undefined> => {
+      const [mainRaw, stablefordRaw, scratchRaw, playoffs] = await Promise.all([
+        getCompetitionLeaderboardForChampionshipId(c.id, "main"),
+        getCompetitionLeaderboardForChampionshipId(c.id, "stableford"),
+        getCompetitionLeaderboardForChampionshipId(c.id, "scratch"),
+        getPlayoffs(c.id),
+      ]);
+
+      if (!isConcluded(mainRaw)) {
+        return c.winnerName === player.name ? winnerFallback(c) : undefined;
       }
 
-      const main = await getCompetitionLeaderboardForChampionshipId(c.id, "main");
-      if (!isConcluded(main)) return undefined;
+      const byCompetition: Record<Competition, CompetitionEntry[]> = {
+        main: applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main")),
+        stableford: applyPlayoffToEntries(stablefordRaw, playoffs.find((p) => p.competition === "stableford")),
+        scratch: applyPlayoffToEntries(scratchRaw, playoffs.find((p) => p.competition === "scratch")),
+      };
 
-      const topGroup = main.filter((e) => e.position === 1);
-      const confirmedWinner = topGroup.find((e) => e.player.name === c.winnerName);
-      if (!confirmedWinner) return undefined;
+      const confirmedWinner = byCompetition.main.some((e) => e.position === 1 && e.player.name === c.winnerName);
+      if (!confirmedWinner) return c.winnerName === player.name ? winnerFallback(c) : undefined;
 
-      const entry = main.find((e) => e.player.name === player.name);
-      if (!entry || !entry.started) return undefined;
+      const mainEntry = byCompetition.main.find((e) => e.player.name === player.name);
+      if (!mainEntry || !mainEntry.started) return undefined;
 
-      const wasTiebreakRunnerUp = entry.position === 1 && entry.tied && entry.player.name !== c.winnerName;
-      const position = wasTiebreakRunnerUp ? 2 : entry.position;
-      const finish = wasTiebreakRunnerUp ? "2" : entry.tied ? `T${entry.position}` : `${entry.position}`;
+      const finish = mainEntry.position === 1 ? "Winner" : mainEntry.tied ? `T${mainEntry.position}` : `${mainEntry.position}`;
+      const stablefordEntry = byCompetition.stableford.find((e) => e.player.name === player.name);
+      const scratchEntry = byCompetition.scratch.find((e) => e.player.name === player.name);
 
-      return { year: c.year, venueName: c.venueName, finish, position };
+      return {
+        year: c.year,
+        championshipId: c.id,
+        date: c.date,
+        venueName: c.venueName,
+        venueSlug: c.venueSlug,
+        finish,
+        position: mainEntry.position,
+        hasScorecards: true,
+        main: toResult(mainEntry),
+        stableford: stablefordEntry && toResult(stablefordEntry),
+        scratch: scratchEntry && toResult(scratchEntry),
+      };
     }),
   );
 
-  return results.filter((r): r is PlayerPerformance => Boolean(r)).sort((a, b) => b.year - a.year);
+  return results.filter((r): r is PlayerYearResult => Boolean(r)).sort((a, b) => b.year - a.year);
 }

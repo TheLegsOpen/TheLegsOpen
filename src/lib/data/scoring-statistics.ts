@@ -39,7 +39,7 @@ interface PlayerHoleScores {
 }
 
 /** Strokes Gained is the only stat here with genuine fractional values (field averages are rarely whole numbers). */
-function formatDecimalToPar(value: number): string {
+export function formatDecimalToPar(value: number): string {
   const rounded = Math.round(value * 100) / 100;
   if (rounded === 0) return "E";
   const fixed = Math.abs(rounded).toFixed(2);
@@ -47,7 +47,7 @@ function formatDecimalToPar(value: number): string {
 }
 
 /** Assigns tie-aware rank (1st, 2nd, T2nd...) to an already-sorted (best-first) row list. */
-function assignPositions(rows: StatRow[]): void {
+export function assignPositions(rows: StatRow[]): void {
   let position = 0;
   rows.forEach((row, index) => {
     if (index === 0 || row.value !== rows[index - 1].value) position = index + 1;
@@ -202,7 +202,7 @@ export async function getScratchScoringCategories(championshipId?: string): Prom
 type StreakKind = "par-or-better" | "par" | "bogey-or-worse";
 
 /** Longest run of consecutive played holes (in hole order) matching the streak's condition. */
-function longestStreak(scoreByHole: (number | undefined)[], holeInfos: HoleInfo[], kind: StreakKind): number {
+export function longestStreak(scoreByHole: (number | undefined)[], holeInfos: HoleInfo[], kind: StreakKind): number {
   let longest = 0;
   let current = 0;
   holeInfos.forEach((info, i) => {

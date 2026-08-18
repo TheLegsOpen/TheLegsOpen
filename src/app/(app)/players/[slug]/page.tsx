@@ -9,14 +9,23 @@ import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { ArticleCard } from "@/components/news/article-card";
 import { PlayerGallery } from "@/components/players/player-gallery";
+import { ResultsTab } from "@/components/players/results-tab";
+import { StatsTab } from "@/components/players/stats-tab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getAllPlayerSlugs, getPlayerBySlug, getPlayerPerformances } from "@/lib/data/players";
+import { getAllPlayerSlugs, getPlayerBySlug, getPlayerResults } from "@/lib/data/players";
 import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
+import {
+  getCareerNettScoringCategories,
+  getCareerScratchScoringCategories,
+  getCareerStreakCategories,
+  getCareerDrivingCategories,
+  getCareerApproachCategories,
+  getCareerPuttingCategories,
+} from "@/lib/data/career-statistics";
 import { getTeeTimes } from "@/lib/data/tee-times";
 import { getArticles } from "@/lib/data/articles";
 import { getSiteTheme } from "@/lib/data/site-theme";
 import { formatToPar } from "@/lib/leaderboard";
-import { cn } from "@/lib/utils";
 import type { Article } from "@/types/article";
 
 interface PlayerPageProps {
@@ -43,25 +52,44 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   const player = await getPlayerBySlug(slug);
   if (!player) notFound();
 
-  const [mainLeaderboard, teeTimeRounds, performances, allArticles, theme] = await Promise.all([
+  const [mainLeaderboard, teeTimeRounds, results, allArticles, theme, careerCategories] = await Promise.all([
     getCompetitionLeaderboard("main"),
     getTeeTimes(),
-    getPlayerPerformances(player),
+    getPlayerResults(player),
     getArticles(),
     getSiteTheme(),
+    Promise.all([
+      getCareerNettScoringCategories(),
+      getCareerScratchScoringCategories(),
+      getCareerStreakCategories(),
+      getCareerDrivingCategories(),
+      getCareerApproachCategories(),
+      getCareerPuttingCategories(),
+    ]).then(([nettCategories, scratchCategories, streakCategories, drivingCategories, approachCategories, puttingCategories]) => ({
+      nettCategories,
+      scratchCategories,
+      streakCategories,
+      drivingCategories,
+      approachCategories,
+      puttingCategories,
+    })),
   ]);
 
   const entry = mainLeaderboard.find((e) => e.player.id === player.id);
-  const winYears = performances.filter((p) => p.finish === "Winner").map((p) => p.year);
-  const debutYear = performances.length > 0 ? Math.min(...performances.map((p) => p.year)) : player.debutYear;
+  const winYears = results.filter((r) => r.finish === "Winner").map((r) => r.year);
+  const debutYear = results.length > 0 ? Math.min(...results.map((r) => r.year)) : player.debutYear;
 
   // "1 - 2015, 2016" rather than just "Winner" -- makes a repeat best finish (e.g. winning twice) visible at a glance instead of collapsing to one word.
-  const bestPosition = performances.length > 0 ? Math.min(...performances.map((p) => p.position)) : undefined;
-  const bestFinishYears = performances.filter((p) => p.position === bestPosition).sort((a, b) => a.year - b.year);
+  const bestPosition = results.length > 0 ? Math.min(...results.map((r) => r.position)) : undefined;
+  const bestFinishYears = results.filter((r) => r.position === bestPosition).sort((a, b) => a.year - b.year);
   const bestFinish =
     bestFinishYears.length > 0
-      ? `${bestPosition === 1 ? "1" : bestFinishYears[0].finish} - ${bestFinishYears.map((p) => p.year).join(", ")}`
+      ? `${bestPosition === 1 ? "1" : bestFinishYears[0].finish} - ${bestFinishYears.map((r) => r.year).join(", ")}`
       : undefined;
+
+  const statsYears = results
+    .filter((r) => r.hasScorecards)
+    .map((r) => ({ year: r.year, championshipId: r.championshipId }));
 
   const teeTimes = teeTimeRounds.flatMap((round) =>
     round.groups
@@ -80,13 +108,13 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     ...(player.turnedPro ? [{ label: "Turned Pro", value: player.turnedPro }] : []),
     ...(debutYear ? [{ label: "Legs Open Debut", value: debutYear }] : []),
     { label: "Championship Handicap", value: player.championshipHandicap ?? "—" },
-    // player.previousOpens is the hand-maintained pre-digital-era count; performances (sorted
+    // player.previousOpens is the hand-maintained pre-digital-era count; results (sorted
     // newest-first, already filtered to concluded championships) covers every digital-era Legs
     // Open this player has a real scorecard for -- excluding the most recent of those, since
     // "previous" means before their latest appearance, not including it. A player whose only
     // appearance so far is this one correctly shows 0, and this keeps itself current as each new
     // year concludes with no manual update needed.
-    { label: "Previous Opens", value: player.previousOpens + Math.max(0, performances.length - 1) },
+    { label: "Previous Opens", value: player.previousOpens + Math.max(0, results.length - 1) },
     ...(bestFinish ? [{ label: "Best Legs Open Finish", value: bestFinish }] : []),
   ];
 
@@ -170,7 +198,8 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="bio">Bio</TabsTrigger>
-            <TabsTrigger value="performances">Performances</TabsTrigger>
+            <TabsTrigger value="results">Results</TabsTrigger>
+            <TabsTrigger value="stats">Stats</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="flex flex-col gap-10 pt-8">
@@ -221,38 +250,12 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             <PlayerGallery playerName={firstName} photos={player.gallery ?? []} />
           </TabsContent>
 
-          <TabsContent value="performances" className="pt-8">
-            {performances.length === 0 ? (
-              <p className="text-muted-foreground">No previous appearances at the Legs Open on record.</p>
-            ) : (
-              <div className="no-scrollbar overflow-x-auto border border-border">
-                <table className="w-full min-w-[420px] border-collapse text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-secondary text-left text-xs uppercase tracking-wide text-muted-foreground">
-                      <th className="px-4 py-3">Year</th>
-                      <th className="px-4 py-3">Venue</th>
-                      <th className="px-4 py-3 text-right">Finish</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {performances.map((result) => (
-                      <tr key={result.year} className="border-b border-border last:border-0">
-                        <td className="px-4 py-3 font-medium tabular-nums">{result.year}</td>
-                        <td className="px-4 py-3">{result.venueName}</td>
-                        <td
-                          className={cn(
-                            "px-4 py-3 text-right font-medium",
-                            result.finish === "Winner" && "text-accent",
-                          )}
-                        >
-                          {result.finish}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+          <TabsContent value="results" className="pt-8">
+            <ResultsTab results={results} />
+          </TabsContent>
+
+          <TabsContent value="stats" className="pt-8">
+            <StatsTab playerId={player.id} careerCategories={careerCategories} years={statsYears} />
           </TabsContent>
         </Tabs>
       </Container>
