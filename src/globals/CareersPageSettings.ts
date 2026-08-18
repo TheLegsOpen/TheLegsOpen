@@ -1,13 +1,13 @@
 import type { GlobalConfig } from "payload";
 
-import { revalidateSite } from "@/lib/revalidate";
+import { revalidateCareersPage } from "@/lib/revalidate";
 import { ICON_OPTIONS } from "@/lib/icon-options";
 
 export const CareersPageSettings: GlobalConfig = {
   slug: "careers-page",
   label: "Careers Page",
   access: { read: () => true },
-  hooks: { afterChange: [revalidateSite] },
+  hooks: { afterChange: [revalidateCareersPage] },
   admin: { description: "Text, values cards and open roles shown on the Careers page." },
   fields: [
     {

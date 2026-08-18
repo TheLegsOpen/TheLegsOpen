@@ -1,6 +1,6 @@
 import type { CollectionConfig } from "payload";
 
-import { revalidateSite } from "@/lib/revalidate";
+import { revalidateLegalPages } from "@/lib/revalidate";
 import { slugify } from "@/lib/utils";
 
 export const LegalPages: CollectionConfig = {
@@ -43,7 +43,7 @@ export const LegalPages: CollectionConfig = {
         return data;
       },
     ],
-    afterChange: [revalidateSite],
-    afterDelete: [revalidateSite],
+    afterChange: [revalidateLegalPages],
+    afterDelete: [revalidateLegalPages],
   },
 };

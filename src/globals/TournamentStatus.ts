@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 
-import { revalidateSite } from "@/lib/revalidate";
+import { revalidateLiveBlogConfig } from "@/lib/revalidate";
 
 export const TournamentStatus: GlobalConfig = {
   slug: "tournament-status",
@@ -9,7 +9,7 @@ export const TournamentStatus: GlobalConfig = {
     read: () => true,
   },
   hooks: {
-    afterChange: [revalidateSite],
+    afterChange: [revalidateLiveBlogConfig],
   },
   fields: [
     {

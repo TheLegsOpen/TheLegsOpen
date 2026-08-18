@@ -1,6 +1,6 @@
 import type { CollectionConfig } from "payload";
 
-import { revalidateSite } from "@/lib/revalidate";
+import { revalidateTeeTimeRounds } from "@/lib/revalidate";
 import { generatePin } from "@/lib/scoring-session";
 
 export const TeeTimeRounds: CollectionConfig = {
@@ -161,8 +161,8 @@ export const TeeTimeRounds: CollectionConfig = {
 
         return doc;
       },
-      revalidateSite,
+      revalidateTeeTimeRounds,
     ],
-    afterDelete: [revalidateSite],
+    afterDelete: [revalidateTeeTimeRounds],
   },
 };

@@ -1,7 +1,7 @@
 import type { CollectionConfig } from "payload";
 
 import { COUNTRIES, countryName } from "@/data/countries";
-import { revalidateSite } from "@/lib/revalidate";
+import { revalidatePlayers } from "@/lib/revalidate";
 
 function slugify(value: string): string {
   return value
@@ -176,7 +176,7 @@ export const Players: CollectionConfig = {
         return data;
       },
     ],
-    afterChange: [revalidateSite],
-    afterDelete: [revalidateSite],
+    afterChange: [revalidatePlayers],
+    afterDelete: [revalidatePlayers],
   },
 };

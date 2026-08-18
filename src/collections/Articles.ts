@@ -1,6 +1,6 @@
 import type { CollectionConfig } from "payload";
 
-import { revalidateSite } from "@/lib/revalidate";
+import { revalidateArticles } from "@/lib/revalidate";
 
 function slugify(value: string): string {
   return value
@@ -60,7 +60,7 @@ export const Articles: CollectionConfig = {
         return data;
       },
     ],
-    afterChange: [revalidateSite],
-    afterDelete: [revalidateSite],
+    afterChange: [revalidateArticles],
+    afterDelete: [revalidateArticles],
   },
 };

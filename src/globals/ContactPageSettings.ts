@@ -1,12 +1,12 @@
 import type { GlobalConfig } from "payload";
 
-import { revalidateSite } from "@/lib/revalidate";
+import { revalidateContactPage } from "@/lib/revalidate";
 
 export const ContactPageSettings: GlobalConfig = {
   slug: "contact-page",
   label: "Contact Page",
   access: { read: () => true },
-  hooks: { afterChange: [revalidateSite] },
+  hooks: { afterChange: [revalidateContactPage] },
   admin: { description: "Text shown at the top of the Contact Us page, above the enquiry form." },
   fields: [
     { name: "heroEyebrow", label: "Eyebrow", type: "text" },

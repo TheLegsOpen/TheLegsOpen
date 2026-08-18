@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 
-import { revalidateSite } from "@/lib/revalidate";
+import { revalidatePageBanners } from "@/lib/revalidate";
 
 const RECOMMENDED =
   "Falls back to a placeholder when not set. Recommended: wide landscape, at least 1920×1080px — it fills a full-width banner roughly 60% of the viewport height, with page text overlaid on the bottom-left, so keep the main subject centred or to the right.";
@@ -16,7 +16,7 @@ export const PageBanners: GlobalConfig = {
     read: () => true,
   },
   hooks: {
-    afterChange: [revalidateSite],
+    afterChange: [revalidatePageBanners],
   },
   admin: {
     description: "Banner photo and text shown at the top of each listing page. Everything here is optional and falls back to a placeholder/default.",

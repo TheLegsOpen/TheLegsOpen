@@ -1,13 +1,13 @@
 import type { GlobalConfig } from "payload";
 
-import { revalidateSite } from "@/lib/revalidate";
+import { revalidateMediaPage } from "@/lib/revalidate";
 import { ICON_OPTIONS } from "@/lib/icon-options";
 
 export const MediaPageSettings: GlobalConfig = {
   slug: "media-page",
   label: "Media Page",
   access: { read: () => true },
-  hooks: { afterChange: [revalidateSite] },
+  hooks: { afterChange: [revalidateMediaPage] },
   admin: { description: "Text and resource cards shown on the Media Centre page." },
   fields: [
     {

@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 
-import { revalidateSite } from "@/lib/revalidate";
+import { revalidateHome } from "@/lib/revalidate";
 
 export const NewsTicker: GlobalConfig = {
   slug: "news-ticker",
@@ -9,7 +9,7 @@ export const NewsTicker: GlobalConfig = {
     read: () => true,
   },
   hooks: {
-    afterChange: [revalidateSite],
+    afterChange: [revalidateHome],
   },
   fields: [
     {

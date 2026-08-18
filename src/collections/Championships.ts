@@ -1,6 +1,6 @@
 import type { CollectionConfig } from "payload";
 
-import { revalidateSite } from "@/lib/revalidate";
+import { revalidateChampionships } from "@/lib/revalidate";
 import { computeChampionshipAutoStats } from "@/lib/data/championship-stats";
 
 export const Championships: CollectionConfig = {
@@ -29,8 +29,8 @@ export const Championships: CollectionConfig = {
         return data;
       },
     ],
-    afterChange: [revalidateSite],
-    afterDelete: [revalidateSite],
+    afterChange: [revalidateChampionships],
+    afterDelete: [revalidateChampionships],
   },
   fields: [
     { name: "year", type: "number", required: true, unique: true },

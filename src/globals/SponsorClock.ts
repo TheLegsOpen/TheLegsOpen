@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 
-import { revalidateSite } from "@/lib/revalidate";
+import { revalidateSponsorClock } from "@/lib/revalidate";
 
 function validateHex(value: string | null | undefined) {
   if (!value) return "Required";
@@ -14,7 +14,7 @@ export const SponsorClock: GlobalConfig = {
     read: () => true,
   },
   hooks: {
-    afterChange: [revalidateSite],
+    afterChange: [revalidateSponsorClock],
   },
   fields: [
     {

@@ -1,6 +1,6 @@
 import type { GlobalConfig } from "payload";
 
-import { revalidateSite } from "@/lib/revalidate";
+import { revalidateHome } from "@/lib/revalidate";
 
 const TONE_OPTIONS = [
   { label: "Navy", value: "navy" },
@@ -16,7 +16,7 @@ export const HomepageSettings: GlobalConfig = {
     read: () => true,
   },
   hooks: {
-    afterChange: [revalidateSite],
+    afterChange: [revalidateHome],
   },
   fields: [
     {

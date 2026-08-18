@@ -1,6 +1,6 @@
 import type { CollectionConfig } from "payload";
 
-import { revalidateSite } from "@/lib/revalidate";
+import { revalidateVenues } from "@/lib/revalidate";
 import { geocodeVenue } from "@/lib/geocoding";
 import { COUNTRIES, countryName } from "@/data/countries";
 
@@ -242,7 +242,7 @@ export const Venues: CollectionConfig = {
         return data;
       },
     ],
-    afterChange: [revalidateSite],
-    afterDelete: [revalidateSite],
+    afterChange: [revalidateVenues],
+    afterDelete: [revalidateVenues],
   },
 };

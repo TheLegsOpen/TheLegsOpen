@@ -1,6 +1,6 @@
 import type { CollectionConfig } from "payload";
 
-import { revalidateSite } from "@/lib/revalidate";
+import { revalidateLiveBlogPosts } from "@/lib/revalidate";
 
 export const LiveBlogPosts: CollectionConfig = {
   slug: "live-blog-posts",
@@ -110,7 +110,7 @@ export const LiveBlogPosts: CollectionConfig = {
     },
   ],
   hooks: {
-    afterChange: [revalidateSite],
-    afterDelete: [revalidateSite],
+    afterChange: [revalidateLiveBlogPosts],
+    afterDelete: [revalidateLiveBlogPosts],
   },
 };
