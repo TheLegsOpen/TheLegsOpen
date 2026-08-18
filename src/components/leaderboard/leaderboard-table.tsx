@@ -17,6 +17,11 @@ interface LeaderboardTableProps {
   onToggleFavorite: (playerId: string) => void;
   favoritesOnly: boolean;
   onSelectPlayer: (playerId: string) => void;
+  /** The Main champion's player id, when this is the Stableford table -- the club's rule is the
+   * Main champion never also takes the Stableford title, so the "Golfer of the Year" honour (and
+   * its bold styling) goes to the next-best eligible player instead. Their raw position number is
+   * untouched (they genuinely do have the most points) -- only the title recognition moves. */
+  excludeFromTitle?: string;
 }
 
 /** Aggregate (round-total) Par pill — 3-tier, since a multi-hole total doesn't have a meaningful "eagle" case. */
@@ -83,6 +88,7 @@ function LeaderboardRow({
   competition,
   onSelectPlayer,
   concluded,
+  isTitleHolder,
 }: {
   entry: RankedEntry;
   isFav: boolean;
@@ -90,10 +96,11 @@ function LeaderboardRow({
   competition: Competition;
   onSelectPlayer: (playerId: string) => void;
   concluded: boolean;
+  isTitleHolder: boolean;
 }) {
   const [isMoving, setIsMoving] = useState(false);
   const { surname, firstName } = splitSurnameFirst(entry.player.name);
-  const isLeader = concluded && entry.position === 1 && !entry.tied;
+  const isLeader = concluded && isTitleHolder && !entry.tied;
 
   return (
     <motion.tr
@@ -197,9 +204,12 @@ function LeaderboardRow({
   );
 }
 
-export function LeaderboardTable({ entries, competition, favorites, onToggleFavorite, favoritesOnly, onSelectPlayer }: LeaderboardTableProps) {
+export function LeaderboardTable({ entries, competition, favorites, onToggleFavorite, favoritesOnly, onSelectPlayer, excludeFromTitle }: LeaderboardTableProps) {
   const visible = favoritesOnly ? entries.filter((entry) => favorites.includes(entry.player.id)) : entries;
   const concluded = isConcluded(entries);
+  // entries is already position-sorted, so the first entry that isn't the excluded Main champion
+  // is the real title-holder -- falls back to entries[0] itself when there's no exclusion active.
+  const titleHolderId = (excludeFromTitle ? entries.find((e) => e.player.id !== excludeFromTitle) : entries[0])?.player.id;
 
   if (entries.length === 0) {
     return (
@@ -252,6 +262,7 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
               competition={competition}
               onSelectPlayer={onSelectPlayer}
               concluded={concluded}
+              isTitleHolder={entry.player.id === titleHolderId}
             />
           ))}
         </tbody>

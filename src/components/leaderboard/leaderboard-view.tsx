@@ -80,6 +80,9 @@ export function LeaderboardView({
   const selectedStableford = stableford.find((e) => e.player.id === selectedPlayerId);
   const selectedScratch = scratch.find((e) => e.player.id === selectedPlayerId);
   const leaderToPar = main[0]?.toPar ?? 0;
+  // The Main champion never also takes the Stableford title -- see LeaderboardTable's
+  // excludeFromTitle prop. Computed from the unfiltered list so a search query never changes it.
+  const mainChampionId = main.find((e) => e.position === 1 && !e.tied)?.player.id;
 
   return (
     <Tabs defaultValue="main">
@@ -215,6 +218,7 @@ export function LeaderboardView({
                     onToggleFavorite={toggleFavorite}
                     favoritesOnly={favoritesOnly}
                     onSelectPlayer={(id) => selectPlayer(id, "stableford")}
+                    excludeFromTitle={mainChampionId}
                   />
                 )}
               </TabsContent>
