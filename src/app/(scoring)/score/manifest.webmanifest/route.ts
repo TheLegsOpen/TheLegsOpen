@@ -13,7 +13,10 @@ export function GET() {
     start_url: "/score/play",
     scope: "/score/",
     display: "standalone",
-    background_color: "#f9fafb",
+    // Android builds its launch splash screen from this color plus the icon -- matching it to
+    // theme_color (the site's dark navy) makes that screen read as a branded loading state
+    // instead of the icon floating on a plain off-white box.
+    background_color: "#06051e",
     theme_color: "#06051e",
     icons: [
       { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
