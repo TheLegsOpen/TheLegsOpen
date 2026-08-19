@@ -6,7 +6,9 @@ import { SITE } from "@/constants/site";
 export function GET() {
   const manifest = {
     name: `${SITE.name} — Scoring`,
-    short_name: "Scoring",
+    // The home-screen icon label uses short_name, not name -- this is what actually shows under
+    // the installed app icon, so it needs to read as the club's name, not the generic feature.
+    short_name: SITE.name,
     description: "On-course hole-by-hole scoring for The Legs Open.",
     start_url: "/score/play",
     scope: "/score/",
