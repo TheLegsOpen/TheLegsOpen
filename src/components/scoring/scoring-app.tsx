@@ -50,7 +50,7 @@ function PlayerName({ name, className }: { name: string; className?: string }) {
   );
 }
 
-export function ScoringApp({ group }: { group: ScoringGroupData }) {
+export function ScoringApp({ group, canSwitchGroup = false }: { group: ScoringGroupData; canSwitchGroup?: boolean }) {
   const [holesState, setHolesState] = useState<HolesState>(() =>
     Object.fromEntries(group.players.map((p) => [p.scorecardId, [...p.holes]])),
   );
@@ -179,7 +179,10 @@ export function ScoringApp({ group }: { group: ScoringGroupData }) {
             <p className="text-xs uppercase tracking-wide text-primary-foreground/60">{group.groupLabel}</p>
             <h1 className="font-display text-xl font-bold">{view === "turn-review" ? "Front 9 review" : "Round complete -- review"}</h1>
           </div>
-          {HolePicker}
+          <div className="flex items-center gap-3">
+            {canSwitchGroup ? <SwitchGroupLink /> : null}
+            {HolePicker}
+          </div>
         </header>
 
         <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-primary-foreground/15">
@@ -248,6 +251,7 @@ export function ScoringApp({ group }: { group: ScoringGroupData }) {
           <Link href="/score/leaderboard" className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/70 hover:text-primary-foreground">
             Leaderboard
           </Link>
+          {canSwitchGroup ? <SwitchGroupLink /> : null}
           {HolePicker}
         </div>
       </header>
@@ -317,6 +321,14 @@ export function ScoringApp({ group }: { group: ScoringGroupData }) {
         </Button>
       </div>
     </div>
+  );
+}
+
+function SwitchGroupLink() {
+  return (
+    <Link href="/score/groups" className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/70 hover:text-primary-foreground">
+      Switch Group
+    </Link>
   );
 }
 

@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers as getHeaders } from "next/headers";
 import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
@@ -13,6 +13,11 @@ export default async function ScorePlayPage() {
   if (!session) redirect("/score/login");
 
   const payload = await getPayload({ config });
+
+  // Shown a "Switch group" link only when they *also* hold a real Payload session -- i.e. they
+  // got here via the admin group picker, not a PIN. A PIN-only scorer never has this cookie.
+  const { user } = await payload.auth({ headers: await getHeaders() });
+  const canSwitchGroup = Boolean(user);
 
   const round = await payload.findByID({ collection: "tee-time-rounds", id: session.teeTimeRoundId, depth: 1 }).catch(() => undefined);
   const group = round?.groups?.find((g) => String(g.id) === session.groupId);
@@ -54,5 +59,5 @@ export default async function ScorePlayPage() {
       .filter((p): p is NonNullable<typeof p> => p !== undefined),
   };
 
-  return <ScoringApp group={groupData} />;
+  return <ScoringApp group={groupData} canSwitchGroup={canSwitchGroup} />;
 }

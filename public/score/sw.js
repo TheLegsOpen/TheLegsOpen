@@ -5,8 +5,8 @@
 // build-time precache-manifest injection, which is a real compatibility risk with Turbopack.
 // Runtime-only caching sidesteps that entirely -- nothing here depends on the bundler.
 
-const SHELL_CACHE = "legs-open-score-shell-v1";
-const NAV_PATHS = new Set(["/score/login", "/score/play"]);
+const SHELL_CACHE = "legs-open-score-shell-v2";
+const NAV_PATHS = new Set(["/score/login", "/score/play", "/score/groups"]);
 
 self.addEventListener("install", () => {
   self.skipWaiting();
