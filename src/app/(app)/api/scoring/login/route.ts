@@ -41,9 +41,17 @@ export async function POST(request: Request) {
   // A round without a date shouldn't be reachable via a real PIN (date is required on the
   // collection), but fall back to a short, safe default rather than crash if it somehow is.
   const roundDate = round.date ? new Date(round.date) : new Date();
-  const expiresAt = new Date(roundDate);
-  expiresAt.setDate(expiresAt.getDate() + 2);
-  expiresAt.setHours(0, 0, 0, 0);
+  const roundBasedExpiry = new Date(roundDate);
+  roundBasedExpiry.setDate(roundBasedExpiry.getDate() + 2);
+  roundBasedExpiry.setHours(0, 0, 0, 0);
+  // Backdating a historical championship's PINs (round.date in the past) would otherwise compute
+  // an expiry years in the past too -- a cookie with a past Expires is dropped by the browser
+  // immediately, so login "succeeds" (200 + valid group) but the session never actually sticks,
+  // and the next navigation looks like login just did nothing. Never expire sooner than 2 days
+  // from now, regardless of how old the round being scored is.
+  const minExpiry = new Date();
+  minExpiry.setDate(minExpiry.getDate() + 2);
+  const expiresAt = roundBasedExpiry > minExpiry ? roundBasedExpiry : minExpiry;
 
   const token = await issueScoringSession(
     {
