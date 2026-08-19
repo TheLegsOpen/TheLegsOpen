@@ -5,6 +5,13 @@ import { computeChampionshipAutoStats } from "@/lib/data/championship-stats";
 
 export const Championships: CollectionConfig = {
   slug: "championships",
+  // Relationship-picker dropdowns elsewhere (e.g. Tee Time Rounds' championship field) page
+  // through options 10 at a time sorted by this -- unset, that defaults to id ascending, so a
+  // newly created championship (highest id) needs several pages of scrolling before it's even
+  // reachable, and the compact dropdown's own lazy-load didn't reliably get there in practice
+  // (confirmed: 2026/2027 never surfaced, even when searching "202" which should have matched
+  // them too). Newest-first means a just-created year is immediately visible at the top instead.
+  defaultSort: "-year",
   admin: {
     useAsTitle: "year",
     defaultColumns: ["year", "venue", "winnerName", "margin"],
