@@ -91,6 +91,12 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URL || "",
+      // Unset, this defaults to pg's own connectionTimeoutMillis: 0 -- an exhausted or stalled
+      // pool then waits forever instead of failing fast. Raising max didn't resolve the sustained
+      // local slowness on investigation (see conversation), so that's left at pg's own default;
+      // this timeout at least turns a silent multi-second hang into a fast, diagnosable error.
+      idleTimeoutMillis: 10_000,
+      connectionTimeoutMillis: 10_000,
     },
   }),
   sharp,
