@@ -37,11 +37,11 @@ export async function generateStaticParams() {
   return slugs.map((slug) => ({ slug }));
 }
 
-// Same hard ceiling on ISR staleness as the homepage/leaderboard -- see the comment on
-// src/app/(app)/page.tsx's own `revalidate` for why on-demand revalidation alone isn't enough
-// (per-hostname edge cache can sit stale far longer on a low-traffic custom domain). The
-// Overview tab shows this player's live position/score for the active championship.
-export const revalidate = 10;
+// See the comment on src/app/(app)/page.tsx's own `revalidate` -- raised from 10s now that the
+// per-hostname cache-splitting bug it worked around is fixed at the root (the domain redirect),
+// and Supabase egress makes a 10s ceiling expensive to keep regardless. The Overview tab shows
+// this player's live position/score for the active championship.
+export const revalidate = 60;
 
 export async function generateMetadata({ params }: PlayerPageProps): Promise<Metadata> {
   const { slug } = await params;

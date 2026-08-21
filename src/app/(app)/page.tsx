@@ -28,12 +28,17 @@ const PAGE_SIZE = 6;
 
 // Hard ceiling on ISR staleness for this live-scoring page. On-demand revalidation
 // (revalidateSite, fired on every scorecard save) alone isn't enough on a low-traffic hostname --
-// Vercel's edge cache is keyed per-hostname, and a custom domain that isn't being hit as often as
-// the .vercel.app one can sit on a stale cached copy far longer than the traffic-heavy domain
-// (observed 800+ seconds stale on thelegsopen.com vs ~150s on the-legs-open.vercel.app, at the
-// same moment). This forces a fresh render at least this often regardless of traffic patterns,
-// matching the client-side auto-refresh interval so neither is the bottleneck.
-export const revalidate = 10;
+// Was 10s: Vercel's edge cache is keyed per-hostname, and www.thelegsopen.com and
+// the-legs-open.vercel.app being live alongside the canonical domain meant traffic (and cache-
+// warming) split three ways, letting the least-hit one sit stale for 800+s while the others
+// stayed fresh. Fixed at the root by redirecting both into the canonical domain (next.config.mjs)
+// rather than papering over it with an aggressive timer -- confirmed working, so this is now just
+// a fallback ceiling for on-demand revalidation (see src/lib/revalidate.ts) missing a case, not
+// the primary freshness mechanism. Egress is metered per read this database now (Supabase), and a
+// 10s ceiling across every high-traffic page was reading the same data ~360x its own size in a
+// single billing cycle -- raised well past the client's own 10s auto-refresh poll, which mostly
+// hits Vercel's CDN cache rather than the database as long as this window hasn't elapsed.
+export const revalidate = 60;
 
 export default async function HomePage() {
   const [

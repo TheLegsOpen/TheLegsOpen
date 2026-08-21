@@ -25,11 +25,11 @@ export const metadata: Metadata = {
   description: "Nett and Scratch scoring statistics by hole par for The Legs Open.",
 };
 
-// Same hard ceiling on ISR staleness as the homepage/leaderboard -- see the comment on
-// src/app/(app)/page.tsx's own `revalidate` for why on-demand revalidation alone isn't enough
-// (per-hostname edge cache can sit stale far longer on a low-traffic custom domain). These
-// rankings change on every hole saved during a round, so they need the same guarantee.
-export const revalidate = 10;
+// See the comment on src/app/(app)/page.tsx's own `revalidate` -- raised from 10s now that the
+// per-hostname cache-splitting bug it worked around is fixed at the root (the domain redirect),
+// and Supabase egress makes a 10s ceiling expensive to keep regardless. These rankings change on
+// every hole saved during a round, and stay accurate via on-demand revalidation either way.
+export const revalidate = 60;
 
 export default async function StatisticsPage() {
   const [
