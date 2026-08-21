@@ -63,13 +63,16 @@ function runningTotalsByPlayer(entries: CompetitionEntry[]): Map<string, number[
   return map;
 }
 
-function leadAtHole(cumulativeByPlayer: Map<string, number[]>, holeIndex: number): { leaderId: string; lead: number } | undefined {
+function leadAtHole(
+  cumulativeByPlayer: Map<string, number[]>,
+  holeIndex: number,
+): { leaderId: string; leaderValue: number; lead: number } | undefined {
   const values = Array.from(cumulativeByPlayer.entries())
     .map(([id, cumulative]) => ({ id, value: cumulative[holeIndex] }))
     .filter((v): v is { id: string; value: number } => v.value !== undefined)
     .sort((a, b) => a.value - b.value);
   if (values.length < 2) return undefined;
-  return { leaderId: values[0].id, lead: values[1].value - values[0].value };
+  return { leaderId: values[0].id, leaderValue: values[0].value, lead: values[1].value - values[0].value };
 }
 
 export interface WinnerResolution {
@@ -184,8 +187,11 @@ export async function computeChampionshipAutoStats(payload: Payload, championshi
     if (after9.leaderId === winner.id) {
       stats.ledOutrightAfter9 = true;
     } else {
-      const leaderAt9 = winnerCumulative[8] - after9.lead;
-      stats.deficitAfter9 = winnerCumulative[8] - leaderAt9;
+      // Deficit is the champion's own gap to whoever actually led at 9, not the 1st-vs-2nd
+      // gap (after9.lead) -- those only coincide when the champion happened to be sitting in
+      // outright 2nd. When the champion was 3rd or worse, or 1st/2nd were tied for the lead,
+      // using after9.lead as a stand-in silently produced the wrong number (or zero).
+      stats.deficitAfter9 = winnerCumulative[8] - after9.leaderValue;
     }
   }
 
