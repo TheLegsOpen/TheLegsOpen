@@ -4,7 +4,7 @@ import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
 import { cn, splitSurnameFirst } from "@/lib/utils";
-import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
+import { scorePillClass, TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { TeeTimeEntry } from "@/types/championship";
 import type { Player } from "@/types/player";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
@@ -71,11 +71,13 @@ function PlayerChip({
           {player.country}
         </p>
         {entry?.started ? (
-          <span
-            className={cn(TILE_CLASS, "w-fit", entry.toPar !== undefined ? scorePillClass(entry.toPar) : NEUTRAL_TILE_CLASS)}
-          >
-            {entry.toPar !== undefined ? formatToPar(entry.toPar) : entry.thru}
-          </span>
+          entry.noReturn || entry.toPar === undefined ? (
+            <span className={cn(TILE_CLASS, "w-fit", "bg-[#B0B0B0] text-[#08325A]")} title="No return — picked up on a hole">
+              NR
+            </span>
+          ) : (
+            <span className={cn(TILE_CLASS, "w-fit", scorePillClass(entry.toPar))}>{formatToPar(entry.toPar)}</span>
+          )
         ) : null}
       </div>
       <PlaceholderArt
