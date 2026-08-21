@@ -78,7 +78,7 @@ export const CATEGORY_META: Record<
   through: { label: "Through", icon: FlagTriangleRight, chipClass: "bg-accent text-accent-foreground" },
   "clubhouse-leader": { label: "Clubhouse leader", icon: Building2, chipClass: "bg-accent text-accent-foreground" },
   "best-gross-round": { label: "Best gross round", icon: Medal, chipClass: "bg-accent text-accent-foreground" },
-  "round-complete": { label: "In the clubhouse", icon: Flag, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
+  "round-complete": { label: "In the clubhouse", icon: Flag, chipClass: "bg-foreground/10 text-foreground" },
   "winner-confirmed": {
     label: "Winner confirmed",
     icon: Trophy,
@@ -91,7 +91,7 @@ export const CATEGORY_META: Record<
   "defending-champion": {
     label: "Defending champion",
     icon: Shield,
-    chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground",
+    chipClass: "bg-foreground/10 text-foreground",
   },
   "turn-report": { label: "Front-nine report", icon: Newspaper, chipClass: "bg-accent text-accent-foreground" },
   "course-record-pace": { label: "Record pace", icon: Gauge, chipClass: "bg-accent text-accent-foreground" },
@@ -99,7 +99,7 @@ export const CATEGORY_META: Record<
   "record-lead": { label: "Record lead", icon: Landmark, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },
   "record-margin": { label: "Record margin", icon: Landmark, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },
   "record-low-score": { label: "Record winning score", icon: Landmark, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },
-  "last-group": { label: "Last group out", icon: Users, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
+  "last-group": { label: "Last group out", icon: Users, chipClass: "bg-foreground/10 text-foreground" },
   championship: { label: "Championship", icon: Trophy, chipClass: "bg-accent text-accent-foreground" },
   instagram: {
     label: "Instagram",
