@@ -27,6 +27,10 @@ function hasNoReturn(entry: ScorecardEntry, indices: number[]): boolean {
 }
 
 const NR_TILE_CLASS = "bg-[#B0B0B0] text-[#08325A]";
+// A par score also uses #B0B0B0 (holeScorePillClass's relativeToPar === 0 case) -- white keeps an
+// individual picked-up hole visually distinct from a par sitting right next to it in this grid.
+// The Out/In/Tot summary cells don't have that neighbour, so they keep the grey NR treatment.
+const HOLE_NR_TILE_CLASS = "bg-white text-[#08325A]";
 
 /** Front-9/back-9/out/in/total hole-by-hole scorecard grid, colour-coded per hole relative to par. */
 export function ScorecardGrid({ entry, competition }: { entry: ScorecardEntry; competition: Competition }) {
@@ -77,7 +81,7 @@ export function ScorecardGrid({ entry, competition }: { entry: ScorecardEntry; c
               const hole = entry.holes[i];
               return (
                 <td key={i} className="px-0.5 py-1 text-center">
-                  <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hole?.noReturn ? NR_TILE_CLASS : pillClass(hole))}>
+                  <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hole?.noReturn ? HOLE_NR_TILE_CLASS : pillClass(hole))}>
                     {hole?.noReturn ? "NR" : (hole?.value ?? "")}
                   </span>
                 </td>
@@ -92,7 +96,7 @@ export function ScorecardGrid({ entry, competition }: { entry: ScorecardEntry; c
               const hole = entry.holes[i];
               return (
                 <td key={i} className="px-0.5 py-1 text-center">
-                  <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hole?.noReturn ? NR_TILE_CLASS : pillClass(hole))}>
+                  <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hole?.noReturn ? HOLE_NR_TILE_CLASS : pillClass(hole))}>
                     {hole?.noReturn ? "NR" : (hole?.value ?? "")}
                   </span>
                 </td>

@@ -106,7 +106,10 @@ export function HoleByHoleTable({ entries, onSelectPlayer, competition }: HoleBy
                         TILE_CLASS,
                         "min-w-0 w-9",
                         hole.noReturn
-                          ? "bg-[#B0B0B0] text-[#08325A]"
+                          ? // A par score also uses #B0B0B0 (holeScorePillClass's relativeToPar === 0
+                            // case) -- white keeps a pickup visually distinct from a par on this
+                            // hole-by-hole grid specifically, where they'd otherwise sit side by side.
+                            "bg-white text-[#08325A]"
                           : competition !== "stableford" && hole.value !== undefined
                             ? holeScorePillClass(hole.relative)
                             : NEUTRAL_TILE_CLASS,
@@ -117,8 +120,8 @@ export function HoleByHoleTable({ entries, onSelectPlayer, competition }: HoleBy
                   </td>
                 ))}
                 <td className="px-4 py-3 text-right tabular-nums">
-                  <span className={cn(TILE_CLASS, NEUTRAL_TILE_CLASS)}>
-                    <AnimatedValue value={entry.started && entry.score !== undefined ? entry.score : "-"} />
+                  <span className={cn(TILE_CLASS, entry.noReturn ? "bg-[#B0B0B0] text-[#08325A]" : NEUTRAL_TILE_CLASS)}>
+                    <AnimatedValue value={entry.noReturn ? "NR" : entry.started && entry.score !== undefined ? entry.score : "-"} />
                   </span>
                 </td>
               </tr>

@@ -138,7 +138,7 @@ function LeaderboardRow({
       </td>
       <td className="px-2 py-3 tabular-nums">
         <span className={cn(isLeader && "text-lg font-black text-primary")}>
-          <AnimatedValue value={entry.noReturn ? "NR" : `${entry.tied ? "T" : ""}${entry.position}`} />
+          <AnimatedValue value={`${entry.tied ? "T" : ""}${entry.position}`} />
         </span>
       </td>
       <td className="px-2 py-3">

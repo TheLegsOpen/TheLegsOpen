@@ -206,8 +206,10 @@ export function LeaderboardWidget({
                       <span className={cn(TILE_CLASS, COMPACT_TILE_CLASS, NEUTRAL_TILE_CLASS)}>{entry.thru}</span>
                     </td>
                     <td className="px-2 py-2 text-right tabular-nums">
-                      <span className={cn(TILE_CLASS, COMPACT_TILE_CLASS, NEUTRAL_TILE_CLASS)}>
-                        {entry.started && entry.score !== undefined ? entry.score : "-"}
+                      <span
+                        className={cn(TILE_CLASS, COMPACT_TILE_CLASS, entry.noReturn ? "bg-[#B0B0B0] text-[#08325A]" : NEUTRAL_TILE_CLASS)}
+                      >
+                        {entry.noReturn ? "NR" : entry.started && entry.score !== undefined ? entry.score : "-"}
                       </span>
                     </td>
                   </tr>
