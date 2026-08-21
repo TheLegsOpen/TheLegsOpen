@@ -27,7 +27,18 @@ import config from "@/payload.config";
 
 const SCHEMA_PUSH_SECRET = "2015-lanark-9f3a7c1e-seo";
 
+// GET alongside POST -- plain curl gets challenged by this domain's bot-protection checkpoint
+// (confirmed elsewhere in this project), but a real browser visiting the URL directly doesn't, so
+// GET lets a human just click/paste the link instead of needing a terminal.
+export async function GET(request: NextRequest) {
+  return handleSchemaPush(request);
+}
+
 export async function POST(request: NextRequest) {
+  return handleSchemaPush(request);
+}
+
+async function handleSchemaPush(request: NextRequest) {
   const secret = request.nextUrl.searchParams.get("secret");
   if (secret !== SCHEMA_PUSH_SECRET) {
     return NextResponse.json({ error: "Invalid secret" }, { status: 401 });
