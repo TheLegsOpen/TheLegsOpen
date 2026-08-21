@@ -12,6 +12,7 @@ import { HoleByHoleTable } from "@/components/leaderboard/hole-by-hole-table";
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useAutoRefresh } from "@/hooks/use-auto-refresh";
+import { isConcluded } from "@/lib/leaderboard";
 import { cn } from "@/lib/utils";
 import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
 import type { Article } from "@/types/article";
@@ -86,7 +87,10 @@ export function LeaderboardView({
   const leaderToPar = main[0]?.toPar ?? 0;
   // The Main champion never also takes the Stableford title -- see LeaderboardTable's
   // excludeFromTitle prop. Computed from the unfiltered list so a search query never changes it.
-  const mainChampionId = main.find((e) => e.position === 1 && !e.tied)?.player.id;
+  // Gated on the Main competition having actually concluded -- otherwise the merely-currently-
+  // leading player got shown as "Ineligible (Already Main Champion)" mid-round, before anyone
+  // had actually won anything.
+  const mainChampionId = isConcluded(main) ? main.find((e) => e.position === 1 && !e.tied)?.player.id : undefined;
 
   return (
     <Tabs defaultValue="main">
