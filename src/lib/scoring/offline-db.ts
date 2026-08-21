@@ -58,6 +58,16 @@ function holeKey(scorecardId: string, holeNumber: number): string {
 export async function queueHoleUpdate(update: { scorecardId: string; holeNumber: number; strokes?: number; noReturn: boolean }): Promise<void> {
   const db = await getDb();
   const key = holeKey(update.scorecardId, update.holeNumber);
+  const existing = await db.get(HOLES_STORE, key);
+  // Re-marking an already-synced hole as unsynced re-sends it to the server, which re-fires
+  // Scorecards' afterChange hook (generateLiveBlogPosts included) as if it were a brand new score
+  // -- observed live: a duplicated "Save & Next Hole" call (double-tap, a re-mount picking the
+  // hole back up, patchy signal prompting a retry) produced two live-blog posts for the same
+  // real event. If the value genuinely hasn't changed since the last sync, there's nothing new to
+  // send, so this is a no-op rather than requeuing identical data.
+  if (existing?.synced && existing.strokes === update.strokes && existing.noReturn === update.noReturn) {
+    return;
+  }
   await db.put(HOLES_STORE, { ...update, key, updatedAt: Date.now(), synced: false } satisfies PendingHole);
 }
 

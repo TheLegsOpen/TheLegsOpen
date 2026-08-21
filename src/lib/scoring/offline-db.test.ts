@@ -32,6 +32,34 @@ describe("queueHoleUpdate / getUnsyncedHoles", () => {
     expect(unsynced[0].noReturn).toBe(true);
   });
 
+  it("is a no-op when re-queued with identical values after already syncing", async () => {
+    // Regression: a duplicated "Save & Next Hole" call (double-tap, a re-mount picking the hole
+    // back up, a retry after patchy signal) was re-marking an already-synced hole as unsynced
+    // with unchanged values, causing it to be re-sent to the server -- which re-fired
+    // Scorecards' afterChange hook (live-blog generation included) as if it were a new score,
+    // producing a duplicate live-blog post for the same real event.
+    await queueHoleUpdate({ scorecardId: "sc-1", holeNumber: 1, strokes: 4, noReturn: false });
+    await markHolesSynced(["sc-1:1"]);
+
+    await queueHoleUpdate({ scorecardId: "sc-1", holeNumber: 1, strokes: 4, noReturn: false });
+
+    expect(await getUnsyncedHoles()).toHaveLength(0);
+    const all = await getAllHoles();
+    expect(all).toHaveLength(1);
+    expect(all[0].synced).toBe(true);
+  });
+
+  it("does re-flag as unsynced when a genuinely new value follows a synced one", async () => {
+    await queueHoleUpdate({ scorecardId: "sc-1", holeNumber: 1, strokes: 4, noReturn: false });
+    await markHolesSynced(["sc-1:1"]);
+
+    await queueHoleUpdate({ scorecardId: "sc-1", holeNumber: 1, strokes: 5, noReturn: false });
+
+    const unsynced = await getUnsyncedHoles();
+    expect(unsynced).toHaveLength(1);
+    expect(unsynced[0].strokes).toBe(5);
+  });
+
   it("tracks multiple players/holes independently", async () => {
     await queueHoleUpdate({ scorecardId: "sc-1", holeNumber: 1, strokes: 4, noReturn: false });
     await queueHoleUpdate({ scorecardId: "sc-2", holeNumber: 1, strokes: 5, noReturn: false });

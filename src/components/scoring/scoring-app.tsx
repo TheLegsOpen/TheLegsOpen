@@ -60,6 +60,10 @@ export function ScoringApp({ group, canSwitchGroup = false }: { group: ScoringGr
   const { pendingCount, syncing, sessionExpired, syncNow } = useOfflineSync();
   useWakeLock(true);
   const strokeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  // Belt-and-suspenders alongside queueHoleUpdate's own idempotency check -- guards the moment
+  // between a tap and the view actually advancing, where a second, near-simultaneous tap could
+  // otherwise fire saveCurrentHole again for the same hole before currentHole updates.
+  const savingRef = useRef(false);
 
   const holeInfo = group.holeInfos[currentHole - 1];
 
@@ -106,6 +110,16 @@ export function ScoringApp({ group, canSwitchGroup = false }: { group: ScoringGr
   }
 
   async function saveCurrentHole() {
+    if (savingRef.current) return;
+    savingRef.current = true;
+    try {
+      await saveCurrentHoleInner();
+    } finally {
+      savingRef.current = false;
+    }
+  }
+
+  async function saveCurrentHoleInner() {
     for (const p of group.players) {
       const hole = holesState[p.scorecardId][currentHole - 1];
       await queueHoleUpdate({
@@ -201,7 +215,9 @@ export function ScoringApp({ group, canSwitchGroup = false }: { group: ScoringGr
             <tbody>
               {group.players.map((p) => {
                 const holes = holesState[p.scorecardId];
-                const total = holes.slice(0, upTo).reduce((sum, h) => sum + (h.noReturn ? 0 : h.strokes ?? 0), 0);
+                const range = holes.slice(0, upTo);
+                const hasNoReturn = range.some((h) => h.noReturn);
+                const total = range.reduce((sum, h) => sum + (h.noReturn ? 0 : (h.strokes ?? 0)), 0);
                 return (
                   <tr key={p.scorecardId} className="border-b border-primary-foreground/10 last:border-0">
                     <td className="px-3 py-2">
@@ -214,7 +230,7 @@ export function ScoringApp({ group, canSwitchGroup = false }: { group: ScoringGr
                         </button>
                       </td>
                     ))}
-                    <td className="px-3 py-2 text-right font-bold tabular-nums">{total || "-"}</td>
+                    <td className="px-3 py-2 text-right font-bold tabular-nums">{hasNoReturn ? "NR" : total || "-"}</td>
                   </tr>
                 );
               })}
