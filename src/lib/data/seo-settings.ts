@@ -55,7 +55,11 @@ const DEFAULTS: SEOSettings = {
 
 export async function getSeoSettings(): Promise<SEOSettings> {
   const payload = await getPayload({ config: configPromise });
-  const settings = await payload.findGlobal({ slug: "seo-settings" });
+  // TEMPORARY: the seo-settings table doesn't exist in production yet (this project has no
+  // migration pipeline -- see api/temp-schema-push). Falls back to DEFAULTS below until that
+  // one-off push runs; remove this catch once confirmed (a broken query afterwards should fail
+  // loudly again, not silently mask a real bug).
+  const settings = await payload.findGlobal({ slug: "seo-settings" }).catch(() => ({}) as Record<string, never>);
 
   return {
     home: { title: settings.homeTitle || DEFAULTS.home.title, description: settings.homeDescription || DEFAULTS.home.description },
