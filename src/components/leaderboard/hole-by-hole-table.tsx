@@ -91,12 +91,12 @@ export function HoleByHoleTable({ entries, onSelectPlayer, competition }: HoleBy
                   ) : null}
                 </td>
                 <td className="px-2 py-3 text-right">
-                  {entry.toPar !== undefined ? (
+                  {entry.noReturn || entry.toPar === undefined ? (
+                    <span className={cn(TILE_CLASS, "bg-[#B0B0B0] text-[#08325A]")}>NR</span>
+                  ) : (
                     <span className={cn(TILE_CLASS, scorePillClass(entry.toPar))}>
                       <AnimatedValue value={formatToPar(entry.toPar)} />
                     </span>
-                  ) : (
-                    <span className="text-accent-foreground/50">—</span>
                   )}
                 </td>
                 {entry.holes.map((hole) => (
@@ -105,10 +105,14 @@ export function HoleByHoleTable({ entries, onSelectPlayer, competition }: HoleBy
                       className={cn(
                         TILE_CLASS,
                         "min-w-0 w-9",
-                        competition !== "stableford" && hole.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS,
+                        hole.noReturn
+                          ? "bg-[#B0B0B0] text-[#08325A]"
+                          : competition !== "stableford" && hole.value !== undefined
+                            ? holeScorePillClass(hole.relative)
+                            : NEUTRAL_TILE_CLASS,
                       )}
                     >
-                      <AnimatedValue value={hole.value ?? ""} />
+                      <AnimatedValue value={hole.noReturn ? "NR" : (hole.value ?? "")} />
                     </span>
                   </td>
                 ))}

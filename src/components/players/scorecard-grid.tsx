@@ -21,6 +21,13 @@ function sumPars(entry: ScorecardEntry, indices: number[]): number {
   return indices.reduce((total, i) => total + (entry.holes[i]?.par ?? 0), 0);
 }
 
+/** Never true for Stableford -- a pickup there just scores 0 for that hole, see HoleScore. */
+function hasNoReturn(entry: ScorecardEntry, indices: number[]): boolean {
+  return indices.some((i) => entry.holes[i]?.noReturn);
+}
+
+const NR_TILE_CLASS = "bg-[#B0B0B0] text-[#08325A]";
+
 /** Front-9/back-9/out/in/total hole-by-hole scorecard grid, colour-coded per hole relative to par. */
 export function ScorecardGrid({ entry, competition }: { entry: ScorecardEntry; competition: Competition }) {
   const isStableford = competition === "stableford";
@@ -70,30 +77,42 @@ export function ScorecardGrid({ entry, competition }: { entry: ScorecardEntry; c
               const hole = entry.holes[i];
               return (
                 <td key={i} className="px-0.5 py-1 text-center">
-                  <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", pillClass(hole))}>
-                    {hole?.value ?? ""}
+                  <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hole?.noReturn ? NR_TILE_CLASS : pillClass(hole))}>
+                    {hole?.noReturn ? "NR" : (hole?.value ?? "")}
                   </span>
                 </td>
               );
             })}
             <td className="px-0.5 py-1 text-center">
-              <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", NEUTRAL_TILE_CLASS)}>{sumHoles(entry, FRONT_NINE) ?? "—"}</span>
+              <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hasNoReturn(entry, FRONT_NINE) ? NR_TILE_CLASS : NEUTRAL_TILE_CLASS)}>
+                {hasNoReturn(entry, FRONT_NINE) ? "NR" : (sumHoles(entry, FRONT_NINE) ?? "—")}
+              </span>
             </td>
             {BACK_NINE.map((i) => {
               const hole = entry.holes[i];
               return (
                 <td key={i} className="px-0.5 py-1 text-center">
-                  <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", pillClass(hole))}>
-                    {hole?.value ?? ""}
+                  <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hole?.noReturn ? NR_TILE_CLASS : pillClass(hole))}>
+                    {hole?.noReturn ? "NR" : (hole?.value ?? "")}
                   </span>
                 </td>
               );
             })}
             <td className="px-0.5 py-1 text-center">
-              <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", NEUTRAL_TILE_CLASS)}>{sumHoles(entry, BACK_NINE) ?? "—"}</span>
+              <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hasNoReturn(entry, BACK_NINE) ? NR_TILE_CLASS : NEUTRAL_TILE_CLASS)}>
+                {hasNoReturn(entry, BACK_NINE) ? "NR" : (sumHoles(entry, BACK_NINE) ?? "—")}
+              </span>
             </td>
             <td className="px-0.5 py-1 text-center">
-              <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", NEUTRAL_TILE_CLASS)}>{isStableford ? (entry.score ?? 0) : (entry.score ?? "—")}</span>
+              <span
+                className={cn(
+                  TILE_CLASS,
+                  "min-w-0 w-8 px-0",
+                  hasNoReturn(entry, [...FRONT_NINE, ...BACK_NINE]) ? NR_TILE_CLASS : NEUTRAL_TILE_CLASS,
+                )}
+              >
+                {hasNoReturn(entry, [...FRONT_NINE, ...BACK_NINE]) ? "NR" : isStableford ? (entry.score ?? 0) : (entry.score ?? "—")}
+              </span>
             </td>
           </tr>
         </tbody>
