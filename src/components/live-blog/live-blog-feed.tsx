@@ -258,12 +258,14 @@ export function LiveBlogFeed({
                   >
                     {isWinnerConfirmed && logoUrl ? (
                       // A CSS filter chain only approximates a target colour -- mask-image paints
-                      // #08325A exactly through the logo's own alpha shape instead of guessing at
-                      // brightness/hue values that happen to land close to it.
+                      // white exactly through the logo's own alpha shape instead of guessing at
+                      // brightness/hue values that happen to land close to it. White, not navy,
+                      // since this chip's own background is navy (meta.chipClass) -- the icon needs
+                      // to contrast against that, not match it.
                       <span
                         role="img"
                         aria-label=""
-                        className="h-3.5 w-3.5 shrink-0 bg-[#08325A]"
+                        className="h-3.5 w-3.5 shrink-0 bg-white"
                         style={{
                           maskImage: `url(${logoUrl})`,
                           maskSize: "contain",
