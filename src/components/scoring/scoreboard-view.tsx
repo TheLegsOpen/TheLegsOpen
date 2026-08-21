@@ -17,7 +17,7 @@ export interface ScoreboardData {
 // leaderboard-table's framer-motion/lucide-react dependencies.
 const TILE_CLASS = "inline-block min-w-[2.75rem] px-2 py-1 text-xs font-bold tabular-nums border-t-[3px] border-black/15";
 const NEUTRAL_TILE = "bg-[#FFD062] text-black";
-const NR_TILE = "bg-white text-[#CB333B]";
+const NR_TILE = "bg-[#B0B0B0] text-[#08325A]";
 
 function scorePillClass(relativeToPar: number): string {
   if (relativeToPar < 0) return "bg-white text-[#CB333B]";

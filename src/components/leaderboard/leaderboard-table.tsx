@@ -191,16 +191,14 @@ function LeaderboardRow({
         ) : null}
       </td>
       <td className="px-1 py-3 text-right sm:px-2">
-        {entry.noReturn ? (
-          <span className={cn(TILE_CLASS, RESPONSIVE_TILE, "bg-white text-[#CB333B]")} title="No return — picked up on a hole, disqualified from this competition">
+        {entry.noReturn || entry.toPar === undefined ? (
+          <span className={cn(TILE_CLASS, RESPONSIVE_TILE, "bg-[#B0B0B0] text-[#08325A]")} title="No return — picked up on a hole">
             NR
           </span>
-        ) : entry.toPar !== undefined ? (
+        ) : (
           <span className={cn(TILE_CLASS, RESPONSIVE_TILE, scorePillClass(entry.toPar))}>
             <AnimatedValue value={formatToPar(entry.toPar)} />
           </span>
-        ) : (
-          <span className="text-accent-foreground/50">—</span>
         )}
       </td>
       <td className="px-1 py-3 text-right tabular-nums sm:px-2">

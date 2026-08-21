@@ -21,6 +21,8 @@ export interface HoleScore {
   value?: number;
   /** value relative to "expected" (par for Main/Scratch, 2pts for Stableford) — drives the under/level/over colour. */
   relative: number;
+  /** A pickup on this specific hole (Main/Scratch only -- see below). Distinguishes "picked up here" from merely "not played yet", both of which otherwise show as the same blank `value: undefined`. */
+  noReturn?: boolean;
 }
 
 export interface CompetitionEntry {
@@ -153,6 +155,15 @@ function buildLeaderboardFromDocs(
     const strokesReceived = allocateStrokes(player.championshipHandicap ?? 0, holeInfos);
     const holes: HoleScore[] = holeInfos.map((info, i) => {
       const strokes = doc.holes?.[i]?.strokes ?? undefined;
+      if (doc.holes?.[i]?.noReturn) {
+        // A pickup on this specific hole. Main/Scratch have no valid score for it -- and the
+        // whole card is disqualified anyway, see `noReturn` below -- but Stableford scores an
+        // unreturned hole as 0 points, same as real Stableford rules, so it isn't itself "NR".
+        if (competition === "stableford") {
+          return { holeNumber: i + 1, par: info.par, value: 0, relative: 0 - 2 };
+        }
+        return { holeNumber: i + 1, par: info.par, value: undefined, relative: 0, noReturn: true };
+      }
       if (strokes == null) {
         return { holeNumber: i + 1, par: info.par, value: undefined, relative: 0 };
       }
@@ -215,7 +226,12 @@ function buildLeaderboardFromDocs(
       noReturn,
       // Stableford points show live from 0 rather than waiting for the round to start, unlike Main/Scratch.
       score: doc.stablefordTotal ?? 0,
-      toPar: started ? (doc.toParNett ?? 0) : 0,
+      // Unlike `noReturn` above (which stays false -- Stableford correctly keeps scoring through a
+      // pickup, worth 0 points for that hole, not disqualified), this "Par" figure is actually the
+      // Main competition's nett-to-par shown for reference -- and that number is genuinely
+      // meaningless once Main itself is disqualified, so it goes to "NR" here too rather than
+      // showing a stale/misleading value.
+      toPar: doc.noReturn ? undefined : started ? (doc.toParNett ?? 0) : 0,
       tieKey: -(doc.stablefordTotal ?? 0),
     };
   });

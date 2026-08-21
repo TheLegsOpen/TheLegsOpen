@@ -68,8 +68,9 @@ export function PlayerPopup({
   const { surname, firstName } = splitSurnameFirst(player.name);
 
   const shotsOffLead = main.toPar !== undefined ? main.toPar - leaderToPar : undefined;
-  const leadText =
-    shotsOffLead === undefined
+  const leadText = main.noReturn
+    ? "No return."
+    : shotsOffLead === undefined
       ? "Yet to start."
       : shotsOffLead === 0
         ? "Leading the championship."
@@ -98,10 +99,14 @@ export function PlayerPopup({
             <span
               className={cn(
                 "inline-flex h-12 w-14 shrink-0 items-center justify-center font-display text-xl font-bold tabular-nums",
-                main.toPar !== undefined ? scorePillClass(main.toPar) : "bg-primary-foreground/15",
+                main.noReturn || main.toPar === undefined
+                  ? main.noReturn
+                    ? "bg-[#B0B0B0] text-[#08325A]"
+                    : "bg-primary-foreground/15"
+                  : scorePillClass(main.toPar),
               )}
             >
-              {main.toPar !== undefined ? formatToPar(main.toPar) : "—"}
+              {main.noReturn ? "NR" : main.toPar !== undefined ? formatToPar(main.toPar) : "—"}
             </span>
 
             <PlaceholderArt
