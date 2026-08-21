@@ -5,11 +5,12 @@ import { Container } from "@/components/shared/container";
 import { RecordsBoard } from "@/components/records/records-board";
 import { getRecords } from "@/lib/data/records";
 import { getPageBanners } from "@/lib/data/page-banners";
+import { getSeoSettings } from "@/lib/data/seo-settings";
 
-export const metadata: Metadata = {
-  title: "Records & Statistics",
-  description: "Records and statistics from the full history of The Legs Open.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoSettings();
+  return { title: seo.records.title, description: seo.records.description };
+}
 
 export default async function RecordsPage() {
   const [records, banners] = await Promise.all([getRecords(), getPageBanners()]);

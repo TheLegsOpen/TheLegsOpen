@@ -5,13 +5,14 @@ import { Container } from "@/components/shared/container";
 import { NewsListing } from "@/components/news/news-listing";
 import { getArticlesPage } from "@/lib/data/articles";
 import { getPageBanners } from "@/lib/data/page-banners";
+import { getSeoSettings } from "@/lib/data/seo-settings";
 
 const PAGE_SIZE = 6;
 
-export const metadata: Metadata = {
-  title: "Latest News",
-  description: "News, features and the greatest stories from The Legs Open.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoSettings();
+  return { title: seo.latest.title, description: seo.latest.description };
+}
 
 export default async function LatestPage() {
   const [{ items, hasMore }, banners] = await Promise.all([getArticlesPage({ page: 1, pageSize: PAGE_SIZE }), getPageBanners()]);

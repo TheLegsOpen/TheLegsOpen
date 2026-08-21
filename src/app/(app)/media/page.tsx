@@ -7,11 +7,12 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/ca
 import { CTASection } from "@/components/shared/cta-section";
 import { getMediaPageSettings } from "@/lib/data/media-page";
 import { ICON_MAP } from "@/components/shared/icon-map";
+import { getSeoSettings } from "@/lib/data/seo-settings";
 
-export const metadata: Metadata = {
-  title: "Media Centre",
-  description: "Press accreditation, media contacts and resources for The Legs Open.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoSettings();
+  return { title: seo.media.title, description: seo.media.description };
+}
 
 export default async function MediaPage() {
   const settings = await getMediaPageSettings();

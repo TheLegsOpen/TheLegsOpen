@@ -19,11 +19,12 @@ import {
   getApproachCategories,
   getPuttingCategories,
 } from "@/lib/data/scoring-statistics";
+import { getSeoSettings } from "@/lib/data/seo-settings";
 
-export const metadata: Metadata = {
-  title: "Live Blog",
-  description: "Live updates from The Legs Open — birdies, bogeys and lead changes as they happen.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoSettings();
+  return { title: seo.liveBlog.title, description: seo.liveBlog.description };
+}
 
 // See the comment on this same export in src/app/(app)/page.tsx -- raised from 10s now that the
 // per-hostname cache-splitting bug it worked around is fixed at the root (the domain redirect),

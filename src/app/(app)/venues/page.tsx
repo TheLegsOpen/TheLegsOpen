@@ -8,11 +8,12 @@ import { VenueListItem } from "@/components/venues/venue-list-item";
 import { getVenues } from "@/lib/data/venues";
 import { getUpcomingChampionships } from "@/lib/data/championships";
 import { getPageBanners } from "@/lib/data/page-banners";
+import { getSeoSettings } from "@/lib/data/seo-settings";
 
-export const metadata: Metadata = {
-  title: "Venues",
-  description: "Every course to have hosted The Legs Open.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoSettings();
+  return { title: seo.venues.title, description: seo.venues.description };
+}
 
 export default async function VenuesPage() {
   const [venues, upcomingChampionships, banners] = await Promise.all([

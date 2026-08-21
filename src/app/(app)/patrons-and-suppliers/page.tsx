@@ -4,11 +4,12 @@ import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
 import { SectionHeading } from "@/components/shared/section-heading";
 import { getSponsors, type SponsorEntry } from "@/lib/data/sponsors";
+import { getSeoSettings } from "@/lib/data/seo-settings";
 
-export const metadata: Metadata = {
-  title: "Patrons & Suppliers",
-  description: "The patrons and official suppliers who support The Legs Open.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoSettings();
+  return { title: seo.patrons.title, description: seo.patrons.description };
+}
 
 function BrandWall({ entries }: { entries: SponsorEntry[] }) {
   return (

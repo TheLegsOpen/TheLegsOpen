@@ -29,6 +29,27 @@ export function revalidateHome() {
   revalidate(["/"]);
 }
 
+/** Every fixed page whose <title>/description SEOSettings can override -- see globals/SEOSettings.ts. */
+export function revalidateSeoSettings() {
+  revalidate([
+    "/",
+    "/leaderboard",
+    "/tee-times",
+    "/records",
+    "/statistics",
+    "/field",
+    "/venues",
+    "/live-blog",
+    "/latest",
+    "/previous-opens",
+    "/club",
+    "/patrons-and-suppliers",
+    "/careers",
+    "/media",
+    "/contact",
+  ]);
+}
+
 export function revalidateCareersPage() {
   revalidate(["/careers"]);
 }

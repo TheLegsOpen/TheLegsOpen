@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+
 import { AutoRefresh } from "@/components/shared/auto-refresh";
 import { Hero } from "@/components/home/hero";
 import { NewsTicker } from "@/components/home/news-ticker";
@@ -15,6 +17,7 @@ import { getSiteTheme } from "@/lib/data/site-theme";
 import { getVenueWeather } from "@/lib/data/weather";
 import { getNewsTicker } from "@/lib/data/news-ticker";
 import { getPlayoffs, applyPlayoffToEntries } from "@/lib/data/playoffs";
+import { getSeoSettings } from "@/lib/data/seo-settings";
 import {
   getNettScoringCategories,
   getScratchScoringCategories,
@@ -39,6 +42,13 @@ const PAGE_SIZE = 6;
 // single billing cycle -- raised well past the client's own 10s auto-refresh poll, which mostly
 // hits Vercel's CDN cache rather than the database as long as this window hasn't elapsed.
 export const revalidate = 60;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoSettings();
+  // { absolute: ... } bypasses the root layout's "%s | The Legs Open" template -- home's own SEO
+  // title is already the full page title, not a segment name to be suffixed with the site name.
+  return { title: { absolute: seo.home.title }, description: seo.home.description };
+}
 
 export default async function HomePage() {
   const [

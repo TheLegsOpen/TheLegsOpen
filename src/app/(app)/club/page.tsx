@@ -7,11 +7,12 @@ import { SectionHeading } from "@/components/shared/section-heading";
 import { CTASection } from "@/components/shared/cta-section";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { JoinForm } from "@/components/club/join-form";
+import { getSeoSettings } from "@/lib/data/seo-settings";
 
-export const metadata: Metadata = {
-  title: "The Clubhouse",
-  description: "Free membership with priority access to news, a members' newsletter, and championship week invitations.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoSettings();
+  return { title: seo.club.title, description: seo.club.description };
+}
 
 const BENEFITS = [
   { icon: Star, title: "Priority access", description: "Be first to hear about championship news and events." },

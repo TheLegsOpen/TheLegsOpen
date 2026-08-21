@@ -19,11 +19,12 @@ import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getPageBanners } from "@/lib/data/page-banners";
 import { getPlayoffs } from "@/lib/data/playoffs";
 import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
+import { getSeoSettings } from "@/lib/data/seo-settings";
 
-export const metadata: Metadata = {
-  title: "Statistics",
-  description: "Nett and Scratch scoring statistics by hole par for The Legs Open.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoSettings();
+  return { title: seo.statistics.title, description: seo.statistics.description };
+}
 
 // See the comment on src/app/(app)/page.tsx's own `revalidate` -- raised from 10s now that the
 // per-hostname cache-splitting bug it worked around is fixed at the root (the domain redirect),

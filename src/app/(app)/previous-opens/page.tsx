@@ -4,11 +4,12 @@ import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
 import { PreviousOpensTimeline } from "@/components/history/previous-opens-timeline";
 import { getChampionshipHistory } from "@/lib/data/championships";
+import { getSeoSettings } from "@/lib/data/seo-settings";
 
-export const metadata: Metadata = {
-  title: "Previous Opens",
-  description: "The full roll of honour for The Legs Open, since 1948.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoSettings();
+  return { title: seo.previousOpens.title, description: seo.previousOpens.description };
+}
 
 export default async function PreviousOpensPage() {
   const history = await getChampionshipHistory();

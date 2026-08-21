@@ -120,6 +120,7 @@ export interface Config {
     'contact-page': ContactPageSettingsGlobal;
     'media-page': MediaPageSettingsGlobal;
     'careers-page': CareersPageSettingsGlobal;
+    'seo-settings': SeoSettingsGlobal;
   };
   globalsSelect: {};
   locale: null;
@@ -513,6 +514,44 @@ export interface PageBannersGlobal {
   latestDescription?: string | null;
   playerProfile?: (string | Media) | null;
   playerProfileEyebrow?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Hand-added — see note at top of file.
+ */
+export interface SeoSettingsGlobal {
+  id: string;
+  homeTitle?: string | null;
+  homeDescription?: string | null;
+  leaderboardTitle?: string | null;
+  leaderboardDescription?: string | null;
+  teeTimesTitle?: string | null;
+  teeTimesDescription?: string | null;
+  recordsTitle?: string | null;
+  recordsDescription?: string | null;
+  statisticsTitle?: string | null;
+  statisticsDescription?: string | null;
+  fieldTitle?: string | null;
+  fieldDescription?: string | null;
+  venuesTitle?: string | null;
+  venuesDescription?: string | null;
+  liveBlogTitle?: string | null;
+  liveBlogDescription?: string | null;
+  latestTitle?: string | null;
+  latestDescription?: string | null;
+  previousOpensTitle?: string | null;
+  previousOpensDescription?: string | null;
+  clubTitle?: string | null;
+  clubDescription?: string | null;
+  patronsTitle?: string | null;
+  patronsDescription?: string | null;
+  careersTitle?: string | null;
+  careersDescription?: string | null;
+  mediaTitle?: string | null;
+  mediaDescription?: string | null;
+  contactTitle?: string | null;
+  contactDescription?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }

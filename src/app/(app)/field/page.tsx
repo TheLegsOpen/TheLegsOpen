@@ -7,11 +7,12 @@ import { getChampionshipHistory, getActiveChampionshipSummary } from "@/lib/data
 import { getPageBanners } from "@/lib/data/page-banners";
 import { getSiteTheme } from "@/lib/data/site-theme";
 import { ordinal } from "@/lib/utils";
+import { getSeoSettings } from "@/lib/data/seo-settings";
 
-export const metadata: Metadata = {
-  title: "Field",
-  description: "The full field of players competing at The Legs Open.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoSettings();
+  return { title: seo.field.title, description: seo.field.description };
+}
 
 export default async function FieldPage() {
   const [activeChampionship, players, championshipHistory, banners, theme] = await Promise.all([

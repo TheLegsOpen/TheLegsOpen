@@ -32,6 +32,7 @@ import { SocialLinks } from "./globals/SocialLinks";
 import { ContactPageSettings } from "./globals/ContactPageSettings";
 import { MediaPageSettings } from "./globals/MediaPageSettings";
 import { CareersPageSettings } from "./globals/CareersPageSettings";
+import { SEOSettings } from "./globals/SEOSettings";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -82,6 +83,7 @@ export default buildConfig({
     ContactPageSettings,
     MediaPageSettings,
     CareersPageSettings,
+    SEOSettings,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "",

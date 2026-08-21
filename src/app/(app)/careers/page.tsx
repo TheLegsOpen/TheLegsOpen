@@ -7,11 +7,12 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/ca
 import { CTASection } from "@/components/shared/cta-section";
 import { getCareersPageSettings } from "@/lib/data/careers-page";
 import { ICON_MAP } from "@/components/shared/icon-map";
+import { getSeoSettings } from "@/lib/data/seo-settings";
 
-export const metadata: Metadata = {
-  title: "Careers",
-  description: "Work at The Legs Open — year-round and championship week roles.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const seo = await getSeoSettings();
+  return { title: seo.careers.title, description: seo.careers.description };
+}
 
 export default async function CareersPage() {
   const settings = await getCareersPageSettings();
