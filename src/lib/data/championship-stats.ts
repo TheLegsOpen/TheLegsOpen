@@ -47,11 +47,11 @@ function ageInYears(dobIso: string, asOfIso: string): number {
   return age;
 }
 
-/** Cumulative to-par after each hole, for every player who completed all 18 -- the real basis for front-9/lead facts. */
+/** Cumulative to-par after each hole, for every player who completed all 18 with a valid round -- the real basis for front-9/lead facts. A no-return player can still show thru "F" (all 18 hole slots filled in, some as NR) despite being disqualified, so that alone isn't enough. */
 function runningTotalsByPlayer(entries: CompetitionEntry[]): Map<string, number[]> {
   const map = new Map<string, number[]>();
   for (const entry of entries) {
-    if (entry.thru !== "F") continue;
+    if (entry.thru !== "F" || entry.noReturn) continue;
     let running = 0;
     const cumulative: number[] = [];
     for (const hole of entry.holes) {
@@ -92,7 +92,12 @@ export interface WinnerResolution {
 export function resolveCompetitionWinner(entries: CompetitionEntry[], competition: Competition, excludeIds: Set<string>): WinnerResolution {
   if (!isConcluded(entries)) return { viaTiebreak: false };
 
-  const started = entries.filter((e) => e.started);
+  // A no-return player's toPar is deliberately undefined (see HoleScore/CompetitionEntry) --
+  // `?? 0` would silently treat that as level par, which is often good enough to rank them near
+  // the lead despite being disqualified from Main/Scratch. Stableford is never affected (a
+  // no-return there just scores 0 for that hole, real toPar/score throughout), so this filter is
+  // a no-op for it.
+  const started = entries.filter((e) => e.started && !e.noReturn);
   const metric = (e: CompetitionEntry) => (competition === "stableford" ? -(e.score ?? 0) : (e.toPar ?? 0));
   const sorted = [...started].sort((a, b) => metric(a) - metric(b));
 

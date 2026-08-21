@@ -185,11 +185,11 @@ function namesFor(entries: CompetitionEntry[], position: number): { names: strin
   };
 }
 
-/** Cumulative to-par after each hole, for every player who completed all 18 — the real basis for front-9/lead records, computed from actual hole-by-hole scorecard data rather than hand-entered. */
+/** Cumulative to-par after each hole, for every player who completed all 18 with a valid round — the real basis for front-9/lead records, computed from actual hole-by-hole scorecard data rather than hand-entered. A no-return player can still show thru "F" (all 18 hole slots filled in, some as NR) despite being disqualified, so that alone isn't enough. */
 function runningTotalsByPlayer(entries: CompetitionEntry[]): Map<string, number[]> {
   const map = new Map<string, number[]>();
   for (const entry of entries) {
-    if (entry.thru !== "F") continue;
+    if (entry.thru !== "F" || entry.noReturn) continue;
     let running = 0;
     const cumulative: number[] = [];
     for (const hole of entry.holes) {
