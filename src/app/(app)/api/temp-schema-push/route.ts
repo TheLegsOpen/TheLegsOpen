@@ -4,22 +4,22 @@ import { getPayload } from "payload";
 import config from "@/payload.config";
 
 /**
- * Temporary, secret-protected production route to sync a brand-new Payload Global's table into
- * Postgres. This project has no migration pipeline (no src/migrations, no `payload migrate` step
- * in the Vercel build) -- schema changes have always relied on Payload's dev-mode auto-push, which
- * is hard-gated to `NODE_ENV !== "production"` (see node_modules/@payloadcms/db-postgres/dist/connect.js)
- * and never runs on Vercel. Adding a field to an EXISTING table apparently never surfaced this
- * (or was pushed via some other path before this session), but adding a whole new Global
- * (globals/SEOSettings.ts -> table "seo_settings") hit it head-on: every page calling
- * getSeoSettings() failed to prerender with Postgres error 42P01, "relation does not exist".
+ * Temporary, secret-protected production route to create the missing seo_settings table in
+ * Postgres. This project has no migration pipeline -- schema changes have always relied on
+ * Payload's dev-mode auto-push, which is hard-gated to `NODE_ENV !== "production"` and never runs
+ * on Vercel. Adding a whole new Global (globals/SEOSettings.ts -> table "seo_settings") hit that
+ * head-on: every page calling getSeoSettings() failed with Postgres 42P01, "relation does not
+ * exist".
  *
- * This re-implements the essential half of Payload's own pushDevSchema utility (see
- * node_modules/@payloadcms/drizzle/dist/utilities/pushDevSchema.js) rather than calling it
- * directly, specifically to avoid its interactive `prompts()` confirmation step -- that step calls
- * `process.exit(0)` on cancel, which would kill this whole serverless function if it ever
- * triggered. Since this route only ever *adds* a new table (never renames/drops a field), the
- * real pushSchema() call is expected to report zero warnings; if it doesn't, this aborts and
- * reports why instead of blindly applying a change that risks real data loss.
+ * First attempt called Payload's own pushDevSchema/pushSchema (drizzle-kit) directly -- that
+ * failed at runtime in the Vercel serverless function with "Failed to load external module
+ * drizzle-kit-...", since drizzle-kit is a transitive dev-only dependency that isn't reliably
+ * traced into the function bundle. This version sidesteps drizzle-kit entirely: it introspects the
+ * REAL column types Payload already generated for an existing, structurally-identical global
+ * (contact_page -- same plain text/textarea fields) via information_schema, then issues a plain
+ * CREATE TABLE using those exact types, rather than guessing Postgres/Drizzle's own type mapping.
+ * `?inspect=1` only reads that reference schema (safe, no writes) so the exact column types can be
+ * confirmed before the CREATE TABLE ever runs.
  *
  * Deleted once the seo-settings table exists in production (confirmed via a successful save on
  * the SEO global in the admin panel).
@@ -27,9 +27,42 @@ import config from "@/payload.config";
 
 const SCHEMA_PUSH_SECRET = "2015-lanark-9f3a7c1e-seo";
 
-// GET alongside POST -- plain curl gets challenged by this domain's bot-protection checkpoint
-// (confirmed elsewhere in this project), but a real browser visiting the URL directly doesn't, so
-// GET lets a human just click/paste the link instead of needing a terminal.
+// Every SEOSettings field is a plain "text" or "textarea" -- mirrors globals/SEOSettings.ts field order.
+const TEXT_COLUMNS = [
+  "home_title",
+  "leaderboard_title",
+  "tee_times_title",
+  "records_title",
+  "statistics_title",
+  "field_title",
+  "venues_title",
+  "live_blog_title",
+  "latest_title",
+  "previous_opens_title",
+  "club_title",
+  "patrons_title",
+  "careers_title",
+  "media_title",
+  "contact_title",
+];
+const TEXTAREA_COLUMNS = [
+  "home_description",
+  "leaderboard_description",
+  "tee_times_description",
+  "records_description",
+  "statistics_description",
+  "field_description",
+  "venues_description",
+  "live_blog_description",
+  "latest_description",
+  "previous_opens_description",
+  "club_description",
+  "patrons_description",
+  "careers_description",
+  "media_description",
+  "contact_description",
+];
+
 export async function GET(request: NextRequest) {
   return handleSchemaPush(request);
 }
@@ -45,24 +78,47 @@ async function handleSchemaPush(request: NextRequest) {
   }
 
   const payload = await getPayload({ config });
-  // Postgres-adapter-internal properties (schema/drizzle/tablesFilter/schemaName,
-  // requireDrizzleKit) aren't part of the public DatabaseAdapter type -- same cast Payload's own
-  // connect.js implicitly relies on via `this` inside the adapter's own methods.
+  // .pool is a plain node-postgres Pool -- not part of the public DatabaseAdapter type, same as
+  // every other Postgres-adapter-internal property this project's temp routes have relied on.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const adapter = payload.db as any;
+  const pool = (payload.db as any).pool;
 
-  const { pushSchema } = adapter.requireDrizzleKit();
-  const { apply, hasDataLoss, warnings } = await pushSchema(
-    adapter.schema,
-    adapter.drizzle,
-    adapter.schemaName ? [adapter.schemaName] : undefined,
-    adapter.tablesFilter,
+  const referenceColumns = await pool.query(
+    `select column_name, data_type, is_nullable
+     from information_schema.columns
+     where table_name = 'contact_page'
+     order by ordinal_position`,
   );
 
-  if (warnings.length > 0 || hasDataLoss) {
-    return NextResponse.json({ ok: false, appliedNothing: true, warnings, hasDataLoss }, { status: 409 });
+  if (request.nextUrl.searchParams.get("inspect") === "1") {
+    return NextResponse.json({ referenceColumns: referenceColumns.rows });
   }
 
-  await apply();
-  return NextResponse.json({ ok: true });
+  const textType = referenceColumns.rows.find((r: { column_name: string }) => r.column_name === "hero_title")?.data_type;
+  const textareaType = referenceColumns.rows.find((r: { column_name: string }) => r.column_name === "hero_description")?.data_type;
+  const idType = referenceColumns.rows.find((r: { column_name: string }) => r.column_name === "id")?.data_type;
+  const timestampType = referenceColumns.rows.find((r: { column_name: string }) => r.column_name === "updated_at")?.data_type;
+
+  if (!textType || !textareaType || !idType || !timestampType) {
+    return NextResponse.json({ error: "Could not determine reference column types from contact_page", referenceColumns: referenceColumns.rows }, { status: 500 });
+  }
+
+  const alreadyExists = await pool.query(`select to_regclass('public.seo_settings') as exists`);
+  if (alreadyExists.rows[0]?.exists) {
+    return NextResponse.json({ ok: true, alreadyExisted: true });
+  }
+
+  const idSql = idType === "integer" ? "serial" : idType;
+  const columnDefs = [
+    ...TEXT_COLUMNS.map((c) => `"${c}" ${textType}`),
+    ...TEXTAREA_COLUMNS.map((c) => `"${c}" ${textareaType}`),
+    `"updated_at" ${timestampType}`,
+    `"created_at" ${timestampType}`,
+  ].join(",\n  ");
+
+  const createSql = `create table "seo_settings" (\n  "id" ${idSql} primary key,\n  ${columnDefs}\n)`;
+
+  await pool.query(createSql);
+
+  return NextResponse.json({ ok: true, createSql });
 }
