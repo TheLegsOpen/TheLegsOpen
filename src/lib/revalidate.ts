@@ -73,6 +73,8 @@ export function revalidateChampionships() {
     "/field",
     "/previous-opens",
     { path: "/previous-opens/[year]", type: "layout" },
+    { path: "/players/[slug]", type: "layout" },
+    "/records",
     "/sitemap.xml",
     { path: "/statistics/[key]", type: "layout" },
     "/venues",
