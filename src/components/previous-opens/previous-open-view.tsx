@@ -36,6 +36,8 @@ export interface PreviousOpenResults {
   liveBlogPage: LiveBlogPage;
   featuredArticle: Article;
   clockConfig: SponsorClock;
+  /** The site's crest, recoloured to #08325A in place of the trophy icon on winner-confirmed posts. */
+  logoUrl?: string;
 }
 
 /** Prose-style summary built entirely from deterministic facts (see computeAutoFacts) -- never invented, and this stays honest if some of those facts aren't known for a given year. */
@@ -226,6 +228,7 @@ export function PreviousOpenView({
                 approachCategories={results.approachCategories}
                 puttingCategories={results.puttingCategories}
                 championshipId={championship.id}
+                logoUrl={results.logoUrl}
               />
             </TabsContent>
           </Tabs>

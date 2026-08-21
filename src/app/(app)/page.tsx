@@ -121,6 +121,7 @@ export default async function HomePage() {
             drivingCategories={drivingCategories}
             approachCategories={approachCategories}
             puttingCategories={puttingCategories}
+            logoUrl={theme.logoUrl}
           />
         </Container>
       </section>

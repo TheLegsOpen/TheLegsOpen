@@ -10,6 +10,7 @@ import { getArticles } from "@/lib/data/articles";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
 import { getPageBanners } from "@/lib/data/page-banners";
+import { getSiteTheme } from "@/lib/data/site-theme";
 import {
   getNettScoringCategories,
   getScratchScoringCategories,
@@ -35,6 +36,7 @@ export default async function LiveBlogPage() {
     articles,
     clockConfig,
     banners,
+    theme,
     mainEntries,
     stablefordEntries,
     scratchEntries,
@@ -49,6 +51,7 @@ export default async function LiveBlogPage() {
     getArticles(),
     getSponsorClock(),
     getPageBanners(),
+    getSiteTheme(),
     getCompetitionLeaderboard("main"),
     getCompetitionLeaderboard("stableford"),
     getCompetitionLeaderboard("scratch"),
@@ -89,6 +92,7 @@ export default async function LiveBlogPage() {
             drivingCategories={drivingCategories}
             approachCategories={approachCategories}
             puttingCategories={puttingCategories}
+            logoUrl={theme.logoUrl}
           />
           <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="dark" />
         </Container>

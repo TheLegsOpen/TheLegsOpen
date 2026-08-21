@@ -13,6 +13,7 @@ import { getTeeTimesForChampionshipId } from "@/lib/data/tee-times";
 import { getLiveBlogPosts } from "@/lib/data/live-blog";
 import { getArticles } from "@/lib/data/articles";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
+import { getSiteTheme } from "@/lib/data/site-theme";
 import {
   getNettScoringCategories,
   getScratchScoringCategories,
@@ -63,6 +64,7 @@ async function loadResults(championshipId: string): Promise<PreviousOpenResults>
     liveBlogPage,
     articles,
     clockConfig,
+    theme,
   ] = await Promise.all([
     getCompetitionLeaderboardForChampionshipId(championshipId, "main"),
     getCompetitionLeaderboardForChampionshipId(championshipId, "stableford"),
@@ -80,6 +82,7 @@ async function loadResults(championshipId: string): Promise<PreviousOpenResults>
     getLiveBlogPosts(1, undefined, championshipId),
     getArticles(),
     getSponsorClock(),
+    getSiteTheme(),
   ]);
 
   const main = applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main"));
@@ -104,6 +107,7 @@ async function loadResults(championshipId: string): Promise<PreviousOpenResults>
     liveBlogPage,
     featuredArticle: articles[0],
     clockConfig,
+    logoUrl: theme.logoUrl,
   };
 }
 

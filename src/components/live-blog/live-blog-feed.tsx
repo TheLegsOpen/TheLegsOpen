@@ -50,8 +50,11 @@ import type { LiveBlogCategory, LiveBlogCompetition, LiveBlogEntry, LiveBlogPage
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { StatCategory } from "@/lib/statistics";
 
-/** `cardClass` colours the whole post like the scoring-indicator dots (Eagle/Birdie/Bogey only) -- everything else stays a plain white card with just a coloured chip. */
-export const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: typeof Star; chipClass: string; cardClass?: string }> = {
+/** `cardClass` colours the whole post like the scoring-indicator dots (Eagle/Birdie/Bogey only) -- everything else stays a plain white card with just a coloured chip. Every existing coloured card is a dark background needing light text, hence that being the default; `cardTextTone: "dark"` opts a light-background card (winner-confirmed) back into dark text instead. */
+export const CATEGORY_META: Record<
+  LiveBlogCategory,
+  { label: string; icon: typeof Star; chipClass: string; cardClass?: string; cardTextTone?: "light" | "dark" }
+> = {
   ace: { label: "Hole in one", icon: Sparkles, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },
   albatross: { label: "Albatross", icon: Gem, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },
   eagle: { label: "Eagle", icon: Star, chipClass: "bg-[#910149] text-white", cardClass: "bg-[#910149] text-white" },
@@ -76,7 +79,13 @@ export const CATEGORY_META: Record<LiveBlogCategory, { label: string; icon: type
   "clubhouse-leader": { label: "Clubhouse leader", icon: Building2, chipClass: "bg-accent text-accent-foreground" },
   "best-gross-round": { label: "Best gross round", icon: Medal, chipClass: "bg-accent text-accent-foreground" },
   "round-complete": { label: "In the clubhouse", icon: Flag, chipClass: "bg-surface-dark-foreground/10 text-surface-dark-foreground" },
-  "winner-confirmed": { label: "Winner confirmed", icon: Trophy, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },
+  "winner-confirmed": {
+    label: "Winner confirmed",
+    icon: Trophy,
+    chipClass: "bg-[#08325A] text-white",
+    cardClass: "bg-white text-[#08325A]",
+    cardTextTone: "dark",
+  },
   playoff: { label: "Playoff", icon: Swords, chipClass: "bg-accent text-accent-foreground", cardClass: "bg-accent text-accent-foreground" },
   "no-return": { label: "No return", icon: XCircle, chipClass: "bg-[#08325A] text-white", cardClass: "bg-[#08325A] text-white" },
   "defending-champion": {
@@ -139,6 +148,8 @@ interface LiveBlogFeedProps {
    * distinct from championshipId above, which is only ever passed for a past year. This is always
    * set when there's an active championship, so realtime works for the live "currently active" case too. */
   realtimeChampionshipId?: string | null;
+  /** The site's crest, recoloured to #08325A in place of the trophy icon on winner-confirmed posts. */
+  logoUrl?: string;
 }
 
 export function LiveBlogFeed({
@@ -155,6 +166,7 @@ export function LiveBlogFeed({
   puttingCategories,
   championshipId,
   realtimeChampionshipId,
+  logoUrl,
 }: LiveBlogFeedProps) {
   const [entries, setEntries] = useState(initialEntries);
   const [page, setPage] = useState(1);
@@ -222,6 +234,11 @@ export function LiveBlogFeed({
         const Icon = meta.icon;
         const isStableford = entry.competition === "stableford";
         const isColored = Boolean(meta.cardClass);
+        // Every other coloured card is a dark background needing light text; winner-confirmed is
+        // the one light (white) coloured background, needing the same dark navy text a plain
+        // white card would use instead.
+        const lightText = isColored && meta.cardTextTone !== "dark";
+        const isWinnerConfirmed = entry.category === "winner-confirmed";
         return (
           <Fragment key={entry.id}>
             <div className="relative col-start-1" style={{ gridRow: index + 1 }} aria-hidden="true">
@@ -236,10 +253,31 @@ export function LiveBlogFeed({
                   <span
                     className={cn(
                       "inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wide",
-                      isColored ? "bg-white/15 text-white" : meta.chipClass,
+                      lightText ? "bg-white/15 text-white" : meta.chipClass,
                     )}
                   >
-                    <Icon className="h-3.5 w-3.5" />
+                    {isWinnerConfirmed && logoUrl ? (
+                      // A CSS filter chain only approximates a target colour -- mask-image paints
+                      // #08325A exactly through the logo's own alpha shape instead of guessing at
+                      // brightness/hue values that happen to land close to it.
+                      <span
+                        role="img"
+                        aria-label=""
+                        className="h-3.5 w-3.5 shrink-0 bg-[#08325A]"
+                        style={{
+                          maskImage: `url(${logoUrl})`,
+                          maskSize: "contain",
+                          maskRepeat: "no-repeat",
+                          maskPosition: "center",
+                          WebkitMaskImage: `url(${logoUrl})`,
+                          WebkitMaskSize: "contain",
+                          WebkitMaskRepeat: "no-repeat",
+                          WebkitMaskPosition: "center",
+                        }}
+                      />
+                    ) : (
+                      <Icon className="h-3.5 w-3.5" />
+                    )}
                     {meta.label}
                   </span>
                   {entry.competition ? (
@@ -248,13 +286,17 @@ export function LiveBlogFeed({
                     </span>
                   ) : null}
                 </div>
-                <span className={cn("font-display text-sm tabular-nums", isColored ? "text-white/70" : "text-black/50")}>
+                <span className={cn("font-display text-sm tabular-nums", lightText ? "text-white/70" : isWinnerConfirmed ? "text-[#08325A]/70" : "text-black/50")}>
                   {formatTime(entry.postedAt)} · {formatDate(entry.postedAt)}
                 </span>
               </div>
-              <h3 className={cn("mb-1.5 font-display text-lg font-bold", isColored ? "text-white" : "text-primary")}>{entry.headline}</h3>
+              <h3 className={cn("mb-1.5 font-display text-lg font-bold", lightText ? "text-white" : isWinnerConfirmed ? "text-[#08325A]" : "text-primary")}>
+                {entry.headline}
+              </h3>
               {entry.body ? (
-                <p className={cn("text-base leading-relaxed", isColored ? "text-white/90" : "text-black/70")}>{entry.body}</p>
+                <p className={cn("text-base leading-relaxed", lightText ? "text-white/90" : isWinnerConfirmed ? "text-[#08325A]/90" : "text-black/70")}>
+                  {entry.body}
+                </p>
               ) : null}
               {entry.imageUrl ? (
                 <div className="mt-3 overflow-hidden rounded-md">
@@ -273,7 +315,7 @@ export function LiveBlogFeed({
                     onClick={() => setSelectedPlayerId(entry.player!.id)}
                     className={cn(
                       "inline-flex items-center gap-1.5 text-sm font-semibold hover:underline",
-                      isColored ? "text-white" : "text-accent",
+                      lightText ? "text-white" : isWinnerConfirmed ? "text-[#08325A]" : "text-accent",
                     )}
                   >
                     <CountryFlag code={entry.player.countryCode} className="h-3 w-4" />

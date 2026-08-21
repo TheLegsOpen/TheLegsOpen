@@ -32,6 +32,8 @@ interface LiveBlogWidgetProps {
   approachCategories: StatCategory[];
   puttingCategories: StatCategory[];
   championshipId?: string | null;
+  /** The site's crest, recoloured to #08325A in place of the trophy icon on winner-confirmed posts. */
+  logoUrl?: string;
 }
 
 export function LiveBlogWidget({
@@ -46,6 +48,7 @@ export function LiveBlogWidget({
   approachCategories,
   puttingCategories,
   championshipId,
+  logoUrl,
 }: LiveBlogWidgetProps) {
   const router = useRouter();
   // The homepage already re-fetches this whole page every 10s (see AutoRefresh) -- realtime just
@@ -77,6 +80,10 @@ export function LiveBlogWidget({
             const Icon = meta.icon;
             const isStableford = entry.competition === "stableford";
             const isColored = Boolean(meta.cardClass);
+            // Every other coloured card is a dark background needing light text; winner-confirmed
+            // is the one light (white) coloured background, needing dark navy text instead.
+            const lightText = isColored && meta.cardTextTone !== "dark";
+            const isWinnerConfirmed = entry.category === "winner-confirmed";
             return (
               <article
                 key={entry.id}
@@ -87,10 +94,30 @@ export function LiveBlogWidget({
                     <span
                       className={cn(
                         "inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide",
-                        isColored ? "bg-white/15 text-white" : meta.chipClass,
+                        lightText ? "bg-white/15 text-white" : meta.chipClass,
                       )}
                     >
-                      <Icon className="h-3 w-3" />
+                      {isWinnerConfirmed && logoUrl ? (
+                        // A CSS filter chain only approximates a target colour -- mask-image paints
+                        // #08325A exactly through the logo's own alpha shape instead.
+                        <span
+                          role="img"
+                          aria-label=""
+                          className="h-3 w-3 shrink-0 bg-[#08325A]"
+                          style={{
+                            maskImage: `url(${logoUrl})`,
+                            maskSize: "contain",
+                            maskRepeat: "no-repeat",
+                            maskPosition: "center",
+                            WebkitMaskImage: `url(${logoUrl})`,
+                            WebkitMaskSize: "contain",
+                            WebkitMaskRepeat: "no-repeat",
+                            WebkitMaskPosition: "center",
+                          }}
+                        />
+                      ) : (
+                        <Icon className="h-3 w-3" />
+                      )}
                       {meta.label}
                     </span>
                     {entry.competition ? (
@@ -99,13 +126,17 @@ export function LiveBlogWidget({
                       </span>
                     ) : null}
                   </div>
-                  <span className={cn("text-[11px] tabular-nums", isColored ? "text-white/70" : "text-black/50")}>
+                  <span className={cn("text-[11px] tabular-nums", lightText ? "text-white/70" : isWinnerConfirmed ? "text-[#08325A]/70" : "text-black/50")}>
                     {formatTime(entry.postedAt)} · {formatDate(entry.postedAt)}
                   </span>
                 </div>
-                <h3 className={cn("mb-1 font-display text-sm font-bold", isColored ? "text-white" : "text-primary")}>{entry.headline}</h3>
+                <h3 className={cn("mb-1 font-display text-sm font-bold", lightText ? "text-white" : isWinnerConfirmed ? "text-[#08325A]" : "text-primary")}>
+                  {entry.headline}
+                </h3>
                 {entry.body ? (
-                  <p className={cn("mb-2 text-sm leading-relaxed", isColored ? "text-white/90" : "text-black/70")}>{entry.body}</p>
+                  <p className={cn("mb-2 text-sm leading-relaxed", lightText ? "text-white/90" : isWinnerConfirmed ? "text-[#08325A]/90" : "text-black/70")}>
+                    {entry.body}
+                  </p>
                 ) : null}
                 {entry.imageUrl ? (
                   <div className="mb-2 overflow-hidden rounded-md">
@@ -122,7 +153,7 @@ export function LiveBlogWidget({
                       }}
                       className={cn(
                         "inline-flex items-center gap-1.5 text-xs font-semibold hover:underline",
-                        isColored ? "text-white" : "text-accent",
+                        lightText ? "text-white" : isWinnerConfirmed ? "text-[#08325A]" : "text-accent",
                       )}
                     >
                       <CountryFlag code={entry.player.countryCode} className="h-3 w-4" />
