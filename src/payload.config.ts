@@ -1,4 +1,5 @@
 import { postgresAdapter } from "@payloadcms/db-postgres";
+import { resendAdapter } from "@payloadcms/email-resend";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import path from "path";
@@ -86,6 +87,15 @@ export default buildConfig({
     SEOSettings,
   ],
   editor: lexicalEditor(),
+  // Without this, Payload has nowhere to actually deliver account emails (forgot-password
+  // chief among them) -- it just logs the subject line and drops the message. defaultFromAddress
+  // must be on a domain verified with Resend (Settings > Domains in the Resend dashboard), or
+  // Resend will reject the send.
+  email: resendAdapter({
+    apiKey: process.env.RESEND_API_KEY || "",
+    defaultFromAddress: "admin@thelegsopen.com",
+    defaultFromName: "The Legs Open",
+  }),
   secret: process.env.PAYLOAD_SECRET || "",
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),
