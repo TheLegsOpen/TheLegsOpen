@@ -156,9 +156,6 @@ export async function getPlayerResults(player: Player): Promise<PlayerYearResult
       ]);
 
       if (!isConcluded(mainRaw)) {
-        if (player.name === "Nick Ward" || player.name === "Barry Thomas") {
-          console.error("[DEBUG getPlayerResults]", JSON.stringify({ playerName: player.name, year: c.year, championshipWinnerName: c.winnerName, matches: c.winnerName === player.name }));
-        }
         return c.winnerName === player.name ? winnerFallback(c) : undefined;
       }
 
