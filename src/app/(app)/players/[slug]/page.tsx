@@ -150,14 +150,18 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             </div>
 
             <div className="order-first flex justify-center lg:order-2 lg:self-end">
-              <div className="relative h-[220px] w-[180px] sm:h-[260px] sm:w-[210px] lg:h-[300px] lg:w-[240px]">
+              {/* Below lg, sized as a fraction of the column's own width (capped) rather than a
+                  flat pixel value -- a flat 180px looks fine on a narrow phone but reads as a tiny
+                  island adrift in empty space on a wide one (e.g. a 480px-wide "Ultra"-class
+                  phone), since the box never grows to match the extra room. */}
+              <div className="relative aspect-[3/4] w-[55%] max-w-[260px] sm:max-w-[300px] lg:aspect-auto lg:h-[300px] lg:w-[240px] lg:max-w-none">
                 <PlaceholderArt
                   label={`${player.name} portrait`}
                   imageUrl={player.photoUrl}
                   tone="slate"
                   blendBlack
                   fill
-                  sizes="(min-width: 1024px) 240px, (min-width: 640px) 210px, 180px"
+                  sizes="(min-width: 1024px) 240px, (min-width: 640px) 300px, 55vw"
                 />
               </div>
             </div>
