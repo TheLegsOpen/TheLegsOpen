@@ -109,6 +109,14 @@ export default buildConfig({
       // this timeout at least turns a silent multi-second hang into a fast, diagnosable error.
       idleTimeoutMillis: 10_000,
       connectionTimeoutMillis: 10_000,
+      // Capped low deliberately -- Supabase's Nano compute tier only allows 60 total connections,
+      // and node-postgres's own default max (10) per pool adds up fast once Vercel's build machine
+      // (8 parallel cores on Pro) fans out static generation across many concurrent invocations,
+      // each with its own pool. Confirmed via a real build failure: "timeout exceeded when trying
+      // to connect" across ~40 /players/[slug] pages generated in parallel. A handful of
+      // connections per instance is still plenty for this app's query patterns (one or two queries
+      // in flight per request), and leaves headroom for live traffic and admin usage at the same time.
+      max: 3,
     },
   }),
   sharp,
