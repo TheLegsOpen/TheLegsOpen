@@ -96,19 +96,10 @@ export const Players: CollectionConfig = {
       type: "number",
       admin: { description: "Calculated automatically once Date of Birth is set. Enter manually only while Date of Birth is blank — leave blank if unknown." },
     },
-    {
-      name: "handicapIndex",
-      label: "Handicap Index",
-      type: "number",
-      admin: {
-        step: 0.1,
-        description:
-          "Admin-only, never shown on the public site. The player's real, portable handicap index (e.g. from a national handicap database). When set, Championship Handicap below is recalculated automatically for whichever venue is currently active, using that venue's Course Rating and Slope (set on the Venues collection, under Hole Setup). Leave blank to keep setting Championship Handicap manually.",
-      },
-      access: {
-        read: ({ req }) => Boolean(req.user),
-      },
-    },
+    // handicapIndex temporarily removed -- this project has no migration pipeline, so the new
+    // field's column doesn't exist in production yet (build error: "column players.handicap_index
+    // does not exist", 42703, same as the seo_settings table earlier). Re-added once
+    // temp-add-column has created it -- see that route's own comment.
     {
       name: "championshipHandicap",
       label: "Championship Handicap",
@@ -216,17 +207,19 @@ export const Players: CollectionConfig = {
         if (data && data.dateOfBirth) {
           data.age = calculateAge(data.dateOfBirth);
         }
-        if (data && typeof data.handicapIndex === "number") {
-          const venueRating = await resolveActiveVenueRating();
-          if (venueRating) {
-            data.championshipHandicap = calculateCourseHandicap(
-              data.handicapIndex,
-              venueRating.slopeRating,
-              venueRating.courseRating,
-              venueRating.par,
-            );
-          }
-        }
+        // Re-enable once handicapIndex's column exists and the field above is restored -- see the
+        // removal note on that field.
+        // if (data && typeof data.handicapIndex === "number") {
+        //   const venueRating = await resolveActiveVenueRating();
+        //   if (venueRating) {
+        //     data.championshipHandicap = calculateCourseHandicap(
+        //       data.handicapIndex,
+        //       venueRating.slopeRating,
+        //       venueRating.courseRating,
+        //       venueRating.par,
+        //     );
+        //   }
+        // }
         return data;
       },
     ],
