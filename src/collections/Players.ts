@@ -1,7 +1,9 @@
 import type { CollectionConfig } from "payload";
+import { getPayload } from "payload";
 
 import { COUNTRIES, countryName } from "@/data/countries";
 import { revalidatePlayers } from "@/lib/revalidate";
+import configPromise from "@/payload.config";
 
 function slugify(value: string): string {
   return value
@@ -19,6 +21,31 @@ function calculateAge(dateOfBirth: string): number {
     age--;
   }
   return age;
+}
+
+/** USGA/WHS Course Handicap formula: Handicap Index x (Slope Rating / 113) + (Course Rating - Par), rounded to the nearest whole stroke. */
+function calculateCourseHandicap(handicapIndex: number, slopeRating: number, courseRating: number, par: number): number {
+  return Math.round(handicapIndex * (slopeRating / 113) + (courseRating - par));
+}
+
+/**
+ * The venue for whichever championship is "being played" -- same active/most-recent-by-year rule
+ * used everywhere else (see getActiveChampionshipSummary in lib/data/championships.ts, kept
+ * separate here rather than imported to avoid this collection depending on that data-access seam
+ * just for one field). Returns undefined if that venue hasn't had its Course Rating/Slope/Par
+ * filled in yet, so a half-configured venue never produces a bogus handicap.
+ */
+async function resolveActiveVenueRating(): Promise<{ slopeRating: number; courseRating: number; par: number } | undefined> {
+  const payload = await getPayload({ config: configPromise });
+  const championships = await payload.find({ collection: "championships", limit: 500, depth: 1, sort: "year" });
+  if (championships.docs.length === 0) return undefined;
+
+  const activeIndex = championships.docs.findIndex((doc) => doc.isActive);
+  const doc = championships.docs[activeIndex === -1 ? championships.docs.length - 1 : activeIndex];
+  const venue = typeof doc.venue === "object" ? doc.venue : undefined;
+  if (!venue || venue.slopeRating == null || venue.courseRating == null || !venue.totalPar) return undefined;
+
+  return { slopeRating: venue.slopeRating, courseRating: venue.courseRating, par: venue.totalPar };
 }
 
 export const Players: CollectionConfig = {
@@ -70,10 +97,26 @@ export const Players: CollectionConfig = {
       admin: { description: "Calculated automatically once Date of Birth is set. Enter manually only while Date of Birth is blank — leave blank if unknown." },
     },
     {
+      name: "handicapIndex",
+      label: "Handicap Index",
+      type: "number",
+      admin: {
+        step: 0.1,
+        description:
+          "Admin-only, never shown on the public site. The player's real, portable handicap index (e.g. from a national handicap database). When set, Championship Handicap below is recalculated automatically for whichever venue is currently active, using that venue's Course Rating and Slope (set on the Venues collection, under Hole Setup). Leave blank to keep setting Championship Handicap manually.",
+      },
+      access: {
+        read: ({ req }) => Boolean(req.user),
+      },
+    },
+    {
       name: "championshipHandicap",
       label: "Championship Handicap",
       type: "number",
-      admin: { description: "The player's championship handicap. Leave blank if not applicable." },
+      admin: {
+        description:
+          "The player's championship handicap for the currently active venue. Auto-calculated from Handicap Index above whenever that's set and the active venue has its Course Rating/Slope filled in -- otherwise enter manually.",
+      },
     },
     { name: "previousOpens", type: "number", required: true, defaultValue: 0 },
     {
@@ -163,7 +206,7 @@ export const Players: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [
-      ({ data }) => {
+      async ({ data }) => {
         if (data && !data.slug && data.name) {
           data.slug = slugify(data.name);
         }
@@ -172,6 +215,17 @@ export const Players: CollectionConfig = {
         }
         if (data && data.dateOfBirth) {
           data.age = calculateAge(data.dateOfBirth);
+        }
+        if (data && typeof data.handicapIndex === "number") {
+          const venueRating = await resolveActiveVenueRating();
+          if (venueRating) {
+            data.championshipHandicap = calculateCourseHandicap(
+              data.handicapIndex,
+              venueRating.slopeRating,
+              venueRating.courseRating,
+              venueRating.par,
+            );
+          }
         }
         return data;
       },
