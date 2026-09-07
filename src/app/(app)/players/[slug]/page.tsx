@@ -12,7 +12,7 @@ import { PlayerGallery } from "@/components/players/player-gallery";
 import { ResultsTab } from "@/components/players/results-tab";
 import { StatsTab } from "@/components/players/stats-tab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getAllPlayerSlugs, getPlayerBySlug, getPlayerResults } from "@/lib/data/players";
+import { getPlayerBySlug, getPlayerResults } from "@/lib/data/players";
 import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
 import {
   getCareerNettScoringCategories,
@@ -32,9 +32,9 @@ interface PlayerPageProps {
   params: Promise<{ slug: string }>;
 }
 
+// See src/app/(app)/latest/[slug]/page.tsx for why this returns [] instead of querying at build time.
 export async function generateStaticParams() {
-  const slugs = await getAllPlayerSlugs();
-  return slugs.map((slug) => ({ slug }));
+  return [];
 }
 
 // See the comment on src/app/(app)/page.tsx's own `revalidate` -- raised from 10s now that the

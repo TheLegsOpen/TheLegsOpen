@@ -12,7 +12,7 @@ import { VenueChampionshipTimeline } from "@/components/venues/venue-championshi
 import { ArticleCard } from "@/components/news/article-card";
 import { ToughestHolesBoard } from "@/components/statistics/toughest-holes-board";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getAllVenueSlugs, getVenueBySlug } from "@/lib/data/venues";
+import { getVenueBySlug } from "@/lib/data/venues";
 import { getChampionshipsByVenueSlug } from "@/lib/data/championships";
 import { getPlayers } from "@/lib/data/players";
 import { getArticles } from "@/lib/data/articles";
@@ -23,9 +23,9 @@ interface VenuePageProps {
   params: Promise<{ slug: string }>;
 }
 
+// See src/app/(app)/latest/[slug]/page.tsx for why this returns [] instead of querying at build time.
 export async function generateStaticParams() {
-  const slugs = await getAllVenueSlugs();
-  return slugs.map((slug) => ({ slug }));
+  return [];
 }
 
 export async function generateMetadata({ params }: VenuePageProps): Promise<Metadata> {

@@ -8,7 +8,7 @@ import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { Badge } from "@/components/ui/badge";
 import { ArticleCard } from "@/components/news/article-card";
-import { getAllArticleSlugs, getArticleBySlug, getRelatedArticles } from "@/lib/data/articles";
+import { getArticleBySlug, getRelatedArticles } from "@/lib/data/articles";
 import { SITE } from "@/constants/site";
 import { formatDate } from "@/lib/utils";
 
@@ -16,9 +16,12 @@ interface ArticlePageProps {
   params: Promise<{ slug: string }>;
 }
 
+// Returning [] skips DB access during `next build` entirely -- see the comment in
+// src/payload.config.ts on why build-time Postgres connections from Vercel's build machine
+// are unreliable. dynamicParams defaults to true, so every slug still renders on first
+// request via the page component's own fetch below, same as any slug this once pre-rendered.
 export async function generateStaticParams() {
-  const slugs = await getAllArticleSlugs();
-  return slugs.map((slug) => ({ slug }));
+  return [];
 }
 
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {

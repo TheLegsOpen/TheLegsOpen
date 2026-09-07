@@ -4,16 +4,16 @@ import { notFound } from "next/navigation";
 import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
 import { RichTextBlock } from "@/components/shared/rich-text";
-import { getLegalPages, getLegalPage } from "@/lib/data/legal";
+import { getLegalPage } from "@/lib/data/legal";
 import { formatDate } from "@/lib/utils";
 
 interface LegalPageProps {
   params: Promise<{ slug: string }>;
 }
 
+// See src/app/(app)/latest/[slug]/page.tsx for why this returns [] instead of querying at build time.
 export async function generateStaticParams() {
-  const pages = await getLegalPages();
-  return pages.map((page) => ({ slug: page.slug }));
+  return [];
 }
 
 export async function generateMetadata({ params }: LegalPageProps): Promise<Metadata> {

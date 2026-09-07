@@ -5,7 +5,7 @@ import { Container } from "@/components/shared/container";
 import { PageHero } from "@/components/shared/page-hero";
 import { PreviousOpenView, type PreviousOpenResults } from "@/components/previous-opens/previous-open-view";
 import { formatDate } from "@/lib/utils";
-import { getAllChampionshipYears, getChampionshipByYear } from "@/lib/data/championships";
+import { getChampionshipByYear } from "@/lib/data/championships";
 import { computeAutoFacts } from "@/lib/data/records";
 import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
 import { getPlayoffs, applyPlayoffToEntries, getEligibleStablefordChampion } from "@/lib/data/playoffs";
@@ -28,9 +28,9 @@ interface YearPageProps {
   params: Promise<{ year: string }>;
 }
 
+// See src/app/(app)/latest/[slug]/page.tsx for why this returns [] instead of querying at build time.
 export async function generateStaticParams() {
-  const years = await getAllChampionshipYears();
-  return years.map((year) => ({ year }));
+  return [];
 }
 
 export async function generateMetadata({ params }: YearPageProps): Promise<Metadata> {
