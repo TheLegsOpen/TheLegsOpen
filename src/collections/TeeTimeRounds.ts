@@ -23,6 +23,20 @@ export const TeeTimeRounds: CollectionConfig = {
       },
     },
     {
+      name: "venue",
+      label: "Course",
+      type: "relationship",
+      relationTo: "venues",
+      admin: {
+        description:
+          "Which course this round is played on. For a Championship round this falls back to that championship's own venue when left blank -- set it explicitly only to backdate/override (e.g. a historical round played somewhere else). Required for a Practice round, which has no championship to infer a venue from. Also drives which handicap (Championship or Practice) is shown for this round's players on the public Tee Times page and used by the on-course scoring app.",
+      },
+      validate: (value: unknown, { data }: { data?: { round?: string } }) => {
+        if (data?.round === "Practice" && !value) return "Required for a Practice round -- pick which course it's being played on.";
+        return true;
+      },
+    },
+    {
       name: "date",
       type: "date",
       required: true,
@@ -133,10 +147,6 @@ export const TeeTimeRounds: CollectionConfig = {
     ],
     afterChange: [
       async ({ doc, req }) => {
-        if (doc.round !== "Championship" || !doc.championship) return doc;
-        const championshipId = typeof doc.championship === "object" ? doc.championship.id : doc.championship;
-        if (!championshipId) return doc;
-
         const playerIds = new Set<string | number>();
         for (const group of doc.groups ?? []) {
           for (const player of group.players ?? []) {
@@ -144,18 +154,44 @@ export const TeeTimeRounds: CollectionConfig = {
             if (playerId !== undefined && playerId !== null) playerIds.add(playerId);
           }
         }
+        if (playerIds.size === 0) return doc;
 
-        for (const playerId of playerIds) {
-          const existing = await req.payload.find({
-            collection: "scorecards",
-            where: { and: [{ player: { equals: playerId } }, { championship: { equals: championshipId } }] },
-            limit: 1,
-          });
-          if (existing.docs.length === 0) {
-            await req.payload.create({
+        if (doc.round === "Championship" && doc.championship) {
+          const championshipId = typeof doc.championship === "object" ? doc.championship.id : doc.championship;
+          if (!championshipId) return doc;
+
+          for (const playerId of playerIds) {
+            const existing = await req.payload.find({
               collection: "scorecards",
-              data: { player: playerId as string, championship: championshipId as string },
+              where: { and: [{ player: { equals: playerId } }, { championship: { equals: championshipId } }] },
+              limit: 1,
             });
+            if (existing.docs.length === 0) {
+              await req.payload.create({
+                collection: "scorecards",
+                data: { player: playerId as string, championship: championshipId as string },
+              });
+            }
+          }
+          return doc;
+        }
+
+        // Mirrors the Championship branch above, but keyed on this round directly instead of a
+        // championship -- a practice day has neither one, and its scorecards must never trigger
+        // the live-blog/stats hooks that key off `championship` being set (see Scorecards.ts).
+        if (doc.round === "Practice" && doc.venue) {
+          for (const playerId of playerIds) {
+            const existing = await req.payload.find({
+              collection: "scorecards",
+              where: { and: [{ player: { equals: playerId } }, { teeTimeRound: { equals: doc.id } }] },
+              limit: 1,
+            });
+            if (existing.docs.length === 0) {
+              await req.payload.create({
+                collection: "scorecards",
+                data: { player: playerId as string, teeTimeRound: String(doc.id) },
+              });
+            }
           }
         }
 

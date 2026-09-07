@@ -24,6 +24,7 @@ export function mapPlayer(doc: PayloadPlayer): Player {
     countryCode: doc.countryCode,
     age: doc.hideAge ? undefined : doc.age ?? undefined,
     championshipHandicap: doc.championshipHandicap ?? undefined,
+    practiceHandicap: doc.practiceHandicap ?? undefined,
     previousOpens: doc.previousOpens,
     turnedPro: doc.turnedPro ?? undefined,
     debutYear: doc.debutYear ?? undefined,

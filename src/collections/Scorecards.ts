@@ -4,7 +4,7 @@ import { revalidateScorecards } from "@/lib/revalidate";
 import { computeScorecardTotals } from "@/lib/scoring";
 import { generateLiveBlogPosts } from "@/lib/live-blog/generate";
 import { syncChampionshipStatsAfterScoreChange } from "@/lib/data/championship-stats";
-import type { Venue, Player, Championship } from "@/payload-types";
+import type { Venue, Player, Championship, TeeTimeRound } from "@/payload-types";
 
 export const Scorecards: CollectionConfig = {
   slug: "scorecards",
@@ -13,14 +13,32 @@ export const Scorecards: CollectionConfig = {
     useAsTitle: "id",
     defaultColumns: ["player", "teeTime", "championship", "grossTotal", "nettTotal", "stablefordTotal", "holesCompleted", "noReturn", "scoreUpdatedAt"],
     description:
-      "One scorecard per player per championship. Enter gross strokes hole by hole — Nett Strokeplay (Main), Stableford (Secondary) and Gross Strokeplay (Third) are all calculated automatically from this single entry. Type \"X\" instead of a number for a hole the player picked up on (no return) — that disqualifies Main and Scratch for the round (shown as NR) but Stableford keeps going, scoring 0 for that hole. Sort by Tee Time to cluster players from the same group together.",
+      "One scorecard per player per championship (or per practice round). Enter gross strokes hole by hole — Nett Strokeplay (Main), Stableford (Secondary) and Gross Strokeplay (Third) are all calculated automatically from this single entry. Type \"X\" instead of a number for a hole the player picked up on (no return) — that disqualifies Main and Scratch for the round (shown as NR) but Stableford keeps going, scoring 0 for that hole. Sort by Tee Time to cluster players from the same group together.",
   },
   access: {
     read: () => true,
   },
   fields: [
     { name: "player", type: "relationship", relationTo: "players", required: true },
-    { name: "championship", type: "relationship", relationTo: "championships", required: true },
+    {
+      name: "championship",
+      type: "relationship",
+      relationTo: "championships",
+      admin: { description: "Leave blank for a practice-round scorecard -- those link to Tee Time Round below instead." },
+      validate: (value: unknown, { data }: { data?: { teeTimeRound?: unknown } }) => {
+        if (!value && !data?.teeTimeRound) return "Either Championship or a linked practice round is required.";
+        return true;
+      },
+    },
+    {
+      name: "teeTimeRound",
+      type: "relationship",
+      relationTo: "tee-time-rounds",
+      admin: {
+        readOnly: true,
+        description: "Set automatically for a practice-round scorecard -- links back to that day's tee times instead of a Championship.",
+      },
+    },
     {
       name: "teeTime",
       type: "text",
@@ -138,46 +156,68 @@ export const Scorecards: CollectionConfig = {
         const playerId = typeof data.player === "object" ? (data.player as { id?: string })?.id : data.player;
         const championshipId =
           typeof data.championship === "object" ? (data.championship as { id?: string })?.id : data.championship;
+        const teeTimeRoundId =
+          typeof data.teeTimeRound === "object" ? (data.teeTimeRound as { id?: string })?.id : data.teeTimeRound;
 
-        if (playerId && championshipId) {
+        if (playerId && (championshipId || teeTimeRoundId)) {
           const existing = await req.payload.find({
             collection: "scorecards",
-            where: { and: [{ player: { equals: playerId } }, { championship: { equals: championshipId } }] },
+            where: championshipId
+              ? { and: [{ player: { equals: playerId } }, { championship: { equals: championshipId } }] }
+              : { and: [{ player: { equals: playerId } }, { teeTimeRound: { equals: teeTimeRoundId } }] },
             limit: 2,
           });
           const conflict = existing.docs.find((doc) => doc.id !== originalDoc?.id);
           if (conflict) {
-            throw new Error("This player already has a scorecard for this championship.");
+            throw new Error(
+              championshipId ? "This player already has a scorecard for this championship." : "This player already has a scorecard for this practice round.",
+            );
           }
 
-          const teeTimeRounds = await req.payload.find({
-            collection: "tee-time-rounds",
-            where: { and: [{ championship: { equals: championshipId } }, { round: { equals: "Championship" } }] },
-            limit: 50,
-            depth: 0,
-          });
-          let teeTime = "";
-          for (const round of teeTimeRounds.docs) {
-            for (const group of round.groups ?? []) {
-              const inGroup = (group.players ?? []).some((p) => (typeof p === "object" ? p.id : p) == playerId);
-              if (inGroup) {
-                teeTime = group.time;
-                break;
+          if (championshipId) {
+            const teeTimeRounds = await req.payload.find({
+              collection: "tee-time-rounds",
+              where: { and: [{ championship: { equals: championshipId } }, { round: { equals: "Championship" } }] },
+              limit: 50,
+              depth: 0,
+            });
+            let teeTime = "";
+            for (const round of teeTimeRounds.docs) {
+              for (const group of round.groups ?? []) {
+                const inGroup = (group.players ?? []).some((p) => (typeof p === "object" ? p.id : p) == playerId);
+                if (inGroup) {
+                  teeTime = group.time;
+                  break;
+                }
               }
+              if (teeTime) break;
             }
-            if (teeTime) break;
+            data.teeTime = teeTime;
+          } else {
+            const round = (await req.payload.findByID({ collection: "tee-time-rounds", id: teeTimeRoundId, depth: 0 }).catch(() => undefined)) as
+              | TeeTimeRound
+              | undefined;
+            const group = round?.groups?.find((g) => (g.players ?? []).some((p) => (typeof p === "object" ? p.id : p) == playerId));
+            data.teeTime = group?.time ?? "";
           }
-          data.teeTime = teeTime;
         }
 
-        if (playerId && championshipId && Array.isArray(data.holes)) {
+        if (playerId && (championshipId || teeTimeRoundId) && Array.isArray(data.holes)) {
           const player = (await req.payload.findByID({ collection: "players", id: playerId })) as Player;
-          const championship = (await req.payload.findByID({
-            collection: "championships",
-            id: championshipId,
-          })) as Championship;
-          const venueId = typeof championship.venue === "object" ? championship.venue?.id : championship.venue;
-          const venue = venueId ? ((await req.payload.findByID({ collection: "venues", id: venueId })) as Venue) : null;
+
+          let venue: Venue | null = null;
+          if (championshipId) {
+            const championship = (await req.payload.findByID({
+              collection: "championships",
+              id: championshipId,
+            })) as Championship;
+            const venueId = typeof championship.venue === "object" ? championship.venue?.id : championship.venue;
+            venue = venueId ? ((await req.payload.findByID({ collection: "venues", id: venueId })) as Venue) : null;
+          } else {
+            const round = (await req.payload.findByID({ collection: "tee-time-rounds", id: teeTimeRoundId })) as TeeTimeRound;
+            const venueId = typeof round.venue === "object" ? round.venue?.id : round.venue;
+            venue = venueId ? ((await req.payload.findByID({ collection: "venues", id: venueId })) as Venue) : null;
+          }
           const venueHoles = venue?.holes ?? [];
 
           const holeInfos = data.holes.map((_: unknown, index: number) => ({
@@ -186,7 +226,11 @@ export const Scorecards: CollectionConfig = {
           }));
           const strokes = data.holes.map((hole: { strokes?: number }) => hole.strokes ?? null);
           const noReturn = data.holes.map((hole: { noReturn?: boolean }) => hole.noReturn ?? false);
-          const totals = computeScorecardTotals(strokes, noReturn, holeInfos, player.championshipHandicap ?? 0);
+          // Championship cards play off Championship Handicap, practice cards off Practice
+          // Handicap -- the two are calculated separately (see Players.ts) precisely so a
+          // player's practice-day scoring never touches or depends on their live championship number.
+          const handicap = championshipId ? (player.championshipHandicap ?? 0) : (player.practiceHandicap ?? 0);
+          const totals = computeScorecardTotals(strokes, noReturn, holeInfos, handicap);
 
           data.holesCompleted = totals.holesCompleted;
           data.grossTotal = totals.grossTotal;

@@ -48,6 +48,30 @@ async function resolveActiveVenueRating(): Promise<{ slopeRating: number; course
   return { slopeRating: venue.slopeRating, courseRating: venue.courseRating, par: venue.totalPar };
 }
 
+/**
+ * The venue for whichever Practice round is "on" -- the latest (by date) non-archived Practice
+ * round that has a Course set, mirroring resolveActiveVenueRating's active-else-latest rule for
+ * Championships (Practice rounds have no isActive flag of their own -- there's normally only one
+ * scheduled at a time between championships, so "most recent by date" is enough to pick it out).
+ * Returns undefined if no Practice round has a venue yet, or that venue hasn't had its Course
+ * Rating/Slope/Par filled in, so a half-configured round never produces a bogus handicap.
+ */
+async function resolveActivePracticeVenueRating(): Promise<{ slopeRating: number; courseRating: number; par: number } | undefined> {
+  const payload = await getPayload({ config: configPromise });
+  const rounds = await payload.find({
+    collection: "tee-time-rounds",
+    where: { and: [{ round: { equals: "Practice" } }, { archived: { not_equals: true } }] },
+    limit: 50,
+    depth: 1,
+    sort: "-date",
+  });
+  const withVenue = rounds.docs.find((doc) => doc.venue);
+  const venue = withVenue && typeof withVenue.venue === "object" ? withVenue.venue : undefined;
+  if (!venue || venue.slopeRating == null || venue.courseRating == null || !venue.totalPar) return undefined;
+
+  return { slopeRating: venue.slopeRating, courseRating: venue.courseRating, par: venue.totalPar };
+}
+
 export const Players: CollectionConfig = {
   slug: "players",
   admin: {
@@ -96,17 +120,35 @@ export const Players: CollectionConfig = {
       type: "number",
       admin: { description: "Calculated automatically once Date of Birth is set. Enter manually only while Date of Birth is blank — leave blank if unknown." },
     },
-    // handicapIndex temporarily removed -- this project has no migration pipeline, so the new
-    // field's column doesn't exist in production yet (build error: "column players.handicap_index
-    // does not exist", 42703, same as the seo_settings table earlier). Re-added once
-    // temp-add-column has created it -- see that route's own comment.
+    {
+      name: "handicapIndex",
+      label: "Handicap Index",
+      type: "number",
+      admin: {
+        step: 0.1,
+        description:
+          "The player's current WHS Handicap Index. When set, Championship Handicap and Practice Handicap below are calculated automatically for whichever venues are active -- otherwise leave both blank or enter manually. Admin-only — never shown on the public site.",
+      },
+      access: {
+        read: ({ req }) => Boolean(req.user),
+      },
+    },
     {
       name: "championshipHandicap",
       label: "Championship Handicap",
       type: "number",
       admin: {
         description:
-          "The player's championship handicap for the currently active venue. Auto-calculated from Handicap Index above whenever that's set and the active venue has its Course Rating/Slope filled in -- otherwise enter manually.",
+          "The player's playing handicap for the currently active championship's venue. Auto-calculated from Handicap Index above whenever that's set and the active venue has its Course Rating/Slope filled in -- otherwise enter manually. Shown publicly next to this player's name on Tee Times.",
+      },
+    },
+    {
+      name: "practiceHandicap",
+      label: "Practice Handicap",
+      type: "number",
+      admin: {
+        description:
+          "The player's playing handicap for the upcoming practice round's venue. Auto-calculated from Handicap Index above whenever that's set and the practice round's venue has its Course Rating/Slope filled in -- otherwise enter manually. Shown publicly next to this player's name on Tee Times for that day.",
       },
     },
     { name: "previousOpens", type: "number", required: true, defaultValue: 0 },
@@ -207,19 +249,25 @@ export const Players: CollectionConfig = {
         if (data && data.dateOfBirth) {
           data.age = calculateAge(data.dateOfBirth);
         }
-        // Re-enable once handicapIndex's column exists and the field above is restored -- see the
-        // removal note on that field.
-        // if (data && typeof data.handicapIndex === "number") {
-        //   const venueRating = await resolveActiveVenueRating();
-        //   if (venueRating) {
-        //     data.championshipHandicap = calculateCourseHandicap(
-        //       data.handicapIndex,
-        //       venueRating.slopeRating,
-        //       venueRating.courseRating,
-        //       venueRating.par,
-        //     );
-        //   }
-        // }
+        if (data && typeof data.handicapIndex === "number") {
+          const [championshipVenue, practiceVenue] = await Promise.all([resolveActiveVenueRating(), resolveActivePracticeVenueRating()]);
+          if (championshipVenue) {
+            data.championshipHandicap = calculateCourseHandicap(
+              data.handicapIndex,
+              championshipVenue.slopeRating,
+              championshipVenue.courseRating,
+              championshipVenue.par,
+            );
+          }
+          if (practiceVenue) {
+            data.practiceHandicap = calculateCourseHandicap(
+              data.handicapIndex,
+              practiceVenue.slopeRating,
+              practiceVenue.courseRating,
+              practiceVenue.par,
+            );
+          }
+        }
         return data;
       },
     ],

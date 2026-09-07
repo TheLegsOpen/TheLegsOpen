@@ -208,7 +208,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
   if (context?.suppressLiveBlog) return doc;
 
   const playerId = typeof doc.player === "object" ? doc.player.id : doc.player;
-  const championshipId = typeof doc.championship === "object" ? doc.championship.id : doc.championship;
+  const championshipId = typeof doc.championship === "object" && doc.championship ? doc.championship.id : doc.championship;
   if (!playerId || !championshipId) return doc;
 
   const championship = (typeof doc.championship === "object"

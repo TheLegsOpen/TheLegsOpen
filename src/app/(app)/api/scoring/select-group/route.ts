@@ -29,11 +29,12 @@ export async function POST(request: NextRequest) {
     | TeeTimeRound
     | undefined;
   const group = round?.groups?.find((g) => String(g.id) === groupId);
+  // Unset for a Practice round -- it has no championship, see TeeTimeRounds.ts.
   const championshipId = round && typeof round.championship === "object" ? round.championship?.id : round?.championship;
 
-  if (!round || !group || !championshipId) {
+  if (!round || !group) {
     return NextResponse.json({ error: "That group couldn't be found." }, { status: 404 });
   }
 
-  return issueGroupSessionResponse(round, group, String(championshipId));
+  return issueGroupSessionResponse(round, group, championshipId ? String(championshipId) : undefined);
 }

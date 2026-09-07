@@ -233,7 +233,7 @@ export const syncChampionshipStatsAfterScoreChange: CollectionAfterChangeHook<Sc
   if (operation !== "update") return doc;
   if (!doc.scoreUpdatedAt || doc.scoreUpdatedAt === previousDoc?.scoreUpdatedAt) return doc;
 
-  const championshipId = typeof doc.championship === "object" ? doc.championship.id : doc.championship;
+  const championshipId = typeof doc.championship === "object" && doc.championship ? doc.championship.id : doc.championship;
   if (!championshipId) return doc;
 
   const championship = await req.payload.findByID({ collection: "championships", id: championshipId, depth: 0, req }).catch(() => undefined);

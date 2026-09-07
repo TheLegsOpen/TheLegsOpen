@@ -122,6 +122,7 @@ export function TeeTimesView({
                             favorites={hydrated ? favorites : []}
                             mainEntries={mainEntries}
                             tone="dark"
+                            roundType={round.round}
                             onSelectPlayer={setSelectedPlayerId}
                           />
                         ))}

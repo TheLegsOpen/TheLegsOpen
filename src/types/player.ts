@@ -10,6 +10,7 @@ export interface Player {
   countryCode: string;
   age?: number;
   championshipHandicap?: number;
+  practiceHandicap?: number;
   previousOpens: number;
   turnedPro?: number;
   debutYear?: number;

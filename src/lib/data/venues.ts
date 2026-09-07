@@ -34,12 +34,16 @@ export function mapVenue(doc: PayloadVenue): Venue {
   };
 }
 
+// Excludes isPractice venues -- those exist only to link a practice round's tee times/handicaps
+// to a course, and shouldn't appear on the public Venues grid, sitemap, or venue page.
 export async function getVenues(): Promise<Venue[]> {
   const payload = await getPayload({ config: configPromise });
-  const result = await payload.find({ collection: "venues", limit: 100, sort: "name" });
+  const result = await payload.find({ collection: "venues", where: { isPractice: { not_equals: true } }, limit: 100, sort: "name" });
   return result.docs.map(mapVenue);
 }
 
+// Deliberately unfiltered by isPractice -- a practice venue's own page still resolves if linked
+// to directly, it's just never linked to from anywhere on the public site.
 export async function getVenueBySlug(slug: string): Promise<Venue | undefined> {
   const payload = await getPayload({ config: configPromise });
   const result = await payload.find({ collection: "venues", where: { slug: { equals: slug } }, limit: 1 });
@@ -48,6 +52,6 @@ export async function getVenueBySlug(slug: string): Promise<Venue | undefined> {
 
 export async function getAllVenueSlugs(): Promise<string[]> {
   const payload = await getPayload({ config: configPromise });
-  const result = await payload.find({ collection: "venues", limit: 100 });
+  const result = await payload.find({ collection: "venues", where: { isPractice: { not_equals: true } }, limit: 100 });
   return result.docs.map((doc) => doc.slug ?? slugify(doc.name)).filter(Boolean);
 }

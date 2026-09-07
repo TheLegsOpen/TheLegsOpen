@@ -61,7 +61,7 @@ async function loadCareerInputs(): Promise<CareerInputs> {
 
   const scorecardsByChampionship = new Map<string, PayloadScorecard[]>();
   for (const doc of scorecards.docs) {
-    const championshipId = String(typeof doc.championship === "object" ? doc.championship.id : doc.championship);
+    const championshipId = String(typeof doc.championship === "object" && doc.championship ? doc.championship.id : doc.championship);
     const list = scorecardsByChampionship.get(championshipId);
     if (list) list.push(doc);
     else scorecardsByChampionship.set(championshipId, [doc]);

@@ -54,9 +54,15 @@ export async function saveScores(payload: ScoringPayloadClient, session: Scoring
 
   const playerIds = new Set((group.players ?? []).map((p) => String(typeof p === "object" ? p.id : p)));
 
+  // Championship sessions keep the original championship-scoped query untouched; a Practice
+  // session (no championshipId, see scoring-session.ts) has no championship to filter by, so
+  // scopes by the round itself instead -- the same link Scorecards.ts's own hook uses to create
+  // these cards in the first place.
   const scorecards = await payload.find({
     collection: "scorecards",
-    where: { and: [{ championship: { equals: session.championshipId } }, { player: { in: Array.from(playerIds) } }] },
+    where: session.championshipId
+      ? { and: [{ championship: { equals: session.championshipId } }, { player: { in: Array.from(playerIds) } }] }
+      : { and: [{ teeTimeRound: { equals: session.teeTimeRoundId } }, { player: { in: Array.from(playerIds) } }] },
     limit: playerIds.size + 5,
   });
   const scorecardById = new Map(scorecards.docs.map((doc) => [String(doc.id), doc]));

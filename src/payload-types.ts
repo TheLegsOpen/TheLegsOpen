@@ -206,7 +206,9 @@ export interface Player {
   countryCode: string;
   dateOfBirth?: string | null;
   age?: number | null;
+  handicapIndex?: number | null;
   championshipHandicap?: number | null;
+  practiceHandicap?: number | null;
   previousOpens: number;
   turnedPro?: number | null;
   debutYear?: number | null;
@@ -227,6 +229,7 @@ export interface Venue {
   id: string;
   name: string;
   slug?: string | null;
+  isPractice?: boolean | null;
   location: string;
   region: string;
   latitude?: number | null;
@@ -696,6 +699,7 @@ export interface TeeTimeRound {
   id: string;
   round: 'Practice' | 'Championship';
   championship?: (string | Championship) | null;
+  venue?: (string | Venue) | null;
   date: string;
   archived?: boolean | null;
   groups?:
@@ -742,7 +746,8 @@ export interface LegalPage {
 export interface Scorecard {
   id: string;
   player: string | Player;
-  championship: string | Championship;
+  championship?: (string | Championship) | null;
+  teeTimeRound?: (string | TeeTimeRound) | null;
   teeTime?: string | null;
   scoreUpdatedAt?: string | null;
   holes?:

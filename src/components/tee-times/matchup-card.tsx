@@ -32,15 +32,18 @@ function PlayerChip({
   isFavorite,
   isDark,
   entry,
+  roundType,
   onSelectPlayer,
 }: {
   player: Player;
   isFavorite: boolean;
   isDark: boolean;
   entry: CompetitionEntry | undefined;
+  roundType: "Practice" | "Championship";
   onSelectPlayer: (playerId: string) => void;
 }) {
   const { firstName, surname } = splitSurnameFirst(player.name);
+  const handicap = roundType === "Practice" ? player.practiceHandicap : player.championshipHandicap;
 
   return (
     <div className="flex flex-1 items-center justify-between gap-4">
@@ -56,9 +59,7 @@ function PlayerChip({
           </span>
           <span className="font-display text-lg font-bold uppercase tracking-wide hover:underline">
             {surname}
-            {player.championshipHandicap !== undefined ? (
-              <span className="ml-1 text-sm font-normal normal-case tracking-normal">({player.championshipHandicap})</span>
-            ) : null}
+            {handicap !== undefined ? <span className="ml-1 text-sm font-normal normal-case tracking-normal">({handicap})</span> : null}
           </span>
         </button>
         <p
@@ -98,6 +99,7 @@ export function MatchupCard({
   favorites = [],
   mainEntries = [],
   tone = "light",
+  roundType = "Championship",
   onSelectPlayer,
 }: {
   group: TeeTimeEntry;
@@ -105,6 +107,7 @@ export function MatchupCard({
   favorites?: string[];
   mainEntries?: CompetitionEntry[];
   tone?: "light" | "dark";
+  roundType?: "Practice" | "Championship";
   onSelectPlayer: (playerId: string) => void;
 }) {
   const isDark = tone === "dark";
@@ -146,6 +149,7 @@ export function MatchupCard({
               isFavorite={favorites.includes(player.id)}
               isDark={isDark}
               entry={mainEntries.find((e) => e.player.id === player.id)}
+              roundType={roundType}
               onSelectPlayer={onSelectPlayer}
             />
           </div>

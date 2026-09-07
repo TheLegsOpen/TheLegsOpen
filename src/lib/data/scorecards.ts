@@ -141,6 +141,10 @@ function buildLeaderboardFromDocs(
   holeInfos: { par: number; si: number }[],
   docs: PayloadScorecard[],
   teeTimeByPlayer: Map<string, string>,
+  // Championship leaderboards (the default) play off Championship Handicap; the practice-round
+  // leaderboard (see getPracticeLeaderboard) passes Practice Handicap instead -- see the same
+  // split in Scorecards.ts's own beforeValidate hook.
+  getHandicap: (player: Player) => number = (p) => p.championshipHandicap ?? 0,
 ): CompetitionEntry[] {
   const rows = docs.map((doc) => {
     const player = mapPlayer(doc.player as PayloadPlayer);
@@ -152,7 +156,7 @@ function buildLeaderboardFromDocs(
     const thru = started ? (finished ? "F" : String(holesCompleted)) : "-";
     const teeTimeMinutes = parseTeeTimeMinutes(teeTime);
 
-    const strokesReceived = allocateStrokes(player.championshipHandicap ?? 0, holeInfos);
+    const strokesReceived = allocateStrokes(getHandicap(player), holeInfos);
     const holes: HoleScore[] = holeInfos.map((info, i) => {
       const strokes = doc.holes?.[i]?.strokes ?? undefined;
       if (doc.holes?.[i]?.noReturn) {
@@ -314,15 +318,52 @@ export interface ScorecardParticipation {
   started: boolean;
 }
 
-/** Every scorecard across every championship, reduced to "did this player actually play this year" — the real, automatic basis for appearance-count records (as opposed to the hand-maintained `Player.previousOpens` legacy counter). */
+/** Every scorecard across every championship, reduced to "did this player actually play this year" — the real, automatic basis for appearance-count records (as opposed to the hand-maintained `Player.previousOpens` legacy counter). Practice-round scorecards (no championship) are excluded -- they're not a Legs Open appearance. */
 export async function getAllScorecardParticipation(): Promise<ScorecardParticipation[]> {
   const payload = await getPayload({ config: configPromise });
-  const result = await payload.find({ collection: "scorecards", limit: 2000, depth: 0 });
+  const result = await payload.find({ collection: "scorecards", where: { championship: { exists: true } }, limit: 2000, depth: 0 });
   return result.docs.map((doc) => ({
-    championshipId: String(typeof doc.championship === "object" ? doc.championship.id : doc.championship),
+    championshipId: String(typeof doc.championship === "object" ? doc.championship?.id : doc.championship),
     playerId: String(typeof doc.player === "object" ? doc.player.id : doc.player),
     started: (doc.holesCompleted ?? 0) > 0,
   }));
+}
+
+/**
+ * Stableford-only standings for a single practice round -- the on-course scoring app's leaderboard
+ * during a practice day (see /score/leaderboard). Deliberately doesn't reuse
+ * getCompetitionLeaderboard: that's championship-shaped (isActive lookup, Main/Scratch too, tied to
+ * the public /leaderboard page) and a practice day has no championship at all, only a Tee Time
+ * Round and its linked venue/scorecards.
+ */
+export async function getPracticeLeaderboard(teeTimeRoundId: string, req?: PayloadRequest): Promise<CompetitionEntry[]> {
+  const payload = req?.payload ?? (await getPayload({ config: configPromise }));
+  const round = await payload.findByID({ collection: "tee-time-rounds", id: teeTimeRoundId, depth: 1, req }).catch(() => undefined);
+  if (!round) return [];
+
+  const venue = typeof round.venue === "object" ? (round.venue as PayloadVenue) : undefined;
+  const holeInfos = Array.from({ length: 18 }, (_, i) => ({
+    par: venue?.holes?.[i]?.par ?? 4,
+    si: venue?.holes?.[i]?.si ?? i + 1,
+  }));
+
+  const result = await payload.find({
+    collection: "scorecards",
+    where: { teeTimeRound: { equals: teeTimeRoundId } },
+    limit: 100,
+    depth: 2,
+    req,
+  });
+
+  const teeTimeByPlayer = new Map<string, string>();
+  for (const group of round.groups ?? []) {
+    for (const player of group.players ?? []) {
+      const playerId = typeof player === "object" ? player.id : player;
+      if (playerId != null) teeTimeByPlayer.set(String(playerId), group.time);
+    }
+  }
+
+  return buildLeaderboardFromDocs("stableford", holeInfos, result.docs, teeTimeByPlayer, (p) => p.practiceHandicap ?? 0);
 }
 
 export interface LeaderboardSnapshotPair {

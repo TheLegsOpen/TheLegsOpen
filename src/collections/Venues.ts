@@ -28,6 +28,17 @@ export const Venues: CollectionConfig = {
   fields: [
     { name: "name", type: "text", required: true },
     { name: "slug", type: "text", unique: true, index: true, admin: { position: "sidebar" } },
+    {
+      name: "isPractice",
+      label: "Practice Course",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        position: "sidebar",
+        description:
+          "Tick for a course used only for a practice round, not an official Championship venue. Hides it from the public Venues pages and sitemap, but it stays fully usable for tee times and handicap calculations.",
+      },
+    },
     { name: "location", type: "text", required: true },
     { name: "region", type: "text", required: true },
     {

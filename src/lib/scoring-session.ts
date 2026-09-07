@@ -22,7 +22,8 @@ export function generatePin(): string {
 export interface ScoringSessionPayload {
   teeTimeRoundId: string;
   groupId: string;
-  championshipId: string;
+  /** Unset for a Practice-round session -- those have no championship at all, see TeeTimeRounds.ts. */
+  championshipId?: string;
   pinVersion: number;
 }
 
@@ -51,7 +52,7 @@ export async function verifyScoringSession(token: string | undefined | null): Pr
     if (
       typeof payload.teeTimeRoundId !== "string" ||
       typeof payload.groupId !== "string" ||
-      typeof payload.championshipId !== "string" ||
+      (payload.championshipId !== undefined && typeof payload.championshipId !== "string") ||
       typeof payload.pinVersion !== "number"
     ) {
       return null;
@@ -59,7 +60,7 @@ export async function verifyScoringSession(token: string | undefined | null): Pr
     return {
       teeTimeRoundId: payload.teeTimeRoundId,
       groupId: payload.groupId,
-      championshipId: payload.championshipId,
+      championshipId: typeof payload.championshipId === "string" ? payload.championshipId : undefined,
       pinVersion: payload.pinVersion,
     };
   } catch (err) {

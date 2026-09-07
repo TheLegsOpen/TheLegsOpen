@@ -26,8 +26,15 @@ export default async function ScorePlayPage() {
   const group = round?.groups?.find((g) => String(g.id) === session.groupId);
   if (!round || !group || (group.pinVersion ?? 1) !== session.pinVersion) redirect("/score/login");
 
-  const championship = await payload.findByID({ collection: "championships", id: session.championshipId, depth: 1 }).catch(() => undefined);
-  const venue = championship && typeof championship.venue === "object" ? (championship.venue as Venue) : undefined;
+  // Practice sessions (no championshipId) get their venue straight off the round's own Course
+  // field; Championship sessions keep resolving it via the championship, unchanged from before.
+  let venue: Venue | undefined;
+  if (session.championshipId) {
+    const championship = await payload.findByID({ collection: "championships", id: session.championshipId, depth: 1 }).catch(() => undefined);
+    venue = championship && typeof championship.venue === "object" ? (championship.venue as Venue) : undefined;
+  } else {
+    venue = typeof round.venue === "object" ? (round.venue as Venue) : undefined;
+  }
   const holeInfos = Array.from({ length: 18 }, (_, i) => ({
     par: venue?.holes?.[i]?.par ?? 4,
     si: venue?.holes?.[i]?.si ?? i + 1,
@@ -38,7 +45,9 @@ export default async function ScorePlayPage() {
 
   const scorecards = await payload.find({
     collection: "scorecards",
-    where: { and: [{ championship: { equals: session.championshipId } }, { player: { in: playerIds } }] },
+    where: session.championshipId
+      ? { and: [{ championship: { equals: session.championshipId } }, { player: { in: playerIds } }] }
+      : { and: [{ teeTimeRound: { equals: session.teeTimeRoundId } }, { player: { in: playerIds } }] },
     limit: playerIds.length + 5,
     depth: 0,
   });
