@@ -1,4 +1,5 @@
 import { getPayload } from "payload";
+import { unstable_cache } from "next/cache";
 
 import configPromise from "@/payload.config";
 
@@ -53,9 +54,20 @@ const DEFAULTS: SEOSettings = {
   contact: { title: "Contact Us", description: "Get in touch with The Legs Open ticket office, membership team, or media centre." },
 };
 
+// Fetched via generateMetadata on essentially every page -- same connection-pressure reasoning as
+// getSiteTheme's own cache wrapper (see that file). Titles/descriptions change rarely enough that
+// a 60s cache is unnoticeable to an editor but cuts this to at most once per minute site-wide.
+const getCachedSeoSettingsDoc = unstable_cache(
+  async () => {
+    const payload = await getPayload({ config: configPromise });
+    return payload.findGlobal({ slug: "seo-settings" });
+  },
+  ["seo-settings"],
+  { revalidate: 60 },
+);
+
 export async function getSeoSettings(): Promise<SEOSettings> {
-  const payload = await getPayload({ config: configPromise });
-  const settings = await payload.findGlobal({ slug: "seo-settings" });
+  const settings = await getCachedSeoSettingsDoc();
 
   return {
     home: { title: settings.homeTitle || DEFAULTS.home.title, description: settings.homeDescription || DEFAULTS.home.description },
