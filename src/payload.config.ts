@@ -146,13 +146,15 @@ export default buildConfig({
       // down between almost every request.
       idleTimeoutMillis: 60_000,
       connectionTimeoutMillis: 20_000,
-      // Kept as low as possible -- the build log shows "Collecting page data using 7 workers", and
-      // Supabase's Nano compute tier caps the pooler's own backend-to-Postgres pool at 15
-      // connections. At max: 2 that's 7 x 2 = 14, right against the ceiling with zero margin for
-      // any concurrent live traffic or admin usage -- confirmed by builds still failing on a
-      // handful of pages even after the IPv4 fix. At max: 1, worst case is 7 connections, leaving
-      // real headroom. This app never runs more than one query at a time per request anyway.
-      max: 1,
+      // Raised from 1 to 3 now that every DB-backed page is force-dynamic (see the generateStaticParams
+      // comments elsewhere in this repo): with no route left statically cached, ordinary site traffic
+      // now queries Postgres on every request instead of at most once per build. Vercel can reuse one
+      // warm function instance for several concurrent requests, and at max: 1 those requests serialize
+      // on a single connection -- anything that couldn't get it in time failed with the same "timeout
+      // exceeded" error as a real outage, which is what took the homepage down after the force-dynamic
+      // change shipped. Raised now that compute is Micro (60 direct / 200 pooler connections, up from
+      // Nano's ~15) rather than Nano, which had no headroom for this at all.
+      max: 3,
     },
   }),
   sharp,
