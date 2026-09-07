@@ -14,12 +14,7 @@ function calendarDate(date: Date): string {
   return date.toLocaleDateString("en-CA", { timeZone: VENUE_TIME_ZONE });
 }
 
-/**
- * Live only on the active championship's own date (compared as a calendar day in the venue's
- * timezone, not an exact 24h window) -- gone again automatically the day before or after, so
- * nobody has to remember to take it down.
- */
-export async function getNewsTicker(): Promise<NewsTickerItem[]> {
+async function fetchNewsTicker(): Promise<NewsTickerItem[]> {
   const payload = await getPayload({ config: configPromise });
   const [settings, championship] = await Promise.all([payload.findGlobal({ slug: "news-ticker" }), getActiveChampionship(payload)]);
 
@@ -34,4 +29,20 @@ export async function getNewsTicker(): Promise<NewsTickerItem[]> {
 
   const isChampionshipDay = calendarDate(new Date(championship.date)) === calendarDate(new Date());
   return isChampionshipDay ? items : [];
+}
+
+/**
+ * Live only on the active championship's own date (compared as a calendar day in the venue's
+ * timezone, not an exact 24h window) -- gone again automatically the day before or after, so
+ * nobody has to remember to take it down.
+ *
+ * Falls back to an empty list instead of throwing -- see the same fallback on getSiteTheme
+ * (src/lib/data/site-theme.ts) for why: a Supabase pooler timeout shouldn't 500 a whole page.
+ */
+export async function getNewsTicker(): Promise<NewsTickerItem[]> {
+  try {
+    return await fetchNewsTicker();
+  } catch {
+    return [];
+  }
 }

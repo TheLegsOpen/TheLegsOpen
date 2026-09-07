@@ -17,7 +17,7 @@ const DEFAULTS: CookieBannerText = {
   declineLabel: "Decline non-essential cookies",
 };
 
-export async function getCookieBannerText(): Promise<CookieBannerText> {
+async function fetchCookieBannerText(): Promise<CookieBannerText> {
   const payload = await getPayload({ config: configPromise });
   const settings = await payload.findGlobal({ slug: "cookie-banner-settings" });
 
@@ -28,4 +28,14 @@ export async function getCookieBannerText(): Promise<CookieBannerText> {
     acceptLabel: settings.acceptLabel || DEFAULTS.acceptLabel,
     declineLabel: settings.declineLabel || DEFAULTS.declineLabel,
   };
+}
+
+// Falls back to plain defaults instead of throwing -- see the same fallback on getSiteTheme
+// (src/lib/data/site-theme.ts) for why: a Supabase pooler timeout shouldn't 500 a whole page.
+export async function getCookieBannerText(): Promise<CookieBannerText> {
+  try {
+    return await fetchCookieBannerText();
+  } catch {
+    return DEFAULTS;
+  }
 }

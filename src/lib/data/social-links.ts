@@ -10,7 +10,7 @@ export interface SocialLink {
   url: string;
 }
 
-export async function getSocialLinks(): Promise<SocialLink[]> {
+async function fetchSocialLinks(): Promise<SocialLink[]> {
   const payload = await getPayload({ config: configPromise });
   const settings = await payload.findGlobal({ slug: "social-links" });
 
@@ -26,4 +26,14 @@ export async function getSocialLinks(): Promise<SocialLink[]> {
     });
   }
   return links;
+}
+
+// Falls back to an empty list instead of throwing -- see the fallback on getSiteTheme
+// (src/lib/data/site-theme.ts) for why: a Supabase pooler timeout shouldn't 500 a whole page.
+export async function getSocialLinks(): Promise<SocialLink[]> {
+  try {
+    return await fetchSocialLinks();
+  } catch {
+    return [];
+  }
 }
