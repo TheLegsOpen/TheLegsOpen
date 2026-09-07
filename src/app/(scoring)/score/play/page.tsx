@@ -7,6 +7,9 @@ import { verifyScoringSession, SCORING_SESSION_COOKIE } from "@/lib/scoring-sess
 import { ScoringApp, type ScoringGroupData } from "@/components/scoring/scoring-app";
 import type { Venue, Player, Scorecard } from "@/payload-types";
 
+// See src/app/(app)/page.tsx for why this route is force-dynamic.
+export const dynamic = "force-dynamic";
+
 export default async function ScorePlayPage() {
   const cookieStore = await cookies();
   const session = await verifyScoringSession(cookieStore.get(SCORING_SESSION_COOKIE)?.value);
