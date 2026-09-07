@@ -131,10 +131,13 @@ export default buildConfig({
       // connection more room to succeed instead of being killed just as it was about to.
       idleTimeoutMillis: 10_000,
       connectionTimeoutMillis: 20_000,
-      // Kept low -- Supabase's Nano compute tier caps the pooler's own backend-to-Postgres pool at
-      // 15 connections, and this app never runs more than one or two queries at once per request,
-      // so a couple of connections per instance is still enough to avoid queuing within a request.
-      max: 2,
+      // Kept as low as possible -- the build log shows "Collecting page data using 7 workers", and
+      // Supabase's Nano compute tier caps the pooler's own backend-to-Postgres pool at 15
+      // connections. At max: 2 that's 7 x 2 = 14, right against the ceiling with zero margin for
+      // any concurrent live traffic or admin usage -- confirmed by builds still failing on a
+      // handful of pages even after the IPv4 fix. At max: 1, worst case is 7 connections, leaving
+      // real headroom. This app never runs more than one query at a time per request anyway.
+      max: 1,
     },
   }),
   sharp,
