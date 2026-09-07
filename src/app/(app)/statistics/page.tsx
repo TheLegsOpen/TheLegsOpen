@@ -30,7 +30,8 @@ export async function generateMetadata(): Promise<Metadata> {
 // per-hostname cache-splitting bug it worked around is fixed at the root (the domain redirect),
 // and Supabase egress makes a 10s ceiling expensive to keep regardless. These rankings change on
 // every hole saved during a round, and stay accurate via on-demand revalidation either way.
-export const revalidate = 60;
+// See src/app/(app)/page.tsx for why this is force-dynamic instead of revalidate = 60.
+export const dynamic = "force-dynamic";
 
 export default async function StatisticsPage() {
   const [

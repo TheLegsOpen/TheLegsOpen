@@ -29,7 +29,8 @@ export async function generateMetadata(): Promise<Metadata> {
 // See the comment on this same export in src/app/(app)/page.tsx -- raised from 10s now that the
 // per-hostname cache-splitting bug it worked around is fixed at the root (the domain redirect),
 // and Supabase egress makes a 10s ceiling on a high-traffic page expensive to keep regardless.
-export const revalidate = 60;
+// See src/app/(app)/page.tsx for why this is force-dynamic instead of revalidate = 60.
+export const dynamic = "force-dynamic";
 
 export default async function LiveBlogPage() {
   const [

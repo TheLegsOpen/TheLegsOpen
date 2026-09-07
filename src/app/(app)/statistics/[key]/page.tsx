@@ -18,6 +18,9 @@ import {
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getPageBanners } from "@/lib/data/page-banners";
 import { getCompetitionLeaderboard, getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
+
+// See src/app/(app)/page.tsx for why this route is force-dynamic.
+export const dynamic = "force-dynamic";
 import { getChampionshipByYear } from "@/lib/data/championships";
 import type { Competition, CompetitionEntry } from "@/lib/data/scorecards";
 

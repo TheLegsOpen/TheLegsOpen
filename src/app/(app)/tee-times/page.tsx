@@ -27,7 +27,8 @@ export async function generateMetadata(): Promise<Metadata> {
 // per-hostname cache-splitting bug it worked around is fixed at the root (the domain redirect),
 // and Supabase egress makes a 10s ceiling expensive to keep regardless. This page shows live
 // per-hole "thru" progress during a round, and stays accurate via on-demand revalidation either way.
-export const revalidate = 60;
+// See src/app/(app)/page.tsx for why this is force-dynamic instead of revalidate = 60.
+export const dynamic = "force-dynamic";
 
 export default async function TeeTimesPage() {
   const [

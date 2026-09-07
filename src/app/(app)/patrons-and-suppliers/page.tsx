@@ -6,6 +6,9 @@ import { SectionHeading } from "@/components/shared/section-heading";
 import { getSponsors, type SponsorEntry } from "@/lib/data/sponsors";
 import { getSeoSettings } from "@/lib/data/seo-settings";
 
+// See src/app/(app)/page.tsx for why this route is force-dynamic.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSeoSettings();
   return { title: seo.patrons.title, description: seo.patrons.description };

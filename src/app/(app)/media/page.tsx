@@ -9,6 +9,9 @@ import { getMediaPageSettings } from "@/lib/data/media-page";
 import { ICON_MAP } from "@/components/shared/icon-map";
 import { getSeoSettings } from "@/lib/data/seo-settings";
 
+// See src/app/(app)/page.tsx for why this route is force-dynamic.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSeoSettings();
   return { title: seo.media.title, description: seo.media.description };

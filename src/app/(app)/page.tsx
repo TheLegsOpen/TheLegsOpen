@@ -41,7 +41,10 @@ const PAGE_SIZE = 6;
 // 10s ceiling across every high-traffic page was reading the same data ~360x its own size in a
 // single billing cycle -- raised well past the client's own 10s auto-refresh poll, which mostly
 // hits Vercel's CDN cache rather than the database as long as this window hasn't elapsed.
-export const revalidate = 60;
+// Was `revalidate = 60` (ISR). Vercel's build machine can't reliably reach Supabase (see
+// src/payload.config.ts), which fails static generation outright -- force-dynamic renders this
+// per-request instead, trading the 60s edge cache for a build that actually succeeds.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSeoSettings();

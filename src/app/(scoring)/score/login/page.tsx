@@ -3,6 +3,9 @@ import Image from "next/image";
 import { getSiteTheme } from "@/lib/data/site-theme";
 import { PinLoginForm } from "@/components/scoring/pin-login-form";
 
+// See src/app/(app)/page.tsx for why this route is force-dynamic.
+export const dynamic = "force-dynamic";
+
 export default async function ScoreLoginPage() {
   const theme = await getSiteTheme();
 

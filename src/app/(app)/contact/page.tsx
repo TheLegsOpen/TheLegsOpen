@@ -6,6 +6,9 @@ import { ContactForm } from "@/components/contact/contact-form";
 import { getContactPageSettings } from "@/lib/data/contact-page";
 import { getSeoSettings } from "@/lib/data/seo-settings";
 
+// See src/app/(app)/page.tsx for why this route is force-dynamic.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSeoSettings();
   return { title: seo.contact.title, description: seo.contact.description };

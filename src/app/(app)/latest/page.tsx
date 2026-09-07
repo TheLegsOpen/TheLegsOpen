@@ -9,6 +9,9 @@ import { getSeoSettings } from "@/lib/data/seo-settings";
 
 const PAGE_SIZE = 6;
 
+// See src/app/(app)/page.tsx for why this route is force-dynamic.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSeoSettings();
   return { title: seo.latest.title, description: seo.latest.description };

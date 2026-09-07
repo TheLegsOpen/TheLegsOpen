@@ -9,6 +9,9 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/ca
 import { JoinForm } from "@/components/club/join-form";
 import { getSeoSettings } from "@/lib/data/seo-settings";
 
+// See src/app/(app)/page.tsx for why this route is force-dynamic.
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSeoSettings();
   return { title: seo.club.title, description: seo.club.description };
