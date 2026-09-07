@@ -48,11 +48,19 @@ export interface CompetitionEntry {
  * Pass `req` when calling from inside a hook so this reads within the same in-flight transaction
  * (e.g. the very write that triggered the hook) instead of a separate connection that can't see it yet.
  */
+// Falls back to undefined instead of throwing -- see the fallback on getSiteTheme
+// (src/lib/data/site-theme.ts) for why. This is a widely shared helper (sponsor clock, playoffs,
+// leaderboards, tee times, the scoring app...), so most callers already treat "no active
+// championship" as a legitimate, handled state rather than an error.
 export async function getActiveChampionship(payload: Payload, req?: PayloadRequest): Promise<PayloadChampionship | undefined> {
-  const active = await payload.find({ collection: "championships", where: { isActive: { equals: true } }, limit: 1, req });
-  if (active.docs[0]) return active.docs[0];
-  const latest = await payload.find({ collection: "championships", sort: "-year", limit: 1, req });
-  return latest.docs[0];
+  try {
+    const active = await payload.find({ collection: "championships", where: { isActive: { equals: true } }, limit: 1, req });
+    if (active.docs[0]) return active.docs[0];
+    const latest = await payload.find({ collection: "championships", sort: "-year", limit: 1, req });
+    return latest.docs[0];
+  } catch {
+    return undefined;
+  }
 }
 
 export async function getActiveChampionshipId(): Promise<string | undefined> {
