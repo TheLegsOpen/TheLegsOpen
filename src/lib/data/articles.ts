@@ -35,24 +35,31 @@ export async function getArticles(): Promise<Article[]> {
   return result.docs.map(mapArticle);
 }
 
+// Falls back to an empty page instead of throwing -- see the fallback on getSiteTheme
+// (src/lib/data/site-theme.ts) for why: a Supabase pooler timeout shouldn't 500 a whole page.
+// This one's used on the homepage itself, so it's on the critical path for every visitor.
 export async function getArticlesPage(options: {
   page: number;
   pageSize: number;
   category?: ArticleCategory | "All";
 }): Promise<{ items: Article[]; hasMore: boolean; total: number }> {
-  const payload = await getPayload({ config: configPromise });
-  const where =
-    options.category && options.category !== "All"
-      ? { and: [PUBLISHED, { category: { equals: options.category } }] }
-      : PUBLISHED;
-  const result = await payload.find({
-    collection: "articles",
-    where,
-    page: options.page,
-    limit: options.pageSize,
-    sort: "-publishedAt",
-  });
-  return { items: result.docs.map(mapArticle), hasMore: result.hasNextPage, total: result.totalDocs };
+  try {
+    const payload = await getPayload({ config: configPromise });
+    const where =
+      options.category && options.category !== "All"
+        ? { and: [PUBLISHED, { category: { equals: options.category } }] }
+        : PUBLISHED;
+    const result = await payload.find({
+      collection: "articles",
+      where,
+      page: options.page,
+      limit: options.pageSize,
+      sort: "-publishedAt",
+    });
+    return { items: result.docs.map(mapArticle), hasMore: result.hasNextPage, total: result.totalDocs };
+  } catch {
+    return { items: [], hasMore: false, total: 0 };
+  }
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | undefined> {
