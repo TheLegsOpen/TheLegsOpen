@@ -107,8 +107,16 @@ export default buildConfig({
       // pool then waits forever instead of failing fast. Raising max didn't resolve the sustained
       // local slowness on investigation (see conversation), so that's left at pg's own default;
       // this timeout at least turns a silent multi-second hang into a fast, diagnosable error.
+      //
+      // Raised from 10s to 20s -- Vercel's build machine runs in Washington D.C. (iad1) while this
+      // Supabase project is in London (eu-west-2), and switching to the pooler (which has a much
+      // smaller 15-connection backend pool, tied to Nano compute) made timeouts *worse*, not
+      // better -- ruling out raw connection count as the bottleneck and pointing at that
+      // cross-Atlantic latency (plus Nano's limited CPU for the TLS/auth handshake on each new
+      // connection) as the real cause. 20s gives a marginal connection more room to succeed instead
+      // of being killed just as it was about to.
       idleTimeoutMillis: 10_000,
-      connectionTimeoutMillis: 10_000,
+      connectionTimeoutMillis: 20_000,
       // Capped low deliberately -- Supabase's Nano compute tier only allows 60 total connections,
       // and node-postgres's own default max (10) per pool adds up fast once Vercel's build machine
       // (8 parallel cores on Pro) fans out static generation across many concurrent invocations,
