@@ -146,15 +146,17 @@ export default buildConfig({
       // down between almost every request.
       idleTimeoutMillis: 60_000,
       connectionTimeoutMillis: 20_000,
-      // Raised from 1 to 3 now that every DB-backed page is force-dynamic (see the generateStaticParams
-      // comments elsewhere in this repo): with no route left statically cached, ordinary site traffic
-      // now queries Postgres on every request instead of at most once per build. Vercel can reuse one
-      // warm function instance for several concurrent requests, and at max: 1 those requests serialize
-      // on a single connection -- anything that couldn't get it in time failed with the same "timeout
-      // exceeded" error as a real outage, which is what took the homepage down after the force-dynamic
-      // change shipped. Raised now that compute is Micro (60 direct / 200 pooler connections, up from
-      // Nano's ~15) rather than Nano, which had no headroom for this at all.
-      max: 3,
+      // Reverted from 3 back to 1: raising it was based on a wrong assumption that Micro's compute
+      // upgrade raised the session pooler's own client ceiling. It doesn't -- production logs
+      // immediately after deploying max: 3 showed "(EMAXCONNSESSION) max clients reached in
+      // session mode - max clients are limited to pool_size: 15", a hard cap on Supavisor's
+      // session-mode pooler that's independent of compute tier. With force-dynamic on every page,
+      // real concurrent traffic across many Vercel instances blew through 15 total slots almost
+      // immediately (Vercel's own monitoring flagged a 5xx spike: 116 failed requests in 5 minutes
+      // against a 2/day baseline). max: 1 keeps each instance's own footprint as small as possible
+      // against that shared, fixed budget -- the actual fix for concurrency under this pooler mode
+      // is switching to transaction-mode pooling, not raising this number.
+      max: 1,
     },
   }),
   sharp,
