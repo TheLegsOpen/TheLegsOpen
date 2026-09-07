@@ -117,6 +117,13 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URL || "",
+      // Required now that "Enforce SSL on incoming connections" is on in Supabase (2026-09-07,
+      // following their support's diagnosis of "could not accept SSL connection: EOF detected" in
+      // their Postgres logs) -- without this, pg never attempts SSL at all, and the pooler now
+      // rejects every connection outright with (ESSLREQUIRED). rejectUnauthorized: false because
+      // Supabase's pooler certificate isn't in Node's default trust store; this still encrypts the
+      // connection, it just doesn't verify the certificate chain against a CA bundle.
+      ssl: { rejectUnauthorized: false },
       // DATABASE_URL now points at Supabase's Session pooler (aws-1-eu-west-2.pooler.supabase.com),
       // which Supabase's own docs describe as "IPv4 proxied for free" -- unlike the direct-connection
       // host, which is IPv6-only unless you pay for their IPv4 add-on. That direct-connection host
