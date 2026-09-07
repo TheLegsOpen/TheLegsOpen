@@ -8,6 +8,10 @@ import { getVenues } from "@/lib/data/venues";
 import { getChampionshipHistory } from "@/lib/data/championships";
 import { getLegalPages } from "@/lib/data/legal";
 
+// Forces this to generate per-request instead of at build time -- see the generateStaticParams
+// comment in src/app/(app)/latest/[slug]/page.tsx for why build-time DB queries fail here.
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [ARTICLES, VENUES, CHAMPIONSHIP_HISTORY, LEGAL_PAGES] = await Promise.all([
     getArticles(),
