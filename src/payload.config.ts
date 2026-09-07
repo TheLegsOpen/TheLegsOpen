@@ -2,10 +2,24 @@ import { postgresAdapter } from "@payloadcms/db-postgres";
 import { resendAdapter } from "@payloadcms/email-resend";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
+import dns from "dns";
 import path from "path";
 import { buildConfig } from "payload";
 import { fileURLToPath } from "url";
 import sharp from "sharp";
+
+// Every Postgres connection attempt from Vercel's BUILD machine has been hanging for exactly our
+// configured connectionTimeoutMillis (~20s) regardless of which Supabase host/port we point at
+// (direct, transaction pooler, session pooler) and regardless of build machine tier -- while the
+// already-deployed site's serverless functions reach the same database instantly. That rules out
+// the connection string, a prior custom IPv4 socket override (removed), build concurrency, and
+// Supabase-side network restrictions/bans (checked: none configured). What's left is DNS address
+// selection: Node 18+'s default `dns.lookup()` order is "verbatim" -- whatever order the resolver
+// hands back, potentially an IPv6 address first -- and if that address is unreachable from the build
+// sandbox specifically (serverless functions may resolve/route differently), Node hangs waiting on
+// that attempt with no fallback until our own timeout fires. This is Node's own documented fix:
+// force IPv4 first for every lookup in this process, independent of any single Postgres client.
+dns.setDefaultResultOrder("ipv4first");
 
 import { Users } from "./collections/Users";
 import { Media } from "./collections/Media";
