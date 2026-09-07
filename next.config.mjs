@@ -33,6 +33,17 @@ const nextConfig = {
   // websocket for any origin other than localhost, which can leave a tab running a stale,
   // partially-patched build after a live edit instead of a clean full reload.
   allowedDevOrigins: ["192.168.0.37"],
+  experimental: {
+    // Defaults to (CPU cores - 1) -- 7 workers on Vercel's 8-core Pro build machine, each opening
+    // its own Postgres connection pool while generating pages in parallel. That repeatedly
+    // exhausted Supabase's connection ceiling on the free Nano compute tier ("timeout exceeded
+    // when trying to connect" on a handful of pages per build, even with each pool capped to a
+    // single connection -- see the pool config in payload.config.ts). Capping build concurrency
+    // itself, rather than continuing to shrink the per-worker pool, directly fixes the actual
+    // cause: 2 workers x 1 connection is a small, predictable load Nano can always serve, with
+    // real headroom left over for live traffic and admin usage at the same time.
+    cpus: 2,
+  },
 };
 
 export default withPayload(nextConfig);
