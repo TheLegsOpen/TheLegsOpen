@@ -23,26 +23,23 @@ export default async function ScoreGroupsPage() {
   if (!user) redirect("/score/login");
 
   const championship = await getActiveChampionship(payload);
+  if (!championship) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 p-6 text-center">
+        <p className="text-sm text-primary-foreground/70">No active championship found. Set one as &quot;Currently Being Scored&quot; in the admin first.</p>
+      </div>
+    );
+  }
 
-  const [championshipRounds, practiceRounds] = await Promise.all([
-    championship
-      ? payload.find({
-          collection: "tee-time-rounds",
-          where: { and: [{ championship: { equals: championship.id } }, { round: { equals: "Championship" } }] },
-          limit: 50,
-          depth: 1,
-        })
-      : undefined,
-    payload.find({
-      collection: "tee-time-rounds",
-      where: { and: [{ round: { equals: "Practice" } }, { archived: { not_equals: true } }] },
-      limit: 50,
-      depth: 1,
-    }),
-  ]);
+  const teeTimeRounds = await payload.find({
+    collection: "tee-time-rounds",
+    where: { and: [{ championship: { equals: championship.id } }, { round: { equals: "Championship" } }] },
+    limit: 50,
+    depth: 1,
+  });
 
   const groups: PickableGroup[] = [];
-  for (const round of championshipRounds?.docs ?? []) {
+  for (const round of teeTimeRounds.docs) {
     for (const group of round.groups ?? []) {
       const players = (group.players ?? []).filter((p): p is Player => typeof p === "object");
       if (players.length === 0) continue;
@@ -56,44 +53,17 @@ export default async function ScoreGroupsPage() {
   }
   groups.sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));
 
-  const practiceGroups: PickableGroup[] = [];
-  for (const round of practiceRounds.docs) {
-    for (const group of round.groups ?? []) {
-      const players = (group.players ?? []).filter((p): p is Player => typeof p === "object");
-      if (players.length === 0) continue;
-      practiceGroups.push({
-        teeTimeRoundId: String(round.id),
-        groupId: String(group.id),
-        label: `Practice · ${group.time} · ${group.tee} tee`,
-        playerNames: players.map((p) => p.name),
-      });
-    }
-  }
-  practiceGroups.sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));
-
-  if (groups.length === 0 && practiceGroups.length === 0) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 p-6 text-center">
-        <p className="text-sm text-primary-foreground/70">
-          No tee groups found. Set a championship as &quot;Currently Being Scored&quot;, or add a Practice round, in the admin first.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex min-h-screen flex-col gap-6 p-5">
       <div className="flex flex-col gap-1">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/60">The Legs Open · Admin</p>
-        <h1 className="font-display text-2xl font-bold">{championship ? `${championship.year} — Select a Group` : "Select a Group"}</h1>
+        <h1 className="font-display text-2xl font-bold">{championship.year} — Select a Group</h1>
       </div>
-      {groups.length > 0 ? <GroupPicker groups={groups} /> : null}
-      {practiceGroups.length > 0 ? (
-        <div className="flex flex-col gap-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/60">Practice Rounds</p>
-          <GroupPicker groups={practiceGroups} />
-        </div>
-      ) : null}
+      {groups.length === 0 ? (
+        <p className="text-sm text-primary-foreground/70">No tee groups found for the active championship yet.</p>
+      ) : (
+        <GroupPicker groups={groups} />
+      )}
     </div>
   );
 }
