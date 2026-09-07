@@ -2,7 +2,6 @@ import { postgresAdapter } from "@payloadcms/db-postgres";
 import { resendAdapter } from "@payloadcms/email-resend";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
-import net from "net";
 import path from "path";
 import { buildConfig } from "payload";
 import { fileURLToPath } from "url";
@@ -104,22 +103,16 @@ export default buildConfig({
   db: postgresAdapter({
     pool: {
       connectionString: process.env.DATABASE_URL || "",
-      // pg's own connection.js calls `this.stream.connect(port, host)` -- the plain two-argument
-      // form -- which leaves address selection entirely to Node's default DNS resolution. When a
-      // hostname has both A and AAAA records (true of both Supabase's direct-connection and
-      // pooler hosts here), that can silently resolve to IPv6, and Vercel's build network has no
-      // IPv6 route at all: confirmed via repeated build failures ("connect ENETUNREACH
-      // 2a05:...") even after switching DATABASE_URL to the pooler specifically to get IPv4. This
-      // stream factory intercepts that connect call and forces `family: 4`, so the outcome no
-      // longer depends on DNS ordering or which Supabase connection string is configured.
-      stream: () => {
-        const socket = new net.Socket();
-        const originalConnect = socket.connect.bind(socket);
-        // @ts-expect-error -- overriding with the object-form signature only; pg only ever calls
-        // the two-argument (port, host) form, which this replaces to add `family: 4`.
-        socket.connect = (port: number, host: string) => originalConnect({ port, host, family: 4 });
-        return socket;
-      },
+      // DATABASE_URL now points at Supabase's Session pooler (aws-1-eu-west-2.pooler.supabase.com),
+      // which Supabase's own docs describe as "IPv4 proxied for free" -- unlike the direct-connection
+      // host, which is IPv6-only unless you pay for their IPv4 add-on. That direct-connection host
+      // is what the earlier `family: 4` socket override (forcing pg's TCP connect to IPv4) was built
+      // for, after builds failed with "connect ENETUNREACH 2a05:..." against it. But that override
+      // kept producing a plain 20s "timeout exceeded when trying to connect" hang even after
+      // switching DATABASE_URL to this pooler host -- which shouldn't need forcing at all, since it
+      // has no IPv6 address to race against. That pointed at the override itself silently breaking
+      // every connection attempt (rather than any real unreachable address), so it's removed here;
+      // the pooler host's own IPv4-only DNS answer makes Node's default connect behavior sufficient.
       // Unset, this defaults to pg's own connectionTimeoutMillis: 0 -- an exhausted or stalled
       // pool then waits forever instead of failing fast. Raising max didn't resolve the sustained
       // local slowness on investigation (see conversation), so that's left at pg's own default;
