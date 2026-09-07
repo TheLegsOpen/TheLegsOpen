@@ -18,7 +18,14 @@ export interface Sponsors {
   officialSuppliers: SponsorEntry[];
 }
 
-export async function getSponsors(): Promise<Sponsors> {
+const FALLBACK: Sponsors = {
+  pageTitle: "Patrons & Suppliers",
+  pageDescription: "The patrons and official suppliers who support The Legs Open.",
+  patrons: PATRONS.map((name) => ({ name })),
+  officialSuppliers: OFFICIAL_SUPPLIERS.map((name) => ({ name })),
+};
+
+async function fetchSponsors(): Promise<Sponsors> {
   const payload = await getPayload({ config: configPromise });
   const settings = await payload.findGlobal({ slug: "sponsors" });
 
@@ -45,4 +52,14 @@ export async function getSponsors(): Promise<Sponsors> {
     patrons,
     officialSuppliers,
   };
+}
+
+// Falls back to the local fixtures instead of throwing -- see the same fallback on getSiteTheme
+// (src/lib/data/site-theme.ts) for why: a Supabase pooler timeout shouldn't 500 a whole page.
+export async function getSponsors(): Promise<Sponsors> {
+  try {
+    return await fetchSponsors();
+  } catch {
+    return FALLBACK;
+  }
 }

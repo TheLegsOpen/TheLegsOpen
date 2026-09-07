@@ -28,7 +28,7 @@ export interface CurrentChampion {
 /** Undefined when the homepage-settings global hasn't had a Current Champion configured yet (a
  * brand-new/empty database, e.g. a fresh local dev DB) -- both relationships are required in the
  * admin, but a global with no data ever saved just returns empty, not a validation error. */
-export async function getCurrentChampion(): Promise<CurrentChampion | undefined> {
+async function fetchCurrentChampion(): Promise<CurrentChampion | undefined> {
   const payload = await getPayload({ config: configPromise });
   const settings = await payload.findGlobal({ slug: "homepage-settings" });
 
@@ -62,7 +62,17 @@ export async function getCurrentChampion(): Promise<CurrentChampion | undefined>
   };
 }
 
-export async function getHomepageSections(): Promise<HomepageSection[]> {
+// Falls back to undefined (same as "not configured yet") instead of throwing -- see the same
+// fallback on getSiteTheme (src/lib/data/site-theme.ts) for why.
+export async function getCurrentChampion(): Promise<CurrentChampion | undefined> {
+  try {
+    return await fetchCurrentChampion();
+  } catch {
+    return undefined;
+  }
+}
+
+async function fetchHomepageSections(): Promise<HomepageSection[]> {
   const payload = await getPayload({ config: configPromise });
   const settings = await payload.findGlobal({ slug: "homepage-settings" });
   const blocks = settings.sections ?? [];
@@ -107,4 +117,14 @@ export async function getHomepageSections(): Promise<HomepageSection[]> {
       body: block.content,
     };
   });
+}
+
+// Falls back to an empty section list instead of throwing -- see the same fallback on
+// getSiteTheme (src/lib/data/site-theme.ts) for why.
+export async function getHomepageSections(): Promise<HomepageSection[]> {
+  try {
+    return await fetchHomepageSections();
+  } catch {
+    return [];
+  }
 }

@@ -29,7 +29,7 @@ const DEFAULTS: Omit<SponsorClock, "tagline"> = {
   venueName: "Seabrook Old Course",
 };
 
-export async function getSponsorClock(): Promise<SponsorClock> {
+async function fetchSponsorClock(): Promise<SponsorClock> {
   const payload = await getPayload({ config: configPromise });
   const [settings, championship] = await Promise.all([
     payload.findGlobal({ slug: "sponsor-clock" }),
@@ -51,4 +51,16 @@ export async function getSponsorClock(): Promise<SponsorClock> {
     secondHandUrl: mediaUrl(settings.graphics?.secondHand),
     centerCapUrl: mediaUrl(settings.graphics?.centerCap),
   };
+}
+
+const FALLBACK: SponsorClock = { ...DEFAULTS, tagline: undefined };
+
+// Falls back to plain defaults instead of throwing -- see the same fallback on getSiteTheme
+// (src/lib/data/site-theme.ts) for why: a Supabase pooler timeout shouldn't 500 a whole page.
+export async function getSponsorClock(): Promise<SponsorClock> {
+  try {
+    return await fetchSponsorClock();
+  } catch {
+    return FALLBACK;
+  }
 }

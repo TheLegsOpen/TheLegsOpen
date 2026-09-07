@@ -67,7 +67,14 @@ const getCachedSeoSettingsDoc = unstable_cache(
 );
 
 export async function getSeoSettings(): Promise<SEOSettings> {
-  const settings = await getCachedSeoSettingsDoc();
+  // Falls back to plain defaults instead of throwing -- see the same fallback on getSiteTheme for
+  // why. A wrong <title> is far better than a 500 from a Supabase pooler timeout.
+  let settings: Awaited<ReturnType<typeof getCachedSeoSettingsDoc>>;
+  try {
+    settings = await getCachedSeoSettingsDoc();
+  } catch {
+    return DEFAULTS;
+  }
 
   return {
     home: { title: settings.homeTitle || DEFAULTS.home.title, description: settings.homeDescription || DEFAULTS.home.description },

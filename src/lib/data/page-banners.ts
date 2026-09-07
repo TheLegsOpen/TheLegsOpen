@@ -61,7 +61,7 @@ const DEFAULTS = {
   playerProfileEyebrow: "Player Profile",
 } as const;
 
-export async function getPageBanners(): Promise<PageBanners> {
+async function fetchPageBanners(): Promise<PageBanners> {
   const payload = await getPayload({ config: configPromise });
   const settings = await payload.findGlobal({ slug: "page-banners" });
 
@@ -100,4 +100,16 @@ export async function getPageBanners(): Promise<PageBanners> {
     playerProfileUrl: mediaUrl(settings.playerProfile),
     playerProfileEyebrow: settings.playerProfileEyebrow || DEFAULTS.playerProfileEyebrow,
   };
+}
+
+const FALLBACK: PageBanners = { ...DEFAULTS };
+
+// Falls back to plain defaults instead of throwing -- see the same fallback on getSiteTheme
+// (src/lib/data/site-theme.ts) for why: a Supabase pooler timeout shouldn't 500 a whole page.
+export async function getPageBanners(): Promise<PageBanners> {
+  try {
+    return await fetchPageBanners();
+  } catch {
+    return FALLBACK;
+  }
 }

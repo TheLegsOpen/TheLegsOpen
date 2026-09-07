@@ -39,7 +39,16 @@ const getCachedSiteThemeDoc = unstable_cache(
 );
 
 export async function getSiteTheme(): Promise<SiteTheme> {
-  const settings = await getCachedSiteThemeDoc();
+  // Falls back to plain defaults instead of throwing -- this is cosmetic (colors/branding), not
+  // worth taking down a whole page over if Supabase's pooler is having one of its intermittent
+  // connection-timeout episodes (see payload.config.ts). The layout that calls this on every
+  // request should degrade to default styling, not 500.
+  let settings: Awaited<ReturnType<typeof getCachedSiteThemeDoc>>;
+  try {
+    settings = await getCachedSiteThemeDoc();
+  } catch {
+    return DEFAULTS;
+  }
 
   return {
     primaryColor: settings.colors?.primaryColor || DEFAULTS.primaryColor,
