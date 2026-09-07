@@ -136,7 +136,15 @@ export default buildConfig({
       // Supabase project is in London (eu-west-2), giving every connection real cross-Atlantic
       // latency on top of Nano's limited CPU for the TLS/auth handshake. 20s gives a marginal
       // connection more room to succeed instead of being killed just as it was about to.
-      idleTimeoutMillis: 10_000,
+      //
+      // idleTimeoutMillis raised from 10s to 60s: production logs (2026-09-07) showed /admin/login
+      // failing with this same "timeout exceeded" on every request while /admin and /api/users/me
+      // succeeded moments apart on the same deployment -- the pool was closing the one connection
+      // for being idle >10s, so any route not hit within that window paid the full cross-Atlantic
+      // handshake cost again and sometimes lost the race against connectionTimeoutMillis. 60s keeps
+      // a warm connection alive across normal admin-panel click-to-click gaps instead of tearing it
+      // down between almost every request.
+      idleTimeoutMillis: 60_000,
       connectionTimeoutMillis: 20_000,
       // Kept as low as possible -- the build log shows "Collecting page data using 7 workers", and
       // Supabase's Nano compute tier caps the pooler's own backend-to-Postgres pool at 15
