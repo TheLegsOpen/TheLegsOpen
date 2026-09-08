@@ -8,17 +8,16 @@ import { buildConfig } from "payload";
 import { fileURLToPath } from "url";
 import sharp from "sharp";
 
-// Every Postgres connection attempt from Vercel's BUILD machine has been hanging for exactly our
-// configured connectionTimeoutMillis (~20s) regardless of which Supabase host/port we point at
-// (direct, transaction pooler, session pooler) and regardless of build machine tier -- while the
-// already-deployed site's serverless functions reach the same database instantly. That rules out
-// the connection string, a prior custom IPv4 socket override (removed), build concurrency, and
-// Supabase-side network restrictions/bans (checked: none configured). What's left is DNS address
-// selection: Node 18+'s default `dns.lookup()` order is "verbatim" -- whatever order the resolver
-// hands back, potentially an IPv6 address first -- and if that address is unreachable from the build
-// sandbox specifically (serverless functions may resolve/route differently), Node hangs waiting on
-// that attempt with no fallback until our own timeout fires. This is Node's own documented fix:
-// force IPv4 first for every lookup in this process, independent of any single Postgres client.
+// Prefer IPv4 when resolving. Supabase's shared pooler host answers on IPv4 and the direct
+// connection endpoint is IPv6-only, so this keeps resolution pointed at the reachable one from
+// Vercel, which has no IPv6 egress.
+//
+// Historical note, because the comment that used to sit here was wrong and cost a lot of time:
+// this was originally added on the theory that DNS returning an IPv6 address first was what made
+// connections hang for exactly connectionTimeoutMillis. It wasn't. That hang was a pool-queue
+// timeout caused by a connection dying while Vercel had the instance frozen -- see the pool
+// configuration below. This line is kept because preferring IPv4 is correct here regardless, not
+// because it fixed anything.
 dns.setDefaultResultOrder("ipv4first");
 
 import { Users } from "./collections/Users";
