@@ -22,13 +22,21 @@ interface CourseResult {
   teeSets: { id: string; name: string; totalYardage?: number; par?: number }[];
 }
 
-interface ScorecardResult {
-  courseId: string;
-  courseName: string;
-  teeSetName: string;
+interface TeeCard {
+  id: string;
+  name: string;
+  totalYardage?: number;
+  par?: number;
   courseRating?: number;
   slopeRating?: number;
   holes: { holeNumber: number; par: number; strokeIndex: number; yardage: number }[];
+}
+
+interface CourseDetail {
+  courseId: string;
+  courseName: string;
+  clubName?: string;
+  tees: TeeCard[];
 }
 
 const COUNTRY_OPTIONS: { label: string; value: string }[] = [
@@ -81,7 +89,8 @@ export const CourseImportField: UIFieldClientComponent = () => {
   const [clubs, setClubs] = useState<ClubResult[] | null>(null);
   const [selectedClub, setSelectedClub] = useState<ClubResult | null>(null);
   const [courses, setCourses] = useState<CourseResult[] | null>(null);
-  const [scorecard, setScorecard] = useState<ScorecardResult | null>(null);
+  const [courseDetail, setCourseDetail] = useState<CourseDetail | null>(null);
+  const [tee, setTee] = useState<TeeCard | null>(null);
   const [imported, setImported] = useState(false);
   const [searchProgress, setSearchProgress] = useState<{ page: number; totalPages: number } | null>(null);
   const stopRequested = useRef(false);
@@ -105,7 +114,8 @@ export const CourseImportField: UIFieldClientComponent = () => {
     setStatus("loading");
     setErrorMessage("");
     setCourses(null);
-    setScorecard(null);
+    setCourseDetail(null);
+    setTee(null);
     setClubs([]);
     setSelectedClub(null);
     stopRequested.current = false;
@@ -142,7 +152,8 @@ export const CourseImportField: UIFieldClientComponent = () => {
     setStatus("loading");
     setErrorMessage("");
     setClubs(null);
-    setScorecard(null);
+    setCourseDetail(null);
+    setTee(null);
     setSelectedClub(club);
     try {
       const { courses: results } = await callApi<{ courses: CourseResult[] }>(`/api/uk-golf-api/courses?clubId=${club.id}`);
@@ -159,11 +170,16 @@ export const CourseImportField: UIFieldClientComponent = () => {
     setErrorMessage("");
     setCourses(null);
     try {
-      const { scorecard: result } = await callApi<{ scorecard: ScorecardResult }>(`/api/uk-golf-api/scorecard?courseId=${course.id}`);
-      if (result.holes.length !== 18) {
-        throw new Error(`This course only has ${result.holes.length} holes of scorecard data on file — expected 18.`);
+      const { course: detail } = await callApi<{ course: CourseDetail }>(`/api/uk-golf-api/tees?courseId=${course.id}`);
+      const playable = detail.tees.filter((t) => t.holes.length === 18);
+      if (playable.length === 0) {
+        throw new Error(
+          detail.tees.length === 0
+            ? "The API has no tee data on file for this course."
+            : "None of this course's tees have a full 18 holes on file — enter the card by hand instead.",
+        );
       }
-      setScorecard(result);
+      setCourseDetail({ ...detail, tees: playable });
       setStatus("idle");
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Lookup failed");
@@ -172,22 +188,22 @@ export const CourseImportField: UIFieldClientComponent = () => {
   }
 
   function handleImport() {
-    if (!scorecard) return;
+    if (!tee) return;
 
     for (let i = holeRows.length; i < 18; i++) {
       addFieldRow({ path: "holes", rowIndex: i, schemaPath: "holes" });
     }
 
-    scorecard.holes.forEach((hole, i) => {
+    tee.holes.forEach((hole, i) => {
       dispatchFields({ type: "UPDATE", path: `holes.${i}.par`, value: hole.par });
       dispatchFields({ type: "UPDATE", path: `holes.${i}.yards`, value: hole.yardage });
       dispatchFields({ type: "UPDATE", path: `holes.${i}.si`, value: hole.strokeIndex });
     });
-    if (scorecard.courseRating !== undefined) {
-      dispatchFields({ type: "UPDATE", path: "courseRating", value: scorecard.courseRating });
+    if (tee.courseRating !== undefined) {
+      dispatchFields({ type: "UPDATE", path: "courseRating", value: tee.courseRating });
     }
-    if (scorecard.slopeRating !== undefined) {
-      dispatchFields({ type: "UPDATE", path: "slopeRating", value: scorecard.slopeRating });
+    if (tee.slopeRating !== undefined) {
+      dispatchFields({ type: "UPDATE", path: "slopeRating", value: tee.slopeRating });
     }
     if (selectedClub?.latitude !== undefined) {
       dispatchFields({ type: "UPDATE", path: "latitude", value: selectedClub.latitude });
@@ -197,7 +213,8 @@ export const CourseImportField: UIFieldClientComponent = () => {
     }
 
     setImported(true);
-    setScorecard(null);
+    setCourseDetail(null);
+    setTee(null);
   }
 
   if (!open) {
@@ -219,7 +236,8 @@ export const CourseImportField: UIFieldClientComponent = () => {
             setClubs(null);
             setSelectedClub(null);
             setCourses(null);
-            setScorecard(null);
+            setCourseDetail(null);
+            setTee(null);
             setErrorMessage("");
           }}
           style={{ ...buttonStyle, padding: "2px 8px" }}
@@ -234,7 +252,7 @@ export const CourseImportField: UIFieldClientComponent = () => {
         </p>
       ) : null}
 
-      {!clubs && !courses && !scorecard ? (
+      {!clubs && !courses && !courseDetail ? (
         <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
           <select value={country} onChange={(e) => setCountry(e.target.value)} style={{ ...buttonStyle, cursor: "pointer" }}>
             {COUNTRY_OPTIONS.map((opt) => (
@@ -319,23 +337,43 @@ export const CourseImportField: UIFieldClientComponent = () => {
         </div>
       ) : null}
 
-      {scorecard ? (
+      {courseDetail && !tee ? (
         <div>
           <p style={{ fontSize: 13, marginBottom: 8 }}>
-            <strong>{scorecard.courseName}</strong> — {scorecard.teeSetName} tee
-            {scorecard.courseRating ? `, rating ${scorecard.courseRating}` : ""}
-            {scorecard.slopeRating ? `, slope ${scorecard.slopeRating}` : ""}
+            <strong>{courseDetail.courseName}</strong> — choose the tee this round is played off. Longest first.
           </p>
-          <p style={{ fontSize: 12, color: "var(--theme-elevation-500)", marginBottom: 8 }}>
-            This is whichever tee the API returns as default for this course — it may not be your usual competition tee. Check the
-            yardages below look right before importing.
+          {courseDetail.tees.map((t) => (
+            <div key={t.id} style={listItemStyle} onClick={() => setTee(t)}>
+              <span>
+                <strong>{t.name}</strong>
+                {t.totalYardage ? ` — ${t.totalYardage.toLocaleString()} yards` : ""}
+                {t.par ? `, par ${t.par}` : ""}
+                {t.courseRating ? `, rating ${t.courseRating}` : ""}
+                {t.slopeRating ? `, slope ${t.slopeRating}` : ""}
+              </span>
+              <span style={{ color: "var(--theme-elevation-500)" }}>Select →</span>
+            </div>
+          ))}
+          <button type="button" onClick={() => handlePickClub(selectedClub!)} style={{ ...buttonStyle, marginTop: 4 }}>
+            ← Back to courses
+          </button>
+        </div>
+      ) : null}
+
+      {tee ? (
+        <div>
+          <p style={{ fontSize: 13, marginBottom: 8 }}>
+            <strong>{courseDetail?.courseName}</strong> — {tee.name} tee
+            {tee.totalYardage ? `, ${tee.totalYardage.toLocaleString()} yards` : ""}
+            {tee.courseRating ? `, rating ${tee.courseRating}` : ""}
+            {tee.slopeRating ? `, slope ${tee.slopeRating}` : ""}
           </p>
           <div style={{ overflowX: "auto", marginBottom: 12 }}>
             <table style={{ borderCollapse: "collapse", fontSize: 12, width: "100%" }}>
               <thead>
                 <tr>
                   <th style={{ padding: 4, textAlign: "left" }}>Hole</th>
-                  {scorecard.holes.map((h) => (
+                  {tee.holes.map((h) => (
                     <th key={h.holeNumber} style={{ padding: 4 }}>
                       {h.holeNumber}
                     </th>
@@ -345,7 +383,7 @@ export const CourseImportField: UIFieldClientComponent = () => {
               <tbody>
                 <tr>
                   <td style={{ padding: 4, fontWeight: 600 }}>Par</td>
-                  {scorecard.holes.map((h) => (
+                  {tee.holes.map((h) => (
                     <td key={h.holeNumber} style={{ padding: 4, textAlign: "center" }}>
                       {h.par}
                     </td>
@@ -353,7 +391,7 @@ export const CourseImportField: UIFieldClientComponent = () => {
                 </tr>
                 <tr>
                   <td style={{ padding: 4, fontWeight: 600 }}>Yards</td>
-                  {scorecard.holes.map((h) => (
+                  {tee.holes.map((h) => (
                     <td key={h.holeNumber} style={{ padding: 4, textAlign: "center" }}>
                       {h.yardage}
                     </td>
@@ -361,7 +399,7 @@ export const CourseImportField: UIFieldClientComponent = () => {
                 </tr>
                 <tr>
                   <td style={{ padding: 4, fontWeight: 600 }}>SI</td>
-                  {scorecard.holes.map((h) => (
+                  {tee.holes.map((h) => (
                     <td key={h.holeNumber} style={{ padding: 4, textAlign: "center" }}>
                       {h.strokeIndex}
                     </td>
@@ -374,8 +412,8 @@ export const CourseImportField: UIFieldClientComponent = () => {
             <button type="button" onClick={handleImport} style={{ ...buttonStyle, background: "var(--theme-success-500)", color: "white" }}>
               Use this data
             </button>
-            <button type="button" onClick={() => setScorecard(null)} style={buttonStyle}>
-              ← Back
+            <button type="button" onClick={() => setTee(null)} style={buttonStyle}>
+              ← Back to tees
             </button>
           </div>
         </div>

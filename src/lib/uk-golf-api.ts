@@ -142,37 +142,76 @@ export interface UkGolfHole {
   yardage: number;
 }
 
-export interface UkGolfScorecard {
-  courseId: string;
-  courseName: string;
-  teeSetName: string;
+/** One playable tee, complete with the card you'd actually play off it. */
+export interface UkGolfTeeCard {
+  id: string;
+  name: string;
+  totalYardage?: number;
+  par?: number;
   courseRating?: number;
   slopeRating?: number;
   holes: UkGolfHole[];
 }
 
-interface RawScorecard {
-  course_id: string;
-  course_name: string;
-  tee_set?: { name?: string; colour?: string; par?: number; course_rating?: number; slope_rating?: number };
-  holes: { hole_number: number; par: number; stroke_index: number; yardage: number }[];
+export interface UkGolfCourseDetail {
+  courseId: string;
+  courseName: string;
+  clubName?: string;
+  tees: UkGolfTeeCard[];
+}
+
+interface RawCourseDetail {
+  id: string;
+  name: string;
+  club_name?: string;
+  tee_sets?: {
+    id: string;
+    name?: string;
+    colour?: string;
+    total_yardage?: number;
+    par?: number;
+    course_rating?: number;
+    slope_rating?: number;
+    holes?: { hole_number: number; par: number; stroke_index: number; yardage: number }[];
+  }[];
 }
 
 /**
- * Note: the API currently returns whichever tee it treats as the default for the course —
- * passing a specific tee_set_id doesn't change the result (verified against the real API).
- * The returned tee name/rating is surfaced so an admin can see exactly what they're importing.
+ * Fetches a course with every tee set's full card, so the admin can choose which tee to import.
+ *
+ * This deliberately does NOT use /courses/{id}/scorecard, which is what the importer originally
+ * called. That endpoint returns exactly one tee -- in practice the shortest -- and no parameter
+ * changes it: tee_set_id, teeSetId, tee_set, tee, tee_colour and tee_name are all accepted and all
+ * ignored, and /courses/{id}/tee-sets/{teeId}/scorecard, /tee-sets/{teeId}/holes and /holes all
+ * 404. All verified against the live API on 2026-09-08 for Old Petty, where it kept returning the
+ * Red tee (4,950 yards, slope 118) for a course played off White (6,580 yards, slope 135).
+ *
+ * /courses/{id} returns all of them at once, each with its own par/stroke index/yardage per hole,
+ * which is both the fix and one request instead of several.
+ *
+ * Note that /clubs/{clubId}/courses lists tee sets too but without their holes, so this second call
+ * is still needed once a course is picked.
  */
-export async function getUkGolfScorecard(courseId: string): Promise<UkGolfScorecard> {
-  const data = await ukGolfFetch<RawScorecard>(`/courses/${courseId}/scorecard`);
+export async function getUkGolfCourseDetail(courseId: string): Promise<UkGolfCourseDetail> {
+  const data = await ukGolfFetch<RawCourseDetail>(`/courses/${courseId}`);
   return {
-    courseId: data.course_id,
-    courseName: data.course_name,
-    teeSetName: [data.tee_set?.colour, data.tee_set?.name].filter(Boolean).join(" ") || "Unknown tee",
-    courseRating: data.tee_set?.course_rating,
-    slopeRating: data.tee_set?.slope_rating,
-    holes: (data.holes ?? [])
-      .map((hole) => ({ holeNumber: hole.hole_number, par: hole.par, strokeIndex: hole.stroke_index, yardage: hole.yardage }))
-      .sort((a, b) => a.holeNumber - b.holeNumber),
+    courseId: data.id,
+    courseName: data.name,
+    clubName: data.club_name,
+    tees: (data.tee_sets ?? [])
+      .map((tee) => ({
+        id: tee.id,
+        name: [tee.colour, tee.name].filter(Boolean).join(" ") || "Unnamed tee",
+        totalYardage: tee.total_yardage,
+        par: tee.par,
+        courseRating: tee.course_rating,
+        slopeRating: tee.slope_rating,
+        holes: (tee.holes ?? [])
+          .map((hole) => ({ holeNumber: hole.hole_number, par: hole.par, strokeIndex: hole.stroke_index, yardage: hole.yardage }))
+          .sort((a, b) => a.holeNumber - b.holeNumber),
+      }))
+      // Longest first: the tee a competition is played off is far likelier to be near the top than
+      // the forward tee the old scorecard endpoint kept handing back.
+      .sort((a, b) => (b.totalYardage ?? 0) - (a.totalYardage ?? 0)),
   };
 }
