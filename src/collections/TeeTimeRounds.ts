@@ -66,6 +66,17 @@ export const TeeTimeRounds: CollectionConfig = {
       },
     },
     {
+      name: "regeneratePins",
+      label: "Regenerate all PINs on save",
+      type: "checkbox",
+      defaultValue: false,
+      admin: {
+        position: "sidebar",
+        description:
+          "Tick and save to issue a fresh PIN for every group in this round. Any scorer already signed in to one of these groups is signed out immediately. Un-ticks itself once done.",
+      },
+    },
+    {
       name: "groups",
       type: "array",
       labels: { singular: "Group", plural: "Groups" },
@@ -96,7 +107,7 @@ export const TeeTimeRounds: CollectionConfig = {
           type: "text",
           admin: {
             description:
-              "Auto-generated -- lets this group's scorer log in to the on-course scoring app. To reset it, clear this field and save.",
+              "Auto-generated -- lets this group's scorer log in to the on-course scoring app. To issue fresh PINs, tick \"Regenerate all PINs on save\" in the sidebar and save.",
             readOnly: true,
           },
           // The collection is publicly readable so the site can render tee times, which meant this
@@ -125,6 +136,16 @@ export const TeeTimeRounds: CollectionConfig = {
     beforeValidate: [
       async ({ data, req, originalDoc }) => {
         if (!data || !Array.isArray(data.groups)) return data;
+
+        // Clearing a group's PIN is what makes the loop below mint a new one and bump its version,
+        // which is also what invalidates any scorer session already issued for that group. The
+        // field itself is readOnly in the admin -- its description used to claim you could clear it
+        // by hand, which was never actually possible -- so this checkbox is the way to ask for it.
+        // It un-ticks itself so a later, unrelated save cannot silently re-roll every PIN.
+        if (data.regeneratePins) {
+          for (const group of data.groups as { pin?: string }[]) delete group.pin;
+          data.regeneratePins = false;
+        }
 
         const existingRounds = await req.payload.find({
           collection: "tee-time-rounds",
