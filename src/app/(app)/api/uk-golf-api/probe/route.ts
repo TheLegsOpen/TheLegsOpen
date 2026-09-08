@@ -78,14 +78,48 @@ export async function GET(request: NextRequest) {
   const country = (params.get("country") ?? "SCO") as UkGolfCountryCode;
 
   // Step 1 -- find the club and its id.
+  //
+  // The client filters by name locally because the API ignores a name parameter, so every club in
+  // the country has to be paged through. searchUkGolfClubsPage hardcodes per_page=50, which means
+  // ~10 requests for Scotland against a 5 requests/minute free tier. So this calls /clubs directly
+  // with a larger per_page to find out whether the cap is really 50 -- if a bigger page size is
+  // honoured, the importer itself can stop making ten round trips to find one club.
   if (club) {
-    const found: { id: string; name: string; city?: string }[] = [];
-    for (let page = 1; page <= 3; page += 1) {
-      const result = await searchUkGolfClubsPage(country, club, page);
-      found.push(...result.matches.map((c) => ({ id: c.id, name: c.name, city: c.city })));
-      if (page >= result.totalPages) break;
+    const key = process.env.UK_GOLF_API_KEY;
+    if (!key) return NextResponse.json({ error: "UK_GOLF_API_KEY not set" }, { status: 500 });
+
+    const perPage = Number(params.get("perPage") ?? 500);
+    const needle = club.trim().toLowerCase();
+
+    const res = await fetch(`https://${RAPIDAPI_HOST}/clubs?country=${country}&per_page=${perPage}&page=1`, {
+      headers: { "X-RapidAPI-Key": key, "X-RapidAPI-Host": RAPIDAPI_HOST },
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      return NextResponse.json({ step: "clubs", perPageRequested: perPage, status: res.status, body: (await res.text()).slice(0, 300) });
     }
-    return NextResponse.json({ step: "clubs", country, query: club, matches: found });
+
+    const data = (await res.json()) as {
+      total: number;
+      per_page: number;
+      total_pages: number;
+      clubs: { id: string; name: string; city?: string }[];
+    };
+
+    const matches = data.clubs.filter((c) => c.name.toLowerCase().includes(needle));
+    return NextResponse.json({
+      step: "clubs",
+      query: club,
+      perPageRequested: perPage,
+      perPageHonoured: data.per_page,
+      totalClubs: data.total,
+      totalPages: data.total_pages,
+      clubsSeenThisPage: data.clubs.length,
+      matches: matches.map((c) => ({ id: c.id, name: c.name, city: c.city })),
+      // If nothing matched, show what the data actually calls the nearby clubs so the right search
+      // term can be found -- Castle Stuart was rebranded Cabot Highlands, for instance.
+      sampleNames: matches.length === 0 ? data.clubs.slice(0, 40).map((c) => c.name) : undefined,
+    });
   }
 
   // Step 2 -- list that club's courses, each with its tee sets, so a White tee id can be picked.
