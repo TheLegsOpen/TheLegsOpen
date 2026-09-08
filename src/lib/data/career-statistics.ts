@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
@@ -40,8 +41,16 @@ interface CareerInputs {
   scorecardsByChampionship: Map<string, PayloadScorecard[]>;
 }
 
-/** Two batched queries covering every trusted year at once, rather than one query per year. */
-async function loadCareerInputs(): Promise<CareerInputs> {
+/**
+ * Two batched queries covering every trusted year at once, rather than one query per year.
+ *
+ * Wrapped in React's cache() because the six exported getCareer*Categories functions below each
+ * call this, and a player profile page renders all six -- so without deduplication a single page
+ * load ran this same pair of queries (one of them up to 2000 scorecards at depth 1) six times over.
+ * That was most of the ~3.7s those pages were taking. cache() is request-scoped, so this stays a
+ * single fetch per render pass with no staleness of its own.
+ */
+const loadCareerInputs = cache(async function loadCareerInputs(): Promise<CareerInputs> {
   const trustedIds = await getTrustedChampionshipIds();
   if (trustedIds.length === 0) return { holeInfosByChampionship: new Map(), scorecardsByChampionship: new Map() };
 
@@ -68,7 +77,7 @@ async function loadCareerInputs(): Promise<CareerInputs> {
   }
 
   return { holeInfosByChampionship, scorecardsByChampionship };
-}
+});
 
 interface PlayerYearScores {
   player: Player;

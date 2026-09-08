@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
@@ -56,8 +57,16 @@ export function assignPositions(rows: StatRow[]): void {
   });
 }
 
-/** Fetches every scorecard for the given (or, if omitted, the active) championship and reduces it to each player's per-hole nett or scratch score. */
-async function getPlayerScoresByMode(
+/**
+ * Fetches every scorecard for the given (or, if omitted, the active) championship and reduces it to
+ * each player's per-hole nett or scratch score.
+ *
+ * cache()d per request: the nett, scratch and streak category builders all call this, and pages
+ * that show several of those at once (the homepage and /statistics both render six) were otherwise
+ * repeating the same 300-scorecard depth-1 query several times per render. Keyed on the arguments,
+ * so nett and scratch still fetch separately -- it only collapses the identical repeats.
+ */
+const getPlayerScoresByMode = cache(async function getPlayerScoresByMode(
   mode: ScoringMode,
   championshipId?: string,
 ): Promise<{ holeInfos: HoleInfo[]; playerScores: PlayerHoleScores[] }> {
@@ -93,7 +102,7 @@ async function getPlayerScoresByMode(
   });
 
   return { holeInfos, playerScores };
-}
+});
 
 /**
  * Real scoring statistics computed directly from Scorecards -- the first family of
@@ -331,7 +340,9 @@ interface PlayerSkillHoles {
  * via the standard Payload scorecard edit screen) -- unlike strokes they don't depend on
  * handicap, so there's no nett/scratch split here.
  */
-async function getPlayerSkillHoles(championshipId?: string): Promise<{ holeInfos: HoleInfo[]; players: PlayerSkillHoles[] }> {
+const getPlayerSkillHoles = cache(async function getPlayerSkillHoles(
+  championshipId?: string,
+): Promise<{ holeInfos: HoleInfo[]; players: PlayerSkillHoles[] }> {
   const payload = await getPayload({ config: configPromise });
   const championship = championshipId
     ? await payload.findByID({ collection: "championships", id: championshipId }).catch(() => undefined)
@@ -357,7 +368,7 @@ async function getPlayerSkillHoles(championshipId?: string): Promise<{ holeInfos
   });
 
   return { holeInfos, players };
-}
+});
 
 /** Field-average-relative "strokes gained" for a rate stat (fairways hit, GIR) where a higher raw value is better. */
 function ratedStrokesGained(
