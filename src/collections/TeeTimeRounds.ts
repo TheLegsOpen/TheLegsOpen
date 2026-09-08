@@ -3,6 +3,18 @@ import type { CollectionConfig } from "payload";
 import { revalidateTeeTimeRounds } from "@/lib/revalidate";
 import { generatePin } from "@/lib/scoring-session";
 
+/**
+ * Passes a relationship id through unconverted, correcting only its type.
+ *
+ * Payload's generated types declare relationship ids as `string`, but this project runs on the
+ * Postgres adapter, where ids are numeric -- and Payload's own validator accepts a number and ONLY
+ * a number for a numeric-id collection (see isValidID in payload/dist/utilities). So the id has to
+ * reach it untouched. Stringifying one to satisfy the compiler is what broke practice rounds:
+ * `String(doc.id)` turned 14 into "14" and every save of a Practice round died with "The following
+ * field is invalid: Tee Time Round", reported to the admin as a plain save error on the round.
+ */
+const asRelationId = (id: string | number): string => id as unknown as string;
+
 export const TeeTimeRounds: CollectionConfig = {
   slug: "tee-time-rounds",
   admin: {
@@ -165,11 +177,13 @@ export const TeeTimeRounds: CollectionConfig = {
               collection: "scorecards",
               where: { and: [{ player: { equals: playerId } }, { championship: { equals: championshipId } }] },
               limit: 1,
+              req,
             });
             if (existing.docs.length === 0) {
               await req.payload.create({
                 collection: "scorecards",
-                data: { player: playerId as string, championship: championshipId as string },
+                data: { player: asRelationId(playerId), championship: asRelationId(championshipId) },
+                req,
               });
             }
           }
@@ -185,11 +199,15 @@ export const TeeTimeRounds: CollectionConfig = {
               collection: "scorecards",
               where: { and: [{ player: { equals: playerId } }, { teeTimeRound: { equals: doc.id } }] },
               limit: 1,
+              req,
             });
             if (existing.docs.length === 0) {
               await req.payload.create({
                 collection: "scorecards",
-                data: { player: playerId as string, teeTimeRound: String(doc.id) },
+                // See asRelationId: doc.id goes through as-is. This is the line that was
+                // String(doc.id), which failed validation and took the whole round save down with it.
+                data: { player: asRelationId(playerId), teeTimeRound: asRelationId(doc.id) },
+                req,
               });
             }
           }
