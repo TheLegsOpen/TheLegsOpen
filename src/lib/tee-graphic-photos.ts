@@ -18,13 +18,41 @@ import sharp from "sharp";
  * top of the head off before it cuts anything unimportant. */
 const CROP_POSITION = "top";
 
+/**
+ * How much of the source to keep before fitting it to the cell. These are studio-style
+ * head-and-shoulders shots with a lot of empty space around the subject, so using the whole frame
+ * leaves each player small in a large dark cell. Taking the middle ~76% brings them up to fill it.
+ */
+const ZOOM = 0.76;
+/** Where the kept region starts vertically, as a fraction of the source height. Above centre --
+ * (1 - ZOOM) / 2 would be centred, and these subjects sit high in frame. */
+const ZOOM_TOP = 0.04;
+
 export async function preparePhoto(url: string, width: number, height: number): Promise<string | undefined> {
   try {
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) return undefined;
 
     const input = Buffer.from(await res.arrayBuffer());
-    const output = await sharp(input)
+    const image = sharp(input);
+    const meta = await image.metadata();
+
+    // Only zoom when the source dimensions are known; otherwise fall through to a plain cover fit.
+    if (meta.width && meta.height) {
+      const regionWidth = Math.round(meta.width * ZOOM);
+      const regionHeight = Math.round(meta.height * ZOOM);
+      const left = Math.max(0, Math.round((meta.width - regionWidth) / 2));
+      const top = Math.max(0, Math.min(Math.round(meta.height * ZOOM_TOP), meta.height - regionHeight));
+
+      const zoomed = await sharp(input)
+        .extract({ left, top, width: Math.min(regionWidth, meta.width - left), height: Math.min(regionHeight, meta.height - top) })
+        .resize(Math.round(width), Math.round(height), { fit: "cover", position: CROP_POSITION })
+        .jpeg({ quality: 82 })
+        .toBuffer();
+      return `data:image/jpeg;base64,${zoomed.toString("base64")}`;
+    }
+
+    const output = await image
       .resize(Math.round(width), Math.round(height), { fit: "cover", position: CROP_POSITION })
       .jpeg({ quality: 82 })
       .toBuffer();

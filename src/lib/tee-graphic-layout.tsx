@@ -18,7 +18,7 @@ const GOLD = "#FFB800";
  * player's face. The first version ran photos to the full height and put the text over them: the
  * bottom two players ended up unreadable behind the wash needed to make the type legible.
  */
-const PHOTO_BLOCK_HEIGHT = 900;
+const PHOTO_BLOCK_HEIGHT = 990;
 const PANEL_TOP = PHOTO_BLOCK_HEIGHT;
 
 /**
@@ -129,15 +129,15 @@ export function TeeGraphic(data: TeeGraphicData) {
           flexDirection: "column",
           alignItems: "center",
           position: "absolute",
-          top: PANEL_TOP + 32,
+          top: PANEL_TOP + 24,
           left: 0,
           width: GRAPHIC_WIDTH,
         }}
       >
-        <div style={{ display: "flex", fontFamily: "SourceSans", fontWeight: 700, fontSize: 27, color: "rgba(255,255,255,0.8)", letterSpacing: 3 }}>
+        <div style={{ display: "flex", fontFamily: "SourceSans", fontWeight: 700, fontSize: 25, color: "rgba(255,255,255,0.8)", letterSpacing: 3 }}>
           {`GAME ${data.gameNumber} — ${data.dateLabel}`}
         </div>
-        <div style={{ display: "flex", fontFamily: "SourceSans", fontWeight: 700, fontSize: 46, color: GOLD, letterSpacing: 2, marginTop: 2 }}>
+        <div style={{ display: "flex", fontFamily: "SourceSans", fontWeight: 700, fontSize: 44, color: GOLD, letterSpacing: 2, marginTop: 0 }}>
           {`${data.time} · ${data.tee} TEE`}
         </div>
         <div
@@ -145,16 +145,16 @@ export function TeeGraphic(data: TeeGraphicData) {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            marginTop: 18,
-            paddingTop: 16,
+            marginTop: 12,
+            paddingTop: 12,
             borderTop: "2px solid rgba(255,255,255,0.22)",
-            width: 720,
+            width: 620,
           }}
         >
           {data.players.map((p, i) => (
             <div
               key={i}
-              style={{ display: "flex", fontFamily: "SourceSans", fontWeight: 700, fontSize: 34, color: "#FFFFFF", letterSpacing: 5, lineHeight: 1.3 }}
+              style={{ display: "flex", fontFamily: "SourceSans", fontWeight: 700, fontSize: 31, color: "#FFFFFF", letterSpacing: 4, lineHeight: 1.24 }}
             >
               {p.name.toUpperCase()}
             </div>
@@ -162,7 +162,9 @@ export function TeeGraphic(data: TeeGraphicData) {
         </div>
       </div>
 
-      {/* Sponsor left, Legs Open right, both on the same baseline at the foot of the card. */}
+      {/* Sponsor left, Legs Open right, in the bottom corners. They sit alongside the centred
+       * names rather than below them -- the names are constrained to the middle 620px, so the two
+       * marks tuck into the space either side without the panel needing to grow. */}
       <div
         style={{
           display: "flex",
@@ -170,9 +172,9 @@ export function TeeGraphic(data: TeeGraphicData) {
           alignItems: "flex-end",
           justifyContent: "space-between",
           position: "absolute",
-          bottom: 40,
-          left: 64,
-          width: GRAPHIC_WIDTH - 128,
+          bottom: 34,
+          left: 60,
+          width: GRAPHIC_WIDTH - 120,
         }}
       >
         <div style={{ display: "flex", width: SPONSOR_LOGO_BOX.width, height: SPONSOR_LOGO_BOX.height }}>
@@ -180,10 +182,6 @@ export function TeeGraphic(data: TeeGraphicData) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={data.sponsorLogoUrl} width={SPONSOR_LOGO_BOX.width} height={SPONSOR_LOGO_BOX.height} alt="" />
           ) : null}
-        </div>
-
-        <div style={{ display: "flex", fontFamily: "SourceSans", fontSize: 19, color: "rgba(255,255,255,0.4)", letterSpacing: 5, marginBottom: 20 }}>
-          THELEGSOPEN.COM
         </div>
 
         <div style={{ display: "flex", justifyContent: "flex-end", width: SITE_LOGO_BOX.width, height: SITE_LOGO_BOX.height }}>
