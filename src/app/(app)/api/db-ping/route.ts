@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Client } from "pg";
+import { Client, Pool } from "pg";
 import { getPayload } from "payload";
 
 import config from "@/payload.config";
@@ -56,6 +56,37 @@ async function probeRaw(): Promise<ProbeResult> {
   }
 }
 
+/**
+ * Same connection string, but through a pg Pool instead of a bare Client, at a given `max`.
+ * node-postgres throws the *identical* "timeout exceeded when trying to connect" message when a
+ * caller waits longer than connectionTimeoutMillis for a free slot in the pool -- it is a queue
+ * timeout, not a network one. Running max: 1 against max: 5 side by side distinguishes the two:
+ * if 1 fails and 5 succeeds on the same connection string, the pool sizing is the fault, not
+ * anything to do with Supabase.
+ *
+ * Two queries are issued concurrently on purpose -- that is what real pages do (Promise.all in
+ * the layout and homepage), and it is the condition under which max: 1 can starve itself.
+ */
+async function probeRawPool(max: number): Promise<ProbeResult> {
+  const started = Date.now();
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL || "",
+    ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 20_000,
+    idleTimeoutMillis: 60_000,
+    max,
+  });
+  try {
+    await Promise.all([pool.query("select 1"), pool.query("select 2")]);
+    return { ok: true, ms: Date.now() - started };
+  } catch (err) {
+    const e = err as { message?: string; code?: string };
+    return { ok: false, ms: Date.now() - started, error: e.message, code: e.code };
+  } finally {
+    await pool.end().catch(() => undefined);
+  }
+}
+
 async function probePayload(): Promise<ProbeResult> {
   const started = Date.now();
   try {
@@ -77,10 +108,12 @@ export async function GET(request: NextRequest) {
   // Sequential, not parallel -- running them at once would have them competing for the same
   // pooler slots, which is the very condition being measured.
   const raw = await probeRaw();
+  const poolMax1 = await probeRawPool(1);
+  const poolMax5 = await probeRawPool(5);
   const payloadProbe = await probePayload();
 
   return NextResponse.json(
-    { at, region: process.env.VERCEL_REGION ?? null, raw, payload: payloadProbe },
+    { at, region: process.env.VERCEL_REGION ?? null, raw, poolMax1, poolMax5, payload: payloadProbe },
     { headers: { "cache-control": "no-store" } },
   );
 }
