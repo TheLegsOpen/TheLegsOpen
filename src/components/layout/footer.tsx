@@ -114,9 +114,7 @@ export function Footer({ logoUrl, patrons, officialSuppliers, socialLinks, legal
             {SITE.name}
           </Link>
           <p>
-            © {new Date().getFullYear()} Legs Open Championships Ltd. Registered in Fifeshire. The Beach House,
-            Seabrook, Fifeshire. This is a fictional, educational recreation and is not affiliated with any real
-            golf championship.
+            © {new Date().getFullYear()} Legs Open Championships Ltd. This is a golf society event.
           </p>
         </Container>
       </div>
