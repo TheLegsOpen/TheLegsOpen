@@ -65,6 +65,34 @@ export async function preparePhoto(url: string, width: number, height: number): 
 }
 
 /**
+ * The course photo that sits behind everything, blurred back so it reads as texture rather than as
+ * a picture competing with the players.
+ *
+ * The blur has to happen here rather than in the layout: Satori supports no CSS filters at all, so
+ * `filter: blur()` would be silently ignored and the backdrop would come through sharp.
+ */
+export async function prepareBackground(url: string, width: number, height: number): Promise<string | undefined> {
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return undefined;
+
+    const input = Buffer.from(await res.arrayBuffer());
+    const output = await sharp(input)
+      .resize(Math.round(width), Math.round(height), { fit: "cover", position: "centre" })
+      // Heavy blur, then knocked well back in brightness and saturation. The players are the
+      // subject; this only needs to stop the card being flat navy.
+      .blur(26)
+      .modulate({ brightness: 0.78, saturation: 0.72 })
+      .jpeg({ quality: 78 })
+      .toBuffer();
+
+    return `data:image/jpeg;base64,${output.toString("base64")}`;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Same idea for a logo, but fitted inside its box rather than cropped to fill it, and kept as a PNG
  * so transparency survives -- these sit on navy, and a JPEG would box them in black.
  *

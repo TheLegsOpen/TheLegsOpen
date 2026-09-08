@@ -13,8 +13,8 @@ import {
   SITE_LOGO_BOX,
   type TeeGraphicData,
 } from "@/lib/tee-graphic-layout";
-import { preparePhoto, prepareLogo } from "@/lib/tee-graphic-photos";
-import type { Player, TeeTimeRound } from "@/payload-types";
+import { preparePhoto, prepareLogo, prepareBackground } from "@/lib/tee-graphic-photos";
+import type { Player, TeeTimeRound, Venue } from "@/payload-types";
 
 /**
  * Renders one tee-time group as a 1080x1350 PNG, ready to post to Instagram.
@@ -71,6 +71,14 @@ export async function GET(request: NextRequest) {
     }),
   );
 
+  // Backdrop comes from the round's own course, so each round is set against the place it is
+  // played rather than a stock image. No venue image set just leaves the plain navy card.
+  const venue = typeof round.venue === "object" && round.venue ? (round.venue as Venue) : undefined;
+  const venueImage = typeof venue?.image === "object" && venue.image ? venue.image : undefined;
+  const backgroundUrl = venueImage?.url
+    ? await prepareBackground(`${origin}${venueImage.url}`, GRAPHIC_WIDTH, GRAPHIC_HEIGHT)
+    : undefined;
+
   // Both marks are read from the globals that already drive them elsewhere on the site, so
   // changing a sponsor or the site logo in the admin carries through here with no extra step.
   const [sponsorClock, siteTheme] = await Promise.all([
@@ -92,6 +100,7 @@ export async function GET(request: NextRequest) {
     time: (group.time ?? "").replace(".", ":"),
     tee: (group.tee ?? "1st").toUpperCase(),
     players,
+    backgroundUrl,
     sponsorLogoUrl,
     siteLogoUrl,
   };
