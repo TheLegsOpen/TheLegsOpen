@@ -14,36 +14,40 @@ export const SECONDARY_NAV: NavSection[] = [{ label: "The Clubhouse", href: "/cl
  * mega-menus — matches the reference site's actual nav pattern, where the
  * top bar is direct links and deeper IA lives in one panel.
  */
-export const NAV_PANEL: NavPanelGroup[] = [
-  {
-    links: [
-      ...PRIMARY_NAV,
-      { label: "Latest News", href: "/latest" },
-      { label: "Venues", href: "/venues" },
-    ],
-    emphasis: true,
-  },
-  {
-    links: SECONDARY_NAV,
-    emphasis: true,
-  },
-  {
-    heading: "Venues",
-    links: [
-      { label: "Seabrook Old Course", href: "/venues/seabrook-old-course", description: "154th Legs Open" },
-      { label: "Marram Bay Links", href: "/venues/marram-bay-links", description: "155th Legs Open" },
-    ],
-    emphasis: true,
-  },
-  {
-    links: [
-      { label: "All Venues", href: "/venues" },
-      { label: "Field", href: "/field" },
-      { label: "Previous Opens", href: "/previous-opens" },
-      { label: "Contact Us", href: "/contact" },
-    ],
-  },
-];
+/**
+ * The panel's groups, with the "Venues" group supplied at render time.
+ *
+ * That group used to be a hardcoded pair of courses left over from the original scaffold --
+ * Seabrook Old Course and Marram Bay Links, neither of which exists, both linking to pages that
+ * 404. It is now driven by the championships in the database: see getMenuVenueLinks. Passing []
+ * (or a database failure, which yields []) simply omits the group rather than showing an empty
+ * heading.
+ */
+export function buildNavPanel(venueLinks: NavLink[] = []): NavPanelGroup[] {
+  return [
+    {
+      links: [
+        ...PRIMARY_NAV,
+        { label: "Latest News", href: "/latest" },
+        { label: "Venues", href: "/venues" },
+      ],
+      emphasis: true,
+    },
+    {
+      links: SECONDARY_NAV,
+      emphasis: true,
+    },
+    ...(venueLinks.length > 0 ? [{ heading: "Venues", links: venueLinks, emphasis: true }] : []),
+    {
+      links: [
+        { label: "All Venues", href: "/venues" },
+        { label: "Field", href: "/field" },
+        { label: "Previous Opens", href: "/previous-opens" },
+        { label: "Contact Us", href: "/contact" },
+      ],
+    },
+  ];
+}
 
 /** Support + legal links shown as a single side-by-side row in the footer's bottom bar. */
 export const FOOTER_LINKS: NavLink[] = [

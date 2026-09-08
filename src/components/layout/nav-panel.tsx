@@ -3,13 +3,16 @@
 import Link from "next/link";
 
 import { SheetClose } from "@/components/ui/sheet";
-import { NAV_PANEL } from "@/data/navigation";
+import { buildNavPanel } from "@/data/navigation";
+import type { NavLink } from "@/types/nav";
 import { cn } from "@/lib/utils";
 
-export function NavPanel({ onNavigate }: { onNavigate: () => void }) {
+export function NavPanel({ onNavigate, venueLinks = [] }: { onNavigate: () => void; venueLinks?: NavLink[] }) {
+  const groups = buildNavPanel(venueLinks);
+
   return (
     <nav aria-label="Site" className="flex flex-col">
-      {NAV_PANEL.map((group, index) => (
+      {groups.map((group, index) => (
         <div
           key={group.heading ?? index}
           className={cn("flex flex-col gap-3 py-5", index > 0 && "border-t border-primary-foreground/10")}

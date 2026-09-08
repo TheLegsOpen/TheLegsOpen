@@ -11,6 +11,7 @@ import { getSiteTheme, type FontPreset } from "@/lib/data/site-theme";
 import { getSponsors } from "@/lib/data/sponsors";
 import { getSocialLinks } from "@/lib/data/social-links";
 import { getCookieBannerText } from "@/lib/data/cookie-banner";
+import { getMenuVenueLinks } from "@/lib/data/championships";
 import { hexToHslTriplet } from "@/lib/utils";
 
 import "./globals.css";
@@ -111,11 +112,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [theme, sponsors, socialLinks, cookieBannerText] = await Promise.all([
+  const [theme, sponsors, socialLinks, cookieBannerText, venueLinks] = await Promise.all([
     getSiteTheme(),
     getSponsors(),
     getSocialLinks(),
     getCookieBannerText(),
+    getMenuVenueLinks(),
   ]);
   const fontVars = FONT_PRESET_VARS[theme.fontPreset];
 
@@ -139,7 +141,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <a href="#main-content" className="skip-link">
             Skip to main content
           </a>
-          <Header logoUrl={theme.logoUrl} />
+          <Header logoUrl={theme.logoUrl} venueLinks={venueLinks} />
           <main id="main-content" className="flex-1">
             {children}
           </main>

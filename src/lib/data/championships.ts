@@ -150,3 +150,45 @@ export async function getActiveChampionshipSummary(): Promise<ActiveChampionship
     effectiveDate: doc.date ?? `${doc.year}-12-31`,
   };
 }
+
+/**
+ * Venues for the slide-in menu's "Venues" group -- championships still to be played, plus whichever
+ * one is currently being scored.
+ *
+ * The active championship is included deliberately: filtering on date alone would drop a venue out
+ * of the menu partway through its own tournament, which is exactly when people are looking for it.
+ * Note this checks isActive directly rather than going through getActiveChampionshipSummary, whose
+ * fallback to "most recent by year" would put a finished championship's venue back in the menu once
+ * nothing is flagged active.
+ *
+ * Returns [] on any failure -- this renders in the root layout, so a database blip should cost the
+ * menu one group, not every page on the site.
+ */
+export async function getMenuVenueLinks(): Promise<{ label: string; href: string }[]> {
+  try {
+    const payload = await getPayload({ config: configPromise });
+    const result = await payload.find({ collection: "championships", limit: 100, sort: "year", depth: 1 });
+    const now = new Date();
+
+    const rows = result.docs
+      .map((doc) => {
+        const venue = (typeof doc.venue === "object" ? doc.venue : undefined) as PayloadVenue | undefined;
+        if (!venue?.name) return undefined;
+        return { doc, venue, effectiveDate: doc.date ? new Date(doc.date) : new Date(`${doc.year}-12-31`) };
+      })
+      .filter((row): row is NonNullable<typeof row> => row !== undefined)
+      .filter(({ doc, effectiveDate }) => doc.isActive || (doc.date ? effectiveDate > now : doc.year > now.getFullYear()))
+      .sort((a, b) => a.effectiveDate.getTime() - b.effectiveDate.getTime());
+
+    // A venue can host more than once; show it at its earliest upcoming appearance only.
+    const seen = new Set<string>();
+    return rows.flatMap(({ venue }) => {
+      const slug = venue.slug ?? slugify(venue.name);
+      if (seen.has(slug)) return [];
+      seen.add(slug);
+      return [{ label: venue.name, href: `/venues/${slug}` }];
+    });
+  } catch {
+    return [];
+  }
+}

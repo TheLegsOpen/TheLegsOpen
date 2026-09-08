@@ -15,8 +15,9 @@ import { PRIMARY_NAV, SECONDARY_NAV } from "@/data/navigation";
 import { SITE } from "@/constants/site";
 import { useScrollDirection } from "@/hooks/use-scroll-direction";
 import { cn } from "@/lib/utils";
+import type { NavLink } from "@/types/nav";
 
-export function Header({ logoUrl }: { logoUrl?: string }) {
+export function Header({ logoUrl, venueLinks }: { logoUrl?: string; venueLinks?: NavLink[] }) {
   const { isScrolled } = useScrollDirection();
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -117,7 +118,7 @@ export function Header({ logoUrl }: { logoUrl?: string }) {
             >
               <SheetTitle className="text-primary-foreground">Menu</SheetTitle>
               <div className="mt-2">
-                <NavPanel onNavigate={() => setMobileOpen(false)} />
+                <NavPanel onNavigate={() => setMobileOpen(false)} venueLinks={venueLinks} />
               </div>
             </SheetContent>
           </Sheet>
