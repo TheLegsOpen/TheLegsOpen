@@ -96,8 +96,22 @@ export const TeeTimeRounds: CollectionConfig = {
           type: "text",
           admin: {
             description:
-              "Auto-generated -- lets this group's scorer log in to the on-course scoring app. To issue fresh PINs, tick \"Regenerate all PINs on save\" in the sidebar and save.",
-            readOnly: true,
+              "Lets this group's scorer sign in to the on-course scoring app. Generated automatically when left blank -- clear it and save to issue a new one, which also signs out anyone already scoring this group.",
+          },
+          // NOT readOnly. It used to be, while its own description told you to clear it and save --
+          // advice the admin made impossible to follow, so there was no way to change a PIN at all.
+          // Editable is also the only fix here that touches no schema: a checkbox to do it in bulk
+          // added a column that production's database did not have, and took the whole collection
+          // down with it (2026-09-08).
+          //
+          // Restricted to signed-in readers because the collection itself is public so the site can
+          // render tee times -- which meant every group's PIN was being served in plain text to
+          // anyone who requested /api/tee-time-rounds. Field access is evaluated per request and
+          // stores nothing, so unlike the checkbox it cannot desynchronise from the database.
+          // Server-side lookups are unaffected: the PIN login route goes through Payload's local
+          // API, which overrides access by default.
+          access: {
+            read: ({ req }) => Boolean(req.user),
           },
         },
         {
@@ -105,6 +119,10 @@ export const TeeTimeRounds: CollectionConfig = {
           type: "number",
           defaultValue: 1,
           admin: { hidden: true },
+          // Same reasoning as the PIN above -- this is what invalidates issued scorer sessions.
+          access: {
+            read: ({ req }) => Boolean(req.user),
+          },
         },
       ],
     },
