@@ -136,16 +136,21 @@ export function SponsorTimeWidget({ config }: { config: SponsorClock }) {
   const localTime = now ? new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(now) : "--:--";
 
   return (
-    <div className="flex h-full items-center justify-between gap-2.5 px-4 py-5 text-white" style={{ background: config.faceColor }}>
+    <div className="flex h-full items-center justify-between gap-2 px-3 py-5 text-white" style={{ background: config.faceColor }}>
       {/*
        * Fixed width, and explicitly shrink-0. This column used to be the only flexible one in the
        * row -- the clock and the time block were both shrink-0 -- so they took the width they
        * wanted and the sponsor's wordmark was left with whatever remained. In the sidebar that came
        * to 10px wide at desktop widths: the logo was there, but far too small to read. The row is
-       * only ~285px of usable width, so the three columns have to be budgeted deliberately rather
+       * only ~280px of usable width, so the three columns have to be budgeted deliberately rather
        * than letting one absorb everything.
+       *
+       * 104px is what the padding and gaps can afford without touching the clock. Taking the width
+       * from the clock instead was measured and rejected: the clock face is sponsor artwork too
+       * (the dial carries the mark), so shrinking it to widen the wordmark is close to zero-sum for
+       * the sponsor, and strictly worse for reading the time.
        */}
-      <div className="flex w-[92px] shrink-0 flex-col items-center gap-1 text-center">
+      <div className="flex w-[104px] shrink-0 flex-col items-center gap-1 text-center">
         {config.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={config.logoUrl} alt={config.name} className="h-16 w-full object-contain" />
