@@ -134,36 +134,48 @@ export default buildConfig({
       // has no IPv6 address to race against. That pointed at the override itself silently breaking
       // every connection attempt (rather than any real unreachable address), so it's removed here;
       // the pooler host's own IPv4-only DNS answer makes Node's default connect behavior sufficient.
-      // Unset, this defaults to pg's own connectionTimeoutMillis: 0 -- an exhausted or stalled
-      // pool then waits forever instead of failing fast. Raising max didn't resolve the sustained
-      // local slowness on investigation (see conversation), so that's left at pg's own default;
-      // this timeout at least turns a silent multi-second hang into a fast, diagnosable error.
+      // WHAT WAS ACTUALLY WRONG (2026-09-08). For a day and a half this pool produced
+      // "timeout exceeded when trying to connect" on most requests, and every theory that blamed
+      // Supabase (IPv6, credentials, compute size, SSL, pooler health) turned out to be wrong.
+      // A diagnostic route (/api/db-ping, temporary) measured four things from inside the same
+      // Vercel function, at the same moment, on this same DATABASE_URL:
       //
-      // Raised from 10s to 20s -- Vercel's build machine runs in Washington D.C. (iad1) while this
-      // Supabase project is in London (eu-west-2), giving every connection real cross-Atlantic
-      // latency on top of Nano's limited CPU for the TLS/auth handshake. 20s gives a marginal
-      // connection more room to succeed instead of being killed just as it was about to.
+      //   bare pg Client         ok,   588 ms
+      //   raw pg Pool, max 1     ok,   629 ms   (two concurrent queries)
+      //   raw pg Pool, max 5     ok,   555 ms
+      //   THIS pool (Payload)    FAILED, 20,523 ms
       //
-      // idleTimeoutMillis raised from 10s to 60s: production logs (2026-09-07) showed /admin/login
-      // failing with this same "timeout exceeded" on every request while /admin and /api/users/me
-      // succeeded moments apart on the same deployment -- the pool was closing the one connection
-      // for being idle >10s, so any route not hit within that window paid the full cross-Atlantic
-      // handshake cost again and sometimes lost the race against connectionTimeoutMillis. 60s keeps
-      // a warm connection alive across normal admin-panel click-to-click gaps instead of tearing it
-      // down between almost every request.
-      idleTimeoutMillis: 60_000,
+      // ...while this pool's own counters read `total: 1, idle: 0`. So the network and the pooler
+      // were never the problem: this pool was holding its single connection and never getting it
+      // back. Every later query queued behind it and gave up after connectionTimeoutMillis.
+      //
+      // The trap is that node-postgres uses the wording "timeout exceeded when trying to connect"
+      // for BOTH a failed handshake and a pool-queue timeout. It reads like a network fault and
+      // isn't one. The tell is the timing: a queue timeout lands on connectionTimeoutMillis to the
+      // millisecond (20,001 ms), where a real handshake failure varies.
+      //
+      // Cause: Vercel freezes an instance between invocations. A connection still open at freeze
+      // time is dead when the instance thaws, but the pool still counts it. Three settings below
+      // are what keep that from being fatal.
+      //
+      // idleTimeoutMillis, back down to 10s from the 60s tried on 2026-09-07. That 60s change was
+      // meant to keep a connection warm between admin clicks; what it actually did was hold
+      // connections open long enough to be caught by a freeze, which is what turned an occasional
+      // failure into a constant one.
+      idleTimeoutMillis: 10_000,
+      // Drop idle clients rather than keeping them (and the pool) alive between invocations --
+      // the recommended posture for serverless, and the counterpart to the short idle timeout.
+      allowExitOnIdle: true,
       connectionTimeoutMillis: 20_000,
-      // Reverted from 3 back to 1: raising it was based on a wrong assumption that Micro's compute
-      // upgrade raised the session pooler's own client ceiling. It doesn't -- production logs
-      // immediately after deploying max: 3 showed "(EMAXCONNSESSION) max clients reached in
-      // session mode - max clients are limited to pool_size: 15", a hard cap on Supavisor's
-      // session-mode pooler that's independent of compute tier. With force-dynamic on every page,
-      // real concurrent traffic across many Vercel instances blew through 15 total slots almost
-      // immediately (Vercel's own monitoring flagged a 5xx spike: 116 failed requests in 5 minutes
-      // against a 2/day baseline). max: 1 keeps each instance's own footprint as small as possible
-      // against that shared, fixed budget -- the actual fix for concurrency under this pooler mode
-      // is switching to transaction-mode pooling, not raising this number.
-      max: 1,
+      // Not 1. At max: 1 a single dead-on-thaw connection starves the instance permanently, which
+      // is exactly what was happening. Kept modest rather than large because DATABASE_URL points
+      // at Supabase's *session* pooler, where each client holds a backend connection for the whole
+      // session and the ceiling is therefore the pool size (15) -- max: 3 briefly hit
+      // "(EMAXCONNSESSION) max clients reached in session mode" on 2026-09-07 under load, though
+      // that was also while SSL was misconfigured and connections were churning. If concurrency
+      // ever needs to go higher than this, the answer is transaction-mode pooling (port 6543),
+      // not a bigger number here.
+      max: 3,
     },
   }),
   sharp,
