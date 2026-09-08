@@ -84,13 +84,13 @@ export default async function ScoreGroupsPage() {
   return (
     <div className="flex min-h-screen flex-col gap-6 p-5">
       <div className="flex flex-col gap-1">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/60">The Legs Open · Admin</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-foreground/70">The Legs Open · Admin</p>
         <h1 className="font-display text-2xl font-bold">{championship ? `${championship.year} — Select a Group` : "Select a Group"}</h1>
       </div>
       {groups.length > 0 ? <GroupPicker groups={groups} /> : null}
       {practiceGroups.length > 0 ? (
         <div className="flex flex-col gap-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/60">Practice Rounds</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-foreground/70">Practice Rounds</p>
           <GroupPicker groups={practiceGroups} />
         </div>
       ) : null}

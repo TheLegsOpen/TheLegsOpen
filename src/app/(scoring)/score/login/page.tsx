@@ -16,7 +16,7 @@ export default async function ScoreLoginPage() {
       ) : (
         <span className="flex h-16 w-16 items-center justify-center rounded-full border border-primary-foreground/30 text-lg">LO</span>
       )}
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary-foreground/60">The Legs Open · On-Course Scoring</p>
+      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary-foreground/60">The Legs Open · On-Course Scoring</p>
       <PinLoginForm />
     </div>
   );

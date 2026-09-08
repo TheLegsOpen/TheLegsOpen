@@ -15,7 +15,7 @@ export interface ScoreboardData {
 // top border) so this reads as the same leaderboard, just in the scoring app's own shell.
 // Duplicated as literals rather than imported, to keep this offline-first bundle free of
 // leaderboard-table's framer-motion/lucide-react dependencies.
-const TILE_CLASS = "inline-block min-w-[2.75rem] px-2 py-1 text-xs font-bold tabular-nums border-t-[3px] border-black/15";
+const TILE_CLASS = "inline-block min-w-[2.75rem] px-2.5 py-1.5 text-sm font-bold tabular-nums border-t-[3px] border-black/15";
 const NEUTRAL_TILE = "bg-[#FFD062] text-black";
 const NR_TILE = "bg-[#B0B0B0] text-[#08325A]";
 
@@ -54,13 +54,13 @@ function Table({
   colorByPar: boolean;
 }) {
   if (entries.length === 0) {
-    return <p className="py-10 text-center text-sm text-primary-foreground/60">No scores yet.</p>;
+    return <p className="py-10 text-center text-base text-primary-foreground/70">No scores yet.</p>;
   }
   return (
     <div className="overflow-x-auto border border-primary-foreground/15 bg-primary">
-      <table className="w-full border-collapse text-sm">
+      <table className="w-full border-collapse text-base">
         <thead>
-          <tr className="border-b border-primary-foreground/15 bg-primary-foreground/5 text-left text-xs uppercase tracking-wide text-primary-foreground/60">
+          <tr className="border-b border-primary-foreground/15 bg-primary-foreground/5 text-left text-sm uppercase tracking-wide text-primary-foreground/70">
             <th className="px-2 py-3">Pos</th>
             <th className="px-2 py-3">Player</th>
             <th className="px-2 py-3 text-right">Thru</th>

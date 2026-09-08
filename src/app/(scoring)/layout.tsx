@@ -82,8 +82,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // Deliberately no maximumScale / userScalable: false. Locking zoom is a habit borrowed from
+  // app-like shells, but this one is used outdoors, in sunlight, at arm's length, by players who
+  // may not have reading glasses on them. Blocking pinch-to-zoom removes their one workaround,
+  // and fails WCAG 1.4.4 into the bargain.
 };
 
 /**

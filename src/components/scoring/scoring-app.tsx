@@ -169,7 +169,7 @@ export function ScoringApp({ group, canSwitchGroup = false }: { group: ScoringGr
               type="button"
               onClick={() => jumpToHole(i + 1)}
               className={cn(
-                "flex h-12 flex-col items-center justify-center rounded-md border font-display text-sm font-bold",
+                "flex h-12 flex-col items-center justify-center rounded-md border font-display text-base font-bold",
                 status === "complete" && "border-primary bg-primary text-primary-foreground",
                 status === "partial" && "border-accent bg-accent/20 text-foreground",
                 status === "empty" && "border-border text-muted-foreground",
@@ -190,7 +190,7 @@ export function ScoringApp({ group, canSwitchGroup = false }: { group: ScoringGr
       <div className="flex h-dvh flex-col gap-6 p-5">
         <header className="flex shrink-0 items-center justify-between">
           <div>
-            <p className="text-xs uppercase tracking-wide text-primary-foreground/60">{group.groupLabel}</p>
+            <p className="text-sm uppercase tracking-wide text-primary-foreground/70">{group.groupLabel}</p>
             <h1 className="font-display text-xl font-bold">{view === "turn-review" ? "Front 9 review" : "Round complete -- review"}</h1>
           </div>
           <div className="flex items-center gap-3">
@@ -200,9 +200,9 @@ export function ScoringApp({ group, canSwitchGroup = false }: { group: ScoringGr
         </header>
 
         <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-primary-foreground/15">
-          <table className="w-full min-w-[420px] border-collapse text-sm">
+          <table className="w-full min-w-[520px] border-collapse text-base">
             <thead>
-              <tr className="border-b border-primary-foreground/15 text-left text-xs uppercase tracking-wide text-primary-foreground/60">
+              <tr className="border-b border-primary-foreground/15 text-left text-sm uppercase tracking-wide text-primary-foreground/70">
                 <th className="px-3 py-2">Player</th>
                 {Array.from({ length: upTo }, (_, i) => (
                   <th key={i} className="px-2 py-2 text-center">
@@ -244,7 +244,7 @@ export function ScoringApp({ group, canSwitchGroup = false }: { group: ScoringGr
           </Button>
         ) : (
           <div className="flex shrink-0 flex-col gap-3">
-            <p className="text-center text-sm text-primary-foreground/70">Tap any score above to go back and correct it.</p>
+            <p className="text-center text-base text-primary-foreground/70">Tap any score above to go back and correct it.</p>
             <Button asChild variant="accent" size="lg" className="w-full uppercase tracking-wide">
               <Link href="/score/leaderboard">Confirm &amp; View Leaderboard</Link>
             </Button>
@@ -258,13 +258,13 @@ export function ScoringApp({ group, canSwitchGroup = false }: { group: ScoringGr
     <div className="flex h-dvh flex-col gap-6 p-5">
       <header className="flex shrink-0 items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-wide text-primary-foreground/60">{group.groupLabel}</p>
+          <p className="text-sm uppercase tracking-wide text-primary-foreground/70">{group.groupLabel}</p>
           <h1 className="font-display text-2xl font-bold">{ordinal(currentHole)} hole</h1>
           {holeInfo ? <p className="text-base font-normal text-primary-foreground/70">Par {holeInfo.par} · SI {holeInfo.si}</p> : null}
         </div>
         <div className="flex items-center gap-3">
           <SyncStatus pendingCount={pendingCount} syncing={syncing} />
-          <Link href="/score/leaderboard" className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/70 hover:text-primary-foreground">
+          <Link href="/score/leaderboard" className="text-sm font-semibold uppercase tracking-wide text-primary-foreground/70 hover:text-primary-foreground">
             Leaderboard
           </Link>
           {canSwitchGroup ? <SwitchGroupLink /> : null}
@@ -342,7 +342,7 @@ export function ScoringApp({ group, canSwitchGroup = false }: { group: ScoringGr
 
 function SwitchGroupLink() {
   return (
-    <Link href="/score/groups" className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/70 hover:text-primary-foreground">
+    <Link href="/score/groups" className="text-sm font-semibold uppercase tracking-wide text-primary-foreground/70 hover:text-primary-foreground">
       Switch Group
     </Link>
   );
@@ -351,10 +351,10 @@ function SwitchGroupLink() {
 /** Never blocks -- purely informational. A scorer's progress never waits on this. */
 function SyncStatus({ pendingCount, syncing }: { pendingCount: number; syncing: boolean }) {
   if (pendingCount === 0 && !syncing) {
-    return <span className="text-xs font-semibold uppercase tracking-wide text-primary-foreground/40">Synced</span>;
+    return <span className="text-sm font-semibold uppercase tracking-wide text-primary-foreground/50">Synced</span>;
   }
   return (
-    <span className={cn("text-xs font-semibold uppercase tracking-wide", pendingCount > 0 ? "text-accent" : "text-primary-foreground/60")}>
+    <span className={cn("text-sm font-semibold uppercase tracking-wide", pendingCount > 0 ? "text-accent" : "text-primary-foreground/60")}>
       {syncing ? "Syncing…" : `${pendingCount} pending`}
     </span>
   );
