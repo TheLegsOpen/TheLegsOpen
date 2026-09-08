@@ -229,7 +229,15 @@ export const Scorecards: CollectionConfig = {
           // Championship cards play off Championship Handicap, practice cards off Practice
           // Handicap -- the two are calculated separately (see Players.ts) precisely so a
           // player's practice-day scoring never touches or depends on their live championship number.
-          const handicap = championshipId ? (player.championshipHandicap ?? 0) : (player.practiceHandicap ?? 0);
+          // Practice cards play off Practice Handicap, championship cards off Championship
+          // Handicap. Practice falls back to the championship number rather than straight to 0:
+          // practiceHandicap is only populated once a player is saved *and* the practice venue has
+          // its Course Rating/Slope/Par filled in, so an unconfigured practice round would
+          // otherwise silently score the whole field off scratch -- a 22 handicap posting ~10
+          // Stableford points instead of ~36, with nothing on screen looking wrong.
+          const handicap = championshipId
+            ? (player.championshipHandicap ?? 0)
+            : (player.practiceHandicap ?? player.championshipHandicap ?? 0);
           const totals = computeScorecardTotals(strokes, noReturn, holeInfos, handicap);
 
           data.holesCompleted = totals.holesCompleted;

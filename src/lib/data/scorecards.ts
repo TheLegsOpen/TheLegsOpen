@@ -371,7 +371,10 @@ export async function getPracticeLeaderboard(teeTimeRoundId: string, req?: Paylo
     }
   }
 
-  return buildLeaderboardFromDocs("stableford", holeInfos, result.docs, teeTimeByPlayer, (p) => p.practiceHandicap ?? 0);
+  // Same fallback as Scorecards.ts's own handicap resolution -- see the comment there for why an
+  // unset practice handicap must not mean scratch. Kept identical so the leaderboard can never
+  // disagree with the totals stored on the scorecards themselves.
+  return buildLeaderboardFromDocs("stableford", holeInfos, result.docs, teeTimeByPlayer, (p) => p.practiceHandicap ?? p.championshipHandicap ?? 0);
 }
 
 export interface LeaderboardSnapshotPair {

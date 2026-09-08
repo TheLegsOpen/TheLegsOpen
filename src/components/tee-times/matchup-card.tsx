@@ -43,7 +43,9 @@ function PlayerChip({
   onSelectPlayer: (playerId: string) => void;
 }) {
   const { firstName, surname } = splitSurnameFirst(player.name);
-  const handicap = roundType === "Practice" ? player.practiceHandicap : player.championshipHandicap;
+  // Mirrors the fallback used when scoring a practice card (see Scorecards.ts) so the number shown
+  // beside a player is always the one their score is actually calculated from.
+  const handicap = roundType === "Practice" ? (player.practiceHandicap ?? player.championshipHandicap) : player.championshipHandicap;
 
   return (
     <div className="flex flex-1 items-center justify-between gap-4">
