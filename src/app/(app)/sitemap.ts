@@ -28,8 +28,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/field",
     "/previous-opens",
     "/latest",
-    "/club",
-    "/contact",
     "/media",
     "/patrons-and-suppliers",
     "/careers",

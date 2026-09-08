@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, Search, User } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/shared/container";
@@ -89,17 +89,6 @@ export function Header({ logoUrl, venueLinks }: { logoUrl?: string; venueLinks?:
             className="text-primary-foreground hover:bg-primary-foreground/10 hover:text-accent"
           >
             <Search className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="The Clubhouse account"
-            asChild
-            className="hidden text-primary-foreground hover:bg-primary-foreground/10 hover:text-accent sm:inline-flex"
-          >
-            <Link href="/club">
-              <User className="h-5 w-5" />
-            </Link>
           </Button>
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>

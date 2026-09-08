@@ -6,14 +6,10 @@ export const PRIMARY_NAV: NavSection[] = [
   { label: "Records", href: "/records" },
 ];
 
-export const SECONDARY_NAV: NavSection[] = [{ label: "The Clubhouse", href: "/club" }];
+/** Reserved for a second tier of top-bar links. Empty since The Clubhouse was removed; the header
+ * and the panel both skip it while there is nothing in it. */
+export const SECONDARY_NAV: NavSection[] = [];
 
-/**
- * Content for the single comprehensive slide-in panel (opened via the
- * hamburger icon, shown on every viewport size) rather than per-item hover
- * mega-menus — matches the reference site's actual nav pattern, where the
- * top bar is direct links and deeper IA lives in one panel.
- */
 /**
  * The panel's groups, with the "Venues" group supplied at render time.
  *
@@ -33,18 +29,14 @@ export function buildNavPanel(venueLinks: NavLink[] = []): NavPanelGroup[] {
       ],
       emphasis: true,
     },
-    {
-      links: SECONDARY_NAV,
-      emphasis: true,
-    },
+    ...(SECONDARY_NAV.length > 0 ? [{ links: SECONDARY_NAV, emphasis: true }] : []),
     ...(venueLinks.length > 0 ? [{ heading: "Venues", links: venueLinks, emphasis: true }] : []),
     {
       links: [
         { label: "All Venues", href: "/venues" },
         { label: "Field", href: "/field" },
         { label: "Previous Opens", href: "/previous-opens" },
-        { label: "Contact Us", href: "/contact" },
-      ],
+        ],
     },
   ];
 }
@@ -57,7 +49,6 @@ export function buildNavPanel(venueLinks: NavLink[] = []): NavPanelGroup[] {
  */
 export function buildFooterLinks(legalLinks: NavLink[] = []): NavLink[] {
   return [
-    { label: "Contact Us", href: "/contact" },
     { label: "Media Centre", href: "/media" },
     { label: "Patrons & Suppliers", href: "/patrons-and-suppliers" },
     { label: "Careers", href: "/careers" },

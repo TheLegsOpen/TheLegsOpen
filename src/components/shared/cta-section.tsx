@@ -8,7 +8,9 @@ interface CTASectionProps {
   eyebrow?: string;
   title: string;
   description?: string;
-  primaryAction: { label: string; href: string };
+  /** Optional: with no primary action the CTA still renders its heading and copy, which is what
+   * the careers and media pages need while the contact page is withdrawn. */
+  primaryAction?: { label: string; href: string };
   secondaryAction?: { label: string; href: string };
   tone?: "primary" | "muted";
   className?: string;
@@ -44,9 +46,11 @@ export function CTASection({
           ) : null}
         </div>
         <div className="flex shrink-0 flex-wrap gap-3">
-          <Button asChild variant="accent" size="lg">
-            <Link href={primaryAction.href}>{primaryAction.label}</Link>
-          </Button>
+          {primaryAction ? (
+            <Button asChild variant="accent" size="lg">
+              <Link href={primaryAction.href}>{primaryAction.label}</Link>
+            </Button>
+          ) : null}
           {secondaryAction ? (
             <Button
               asChild

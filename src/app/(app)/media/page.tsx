@@ -50,7 +50,6 @@ export default async function MediaPage() {
       <CTASection
         title={settings.ctaTitle}
         description={settings.ctaDescription}
-        primaryAction={{ label: settings.ctaButtonLabel, href: "/contact" }}
         tone="muted"
       />
     </>

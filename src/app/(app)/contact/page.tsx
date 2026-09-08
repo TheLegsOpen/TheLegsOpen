@@ -1,33 +1,18 @@
-import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
-import { PageHero } from "@/components/shared/page-hero";
-import { Container } from "@/components/shared/container";
-import { ContactForm } from "@/components/contact/contact-form";
-import { getContactPageSettings } from "@/lib/data/contact-page";
-import { getSeoSettings } from "@/lib/data/seo-settings";
-
-// See src/app/(app)/page.tsx for why this route is force-dynamic.
-export const dynamic = "force-dynamic";
-
-export async function generateMetadata(): Promise<Metadata> {
-  const seo = await getSeoSettings();
-  return { title: seo.contact.title, description: seo.contact.description };
-}
-
-export default async function ContactPage() {
-  const settings = await getContactPageSettings();
-
-  return (
-    <>
-      <PageHero
-        eyebrow={settings.heroEyebrow}
-        title={settings.heroTitle}
-        description={settings.heroDescription}
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Contact Us" }]}
-      />
-      <Container className="max-w-xl py-16 sm:py-24">
-        <ContactForm />
-      </Container>
-    </>
-  );
+/**
+ * Contact page, temporarily withdrawn (2026-09-08).
+ *
+ * Not simply unlinked: the form behind it never sent anything. src/app/(app)/api/contact/route.ts
+ * validated the submission, waited, and returned success without emailing or storing a word of it,
+ * so anyone who used it believed they had been in touch when they had not. Leaving the page
+ * reachable by URL would have kept that happening quietly.
+ *
+ * To bring it back: restore this file from git (the previous commit has the real page), re-add
+ * "/contact" to sitemap.ts and the Contact Us links to data/navigation.ts, and make the API route
+ * actually deliver -- see the notes in that file. The Privacy Policy also needs a line about
+ * contact-form handling once it does.
+ */
+export default function ContactPage() {
+  notFound();
 }

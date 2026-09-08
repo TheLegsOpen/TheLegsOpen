@@ -64,7 +64,6 @@ export default async function CareersPage() {
       <CTASection
         title={settings.ctaTitle}
         description={settings.ctaDescription}
-        primaryAction={{ label: settings.ctaButtonLabel, href: "/contact" }}
         tone="muted"
       />
     </>

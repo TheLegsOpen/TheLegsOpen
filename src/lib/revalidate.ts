@@ -42,7 +42,6 @@ export function revalidateSeoSettings() {
     "/live-blog",
     "/latest",
     "/previous-opens",
-    "/club",
     "/patrons-and-suppliers",
     "/careers",
     "/media",
