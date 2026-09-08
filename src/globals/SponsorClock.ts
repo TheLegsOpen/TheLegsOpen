@@ -34,7 +34,7 @@ export const SponsorClock: GlobalConfig = {
           relationTo: "media",
           admin: {
             description:
-              "Optional. Shown next to the sponsor name instead of relying on text alone. Recommended: transparent PNG or SVG, roughly 400×100px landscape wordmark.",
+              "Optional. Shown instead of the sponsor name. Displayed inside a 92×64px box and scaled to fit, so a squarish mark (e.g. 300×200px) fills it best -- a very wide, short wordmark will be limited by the width and end up thin. Transparent PNG or SVG.",
           },
         },
         {

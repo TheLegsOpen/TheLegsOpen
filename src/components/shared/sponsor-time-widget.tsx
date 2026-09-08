@@ -136,36 +136,46 @@ export function SponsorTimeWidget({ config }: { config: SponsorClock }) {
   const localTime = now ? new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(now) : "--:--";
 
   return (
-    <div className="flex h-full items-center justify-between gap-3 px-5 py-5 text-white" style={{ background: config.faceColor }}>
-      <div className="flex min-w-0 flex-col items-center gap-1 text-center">
+    <div className="flex h-full items-center justify-between gap-2.5 px-4 py-5 text-white" style={{ background: config.faceColor }}>
+      {/*
+       * Fixed width, and explicitly shrink-0. This column used to be the only flexible one in the
+       * row -- the clock and the time block were both shrink-0 -- so they took the width they
+       * wanted and the sponsor's wordmark was left with whatever remained. In the sidebar that came
+       * to 10px wide at desktop widths: the logo was there, but far too small to read. The row is
+       * only ~285px of usable width, so the three columns have to be budgeted deliberately rather
+       * than letting one absorb everything.
+       */}
+      <div className="flex w-[92px] shrink-0 flex-col items-center gap-1 text-center">
         {config.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={config.logoUrl} alt={config.name} className="h-12 w-28 object-contain" />
+          <img src={config.logoUrl} alt={config.name} className="h-16 w-full object-contain" />
         ) : (
-          <p className="font-menu text-sm font-bold uppercase tracking-wide">{config.name}</p>
+          <p className="font-menu text-sm font-bold uppercase leading-tight tracking-wide">{config.name}</p>
         )}
-        {config.tagline ? <p className="text-[10px] uppercase tracking-[0.14em] text-white/50">{config.tagline}</p> : null}
+        {config.tagline ? <p className="text-[10px] uppercase leading-tight tracking-[0.14em] text-white/50">{config.tagline}</p> : null}
       </div>
 
       <AnalogClock date={now} config={config} />
 
+      {/* Now the flexible column: a long venue name wraps onto a second line, which there is room
+       * for vertically, rather than squeezing the logo horizontally. */}
       <div
-        className="flex shrink-0 flex-col gap-1.5"
+        className="flex min-w-0 flex-col gap-1.5"
         style={config.clockFont === "timekeeper" ? { fontFamily: "var(--font-timekeeper)" } : undefined}
       >
         <div>
-          <p className="text-xs uppercase tracking-wide" style={{ color: "#E8B04B" }}>
+          <p className="text-[11px] uppercase leading-tight tracking-[0.04em]" style={{ color: "#E8B04B" }}>
             {config.venueName}
           </p>
-          <p className={cn("text-xs font-bold tabular-nums leading-tight", config.clockFont !== "timekeeper" && "font-display")}>
+          <p className={cn("text-[11px] font-bold tabular-nums leading-tight", config.clockFont !== "timekeeper" && "font-display")}>
             {venueTime}
           </p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wide" style={{ color: "#E8B04B" }}>
+          <p className="text-[11px] uppercase leading-tight tracking-[0.04em]" style={{ color: "#E8B04B" }}>
             Your time
           </p>
-          <p className={cn("text-xs font-bold tabular-nums leading-tight", config.clockFont !== "timekeeper" && "font-display")}>
+          <p className={cn("text-[11px] font-bold tabular-nums leading-tight", config.clockFont !== "timekeeper" && "font-display")}>
             {localTime}
           </p>
         </div>
