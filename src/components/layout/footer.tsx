@@ -2,7 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { Container } from "@/components/shared/container";
-import { FOOTER_LINKS } from "@/data/navigation";
+import { buildFooterLinks } from "@/data/navigation";
+import type { NavLink } from "@/types/nav";
 import { SITE } from "@/constants/site";
 import type { SponsorEntry } from "@/lib/data/sponsors";
 import type { SocialLink } from "@/lib/data/social-links";
@@ -45,9 +46,11 @@ interface FooterProps {
   patrons: SponsorEntry[];
   officialSuppliers: SponsorEntry[];
   socialLinks: SocialLink[];
+  legalLinks?: NavLink[];
 }
 
-export function Footer({ logoUrl, patrons, officialSuppliers, socialLinks }: FooterProps) {
+export function Footer({ logoUrl, patrons, officialSuppliers, socialLinks, legalLinks = [] }: FooterProps) {
+  const footerLinks = buildFooterLinks(legalLinks);
   return (
     <footer className="border-t border-border bg-primary text-primary-foreground">
       <Container className="flex flex-col items-center gap-6 py-14 text-center">
@@ -67,7 +70,7 @@ export function Footer({ logoUrl, patrons, officialSuppliers, socialLinks }: Foo
       <div className="border-t border-primary-foreground/10">
         <Container className="flex flex-col gap-6 py-8 text-xs text-primary-foreground/70 sm:flex-row sm:items-center sm:justify-between">
           <ul className="flex flex-wrap items-center justify-center gap-y-2 sm:justify-start">
-            {FOOTER_LINKS.map((link, index) => (
+            {footerLinks.map((link, index) => (
               <li key={link.label} className="flex items-center">
                 {index > 0 ? (
                   <span className="px-2 text-primary-foreground/25" aria-hidden="true">

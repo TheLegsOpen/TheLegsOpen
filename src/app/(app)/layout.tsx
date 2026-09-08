@@ -12,6 +12,7 @@ import { getSponsors } from "@/lib/data/sponsors";
 import { getSocialLinks } from "@/lib/data/social-links";
 import { getCookieBannerText } from "@/lib/data/cookie-banner";
 import { getMenuVenueLinks } from "@/lib/data/championships";
+import { getFooterLegalLinks } from "@/lib/data/legal";
 import { hexToHslTriplet } from "@/lib/utils";
 
 import "./globals.css";
@@ -112,12 +113,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [theme, sponsors, socialLinks, cookieBannerText, venueLinks] = await Promise.all([
+  const [theme, sponsors, socialLinks, cookieBannerText, venueLinks, legalLinks] = await Promise.all([
     getSiteTheme(),
     getSponsors(),
     getSocialLinks(),
     getCookieBannerText(),
     getMenuVenueLinks(),
+    getFooterLegalLinks(),
   ]);
   const fontVars = FONT_PRESET_VARS[theme.fontPreset];
 
@@ -150,6 +152,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             patrons={sponsors.patrons}
             officialSuppliers={sponsors.officialSuppliers}
             socialLinks={socialLinks}
+            legalLinks={legalLinks}
           />
           <CookieBanner logoUrl={theme.logoUrl} {...cookieBannerText} />
         </MotionProvider>

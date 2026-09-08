@@ -49,14 +49,18 @@ export function buildNavPanel(venueLinks: NavLink[] = []): NavPanelGroup[] {
   ];
 }
 
-/** Support + legal links shown as a single side-by-side row in the footer's bottom bar. */
-export const FOOTER_LINKS: NavLink[] = [
-  { label: "Contact Us", href: "/contact" },
-  { label: "Media Centre", href: "/media" },
-  { label: "Patrons & Suppliers", href: "/patrons-and-suppliers" },
-  { label: "Careers", href: "/careers" },
-  { label: "Privacy Policy", href: "/legal/privacy-policy" },
-  { label: "Cookie Policy", href: "/legal/cookie-policy" },
-  { label: "Website Terms", href: "/legal/website-terms" },
-  { label: "Modern Slavery Statement", href: "/legal/modern-slavery-statement" },
-];
+/**
+ * The footer's bottom bar: the site's own fixed pages, then whichever legal pages exist.
+ *
+ * The legal half used to be hardcoded here, so deleting a legal page in the admin left a link
+ * behind pointing at a 404. It is now supplied at render time -- see getFooterLegalLinks.
+ */
+export function buildFooterLinks(legalLinks: NavLink[] = []): NavLink[] {
+  return [
+    { label: "Contact Us", href: "/contact" },
+    { label: "Media Centre", href: "/media" },
+    { label: "Patrons & Suppliers", href: "/patrons-and-suppliers" },
+    { label: "Careers", href: "/careers" },
+    ...legalLinks,
+  ];
+}
