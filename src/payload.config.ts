@@ -52,6 +52,41 @@ import { SEOSettings } from "./globals/SEOSettings";
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
+/**
+ * Forces DATABASE_URL onto Supavisor's transaction-mode port (6543) instead of session mode (5432).
+ *
+ * Session mode hands every client its own backend connection for the whole session, so the ceiling
+ * is the pool size -- 15 on this project. That is unworkable on Vercel: instances are frozen
+ * between invocations rather than shut down, so each one keeps holding its connections instead of
+ * releasing them, and they accumulate across instances until everything fails with
+ * "(EMAXCONNSESSION) max clients reached in session mode". Neither pool size helps -- max: 1 lets a
+ * single connection that died during a freeze starve an instance permanently, and max: 3 hits the
+ * 15-client ceiling under real traffic. Both were observed in production on 2026-09-07/08.
+ *
+ * Transaction mode multiplexes many clients over few backend connections and allows 200 clients,
+ * which is the pattern serverless needs. Confirmed reachable on the same shared pooler host, over
+ * IPv4, at ~570ms -- no dedicated pooler and no paid IPv4 add-on required (see /api/db-ping).
+ *
+ * Done here rather than by editing DATABASE_URL so the credential itself never has to be re-entered
+ * (a re-paste is what caused an outage on 2026-09-07). Only the port is rewritten; if the env var
+ * is ever pointed at 6543 directly this becomes a no-op. Falls back to the raw value unchanged if
+ * it can't be parsed, so a malformed URL fails loudly at connect time rather than silently here.
+ */
+function transactionPoolerConnectionString(): string {
+  const raw = process.env.DATABASE_URL || "";
+  if (!raw) return "";
+  try {
+    const url = new URL(raw);
+    // Only rewrite Supavisor's own pooler host. A direct-connection or non-Supabase host has no
+    // 6543 endpoint, and silently redirecting it would be worse than leaving it alone.
+    if (!url.hostname.includes("pooler.supabase.com")) return raw;
+    url.port = "6543";
+    return url.toString();
+  } catch {
+    return raw;
+  }
+}
+
 export default buildConfig({
   admin: {
     user: Users.slug,
@@ -116,7 +151,7 @@ export default buildConfig({
   },
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URL || "",
+      connectionString: transactionPoolerConnectionString(),
       // Required now that "Enforce SSL on incoming connections" is on in Supabase (2026-09-07,
       // following their support's diagnosis of "could not accept SSL connection: EOF detected" in
       // their Postgres logs) -- without this, pg never attempts SSL at all, and the pooler now
