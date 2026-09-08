@@ -4,8 +4,16 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { loadGraphicFonts } from "@/lib/og-fonts";
-import { TeeGraphic, GRAPHIC_WIDTH, GRAPHIC_HEIGHT, photoCellSize, type TeeGraphicData } from "@/lib/tee-graphic-layout";
-import { preparePhoto } from "@/lib/tee-graphic-photos";
+import {
+  TeeGraphic,
+  GRAPHIC_WIDTH,
+  GRAPHIC_HEIGHT,
+  photoCellSize,
+  SPONSOR_LOGO_BOX,
+  SITE_LOGO_BOX,
+  type TeeGraphicData,
+} from "@/lib/tee-graphic-layout";
+import { preparePhoto, prepareLogo } from "@/lib/tee-graphic-photos";
 import type { Player, TeeTimeRound, Venue } from "@/payload-types";
 
 /**
@@ -81,6 +89,21 @@ export async function GET(request: NextRequest) {
     if (index >= 0) editionLabel = `THE ${ordinal(index + 1)} LEGS OPEN`;
   }
 
+  // Both marks are read from the globals that already drive them elsewhere on the site, so
+  // changing a sponsor or the site logo in the admin carries through here with no extra step.
+  const [sponsorClock, siteTheme] = await Promise.all([
+    payload.findGlobal({ slug: "sponsor-clock", depth: 1 }).catch(() => undefined),
+    payload.findGlobal({ slug: "site-theme", depth: 1 }).catch(() => undefined),
+  ]);
+
+  const sponsorLogo = (sponsorClock as { sponsor?: { logo?: { url?: string } } } | undefined)?.sponsor?.logo;
+  const siteLogo = (siteTheme as { branding?: { logo?: { url?: string } } } | undefined)?.branding?.logo;
+
+  const [sponsorLogoUrl, siteLogoUrl] = await Promise.all([
+    sponsorLogo?.url ? prepareLogo(`${origin}${sponsorLogo.url}`, SPONSOR_LOGO_BOX.width, SPONSOR_LOGO_BOX.height) : undefined,
+    siteLogo?.url ? prepareLogo(`${origin}${siteLogo.url}`, SITE_LOGO_BOX.width, SITE_LOGO_BOX.height) : undefined,
+  ]);
+
   const data: TeeGraphicData = {
     editionLabel,
     venueName: venue?.name ?? "",
@@ -88,8 +111,9 @@ export async function GET(request: NextRequest) {
     gameNumber,
     time: (group.time ?? "").replace(".", ":"),
     tee: (group.tee ?? "1st").toUpperCase(),
-    heading: round.round === "Practice" ? ["PRACTICE", "ROUND"] : ["FEATURED", "GROUP"],
     players,
+    sponsorLogoUrl,
+    siteLogoUrl,
   };
 
   const fonts = await loadGraphicFonts();

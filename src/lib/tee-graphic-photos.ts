@@ -35,3 +35,30 @@ export async function preparePhoto(url: string, width: number, height: number): 
     return undefined;
   }
 }
+
+/**
+ * Same idea for a logo, but fitted inside its box rather than cropped to fill it, and kept as a PNG
+ * so transparency survives -- these sit on navy, and a JPEG would box them in black.
+ *
+ * This matters more than for photos: the sponsor mark is an SVG and the site mark a WebP, and
+ * Satori decodes neither. sharp rasterises the SVG at the size asked for, so it stays sharp.
+ */
+export async function prepareLogo(url: string, maxWidth: number, maxHeight: number): Promise<string | undefined> {
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return undefined;
+
+    const input = Buffer.from(await res.arrayBuffer());
+    const output = await sharp(input)
+      .resize(Math.round(maxWidth), Math.round(maxHeight), {
+        fit: "contain",
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      })
+      .png()
+      .toBuffer();
+
+    return `data:image/png;base64,${output.toString("base64")}`;
+  } catch {
+    return undefined;
+  }
+}

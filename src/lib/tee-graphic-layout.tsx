@@ -41,10 +41,16 @@ export interface TeeGraphicData {
   gameNumber: number;
   time: string;
   tee: string;
-  /** Two words stacked over the photos, e.g. FEATURED / GROUP. */
-  heading: [string, string];
   players: { name: string; photoUrl?: string }[];
+  /** Sponsor mark, bottom left. Omitted if the Sponsor Clock global has no logo set. */
+  sponsorLogoUrl?: string;
+  /** The Legs Open mark, bottom right. Omitted if Site Theme has no logo set. */
+  siteLogoUrl?: string;
 }
+
+/** Logo boxes, and the strip they sit in at the foot of the card. */
+export const SPONSOR_LOGO_BOX = { width: 150, height: 62 };
+export const SITE_LOGO_BOX = { width: 84, height: 66 };
 
 function PhotoRow({ photos, height }: { photos: { photoUrl?: string }[]; height: number }) {
   const cellWidth = GRAPHIC_WIDTH / Math.max(photos.length, 1);
@@ -70,31 +76,6 @@ function PhotoRow({ photos, height }: { photos: { photoUrl?: string }[]; height:
   );
 }
 
-function DisplayWord({ word, top }: { word: string; top: number }) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        position: "absolute",
-        top,
-        left: 0,
-        width: GRAPHIC_WIDTH,
-        justifyContent: "center",
-        fontFamily: "Playfair",
-        fontStyle: "italic",
-        fontWeight: 900,
-        // Deliberately oversized: the words are meant to bleed past both edges, as in the
-        // broadcast-style cards this is modelled on.
-        fontSize: 172,
-        color: "#FFFFFF",
-        lineHeight: 1,
-        whiteSpace: "nowrap",
-      }}
-    >
-      {word}
-    </div>
-  );
-}
 
 export function TeeGraphic(data: TeeGraphicData) {
   const half = Math.ceil(data.players.length / 2);
@@ -141,18 +122,16 @@ export function TeeGraphic(data: TeeGraphicData) {
         </div>
       </div>
 
-      <DisplayWord word={data.heading[0]} top={248} />
-      <DisplayWord word={data.heading[1]} top={690} />
-
-      {/* Details, on solid navy below the photos. */}
+      {/* Details, centred on solid navy below the photos. */}
       <div
         style={{
           display: "flex",
           flexDirection: "column",
+          alignItems: "center",
           position: "absolute",
-          top: PANEL_TOP + 34,
-          left: 72,
-          width: GRAPHIC_WIDTH - 144,
+          top: PANEL_TOP + 32,
+          left: 0,
+          width: GRAPHIC_WIDTH,
         }}
       >
         <div style={{ display: "flex", fontFamily: "SourceSans", fontWeight: 700, fontSize: 27, color: "rgba(255,255,255,0.8)", letterSpacing: 3 }}>
@@ -161,11 +140,21 @@ export function TeeGraphic(data: TeeGraphicData) {
         <div style={{ display: "flex", fontFamily: "SourceSans", fontWeight: 700, fontSize: 46, color: GOLD, letterSpacing: 2, marginTop: 2 }}>
           {`${data.time} · ${data.tee} TEE`}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", marginTop: 20, paddingTop: 18, borderTop: "2px solid rgba(255,255,255,0.22)" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            marginTop: 18,
+            paddingTop: 16,
+            borderTop: "2px solid rgba(255,255,255,0.22)",
+            width: 720,
+          }}
+        >
           {data.players.map((p, i) => (
             <div
               key={i}
-              style={{ display: "flex", fontFamily: "SourceSans", fontWeight: 700, fontSize: 34, color: "#FFFFFF", letterSpacing: 5, lineHeight: 1.32 }}
+              style={{ display: "flex", fontFamily: "SourceSans", fontWeight: 700, fontSize: 34, color: "#FFFFFF", letterSpacing: 5, lineHeight: 1.3 }}
             >
               {p.name.toUpperCase()}
             </div>
@@ -173,21 +162,36 @@ export function TeeGraphic(data: TeeGraphicData) {
         </div>
       </div>
 
+      {/* Sponsor left, Legs Open right, both on the same baseline at the foot of the card. */}
       <div
         style={{
           display: "flex",
+          flexDirection: "row",
+          alignItems: "flex-end",
+          justifyContent: "space-between",
           position: "absolute",
-          bottom: 38,
-          left: 0,
-          width: GRAPHIC_WIDTH,
-          justifyContent: "center",
-          fontFamily: "SourceSans",
-          fontSize: 20,
-          color: "rgba(255,255,255,0.45)",
-          letterSpacing: 6,
+          bottom: 40,
+          left: 64,
+          width: GRAPHIC_WIDTH - 128,
         }}
       >
-        THELEGSOPEN.COM
+        <div style={{ display: "flex", width: SPONSOR_LOGO_BOX.width, height: SPONSOR_LOGO_BOX.height }}>
+          {data.sponsorLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={data.sponsorLogoUrl} width={SPONSOR_LOGO_BOX.width} height={SPONSOR_LOGO_BOX.height} alt="" />
+          ) : null}
+        </div>
+
+        <div style={{ display: "flex", fontFamily: "SourceSans", fontSize: 19, color: "rgba(255,255,255,0.4)", letterSpacing: 5, marginBottom: 20 }}>
+          THELEGSOPEN.COM
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "flex-end", width: SITE_LOGO_BOX.width, height: SITE_LOGO_BOX.height }}>
+          {data.siteLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={data.siteLogoUrl} width={SITE_LOGO_BOX.width} height={SITE_LOGO_BOX.height} alt="" />
+          ) : null}
+        </div>
       </div>
     </div>
   );
