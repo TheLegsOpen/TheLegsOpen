@@ -272,15 +272,19 @@ export function ScoringApp({ group, canSwitchGroup = false }: { group: ScoringGr
         </div>
       </header>
 
+      {/* h-full + flex-1 rows: the players share whatever vertical space is going rather than
+        * sitting as fixed-height cards at the top of a very tall phone with the rest left empty.
+        * min-h keeps them usable if the space is tight; max-h stops a two-player group turning
+        * into two enormous slabs. */}
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="flex flex-col gap-3">
+        <div className="flex h-full flex-col justify-center gap-3">
           {group.players.map((p, i) => {
             const hole = holesState[p.scorecardId][currentHole - 1];
             return (
-              <div key={p.scorecardId} className="flex items-center gap-3 rounded-lg border border-primary-foreground/15 bg-primary-foreground/5 p-4">
+              <div key={p.scorecardId} className="flex min-h-[96px] max-h-[170px] flex-1 items-stretch gap-3 rounded-lg border border-primary-foreground/15 bg-primary-foreground/5 p-3">
                 <PlayerName
                   name={p.playerName}
-                  className="min-w-0 flex-1 truncate border-t-[3px] border-black/15 bg-accent px-3 py-2 text-left font-display text-lg text-accent-foreground"
+                  className="flex min-w-0 flex-1 items-center truncate border-t-[3px] border-black/15 bg-accent px-4 text-left font-display text-2xl text-accent-foreground"
                 />
                 <input
                   ref={(el) => {
@@ -307,14 +311,14 @@ export function ScoringApp({ group, canSwitchGroup = false }: { group: ScoringGr
                       }
                     }
                   }}
-                  className="h-14 w-16 rounded-md border border-primary-foreground/30 bg-primary text-center font-display text-2xl font-bold text-primary-foreground disabled:opacity-40"
+                  className="w-24 rounded-md border border-primary-foreground/30 bg-primary text-center font-display text-4xl font-bold text-primary-foreground disabled:opacity-40"
                 />
                 <button
                   type="button"
                   onClick={() => setPlayerHole(p.scorecardId, { noReturn: !hole?.noReturn, strokes: undefined })}
                   aria-pressed={hole?.noReturn}
                   className={cn(
-                    "flex h-14 w-14 items-center justify-center rounded-md border font-display text-xl font-bold",
+                    "flex w-16 items-center justify-center rounded-md border font-display text-3xl font-bold",
                     hole?.noReturn ? "border-accent bg-accent text-accent-foreground" : "border-primary-foreground/30 text-primary-foreground/60",
                   )}
                 >

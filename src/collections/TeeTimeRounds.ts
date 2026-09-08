@@ -99,12 +99,24 @@ export const TeeTimeRounds: CollectionConfig = {
               "Auto-generated -- lets this group's scorer log in to the on-course scoring app. To reset it, clear this field and save.",
             readOnly: true,
           },
+          // The collection is publicly readable so the site can render tee times, which meant this
+          // PIN was being served to anyone who asked /api/tee-time-rounds -- every group's login
+          // credential, in plain text, to the open internet. Restricted to signed-in users.
+          // Server-side lookups are unaffected: the PIN login route goes through Payload's local
+          // API, which overrides access by default.
+          access: {
+            read: ({ req }) => Boolean(req.user),
+          },
         },
         {
           name: "pinVersion",
           type: "number",
           defaultValue: 1,
           admin: { hidden: true },
+          // Same reasoning as the PIN above -- this is what invalidates issued scorer sessions.
+          access: {
+            read: ({ req }) => Boolean(req.user),
+          },
         },
       ],
     },
