@@ -14,7 +14,7 @@ import {
   type TeeGraphicData,
 } from "@/lib/tee-graphic-layout";
 import { preparePhoto, prepareLogo } from "@/lib/tee-graphic-photos";
-import type { Player, TeeTimeRound, Venue } from "@/payload-types";
+import type { Player, TeeTimeRound } from "@/payload-types";
 
 /**
  * Renders one tee-time group as a 1080x1350 PNG, ready to post to Instagram.
@@ -30,12 +30,6 @@ import type { Player, TeeTimeRound, Venue } from "@/payload-types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function ordinal(n: number): string {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0]}`;
-}
 
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return "";
@@ -77,18 +71,6 @@ export async function GET(request: NextRequest) {
     }),
   );
 
-  const venue = typeof round.venue === "object" ? (round.venue as Venue) : undefined;
-
-  // Edition is counted from every recorded championship rather than stored, matching how the rest
-  // of the site labels one (see getActiveChampionshipSummary).
-  let editionLabel = "";
-  const championshipId = typeof round.championship === "object" && round.championship ? round.championship.id : round.championship;
-  if (championshipId) {
-    const all = await payload.find({ collection: "championships", limit: 500, depth: 0, sort: "year" });
-    const index = all.docs.findIndex((d) => String(d.id) === String(championshipId));
-    if (index >= 0) editionLabel = `THE ${ordinal(index + 1)} LEGS OPEN`;
-  }
-
   // Both marks are read from the globals that already drive them elsewhere on the site, so
   // changing a sponsor or the site logo in the admin carries through here with no extra step.
   const [sponsorClock, siteTheme] = await Promise.all([
@@ -105,8 +87,6 @@ export async function GET(request: NextRequest) {
   ]);
 
   const data: TeeGraphicData = {
-    editionLabel,
-    venueName: venue?.name ?? "",
     dateLabel: formatDate(round.date),
     gameNumber,
     time: (group.time ?? "").replace(".", ":"),

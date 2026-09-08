@@ -33,9 +33,6 @@ export function photoCellSize(playerCount: number): { width: number; height: num
 }
 
 export interface TeeGraphicData {
-  /** e.g. "THE 3RD LEGS OPEN" -- omitted for a round with no championship. */
-  editionLabel: string;
-  venueName: string;
   /** e.g. "SATURDAY 12 SEPTEMBER" */
   dateLabel: string;
   gameNumber: number;
@@ -98,9 +95,10 @@ export function TeeGraphic(data: TeeGraphicData) {
         {bottomRow.length > 0 ? <PhotoRow photos={bottomRow} height={PHOTO_BLOCK_HEIGHT / 2} /> : null}
       </div>
 
-      {/* Darkening wash. Kept far lighter across the middle than the first attempt -- enough to hold
-       * white type, not so much that the players disappear -- and ramped to solid only at the very
-       * bottom so the photo block joins the details panel without a visible seam. */}
+      {/* Darkening wash, now only a light vignette at the top: the heavy band there existed to hold
+       * the masthead, and with that gone it just made the top two players darker than the bottom
+       * two for no reason. Still ramps to solid at the bottom so the photos join the details panel
+       * without a visible seam. */}
       <div
         style={{
           display: "flex",
@@ -109,18 +107,9 @@ export function TeeGraphic(data: TeeGraphicData) {
           left: 0,
           width: GRAPHIC_WIDTH,
           height: PHOTO_BLOCK_HEIGHT,
-          backgroundImage: `linear-gradient(180deg, rgba(6,5,30,0.88) 0%, rgba(6,5,30,0.18) 16%, rgba(6,5,30,0.12) 46%, rgba(6,5,30,0.55) 88%, ${NAVY} 100%)`,
+          backgroundImage: `linear-gradient(180deg, rgba(6,5,30,0.42) 0%, rgba(6,5,30,0.10) 9%, rgba(6,5,30,0.10) 46%, rgba(6,5,30,0.55) 88%, ${NAVY} 100%)`,
         }}
       />
-
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "absolute", top: 54, left: 0, width: GRAPHIC_WIDTH }}>
-        <div style={{ display: "flex", fontFamily: "Playfair", fontWeight: 700, fontSize: 34, color: "#FFFFFF", letterSpacing: 4 }}>
-          {data.editionLabel}
-        </div>
-        <div style={{ display: "flex", fontFamily: "SourceSans", fontSize: 22, color: "rgba(255,255,255,0.7)", letterSpacing: 8, marginTop: 12 }}>
-          {data.venueName.toUpperCase()}
-        </div>
-      </div>
 
       {/* Details, centred on solid navy below the photos. */}
       <div
