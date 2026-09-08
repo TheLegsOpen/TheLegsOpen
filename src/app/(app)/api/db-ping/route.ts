@@ -87,15 +87,33 @@ async function probeRawPool(max: number): Promise<ProbeResult> {
   }
 }
 
-async function probePayload(): Promise<ProbeResult> {
+async function probePayload(): Promise<ProbeResult & { stats?: unknown }> {
   const started = Date.now();
+  // node-postgres exposes live pool counters. If totalCount is at max while idleCount is 0 and
+  // waitingCount keeps climbing, the pool has a client checked out that is never being released --
+  // which produces exactly this "timeout exceeded when trying to connect" queue timeout, with no
+  // network fault involved at all.
+  const readStats = (p: unknown) => {
+    const pool = (p as { db?: { pool?: { totalCount?: number; idleCount?: number; waitingCount?: number } } })?.db?.pool;
+    if (!pool) return null;
+    return { total: pool.totalCount, idle: pool.idleCount, waiting: pool.waitingCount };
+  };
+
+  let payload: Awaited<ReturnType<typeof getPayload>> | undefined;
   try {
-    const payload = await getPayload({ config });
+    payload = await getPayload({ config });
+    const before = readStats(payload);
     await payload.count({ collection: "players" });
-    return { ok: true, ms: Date.now() - started };
+    return { ok: true, ms: Date.now() - started, stats: { before, after: readStats(payload) } };
   } catch (err) {
     const e = err as { message?: string; code?: string; cause?: { message?: string } };
-    return { ok: false, ms: Date.now() - started, error: e.cause?.message ?? e.message, code: e.code };
+    return {
+      ok: false,
+      ms: Date.now() - started,
+      error: e.cause?.message ?? e.message,
+      code: e.code,
+      stats: payload ? readStats(payload) : "payload init failed",
+    };
   }
 }
 
