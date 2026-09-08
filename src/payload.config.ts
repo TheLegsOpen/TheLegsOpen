@@ -202,15 +202,13 @@ export default buildConfig({
       // the recommended posture for serverless, and the counterpart to the short idle timeout.
       allowExitOnIdle: true,
       connectionTimeoutMillis: 20_000,
-      // Not 1. At max: 1 a single dead-on-thaw connection starves the instance permanently, which
-      // is exactly what was happening. Kept modest rather than large because DATABASE_URL points
-      // at Supabase's *session* pooler, where each client holds a backend connection for the whole
-      // session and the ceiling is therefore the pool size (15) -- max: 3 briefly hit
-      // "(EMAXCONNSESSION) max clients reached in session mode" on 2026-09-07 under load, though
-      // that was also while SSL was misconfigured and connections were churning. If concurrency
-      // ever needs to go higher than this, the answer is transaction-mode pooling (port 6543),
-      // not a bigger number here.
-      max: 3,
+      // Not 1: at max: 1 a single connection that died during a freeze starves the instance
+      // permanently. Not 3 either -- that was chosen while this pointed at the session pooler,
+      // whose 15-client ceiling it then exhausted under real traffic. Now that connections go
+      // through transaction mode (see transactionPoolerConnectionString above) the ceiling is 200
+      // clients, so there is room for a page to actually run its queries in parallel rather than
+      // three at a time. Still well short of 200 even with many instances warm at once.
+      max: 6,
     },
   }),
   sharp,
