@@ -87,6 +87,51 @@ async function probeRawPool(max: number): Promise<ProbeResult> {
   }
 }
 
+/**
+ * Same credentials and host, but port 6543 -- Supavisor's transaction-mode endpoint, as opposed to
+ * session mode on 5432. Session mode gives each client its own backend connection for the whole
+ * session, which caps us at pool_size (15) and is what produces EMAXCONNSESSION under real traffic:
+ * frozen Vercel instances keep holding their connections, so they accumulate. Transaction mode
+ * multiplexes instead, and the relevant ceiling becomes max client connections (200).
+ *
+ * Rewrites only the port, so no credential ever has to be handled outside the environment.
+ * Reports the host/port in use (never the password) so we can confirm what is actually configured.
+ */
+function transactionPoolerUrl(): { url: string; from: string; to: string } | null {
+  const raw = process.env.DATABASE_URL;
+  if (!raw) return null;
+  try {
+    const u = new URL(raw);
+    const from = `${u.hostname}:${u.port || "5432"}`;
+    u.port = "6543";
+    return { url: u.toString(), from, to: `${u.hostname}:6543` };
+  } catch {
+    return null;
+  }
+}
+
+async function probeTransactionPooler(): Promise<ProbeResult & { from?: string; to?: string }> {
+  const target = transactionPoolerUrl();
+  if (!target) return { ok: false, ms: 0, error: "DATABASE_URL unparseable" };
+
+  const started = Date.now();
+  const client = new Client({
+    connectionString: target.url,
+    ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 20_000,
+  });
+  try {
+    await client.connect();
+    await client.query("select 1");
+    return { ok: true, ms: Date.now() - started, from: target.from, to: target.to };
+  } catch (err) {
+    const e = err as { message?: string; code?: string };
+    return { ok: false, ms: Date.now() - started, error: e.message, code: e.code, from: target.from, to: target.to };
+  } finally {
+    await client.end().catch(() => undefined);
+  }
+}
+
 async function probePayload(): Promise<ProbeResult & { stats?: unknown }> {
   const started = Date.now();
   // node-postgres exposes live pool counters. If totalCount is at max while idleCount is 0 and
@@ -126,12 +171,11 @@ export async function GET(request: NextRequest) {
   // Sequential, not parallel -- running them at once would have them competing for the same
   // pooler slots, which is the very condition being measured.
   const raw = await probeRaw();
-  const poolMax1 = await probeRawPool(1);
-  const poolMax5 = await probeRawPool(5);
+  const txPooler = await probeTransactionPooler();
   const payloadProbe = await probePayload();
 
   return NextResponse.json(
-    { at, region: process.env.VERCEL_REGION ?? null, raw, poolMax1, poolMax5, payload: payloadProbe },
+    { at, region: process.env.VERCEL_REGION ?? null, raw, txPooler, payload: payloadProbe },
     { headers: { "cache-control": "no-store" } },
   );
 }
