@@ -185,7 +185,12 @@ export const Venues: CollectionConfig = {
                   admin: { readOnly: true, width: "20%", description: "Set automatically from the row's position." },
                 },
                 { name: "par", type: "number", required: true, min: 3, max: 6, admin: { width: "25%" } },
-                { name: "yards", type: "number", required: true, admin: { width: "25%" } },
+                // Not required. Par and SI are what scoring actually uses (see allocateStrokes and
+                // stablefordPoints in src/lib/scoring.ts); yardage is display-only, and every place
+                // that reads it already copes with it being absent. Requiring it meant a course
+                // could not be saved at all without all 54 numbers, which blocked setting up a
+                // venue when only the card's par and stroke index were to hand.
+                { name: "yards", type: "number", admin: { width: "25%" } },
                 {
                   name: "si",
                   label: "SI",
