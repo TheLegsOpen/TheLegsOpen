@@ -6,6 +6,21 @@ import { getUnsyncedHoles, markHolesSynced } from "@/lib/scoring/offline-db";
 
 const POLL_INTERVAL_MS = 15_000;
 
+/**
+ * Holes per request when flushing a backlog.
+ *
+ * The server applies updates one at a time, and every one fires Scorecards' afterChange hooks --
+ * live-blog generation included, which runs its own leaderboard queries. A scorer who was out of
+ * signal for nine holes comes back with 36 of them (four players x nine), and sending that as one
+ * request risks outrunning the function timeout. Nothing would then be marked synced, so the next
+ * attempt would send the same oversized batch and fail the same way: a backlog that can never
+ * drain, which is the one failure this queue exists to prevent.
+ *
+ * Chunking makes the flush incremental instead of all-or-nothing. Each chunk that lands is marked
+ * synced and never sent again, so progress is kept even if signal dies again part-way through.
+ */
+const SYNC_CHUNK_SIZE = 8;
+
 interface SaveResponse {
   applied: { scorecardId: string; holeNumber: number }[];
   rejected: { scorecardId: string; holeNumber: number; reason: string }[];
@@ -40,25 +55,34 @@ export function useOfflineSync() {
     syncingRef.current = true;
     setSyncing(true);
     try {
-      const res = await fetch("/api/scoring/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          updates: unsynced.map((h) => ({ scorecardId: h.scorecardId, holeNumber: h.holeNumber, strokes: h.strokes, noReturn: h.noReturn })),
-        }),
-      });
+      for (let i = 0; i < unsynced.length; i += SYNC_CHUNK_SIZE) {
+        const chunk = unsynced.slice(i, i + SYNC_CHUNK_SIZE);
+        const res = await fetch("/api/scoring/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            updates: chunk.map((h) => ({ scorecardId: h.scorecardId, holeNumber: h.holeNumber, strokes: h.strokes, noReturn: h.noReturn })),
+          }),
+        });
 
-      if (res.status === 401) {
-        setSessionExpired(true);
-        return;
-      }
-      if (res.ok) {
+        if (res.status === 401) {
+          setSessionExpired(true);
+          return;
+        }
+        if (!res.ok) {
+          // Stop here rather than pressing on: whatever stopped this chunk will most likely stop
+          // the next. Everything not yet marked stays queued for the next trigger.
+          break;
+        }
+
         const body = (await res.json()) as SaveResponse;
         await markHolesSynced(body.applied.map((a) => `${a.scorecardId}:${a.holeNumber}`));
+        // Show the backlog draining chunk by chunk rather than jumping at the end.
+        await refreshPendingCount();
       }
-      // Any other non-OK status (or a thrown network error, caught below) just leaves everything
-      // queued -- the next trigger (poll/online/visibility) retries automatically. No error is
-      // surfaced here; losing connectivity mid-round is the expected case this exists to survive.
+      // A thrown network error (caught below) leaves everything still unmarked queued -- the next
+      // trigger (poll/online/visibility) retries automatically. No error is surfaced here; losing
+      // connectivity mid-round is the expected case this exists to survive.
     } catch {
       // offline -- leave queued, retry on the next trigger
     } finally {

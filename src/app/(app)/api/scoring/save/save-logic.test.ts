@@ -152,6 +152,27 @@ describe("saveScores", () => {
     expect(holes[6].strokes).toBeNull();
   });
 
+  it("survives a real offline backlog -- every player, every hole, one flush", async () => {
+    const { payload, sessionA, scorecardAId } = seedFixture();
+
+    // Nine holes out of signal: what the queue hands over in one flush on reconnect. sc-b in this
+    // fixture belongs to a different group by design, so this stays with the one card -- the bug
+    // was per-scorecard anyway, since each update rewrote that card whole.
+    const updates = [];
+    for (let hole = 1; hole <= 9; hole++) {
+      updates.push({ scorecardId: scorecardAId, holeNumber: hole, strokes: 3 + (hole % 3), noReturn: false });
+    }
+
+    const result = await saveScores(payload, sessionA, updates);
+    expect(result.rejected).toHaveLength(0);
+
+    const a = await payload.findByID({ collection: "scorecards", id: scorecardAId });
+    const holesA = a.holes as { strokes?: number | null }[];
+    for (let hole = 1; hole <= 9; hole++) {
+      expect(holesA[hole - 1].strokes).toBe(3 + (hole % 3));
+    }
+  });
+
   it("clears a score back to null when the hole arrives with no strokes", async () => {
     const { payload, sessionA, scorecardAId } = seedFixture();
     await saveScores(payload, sessionA, [{ scorecardId: scorecardAId, holeNumber: 3, strokes: 5, noReturn: false }]);

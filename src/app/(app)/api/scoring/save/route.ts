@@ -6,6 +6,12 @@ import config from "@/payload.config";
 import { verifyScoringSession, SCORING_SESSION_COOKIE } from "@/lib/scoring-session";
 import { saveScores, type HoleUpdateInput, type ScoringPayloadClient } from "./save-logic";
 
+// Each update fires Scorecards' afterChange hooks, live-blog generation included, so a chunked
+// backlog flush is still real work. The client caps a request at SYNC_CHUNK_SIZE holes (see
+// use-offline-sync); this gives that chunk room to finish rather than being cut off mid-way, which
+// would leave the queue unable to drain.
+export const maxDuration = 60;
+
 export async function POST(request: Request) {
   const cookieStore = await cookies();
   const session = await verifyScoringSession(cookieStore.get(SCORING_SESSION_COOKIE)?.value);
