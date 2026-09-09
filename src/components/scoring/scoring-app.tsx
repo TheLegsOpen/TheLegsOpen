@@ -416,22 +416,22 @@ export function ScoringApp({
     <div className="flex h-dvh flex-col gap-3 p-4">
       {/* One compact line. "1st hole" at display size used to wrap onto two lines and eat a
        * quarter of the screen before a single score was visible. */}
-      <header className="flex shrink-0 items-baseline justify-between gap-3">
-        <div className="flex min-w-0 items-baseline gap-3">
-          <h1 className="shrink-0 font-display text-2xl font-bold">
+      <header className="flex shrink-0 items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-col">
+          <h1 className="truncate font-display text-xl font-bold leading-tight">
             Hole {currentHole}
           </h1>
           {holeInfo ? (
-            <p className="truncate text-sm text-primary-foreground/70">
+            <p className="truncate text-xs text-primary-foreground/70">
               Par {holeInfo.par} · SI {holeInfo.si}
             </p>
           ) : null}
         </div>
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2 text-xs">
           <SyncStatus pendingCount={pendingCount} syncing={syncing} />
           <Link
             href="/score/leaderboard"
-            className="text-sm font-semibold uppercase tracking-wide text-primary-foreground/70 hover:text-primary-foreground"
+            className="font-semibold uppercase tracking-wide text-primary-foreground/70 hover:text-primary-foreground"
           >
             Board
           </Link>
@@ -483,7 +483,7 @@ export function ScoringApp({
       {/* Keypad. This is the whole point of the redesign: the native numeric keyboard covered half
        * the screen whenever a score was being entered, which is what forced the rows to be huge in
        * the first place. Buttons are flex-1 so the pad grows into whatever height is left. */}
-      <div className="grid min-h-0 flex-1 grid-cols-3 gap-2">
+      <div className="grid min-h-0 flex-1 grid-cols-3 grid-rows-4 gap-2">
         {["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "X"].map(
           (key) => (
             <button
@@ -533,7 +533,7 @@ function SwitchGroupLink() {
       href="/score/groups"
       className="text-sm font-semibold uppercase tracking-wide text-primary-foreground/70 hover:text-primary-foreground"
     >
-      Switch Group
+      Switch
     </Link>
   );
 }
