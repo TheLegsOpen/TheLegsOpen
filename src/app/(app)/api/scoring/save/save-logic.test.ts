@@ -116,6 +116,42 @@ describe("saveScores", () => {
     });
   });
 
+  it("keeps every hole when one scorecard has several holes in the same batch", async () => {
+    const { payload, sessionA, scorecardAId } = seedFixture();
+
+    // What the offline queue flushes after a spell without signal: more than one hole for the same
+    // player in a single request. Each update rewrites the whole holes array, so if the loop works
+    // from the card it fetched before starting, all but the last are silently discarded.
+    await saveScores(payload, sessionA, [
+      { scorecardId: scorecardAId, holeNumber: 3, strokes: 4, noReturn: false },
+      { scorecardId: scorecardAId, holeNumber: 7, strokes: 5, noReturn: false },
+      { scorecardId: scorecardAId, holeNumber: 11, strokes: 6, noReturn: false },
+    ]);
+
+    const updated = await payload.findByID({ collection: "scorecards", id: scorecardAId });
+    const holes = updated.holes as { strokes?: number | null }[];
+    expect(holes[2].strokes).toBe(4);
+    expect(holes[6].strokes).toBe(5);
+    expect(holes[10].strokes).toBe(6);
+  });
+
+  it("clears several holes at once without any of them coming back", async () => {
+    const { payload, sessionA, scorecardAId } = seedFixture();
+    await saveScores(payload, sessionA, [
+      { scorecardId: scorecardAId, holeNumber: 3, strokes: 4, noReturn: false },
+      { scorecardId: scorecardAId, holeNumber: 7, strokes: 5, noReturn: false },
+    ]);
+    await saveScores(payload, sessionA, [
+      { scorecardId: scorecardAId, holeNumber: 3, noReturn: false },
+      { scorecardId: scorecardAId, holeNumber: 7, noReturn: false },
+    ]);
+
+    const updated = await payload.findByID({ collection: "scorecards", id: scorecardAId });
+    const holes = updated.holes as { strokes?: number | null }[];
+    expect(holes[2].strokes).toBeNull();
+    expect(holes[6].strokes).toBeNull();
+  });
+
   it("clears a score back to null when the hole arrives with no strokes", async () => {
     const { payload, sessionA, scorecardAId } = seedFixture();
     await saveScores(payload, sessionA, [{ scorecardId: scorecardAId, holeNumber: 3, strokes: 5, noReturn: false }]);

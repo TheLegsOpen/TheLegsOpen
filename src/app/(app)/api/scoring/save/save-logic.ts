@@ -92,6 +92,15 @@ export async function saveScores(payload: ScoringPayloadClient, session: Scoring
     // backfill tool. On-course entry is real-time play, so generateLiveBlogPosts (Scorecards'
     // own afterChange hook) must fire exactly as it would for an admin typing a score in live.
     const updated = await payload.update({ collection: "scorecards", id: update.scorecardId, data: { holes } });
+
+    // Fold the result back into the cached card. Every update rewrites the WHOLE holes array, and
+    // the cards are fetched once before this loop -- so without this, a second update for the same
+    // scorecard rebuilds from the original snapshot and silently discards the first. One hole per
+    // player per save hides it, but the offline queue flushes everything pending at once: a scorer
+    // who loses signal for a few holes would have had all but the last of them thrown away on
+    // reconnect, with the request still returning 200.
+    (card as Record<string, unknown>).holes = (updated.holes as unknown) ?? holes;
+
     result.applied.push({ scorecardId: update.scorecardId, holeNumber: update.holeNumber, holesCompleted: updated.holesCompleted as number | undefined });
   }
 
