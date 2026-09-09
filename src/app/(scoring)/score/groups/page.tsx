@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
 import config from "@/payload.config";
-import { getActiveChampionship } from "@/lib/data/scorecards";
+import { getActiveChampionship, parseTeeTimeMinutes } from "@/lib/data/scorecards";
 import { GroupPicker, type PickableGroup } from "@/components/scoring/group-picker";
 import type { Player } from "@/payload-types";
 
@@ -50,11 +50,14 @@ export default async function ScoreGroupsPage() {
         teeTimeRoundId: String(round.id),
         groupId: String(group.id),
         label: `${group.time} · ${group.tee} tee`,
+        sortMinutes: parseTeeTimeMinutes(group.time ?? ""),
         playerNames: players.map((p) => p.name),
       });
     }
   }
-  groups.sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));
+  // Sorted on the parsed time rather than the label: localeCompare with numeric:true read "1.05"
+  // as one-point-nought-five and put the afternoon groups above the morning ones.
+  groups.sort((a, b) => a.sortMinutes - b.sortMinutes);
 
   const practiceGroups: PickableGroup[] = [];
   for (const round of practiceRounds.docs) {
@@ -65,11 +68,12 @@ export default async function ScoreGroupsPage() {
         teeTimeRoundId: String(round.id),
         groupId: String(group.id),
         label: `Practice · ${group.time} · ${group.tee} tee`,
+        sortMinutes: parseTeeTimeMinutes(group.time ?? ""),
         playerNames: players.map((p) => p.name),
       });
     }
   }
-  practiceGroups.sort((a, b) => a.label.localeCompare(b.label, undefined, { numeric: true }));
+  practiceGroups.sort((a, b) => a.sortMinutes - b.sortMinutes);
 
   if (groups.length === 0 && practiceGroups.length === 0) {
     return (

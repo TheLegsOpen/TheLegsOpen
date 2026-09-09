@@ -10,6 +10,9 @@ export interface PickableGroup {
   groupId: string;
   label: string;
   playerNames: string[];
+  /** Minutes since midnight, for ordering. See parseTeeTimeMinutes -- the label cannot be sorted
+   * directly because tee times use a 12-hour clock with no am/pm. */
+  sortMinutes: number;
 }
 
 export function GroupPicker({ groups }: { groups: PickableGroup[] }) {
