@@ -5,7 +5,7 @@ import localFont from "next/font/local";
 import { getSiteTheme, type FontPreset } from "@/lib/data/site-theme";
 import { hexToHslTriplet } from "@/lib/utils";
 import { ServiceWorkerRegistration } from "@/components/scoring/service-worker-registration";
-import { IosInstallHint } from "@/components/scoring/ios-install-hint";
+import { InstallHint } from "@/components/scoring/install-hint";
 
 import "../(app)/globals.css";
 
@@ -117,7 +117,7 @@ export default async function ScoringLayout({ children }: { children: React.Reac
         showing), so the page always fits whichever state the bar is in. */}
       <body className="min-h-[100svh] bg-primary font-sans text-primary-foreground antialiased">
         <ServiceWorkerRegistration />
-        <IosInstallHint />
+        <InstallHint />
         {children}
       </body>
     </html>
