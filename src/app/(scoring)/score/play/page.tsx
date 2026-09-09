@@ -29,7 +29,8 @@ export default async function ScorePlayPage() {
   // Practice sessions (no championshipId) get their venue straight off the round's own Course
   // field; Championship sessions keep resolving it via the championship, unchanged from before.
   let venue: Venue | undefined;
-  if (session.championshipId) {
+  const isChampionshipRound = round?.round === "Championship";
+  if (isChampionshipRound && session.championshipId) {
     const championship = await payload.findByID({ collection: "championships", id: session.championshipId, depth: 1 }).catch(() => undefined);
     venue = championship && typeof championship.venue === "object" ? (championship.venue as Venue) : undefined;
   } else {
@@ -45,7 +46,7 @@ export default async function ScorePlayPage() {
 
   const scorecards = await payload.find({
     collection: "scorecards",
-    where: session.championshipId
+    where: isChampionshipRound && session.championshipId
       ? { and: [{ championship: { equals: session.championshipId } }, { player: { in: playerIds } }] }
       : { and: [{ teeTimeRound: { equals: session.teeTimeRoundId } }, { player: { in: playerIds } }] },
     limit: playerIds.length + 5,

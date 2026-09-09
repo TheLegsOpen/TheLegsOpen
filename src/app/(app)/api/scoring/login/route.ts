@@ -33,8 +33,14 @@ export async function POST(request: Request) {
 
   const round = rounds.docs[0] as TeeTimeRound | undefined;
   const group = round?.groups?.find((g) => g.pin === normalizedPin);
-  // Unset for a Practice round -- it has no championship, see TeeTimeRounds.ts.
-  const championshipId = round && typeof round.championship === "object" ? round.championship?.id : round?.championship;
+  // A Practice round is scored against itself, never against a championship -- even though it
+  // usually HAS one set, since Championship is how a practice day is filed under the year it
+  // belongs to. Keying off that field instead of the round type is what sent Friday's scores into
+  // Saturday's scorecards, and resolved Friday's par/SI from the championship venue rather than the
+  // round's own Course.
+  const isChampionshipRound = round?.round === "Championship";
+  const rawChampionshipId = round && typeof round.championship === "object" ? round.championship?.id : round?.championship;
+  const championshipId = isChampionshipRound ? rawChampionshipId : undefined;
 
   if (!round || !group) {
     return NextResponse.json({ error: "That PIN wasn't recognised. Check with the organiser and try again." }, { status: 401 });

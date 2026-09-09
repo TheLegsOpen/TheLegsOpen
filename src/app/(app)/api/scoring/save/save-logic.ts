@@ -54,13 +54,14 @@ export async function saveScores(payload: ScoringPayloadClient, session: Scoring
 
   const playerIds = new Set((group.players ?? []).map((p) => String(typeof p === "object" ? p.id : p)));
 
-  // Championship sessions keep the original championship-scoped query untouched; a Practice
-  // session (no championshipId, see scoring-session.ts) has no championship to filter by, so
-  // scopes by the round itself instead -- the same link Scorecards.ts's own hook uses to create
-  // these cards in the first place.
+  // Scoped by the round's own type, not by whether the session carries a championshipId. A
+  // Practice round normally does have a championship set -- that is how it is filed under a year --
+  // and trusting that field sent Friday's scores into Saturday's championship scorecards.
+  // Re-checked here as well as at login so an already-issued session cannot do it either.
+  const isChampionshipRound = round?.round === "Championship";
   const scorecards = await payload.find({
     collection: "scorecards",
-    where: session.championshipId
+    where: isChampionshipRound && session.championshipId
       ? { and: [{ championship: { equals: session.championshipId } }, { player: { in: Array.from(playerIds) } }] }
       : { and: [{ teeTimeRound: { equals: session.teeTimeRoundId } }, { player: { in: Array.from(playerIds) } }] },
     limit: playerIds.size + 5,
