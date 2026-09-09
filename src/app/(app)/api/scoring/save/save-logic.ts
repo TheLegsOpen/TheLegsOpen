@@ -80,7 +80,11 @@ export async function saveScores(payload: ScoringPayloadClient, session: Scoring
     holes[index] = {
       ...(holes[index] ?? {}),
       holeNumber: update.holeNumber,
-      strokes: update.noReturn ? undefined : update.strokes,
+      // null, not undefined. Payload reads undefined as "field not supplied" and keeps whatever
+      // was there, so clearing a score left the old one in the database while the phone showed it
+      // gone -- and JSON.stringify drops an undefined key entirely on the way here, so a cleared
+      // hole arrives with no strokes key at all. null is what actually empties it.
+      strokes: update.noReturn ? null : (update.strokes ?? null),
       noReturn: Boolean(update.noReturn),
     };
 

@@ -104,15 +104,30 @@ describe("saveScores", () => {
     expect(result.rejected[0].reason).toMatch(/log in again/);
   });
 
-  it("records a No Return as strokes:undefined, noReturn:true", async () => {
+  it("records a No Return as strokes:null, noReturn:true -- null, so it actually clears any score already there", async () => {
     const { payload, sessionA, scorecardAId } = seedFixture();
     await saveScores(payload, sessionA, [{ scorecardId: scorecardAId, holeNumber: 3, noReturn: true }]);
 
     const updated = await payload.findByID({ collection: "scorecards", id: scorecardAId });
     expect((updated.holes as { holeNumber: number; strokes?: number; noReturn: boolean }[])[2]).toMatchObject({
       holeNumber: 3,
-      strokes: undefined,
+      strokes: null,
       noReturn: true,
+    });
+  });
+
+  it("clears a score back to null when the hole arrives with no strokes", async () => {
+    const { payload, sessionA, scorecardAId } = seedFixture();
+    await saveScores(payload, sessionA, [{ scorecardId: scorecardAId, holeNumber: 3, strokes: 5, noReturn: false }]);
+    // What the phone sends after Clear: JSON.stringify drops an undefined strokes key entirely,
+    // so the hole arrives with no strokes at all. This used to leave the 5 in place.
+    await saveScores(payload, sessionA, [{ scorecardId: scorecardAId, holeNumber: 3, noReturn: false }]);
+
+    const updated = await payload.findByID({ collection: "scorecards", id: scorecardAId });
+    expect((updated.holes as { holeNumber: number; strokes?: number | null; noReturn: boolean }[])[2]).toMatchObject({
+      holeNumber: 3,
+      strokes: null,
+      noReturn: false,
     });
   });
 

@@ -17,10 +17,11 @@ export default async function ScorePlayPage() {
 
   const payload = await getPayload({ config });
 
-  // Shown a "Switch group" link only when they *also* hold a real Payload session -- i.e. they
-  // got here via the admin group picker, not a PIN. A PIN-only scorer never has this cookie.
-  const { user } = await payload.auth({ headers: await getHeaders() });
-  const canSwitchGroup = Boolean(user);
+  // Shown only when this session was created through the admin group picker, which is recorded on
+  // the session itself. It used to test for a Payload cookie, but an admin signing in with a PIN on
+  // their own phone still has that cookie from the admin site and was shown a link a scorer must
+  // never see.
+  const canSwitchGroup = Boolean(session.viaAdmin);
 
   const round = await payload.findByID({ collection: "tee-time-rounds", id: session.teeTimeRoundId, depth: 1 }).catch(() => undefined);
   const group = round?.groups?.find((g) => String(g.id) === session.groupId);

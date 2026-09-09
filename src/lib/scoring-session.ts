@@ -25,6 +25,10 @@ export interface ScoringSessionPayload {
   /** Unset for a Practice-round session -- those have no championship at all, see TeeTimeRounds.ts. */
   championshipId?: string;
   pinVersion: number;
+  /** True only for a session created through the admin group picker. Drives the "Switch" link:
+   * holding a Payload cookie is not the same thing, since an admin testing on their own phone
+   * signs in with a PIN like everyone else and should see exactly what a scorer sees. */
+  viaAdmin?: boolean;
 }
 
 function getSecretKey(): Uint8Array {

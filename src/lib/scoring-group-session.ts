@@ -13,6 +13,7 @@ export async function issueGroupSessionResponse(
   round: TeeTimeRound,
   group: NonNullable<TeeTimeRound["groups"]>[number],
   championshipId?: string,
+  viaAdmin = false,
 ): Promise<NextResponse> {
   // A round without a date shouldn't be reachable here (date is required on the collection), but
   // fall back to a short, safe default rather than crash if it somehow is.
@@ -34,6 +35,7 @@ export async function issueGroupSessionResponse(
       groupId: String(group.id),
       championshipId,
       pinVersion: group.pinVersion ?? 1,
+      viaAdmin,
     },
     expiresAt,
   );

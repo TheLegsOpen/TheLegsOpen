@@ -42,5 +42,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "That group couldn't be found." }, { status: 404 });
   }
 
-  return issueGroupSessionResponse(round, group, championshipId ? String(championshipId) : undefined);
+  // viaAdmin: this is the admin picker, the one entry point that may switch group.
+  return issueGroupSessionResponse(round, group, championshipId ? String(championshipId) : undefined, true);
 }
