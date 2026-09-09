@@ -327,7 +327,7 @@ export function ScoringApp({
         </header>
 
         <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-primary-foreground/15">
-          <table className="w-full min-w-[520px] border-collapse text-base">
+          <table className="w-full min-w-[620px] border-collapse text-base">
             <thead>
               <tr className="border-b border-primary-foreground/15 text-left text-sm uppercase tracking-wide text-primary-foreground/70">
                 <th className="px-3 py-2">Player</th>
@@ -336,9 +336,15 @@ export function ScoringApp({
                     {i + 1}
                   </th>
                 ))}
-                <th className="px-3 py-2 text-right">
-                  {view === "turn-review" ? "Out" : "Total"}
-                </th>
+                {view === "turn-review" ? (
+                  <th className="px-3 py-2 text-right">Out</th>
+                ) : (
+                  <>
+                    <th className="px-3 py-2 text-right">Out</th>
+                    <th className="px-3 py-2 text-right">In</th>
+                    <th className="px-3 py-2 text-right">Total</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -346,10 +352,18 @@ export function ScoringApp({
                 const holes = holesState[p.scorecardId];
                 const range = holes.slice(0, upTo);
                 const hasNoReturn = range.some((h) => h.noReturn);
-                const total = range.reduce(
-                  (sum, h) => sum + (h.noReturn ? 0 : (h.strokes ?? 0)),
-                  0,
-                );
+                const sum = (rows: { strokes?: number; noReturn: boolean }[]) =>
+                  rows.reduce(
+                    (acc, h) => acc + (h.noReturn ? 0 : (h.strokes ?? 0)),
+                    0,
+                  );
+                const front = holes.slice(0, 9);
+                const back = holes.slice(9, 18);
+                const total = sum(range);
+                const frontNR = front.some((h) => h.noReturn);
+                const backNR = back.some((h) => h.noReturn);
+                const cell = (nr: boolean, value: number) =>
+                  nr ? "NR" : value || "-";
                 return (
                   <tr
                     key={p.scorecardId}
@@ -372,9 +386,23 @@ export function ScoringApp({
                         </button>
                       </td>
                     ))}
-                    <td className="px-3 py-2 text-right font-bold tabular-nums">
-                      {hasNoReturn ? "NR" : total || "-"}
-                    </td>
+                    {view === "turn-review" ? (
+                      <td className="px-3 py-2 text-right font-bold tabular-nums">
+                        {hasNoReturn ? "NR" : total || "-"}
+                      </td>
+                    ) : (
+                      <>
+                        <td className="px-3 py-2 text-right tabular-nums text-primary-foreground/70">
+                          {cell(frontNR, sum(front))}
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums text-primary-foreground/70">
+                          {cell(backNR, sum(back))}
+                        </td>
+                        <td className="px-3 py-2 text-right font-bold tabular-nums">
+                          {hasNoReturn ? "NR" : total || "-"}
+                        </td>
+                      </>
+                    )}
                   </tr>
                 );
               })}
