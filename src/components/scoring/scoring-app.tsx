@@ -455,7 +455,7 @@ export function ScoringApp({
                 setDigitBuffer("");
               }}
               className={cn(
-                "flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-left transition-colors",
+                "flex items-center justify-between gap-2 rounded-lg border p-2 text-left transition-colors",
                 active
                   ? "border-accent bg-accent/15"
                   : "border-primary-foreground/15 bg-primary-foreground/5",
@@ -463,7 +463,7 @@ export function ScoringApp({
             >
               <PlayerName
                 name={p.playerName}
-                className="min-w-0 flex-1 truncate font-display text-xl text-primary-foreground"
+                className="min-w-0 flex-1 truncate rounded-md border-t-[3px] border-black/15 bg-accent px-3 py-2 font-display text-xl text-accent-foreground"
               />
               <span
                 className={cn(
