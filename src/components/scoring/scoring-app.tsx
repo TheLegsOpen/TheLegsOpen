@@ -78,7 +78,11 @@ export function ScoringApp({
   const [pickerOpen, setPickerOpen] = useState(false);
   const { pendingCount, syncing, sessionExpired, syncNow } = useOfflineSync();
   useWakeLock(true);
-  const strokeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  // Which player the keypad is aimed at, and any half-typed number. digitBuffer only ever holds
+  // "1": a leading 1 is the one digit that might still become 10-19, so the keypad waits on it
+  // instead of advancing. Everything else is a complete score the moment it is pressed.
+  const [activePlayer, setActivePlayer] = useState(0);
+  const [digitBuffer, setDigitBuffer] = useState("");
   // Belt-and-suspenders alongside queueHoleUpdate's own idempotency check -- guards the moment
   // between a tap and the view actually advancing, where a second, near-simultaneous tap could
   // otherwise fire saveCurrentHole again for the same hole before currentHole updates.
@@ -171,6 +175,19 @@ export function ScoringApp({
     else setCurrentHole((h) => Math.min(18, h + 1));
   }
 
+  /** Whenever the hole changes, aim the keypad at the first player still to be scored on it. */
+  useEffect(() => {
+    const firstEmpty = group.players.findIndex((p) => {
+      const h = holesState[p.scorecardId][currentHole - 1];
+      return h?.strokes === undefined && !h?.noReturn;
+    });
+    setActivePlayer(firstEmpty === -1 ? 0 : firstEmpty);
+    setDigitBuffer("");
+    // Deliberately keyed on the hole alone: re-running this as scores change would yank the
+    // highlight away from whoever the scorer is part-way through typing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentHole]);
+
   function jumpToHole(hole: number) {
     setCurrentHole(hole);
     setView("entry");
@@ -192,6 +209,64 @@ export function ScoringApp({
       return allEntered ? "complete" : anyEntered ? "partial" : "empty";
     });
   }, [group.players, holesState]);
+
+  /** Moves to the next player still without a score, or stays put if they all have one. */
+  function advance(from: number) {
+    for (let step = 1; step <= group.players.length; step++) {
+      const i = (from + step) % group.players.length;
+      const h = holesState[group.players[i].scorecardId][currentHole - 1];
+      if (h?.strokes === undefined && !h?.noReturn) {
+        setActivePlayer(i);
+        return;
+      }
+    }
+  }
+
+  function pressKey(key: string) {
+    const player = group.players[activePlayer];
+    if (!player) return;
+
+    if (key === "clear") {
+      setPlayerHole(player.scorecardId, {
+        strokes: undefined,
+        noReturn: false,
+      });
+      setDigitBuffer("");
+      return;
+    }
+
+    if (key === "X") {
+      setPlayerHole(player.scorecardId, { noReturn: true, strokes: undefined });
+      setDigitBuffer("");
+      advance(activePlayer);
+      return;
+    }
+
+    // A 0 on its own is not a score -- it only means anything as the second digit of 10.
+    if (digitBuffer === "" && key === "0") return;
+
+    if (digitBuffer === "1") {
+      setPlayerHole(player.scorecardId, {
+        strokes: Number("1" + key),
+        noReturn: false,
+      });
+      setDigitBuffer("");
+      advance(activePlayer);
+      return;
+    }
+
+    setPlayerHole(player.scorecardId, {
+      strokes: Number(key),
+      noReturn: false,
+    });
+    if (key === "1") {
+      // Could still be the start of 10-19, so hold here and let the next press decide.
+      setDigitBuffer("1");
+      return;
+    }
+    setDigitBuffer("");
+    advance(activePlayer);
+  }
 
   const HolePicker = (
     <Sheet open={pickerOpen} onOpenChange={setPickerOpen}>
@@ -338,113 +413,102 @@ export function ScoringApp({
   }
 
   return (
-    <div className="flex h-dvh flex-col gap-6 p-5">
-      <header className="flex shrink-0 items-center justify-between">
-        <div>
-          <p className="text-sm uppercase tracking-wide text-primary-foreground/70">
-            {group.groupLabel}
-          </p>
-          <h1 className="font-display text-4xl font-bold leading-tight">
-            {ordinal(currentHole)} hole
+    <div className="flex h-dvh flex-col gap-3 p-4">
+      {/* One compact line. "1st hole" at display size used to wrap onto two lines and eat a
+       * quarter of the screen before a single score was visible. */}
+      <header className="flex shrink-0 items-baseline justify-between gap-3">
+        <div className="flex min-w-0 items-baseline gap-3">
+          <h1 className="shrink-0 font-display text-2xl font-bold">
+            Hole {currentHole}
           </h1>
           {holeInfo ? (
-            <p className="text-lg font-normal text-primary-foreground/70">
+            <p className="truncate text-sm text-primary-foreground/70">
               Par {holeInfo.par} · SI {holeInfo.si}
             </p>
           ) : null}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <SyncStatus pendingCount={pendingCount} syncing={syncing} />
           <Link
             href="/score/leaderboard"
             className="text-sm font-semibold uppercase tracking-wide text-primary-foreground/70 hover:text-primary-foreground"
           >
-            Leaderboard
+            Board
           </Link>
           {canSwitchGroup ? <SwitchGroupLink /> : null}
           {HolePicker}
         </div>
       </header>
 
-      {/* h-full + flex-1 rows: the players share whatever vertical space is going rather than
-       * sitting as fixed-height cards at the top of a very tall phone with the rest left empty.
-       * min-h keeps them usable if the space is tight; max-h stops a two-player group turning
-       * into two enormous slabs. */}
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="flex h-full flex-col justify-center gap-3">
-          {group.players.map((p, i) => {
-            const hole = holesState[p.scorecardId][currentHole - 1];
-            return (
-              <div
-                key={p.scorecardId}
-                className="flex min-h-[110px] max-h-[300px] flex-1 flex-col gap-2 rounded-lg border border-primary-foreground/15 bg-primary-foreground/5 p-3"
+      {/* Player rows: compact, because the keypad below does the typing. Tapping a row aims the
+       * keypad at that player -- the highlighted row is the one being scored. */}
+      <div className="flex shrink-0 flex-col gap-2">
+        {group.players.map((p, i) => {
+          const hole = holesState[p.scorecardId][currentHole - 1];
+          const active = i === activePlayer;
+          return (
+            <button
+              key={p.scorecardId}
+              type="button"
+              onClick={() => {
+                setActivePlayer(i);
+                setDigitBuffer("");
+              }}
+              className={cn(
+                "flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-left transition-colors",
+                active
+                  ? "border-accent bg-accent/15"
+                  : "border-primary-foreground/15 bg-primary-foreground/5",
+              )}
+            >
+              <PlayerName
+                name={p.playerName}
+                className="min-w-0 flex-1 truncate font-display text-xl text-primary-foreground"
+              />
+              <span
+                className={cn(
+                  "flex h-11 w-14 shrink-0 items-center justify-center rounded-md border font-display text-3xl font-bold leading-none",
+                  active
+                    ? "border-accent text-accent"
+                    : "border-primary-foreground/25 text-primary-foreground",
+                )}
               >
-                <PlayerName
-                  name={p.playerName}
-                  className="flex shrink-0 items-center truncate border-t-[3px] border-black/15 bg-accent px-4 py-2 text-left font-display text-2xl text-accent-foreground"
-                />
-                <div className="flex min-h-0 flex-1 items-stretch gap-3">
-                  <input
-                    ref={(el) => {
-                      strokeInputRefs.current[i] = el;
-                    }}
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    max={20}
-                    disabled={hole?.noReturn}
-                    value={hole?.noReturn ? "" : (hole?.strokes ?? "")}
-                    onChange={(e) => {
-                      const raw = e.target.value;
-                      setPlayerHole(p.scorecardId, {
-                        strokes: raw === "" ? undefined : Number(raw),
-                        noReturn: false,
-                      });
-                      // A single digit 2-9 can't be the start of anything else (scores don't run to
-                      // 20+), and a 2-digit value is already a complete score either way -- in both
-                      // cases jump straight to the next player rather than waiting for a manual tap.
-                      // "1" alone is left alone since it could still become 10-19.
-                      if (/^[2-9]$/.test(raw) || raw.length === 2) {
-                        const next = strokeInputRefs.current[i + 1];
-                        if (next) {
-                          next.focus();
-                          next.select();
-                        }
-                      }
-                    }}
-                    className="min-w-0 flex-1 rounded-md border border-primary-foreground/30 bg-primary text-center font-display text-5xl font-bold text-primary-foreground disabled:opacity-40"
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setPlayerHole(p.scorecardId, {
-                        noReturn: !hole?.noReturn,
-                        strokes: undefined,
-                      })
-                    }
-                    aria-pressed={hole?.noReturn}
-                    className={cn(
-                      "flex w-20 items-center justify-center rounded-md border font-display text-4xl font-bold",
-                      hole?.noReturn
-                        ? "border-accent bg-accent text-accent-foreground"
-                        : "border-primary-foreground/30 text-primary-foreground/60",
-                    )}
-                  >
-                    X
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                {hole?.noReturn ? "X" : (hole?.strokes ?? "")}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      <div className="flex shrink-0 gap-3">
+      {/* Keypad. This is the whole point of the redesign: the native numeric keyboard covered half
+       * the screen whenever a score was being entered, which is what forced the rows to be huge in
+       * the first place. Buttons are flex-1 so the pad grows into whatever height is left. */}
+      <div className="grid min-h-0 flex-1 grid-cols-3 gap-2">
+        {["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "X"].map(
+          (key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => pressKey(key)}
+              className={cn(
+                "flex items-center justify-center rounded-lg border border-primary-foreground/20 font-display font-bold leading-none active:bg-primary-foreground/20",
+                key === "clear" || key === "X"
+                  ? "text-lg uppercase tracking-wide text-primary-foreground/70"
+                  : "text-4xl text-primary-foreground",
+              )}
+            >
+              {key === "clear" ? "Clear" : key}
+            </button>
+          ),
+        )}
+      </div>
+
+      <div className="flex shrink-0 gap-2">
         {currentHole > 1 ? (
           <Button
             variant="outline"
             size="lg"
-            className="h-16 border-primary-foreground/30 px-6 text-lg text-primary-foreground hover:bg-primary-foreground/10"
+            className="h-14 border-primary-foreground/30 px-5 text-base text-primary-foreground hover:bg-primary-foreground/10"
             onClick={() => jumpToHole(currentHole - 1)}
           >
             Back
@@ -453,7 +517,7 @@ export function ScoringApp({
         <Button
           variant="accent"
           size="lg"
-          className="h-16 flex-1 text-lg uppercase tracking-wide"
+          className="h-14 flex-1 text-base uppercase tracking-wide"
           onClick={saveCurrentHole}
         >
           {currentHole === 18 ? "Finish Round" : "Save & Next Hole"}
