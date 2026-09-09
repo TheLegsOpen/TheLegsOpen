@@ -201,6 +201,34 @@ export async function evaluateAndPublish(
     const cooldownExempt = critical || bypassesCooldown(candidate.category);
     const fingerprint = buildFingerprint(candidate);
 
+    // The fingerprint carries the saveNonce, so it stops a retry of one save -- but not the same
+    // real-world event arriving from a different save. Clearing a score and typing it again is two
+    // genuine changes, two scoreUpdatedAt stamps and two fingerprints, and would have posted the
+    // same birdie twice. Critical candidates make that worse, since they skip the cooldown that
+    // would otherwise have absorbed it.
+    //
+    // So per-hole player events are also checked against what has actually been published: the same
+    // championship, category, player and hole can only ever happen once in a round. Field-wide
+    // candidates (no player, no hole) are left alone -- those legitimately recur.
+    if (candidate.playerId && candidate.holeNumber !== undefined) {
+      const alreadyPublished = await req.payload.find({
+        collection: "live-blog-trigger-log",
+        where: {
+          and: [
+            { championship: { equals: candidate.championshipId } },
+            { category: { equals: candidate.category } },
+            { player: { equals: candidate.playerId } },
+            { holeNumber: { equals: candidate.holeNumber } },
+            { selected: { equals: true } },
+          ],
+        },
+        limit: 1,
+        depth: 0,
+        req,
+      });
+      if (alreadyPublished.docs.length > 0) return { published: false, reason: "DUPLICATE" };
+    }
+
     let logId: string;
     try {
       const log = await req.payload.create({
