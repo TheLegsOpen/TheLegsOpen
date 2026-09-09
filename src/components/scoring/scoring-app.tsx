@@ -13,7 +13,7 @@ import {
 import { cn, splitSurnameFirst } from "@/lib/utils";
 import {
   cacheGroup,
-  getUnsyncedHoles,
+  getAllHoles,
   queueHoleUpdate,
 } from "@/lib/scoring/offline-db";
 import { useOfflineSync } from "@/hooks/use-offline-sync";
@@ -90,22 +90,37 @@ export function ScoringApp({
 
   const holeInfo = group.holeInfos[currentHole - 1];
 
-  // On mount: any hole entered but never synced from a previous visit (tab killed offline, phone
-  // locked mid-round, etc.) takes priority over the server-provided baseline, and the group's data
-  // gets cached locally so this page can render from IndexedDB rather than needing a fresh server
-  // round trip if signal is merely weak -- not a substitute for full offline reload, which needs
-  // the app shell itself served from a service worker (Stage 3), not this.
+  // On mount, every hole this device has entered is laid back over the server's baseline -- not
+  // just the ones still waiting to sync.
+  //
+  // Restoring only the unsynced ones assumed the server snapshot always carries the rest, and it
+  // does not: /score/play is cached by the service worker, so returning from the leaderboard on
+  // patchy signal can be served a copy taken before those scores existed. The card then renders
+  // empty and jumps back to the 1st -- reported from the course on iOS. Whatever the server hands
+  // over, this device's own entries are the better record of what was actually played, so they win.
+  //
+  // Synced holes match the server anyway, making this a no-op in the normal case. The group's data
+  // is also cached locally so the page can render from IndexedDB when signal is merely weak.
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const unsynced = await getUnsyncedHoles();
-      if (cancelled || unsynced.length === 0) return;
+      const entered = await getAllHoles();
+      if (cancelled || entered.length === 0) return;
 
       setHolesState((prev) => {
         const merged: HolesState = { ...prev };
-        for (const h of unsynced) {
+        for (const h of entered) {
           if (!merged[h.scorecardId]) continue;
           const holes = [...merged[h.scorecardId]];
+          const fromServer = holes[h.holeNumber - 1];
+          const serverHasValue = fromServer?.strokes !== undefined && fromServer?.strokes !== null;
+
+          // An unsynced hole is not on the server at all, so it always wins. A synced one only
+          // fills a gap: if the server is showing a value, that is either the same score or a
+          // correction made in the admin, and this device must not quietly undo a correction --
+          // still worse, re-save over it on the next Save & Next Hole.
+          if (h.synced && (serverHasValue || fromServer?.noReturn)) continue;
+
           holes[h.holeNumber - 1] = {
             strokes: h.strokes,
             noReturn: h.noReturn,
