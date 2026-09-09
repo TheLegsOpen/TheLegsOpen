@@ -308,7 +308,7 @@ export function ScoringApp({
   if (view === "turn-review" || view === "final-review") {
     const upTo = view === "turn-review" ? 9 : 18;
     return (
-      <div className="flex h-dvh flex-col gap-6 p-5">
+      <div className="flex h-[100svh] flex-col gap-6 overflow-hidden p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         <header className="flex shrink-0 items-center justify-between">
           <div>
             <p className="text-base uppercase tracking-wide text-primary-foreground/70">
@@ -413,7 +413,7 @@ export function ScoringApp({
   }
 
   return (
-    <div className="flex h-dvh flex-col gap-3 p-4">
+    <div className="flex h-[100svh] flex-col gap-3 overflow-hidden p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
       {/* One compact line. "1st hole" at display size used to wrap onto two lines and eat a
        * quarter of the screen before a single score was visible. */}
       <header className="flex shrink-0 items-center justify-between gap-2">

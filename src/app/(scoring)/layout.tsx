@@ -110,7 +110,12 @@ export default async function ScoringLayout({ children }: { children: React.Reac
       <head>
         <style dangerouslySetInnerHTML={{ __html: themeStyle }} />
       </head>
-      <body className="min-h-screen bg-primary font-sans text-primary-foreground antialiased">
+      {/* min-h-[100svh], not min-h-screen. min-h-screen is 100vh, and vh is the LARGE viewport --
+        measured as though the browser's address bar were hidden. With the bar actually showing, the
+        body was taller than the visible area, the page gained a scrollbar, and the scoring screen's
+        Back / Save buttons sat below the fold until you scrolled. svh is the small viewport (bar
+        showing), so the page always fits whichever state the bar is in. */}
+      <body className="min-h-[100svh] bg-primary font-sans text-primary-foreground antialiased">
         <ServiceWorkerRegistration />
         <IosInstallHint />
         {children}
