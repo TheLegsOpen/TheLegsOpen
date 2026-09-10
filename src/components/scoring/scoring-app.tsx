@@ -117,7 +117,10 @@ export function ScoringApp({
         for (const h of unsynced) {
           if (!merged[h.scorecardId]) continue;
           const holes = [...merged[h.scorecardId]];
-          holes[h.holeNumber - 1] = { strokes: h.strokes, noReturn: h.noReturn };
+          holes[h.holeNumber - 1] = {
+            strokes: h.strokes,
+            noReturn: h.noReturn,
+          };
           merged[h.scorecardId] = holes;
         }
         setCurrentHole(
@@ -149,7 +152,9 @@ export function ScoringApp({
   useEffect(() => {
     (async () => {
       const entered = await getAllHoles();
-      const byCard = new Map(group.players.map((p) => [p.scorecardId, p.holes]));
+      const byCard = new Map(
+        group.players.map((p) => [p.scorecardId, p.holes]),
+      );
       const stale = entered
         .filter((h) => {
           if (!h.synced) return false;
@@ -263,10 +268,14 @@ export function ScoringApp({
     if (!player) return;
 
     if (key === "clear") {
-      setPlayerHole(player.scorecardId, {
-        strokes: undefined,
-        noReturn: false,
-      });
+      // Empties this hole for everyone in the group, not just the highlighted player: fixing one
+      // wrong score is done by typing over it, so clearing was only ever wanted for a hole entered
+      // against the wrong players or started by mistake. Local only until Save, like every other
+      // key here.
+      for (const p of group.players) {
+        setPlayerHole(p.scorecardId, { strokes: undefined, noReturn: false });
+      }
+      setActivePlayer(0);
       setDigitBuffer("");
       return;
     }
@@ -561,7 +570,7 @@ export function ScoringApp({
                   : "text-4xl text-primary-foreground",
               )}
             >
-              {key === "clear" ? "Clear" : key}
+              {key === "clear" ? "Clear hole" : key}
             </button>
           ),
         )}
