@@ -313,7 +313,7 @@ export function ScoringApp({
       return;
     }
 
-    if (key === "X") {
+    if (key === "nr") {
       setPlayerHole(player.scorecardId, { noReturn: true, strokes: undefined });
       setDigitBuffer("");
       advance(activePlayer);
@@ -461,7 +461,7 @@ export function ScoringApp({
                           onClick={() => jumpToHole(i + 1)}
                           className="underline decoration-dotted underline-offset-2"
                         >
-                          {h.noReturn ? "X" : (h.strokes ?? "-")}
+                          {h.noReturn ? "NR" : (h.strokes ?? "-")}
                         </button>
                       </td>
                     ))}
@@ -603,7 +603,7 @@ export function ScoringApp({
                     : "border-primary-foreground/25 text-primary-foreground",
                 )}
               >
-                {hole?.noReturn ? "X" : (hole?.strokes ?? "")}
+                {hole?.noReturn ? "NR" : (hole?.strokes ?? "")}
               </span>
             </button>
           );
@@ -614,7 +614,7 @@ export function ScoringApp({
        * the screen whenever a score was being entered, which is what forced the rows to be huge in
        * the first place. Buttons are flex-1 so the pad grows into whatever height is left. */}
       <div className="grid min-h-0 flex-1 grid-cols-3 grid-rows-4 gap-2">
-        {["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "X"].map(
+        {["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "nr"].map(
           (key) => (
             <button
               key={key}
@@ -622,12 +622,12 @@ export function ScoringApp({
               onClick={() => pressKey(key)}
               className={cn(
                 "flex items-center justify-center rounded-lg border border-primary-foreground/20 font-display font-bold leading-none active:bg-primary-foreground/20",
-                key === "clear" || key === "X"
+                key === "clear" || key === "nr"
                   ? "text-lg uppercase tracking-wide text-primary-foreground/70"
                   : "text-4xl text-primary-foreground",
               )}
             >
-              {key === "clear" ? "Clear hole" : key}
+              {key === "clear" ? "Clear hole" : key === "nr" ? "NR" : key}
             </button>
           ),
         )}
