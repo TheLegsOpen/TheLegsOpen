@@ -80,6 +80,22 @@ export async function getUnsyncedHoles(): Promise<PendingHole[]> {
   return (await getAllHoles()).filter((h) => !h.synced);
 }
 
+/**
+ * Forgets queued holes entirely.
+ *
+ * Needed because a synced entry is not harmless once the server no longer agrees with it: a score
+ * cleared in the admin leaves this device still holding it, and queueHoleUpdate's "already synced,
+ * same value" shortcut would then refuse to re-send that exact score if it were entered again.
+ * Dropping the entry restores a clean slate for that hole.
+ */
+export async function forgetHoles(keys: string[]): Promise<void> {
+  if (keys.length === 0) return;
+  const db = await getDb();
+  const tx = db.transaction(HOLES_STORE, "readwrite");
+  for (const key of keys) await tx.store.delete(key);
+  await tx.done;
+}
+
 export async function markHolesSynced(keys: string[]): Promise<void> {
   if (keys.length === 0) return;
   const db = await getDb();

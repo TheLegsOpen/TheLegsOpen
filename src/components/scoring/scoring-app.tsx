@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +14,9 @@ import {
 import { cn, splitSurnameFirst } from "@/lib/utils";
 import {
   cacheGroup,
+  forgetHoles,
   getAllHoles,
+  getUnsyncedHoles,
   queueHoleUpdate,
 } from "@/lib/scoring/offline-db";
 import { useOfflineSync } from "@/hooks/use-offline-sync";
@@ -90,60 +93,91 @@ export function ScoringApp({
 
   const holeInfo = group.holeInfos[currentHole - 1];
 
-  // On mount, every hole this device has entered is laid back over the server's baseline -- not
-  // just the ones still waiting to sync.
-  //
-  // Restoring only the unsynced ones assumed the server snapshot always carries the rest, and it
-  // does not: /score/play is cached by the service worker, so returning from the leaderboard on
-  // patchy signal can be served a copy taken before those scores existed. The card then renders
-  // empty and jumps back to the 1st -- reported from the course on iOS. Whatever the server hands
-  // over, this device's own entries are the better record of what was actually played, so they win.
-  //
-  // Synced holes match the server anyway, making this a no-op in the normal case. The group's data
-  // is also cached locally so the page can render from IndexedDB when signal is merely weak.
+  const router = useRouter();
+  const currentHoleInitialised = useRef(false);
+
+  /**
+   * Rebuilds local state from whatever the server last sent, with any not-yet-sent holes laid over
+   * the top.
+   *
+   * The server is the authority for a hole this device has already synced. That matters: yesterday
+   * this preferred the device's own copy for those too, and a scorecard cleared in the admin came
+   * straight back on the phone, because "the admin deleted this" and "this page render is stale"
+   * look identical from here. Only a hole still queued -- one the server has genuinely never seen
+   * -- is allowed to win.
+   */
+  const applyServerData = useCallback(async () => {
+    const unsynced = await getUnsyncedHoles();
+    const next: HolesState = Object.fromEntries(
+      group.players.map((p) => [p.scorecardId, [...p.holes]]),
+    );
+    for (const h of unsynced) {
+      if (!next[h.scorecardId]) continue;
+      const holes = [...next[h.scorecardId]];
+      holes[h.holeNumber - 1] = { strokes: h.strokes, noReturn: h.noReturn };
+      next[h.scorecardId] = holes;
+    }
+
+    setHolesState(next);
+
+    // Only on the first pass. A later refresh must not yank a scorer who has stepped back to check
+    // an earlier hole forward to wherever the card says they are up to.
+    if (!currentHoleInitialised.current) {
+      currentHoleInitialised.current = true;
+      setCurrentHole(
+        firstUnplayedHole(
+          group.players.map((p) => ({
+            ...p,
+            holes: next[p.scorecardId] ?? p.holes,
+          })),
+        ),
+      );
+    }
+  }, [group]);
+
+  // Re-derives whenever the server sends new data -- on mount, and again after the refresh below.
   useEffect(() => {
-    let cancelled = false;
+    applyServerData();
+    cacheGroup(group);
+  }, [applyServerData, group]);
+
+  /**
+   * Busts Next's client router cache once on mount.
+   *
+   * Navigating back to this route reuses the RSC payload from the last visit, which is how a
+   * scorer could open the leaderboard, come back, and find an empty card at the 1st while the
+   * server had their scores all along. Refreshing re-fetches, and the effect above then re-derives
+   * from it.
+   */
+  useEffect(() => {
+    router.refresh();
+  }, [router]);
+
+  /**
+   * Drops queued holes the server no longer agrees with.
+   *
+   * A synced entry is not inert once a score has been cleared in the admin: queueHoleUpdate skips
+   * anything already synced with the same value, so re-entering that exact score would never be
+   * sent. Forgetting the entry restores a clean slate for that hole.
+   */
+  useEffect(() => {
     (async () => {
       const entered = await getAllHoles();
-      if (cancelled || entered.length === 0) return;
-
-      setHolesState((prev) => {
-        const merged: HolesState = { ...prev };
-        for (const h of entered) {
-          if (!merged[h.scorecardId]) continue;
-          const holes = [...merged[h.scorecardId]];
-          const fromServer = holes[h.holeNumber - 1];
-          const serverHasValue = fromServer?.strokes !== undefined && fromServer?.strokes !== null;
-
-          // An unsynced hole is not on the server at all, so it always wins. A synced one only
-          // fills a gap: if the server is showing a value, that is either the same score or a
-          // correction made in the admin, and this device must not quietly undo a correction --
-          // still worse, re-save over it on the next Save & Next Hole.
-          if (h.synced && (serverHasValue || fromServer?.noReturn)) continue;
-
-          holes[h.holeNumber - 1] = {
-            strokes: h.strokes,
-            noReturn: h.noReturn,
-          };
-          merged[h.scorecardId] = holes;
-        }
-        setCurrentHole(
-          firstUnplayedHole(
-            group.players.map((p) => ({
-              ...p,
-              holes: merged[p.scorecardId] ?? p.holes,
-            })),
-          ),
-        );
-        return merged;
-      });
+      const byCard = new Map(group.players.map((p) => [p.scorecardId, p.holes]));
+      const stale = entered
+        .filter((h) => {
+          if (!h.synced) return false;
+          const serverHole = byCard.get(h.scorecardId)?.[h.holeNumber - 1];
+          if (!serverHole) return false;
+          const serverEmpty =
+            (serverHole.strokes === undefined || serverHole.strokes === null) &&
+            !serverHole.noReturn;
+          return serverEmpty;
+        })
+        .map((h) => `${h.scorecardId}:${h.holeNumber}`);
+      if (stale.length > 0) await forgetHoles(stale);
     })();
-    cacheGroup(group);
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [group]);
 
   useEffect(() => {
     if (sessionExpired) window.location.href = "/score/login";
