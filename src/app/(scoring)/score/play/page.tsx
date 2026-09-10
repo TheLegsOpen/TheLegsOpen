@@ -1,10 +1,13 @@
 import { cookies, headers as getHeaders } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getPayload } from "payload";
 
 import config from "@/payload.config";
 import { verifyScoringSession, SCORING_SESSION_COOKIE } from "@/lib/scoring-session";
 import { ScoringApp, type ScoringGroupData } from "@/components/scoring/scoring-app";
+import { FinishRoundButton } from "@/components/scoring/finish-round-button";
+import { Button } from "@/components/ui/button";
 import type { Venue, Player, Scorecard } from "@/payload-types";
 
 // See src/app/(app)/page.tsx for why this route is force-dynamic.
@@ -72,6 +75,42 @@ export default async function ScorePlayPage() {
       })
       .filter((p): p is NonNullable<typeof p> => p !== undefined),
   };
+
+  /**
+   * Once every player has all 18 holes in, the card is finished and this stops being an entry
+   * screen.
+   *
+   * Without this, a scorer who has confirmed their round can walk back into it with the browser's
+   * back button and change a result that is already on the leaderboard. There is no new field
+   * recording "confirmed" -- a complete card is the same fact, and adding a column to a collection
+   * is not something to do days before a championship.
+   *
+   * An X counts as played, so a no-return round still closes properly.
+   */
+  const roundComplete =
+    groupData.players.length > 0 &&
+    groupData.players.every((player) =>
+      player.holes.every((hole) => hole.strokes !== undefined || hole.noReturn),
+    );
+
+  if (roundComplete) {
+    return (
+      <div className="flex h-[100svh] flex-col justify-center gap-6 p-6 text-center">
+        <div className="flex flex-col gap-2">
+          <h1 className="font-display text-3xl font-bold">Card complete</h1>
+          <p className="text-base text-primary-foreground/70">
+            {groupData.groupLabel} is in. Any change from here has to be made by an administrator.
+          </p>
+        </div>
+        <div className="flex flex-col gap-3">
+          <Button asChild variant="accent" size="lg" className="w-full uppercase tracking-wide">
+            <Link href="/score/leaderboard">View Leaderboard</Link>
+          </Button>
+          <FinishRoundButton roundComplete />
+        </div>
+      </div>
+    );
+  }
 
   return <ScoringApp group={groupData} canSwitchGroup={canSwitchGroup} />;
 }

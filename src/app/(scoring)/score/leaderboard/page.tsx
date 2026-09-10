@@ -6,6 +6,7 @@ import { getCompetitionLeaderboard, getPracticeLeaderboard } from "@/lib/data/sc
 import { ScoreboardView } from "@/components/scoring/scoreboard-view";
 import { PracticeScoreboardView } from "@/components/scoring/practice-scoreboard-view";
 import { verifyScoringSession, SCORING_SESSION_COOKIE } from "@/lib/scoring-session";
+import { FinishRoundButton } from "@/components/scoring/finish-round-button";
 
 // See the comment on src/app/(app)/page.tsx's own `revalidate` -- raised from 10s now that the
 // per-hostname cache-splitting bug it worked around is fixed at the root (the domain redirect),
@@ -35,6 +36,9 @@ export default async function ScoreLeaderboardPage() {
       <div className="flex min-h-screen flex-col gap-6 p-5">
         {header}
         <PracticeScoreboardView entries={stableford} />
+        <div className="mt-auto pt-4">
+          <FinishRoundButton roundComplete={false} />
+        </div>
       </div>
     );
   }
@@ -49,6 +53,9 @@ export default async function ScoreLeaderboardPage() {
     <div className="flex min-h-screen flex-col gap-6 p-5">
       {header}
       <ScoreboardView data={{ main, stableford, scratch }} />
+      <div className="mt-auto pt-4">
+        <FinishRoundButton roundComplete={false} />
+      </div>
     </div>
   );
 }
