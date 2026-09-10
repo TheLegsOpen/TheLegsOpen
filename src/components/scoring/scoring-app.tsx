@@ -23,7 +23,11 @@ import { useWakeLock } from "@/hooks/use-wake-lock";
 
 export interface ScoringGroupData {
   groupLabel: string;
-  holeInfos: { par: number; si: number }[];
+  /** Course this round is played on, shown in the header. Absent if the round has no venue set. */
+  venueName?: string;
+  /** yards is optional on Venues -- a card can be set up with par and stroke index alone -- so the
+   * header simply leaves it out rather than printing a zero. */
+  holeInfos: { par: number; si: number; yards?: number }[];
   players: {
     playerId: string;
     playerName: string;
@@ -554,19 +558,29 @@ export function ScoringApp({
           {holeInfo ? (
             <p className="truncate text-xs text-primary-foreground/70">
               Par {holeInfo.par} · SI {holeInfo.si}
+              {holeInfo.yards ? ` · ${holeInfo.yards} yds` : ""}
             </p>
           ) : null}
         </div>
-        <div className="flex shrink-0 items-center gap-2 text-xs">
-          <SyncStatus pendingCount={pendingCount} syncing={syncing} />
-          <Link
-            href="/score/leaderboard"
-            className="font-semibold uppercase tracking-wide text-primary-foreground/70 hover:text-primary-foreground"
-          >
-            Board
-          </Link>
-          {canSwitchGroup ? <SwitchGroupLink /> : null}
-          {HolePicker}
+        {/* Course sits above the controls rather than beside them: this row is already tight enough
+         * at 412px that an admin's extra Switch link once pushed the two halves into each other. */}
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          {group.venueName ? (
+            <p className="max-w-[10rem] truncate text-xs font-semibold uppercase tracking-wide text-primary-foreground/50">
+              {group.venueName}
+            </p>
+          ) : null}
+          <div className="flex items-center gap-2 text-xs">
+            <SyncStatus pendingCount={pendingCount} syncing={syncing} />
+            <Link
+              href="/score/leaderboard"
+              className="font-semibold uppercase tracking-wide text-primary-foreground/70 hover:text-primary-foreground"
+            >
+              Board
+            </Link>
+            {canSwitchGroup ? <SwitchGroupLink /> : null}
+            {HolePicker}
+          </div>
         </div>
       </header>
 
