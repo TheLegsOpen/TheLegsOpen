@@ -187,6 +187,9 @@ export function ScoringApp({
   }
 
   async function saveCurrentHole() {
+    // Guarded here as well as on the button: nothing else should reach this with a hole part-filled,
+    // but a saved gap is not recoverable from the leaderboard's point of view.
+    if (missingHere.length > 0) return;
     if (savingRef.current) return;
     savingRef.current = true;
     try {
@@ -261,6 +264,36 @@ export function ScoringApp({
         return;
       }
     }
+  }
+
+  /** A hole counts as entered once it has strokes or an X -- blank is the only thing that blocks. */
+  function isEntered(
+    hole: { strokes?: number; noReturn: boolean } | undefined,
+  ) {
+    return hole !== undefined && (hole.strokes !== undefined || hole.noReturn);
+  }
+
+  /** Players with nothing on the hole currently being scored. */
+  const missingHere = group.players.filter(
+    (p) => !isEntered(holesState[p.scorecardId]?.[currentHole - 1]),
+  );
+
+  /**
+   * Every gap across holes 1..upTo, as "SURNAME 4, 7". Used by the two review screens, where the
+   * table scrolls sideways and a blank cell can easily be off screen.
+   */
+  function gapsUpTo(upTo: number): string[] {
+    return group.players.flatMap((p) => {
+      const holes = holesState[p.scorecardId] ?? [];
+      const missed = [];
+      for (let i = 0; i < upTo; i++) {
+        if (!isEntered(holes[i])) missed.push(i + 1);
+      }
+      if (missed.length === 0) return [];
+      return [
+        `${splitSurnameFirst(p.playerName).surname} ${missed.join(", ")}`,
+      ];
+    });
   }
 
   function pressKey(key: string) {
@@ -352,6 +385,7 @@ export function ScoringApp({
 
   if (view === "turn-review" || view === "final-review") {
     const upTo = view === "turn-review" ? 9 : 18;
+    const reviewGaps = gapsUpTo(upTo);
     return (
       <div className="flex h-[100svh] flex-col gap-6 overflow-hidden p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
         <header className="flex shrink-0 items-center justify-between">
@@ -456,29 +490,52 @@ export function ScoringApp({
         </div>
 
         {view === "turn-review" ? (
-          <Button
-            variant="accent"
-            size="lg"
-            className="w-full shrink-0 uppercase tracking-wide"
-            onClick={() => jumpToHole(10)}
-          >
-            Continue to the 10th
-          </Button>
+          <div className="flex shrink-0 flex-col gap-2">
+            {reviewGaps.length > 0 ? (
+              <p className="text-center text-sm text-accent">
+                Missing: {reviewGaps.join(" · ")}. Tap a blank to fill it in.
+              </p>
+            ) : null}
+            <Button
+              variant="accent"
+              size="lg"
+              disabled={reviewGaps.length > 0}
+              className="w-full uppercase tracking-wide disabled:opacity-50"
+              onClick={() => jumpToHole(10)}
+            >
+              {reviewGaps.length > 0
+                ? "Front 9 incomplete"
+                : "Continue to the 10th"}
+            </Button>
+          </div>
         ) : (
           <div className="flex shrink-0 flex-col gap-3">
             <p className="text-center text-base text-primary-foreground/70">
-              Tap any score above to go back and correct it.
+              {reviewGaps.length > 0
+                ? `Missing: ${reviewGaps.join(" · ")}. Tap a blank to fill it in.`
+                : "Tap any score above to go back and correct it."}
             </p>
-            <Button
-              asChild
-              variant="accent"
-              size="lg"
-              className="w-full uppercase tracking-wide"
-            >
-              <Link href="/score/leaderboard">
-                Confirm &amp; View Leaderboard
-              </Link>
-            </Button>
+            {reviewGaps.length > 0 ? (
+              <Button
+                variant="accent"
+                size="lg"
+                disabled
+                className="w-full uppercase tracking-wide disabled:opacity-50"
+              >
+                Round incomplete
+              </Button>
+            ) : (
+              <Button
+                asChild
+                variant="accent"
+                size="lg"
+                className="w-full uppercase tracking-wide"
+              >
+                <Link href="/score/leaderboard">
+                  Confirm &amp; View Leaderboard
+                </Link>
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -587,13 +644,21 @@ export function ScoringApp({
             Back
           </Button>
         ) : null}
+        {/* A blank is a gap in the record that reaches the leaderboard; making the scorer fill it
+         * in is the lesser cost. An X is a perfectly good answer -- this only rejects nothing at
+         * all. The label says why rather than leaving a dead button with no explanation. */}
         <Button
           variant="accent"
           size="lg"
-          className="h-14 flex-1 text-base uppercase tracking-wide"
+          disabled={missingHere.length > 0}
+          className="h-14 flex-1 text-base uppercase tracking-wide disabled:opacity-50"
           onClick={saveCurrentHole}
         >
-          {currentHole === 18 ? "Finish Round" : "Save & Next Hole"}
+          {missingHere.length > 0
+            ? "Enter every score"
+            : currentHole === 18
+              ? "Finish Round"
+              : "Save & Next Hole"}
         </Button>
       </div>
     </div>
