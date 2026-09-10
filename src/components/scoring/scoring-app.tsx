@@ -137,6 +137,9 @@ export function ScoringApp({
 
   // Re-derives whenever the server sends new data -- on mount, and again after the refresh below.
   useEffect(() => {
+    // applyServerData awaits IndexedDB before it sets anything, so nothing here is synchronous --
+    // the rule cannot see through the async call to tell.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     applyServerData();
     cacheGroup(group);
   }, [applyServerData, group]);
