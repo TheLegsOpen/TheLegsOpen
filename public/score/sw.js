@@ -5,8 +5,7 @@
 // build-time precache-manifest injection, which is a real compatibility risk with Turbopack.
 // Runtime-only caching sidesteps that entirely -- nothing here depends on the bundler.
 
-const SHELL_CACHE = "legs-open-score-shell-v2";
-const NAV_PATHS = new Set(["/score/login", "/score/play", "/score/groups"]);
+const SHELL_CACHE = "legs-open-score-shell-v3";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -31,13 +30,26 @@ self.addEventListener("fetch", (event) => {
 
   if (url.pathname === "/score/leaderboard") return; // deliberately uncached -- offline should read as "no connection", not stale standings
 
-  if (request.mode === "navigate" && NAV_PATHS.has(url.pathname)) {
-    event.respondWith(networkFirst(request));
+  // Content-hashed assets only. These can never go stale -- a new build changes the filename -- so
+  // serving them from cache without asking the network is free.
+  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/fonts/") || url.pathname.startsWith("/icon-")) {
+    event.respondWith(cacheFirst(request));
     return;
   }
 
-  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/score/") || url.pathname.startsWith("/fonts/") || url.pathname.startsWith("/icon-")) {
-    event.respondWith(cacheFirst(request));
+  // Everything else under /score/: the pages themselves, and just as importantly the RSC payloads
+  // Next fetches when you navigate back to one of them.
+  //
+  // Those payloads used to land in the branch above, because the only network-first rule required
+  // request.mode === "navigate" and a client-side back navigation is a plain fetch of
+  // /score/play?_rsc=..., not a document navigation. So the payload was cached on first load and
+  // served from cache from then on: open the leaderboard, go back, and the card was whatever it had
+  // been when first cached -- hole 1, empty -- while the real scores sat safely on the server.
+  // Reported twice from the course before it was found.
+  //
+  // Network first, cache only as the offline fallback, which is what the cache was ever for here.
+  if (url.pathname.startsWith("/score/")) {
+    event.respondWith(networkFirst(request));
   }
 });
 
