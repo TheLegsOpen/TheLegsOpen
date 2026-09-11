@@ -2,9 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { getUnsyncedHoles, markHolesSynced } from "@/lib/scoring/offline-db";
+import { forgetHoles, getUnsyncedHoles, markHolesSynced } from "@/lib/scoring/offline-db";
 
 const POLL_INTERVAL_MS = 15_000;
+
+/** Matches the reason saveScores sends when the group's session no longer checks out. Anything else
+ * it rejects is a permanent refusal, not a retryable one. */
+const SESSION_REJECTION = "session no longer valid -- log in again";
 
 /**
  * Holes per request when flushing a backlog.
@@ -77,6 +81,19 @@ export function useOfflineSync() {
 
         const body = (await res.json()) as SaveResponse;
         await markHolesSynced(body.applied.map((a) => `${a.scorecardId}:${a.holeNumber}`));
+
+        // A hole the server says does not belong to this group is never going to be accepted:
+        // typically one left over from a previous round on a phone now signed in to a different
+        // group. Without this it stays unsynced and is re-sent on every trigger -- every 15 seconds,
+        // all day, for a write that can only ever be refused. Dropping it is the only outcome that
+        // ends.
+        //
+        // Session rejections are deliberately left queued: those become valid again once the scorer
+        // logs back in, and sessionExpired above already sends them there.
+        const permanentlyRejected = body.rejected
+          .filter((r) => r.reason !== SESSION_REJECTION)
+          .map((r) => `${r.scorecardId}:${r.holeNumber}`);
+        if (permanentlyRejected.length > 0) await forgetHoles(permanentlyRejected);
         // Show the backlog draining chunk by chunk rather than jumping at the end.
         await refreshPendingCount();
       }
