@@ -21,8 +21,11 @@ interface TickEntry {
  */
 export async function POST(request: NextRequest) {
   const payload = await getPayload({ config: configPromise });
-  const body = (await request.json()) as { entries?: TickEntry[] };
+  const body = (await request.json()) as { entries?: TickEntry[]; simulatedNow?: string };
   const entries = body.entries ?? [];
+  // The moment on the original day that this tick represents, so the live blog reads as a record of
+  // that afternoon rather than of the evening it was replayed.
+  const simulatedNow = body.simulatedNow;
 
   const active = await payload.find({ collection: "championships", where: { isActive: { equals: true } }, limit: 1, depth: 0 });
   const championship = active.docs[0];
@@ -66,7 +69,12 @@ export async function POST(request: NextRequest) {
         };
       });
 
-      const updated = await payload.update({ collection: "scorecards", id: scorecard.id, data: { holes } });
+      const updated = await payload.update({
+        collection: "scorecards",
+        id: scorecard.id,
+        data: { holes },
+        ...(simulatedNow ? { context: { simulatedNow } } : {}),
+      });
       results.push({ playerName: entry.playerName, holeNumber: entry.holeNumber, strokes: entry.strokes, noReturn: entry.noReturn, holesCompleted: updated.holesCompleted });
     } catch (err) {
       errors.push({ playerName: entry.playerName, message: err instanceof Error ? err.message : String(err) });

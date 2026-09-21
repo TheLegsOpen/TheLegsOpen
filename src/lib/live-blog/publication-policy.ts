@@ -188,6 +188,22 @@ async function loadCooldownAndRateLimitState(
  * block or roll back the scorecard save that triggered it (see the try/catch and section on
  * failure handling in the request that introduced this module).
  */
+/**
+ * The clock the engine should treat as "now".
+ *
+ * A rerun of an old championship replays real cards in the present, but the commentary belongs to
+ * the day it was played -- so a replay passes the historic moment through req.context and every
+ * timestamp here follows it. Cooldowns and the hourly cap read from the same clock, which keeps
+ * them meaningful: an hour of simulated play is an hour, not the four minutes of wall time it
+ * might actually take.
+ */
+function clockFor(req: PayloadRequest): Date {
+  const simulated = (req as unknown as { context?: { simulatedNow?: string } }).context?.simulatedNow;
+  if (!simulated) return new Date();
+  const parsed = new Date(simulated);
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
 export async function evaluateAndPublish(
   req: PayloadRequest,
   candidate: TriggerCandidate,
@@ -196,6 +212,7 @@ export async function evaluateAndPublish(
   forceSuppressReason?: SuppressionReason,
 ): Promise<{ published: boolean; reason?: SuppressionReason | "ERROR" }> {
   try {
+    const now = clockFor(req);
     const significance = computeSignificance(candidate.significance);
     const critical = candidate.criticalOverride === true || isCriticalCategory(candidate.category);
     const cooldownExempt = critical || bypassesCooldown(candidate.category);
@@ -243,7 +260,7 @@ export async function evaluateAndPublish(
           threshold: config.minimumSignificance,
           selected: false,
           suppressed: true,
-          evaluatedAt: new Date().toISOString(),
+          evaluatedAt: now.toISOString(),
         },
         req,
       });
@@ -261,7 +278,6 @@ export async function evaluateAndPublish(
       return { published: false, reason: forceSuppressReason };
     }
 
-    const now = new Date();
     const { lastPublishedAt, postsInLastHour } = await loadCooldownAndRateLimitState(req, candidate.championshipId, candidate.playerId, now);
     const decision = decidePublication({
       enabled: config.enabled,
@@ -295,7 +311,7 @@ export async function evaluateAndPublish(
 
     const post = await req.payload.create({
       collection: "live-blog-posts",
-      data: { ...candidate.post, postedAt: new Date().toISOString() },
+      data: { ...candidate.post, postedAt: now.toISOString() },
       req,
     });
     await req.payload

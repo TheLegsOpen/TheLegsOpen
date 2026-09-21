@@ -207,6 +207,15 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
   // A single edit through the normal Scorecards admin field is unaffected.
   if (context?.suppressLiveBlog) return doc;
 
+  // A rerun sends the historic moment it is replaying. Put it on req so evaluateAndPublish can
+  // stamp posts with it -- set explicitly rather than assuming Payload mirrors context onto req.
+  if (context?.simulatedNow) {
+    (req as unknown as { context?: Record<string, unknown> }).context = {
+      ...(req as unknown as { context?: Record<string, unknown> }).context,
+      simulatedNow: context.simulatedNow,
+    };
+  }
+
   const playerId = typeof doc.player === "object" ? doc.player.id : doc.player;
   const championshipId = typeof doc.championship === "object" && doc.championship ? doc.championship.id : doc.championship;
   if (!playerId || !championshipId) return doc;
