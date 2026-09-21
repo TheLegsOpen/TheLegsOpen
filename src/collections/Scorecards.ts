@@ -103,6 +103,16 @@ export const Scorecards: CollectionConfig = {
       ],
     },
     {
+      name: "playingHandicap",
+      label: "Playing Handicap",
+      type: "number",
+      admin: {
+        readOnly: true,
+        description:
+          "The handicap this card was actually scored off, captured the first time a score is entered and never changed afterwards. Kept on the card rather than read from the player, so a finished championship keeps its own numbers when that player's handicap later moves -- which it does every time a new year is set up.",
+      },
+    },
+    {
       name: "scoreUpdatedAt",
       label: "Score Last Saved",
       type: "date",
@@ -235,9 +245,15 @@ export const Scorecards: CollectionConfig = {
           // its Course Rating/Slope/Par filled in, so an unconfigured practice round would
           // otherwise silently score the whole field off scratch -- a 22 handicap posting ~10
           // Stableford points instead of ~36, with nothing on screen looking wrong.
-          const handicap = championshipId
+          // Captured once. A card scored in 2016 must keep 2016's handicap even after the player's
+          // own figure is re-derived for a later championship -- otherwise every historic
+          // leaderboard silently rewrites itself, which is exactly what was happening.
+          const fromPlayer = championshipId
             ? (player.championshipHandicap ?? 0)
             : (player.practiceHandicap ?? player.championshipHandicap ?? 0);
+          const alreadyStamped = data.playingHandicap ?? originalDoc?.playingHandicap;
+          const handicap = typeof alreadyStamped === "number" ? alreadyStamped : fromPlayer;
+          data.playingHandicap = handicap;
           const totals = computeScorecardTotals(strokes, noReturn, holeInfos, handicap);
 
           data.holesCompleted = totals.holesCompleted;

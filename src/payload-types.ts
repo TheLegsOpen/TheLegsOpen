@@ -749,6 +749,7 @@ export interface Scorecard {
   championship?: (string | Championship) | null;
   teeTimeRound?: (string | TeeTimeRound) | null;
   teeTime?: string | null;
+  playingHandicap?: number | null;
   scoreUpdatedAt?: string | null;
   holes?:
     | {

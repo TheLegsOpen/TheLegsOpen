@@ -157,10 +157,13 @@ function buildLeaderboardFromDocs(
   holeInfos: { par: number; si: number }[],
   docs: PayloadScorecard[],
   teeTimeByPlayer: Map<string, string>,
-  // Championship leaderboards (the default) play off Championship Handicap; the practice-round
-  // leaderboard (see getPracticeLeaderboard) passes Practice Handicap instead -- see the same
-  // split in Scorecards.ts's own beforeValidate hook.
-  getHandicap: (player: Player) => number = (p) => p.championshipHandicap ?? 0,
+  // The card's own playingHandicap wins wherever it is set: it records what the player actually
+  // received on the day, and survives their handicap being re-derived for a later championship.
+  // Falling back to the player's current figure keeps every card scored before that field existed
+  // rendering exactly as it did. Championship leaderboards fall back to Championship Handicap; the
+  // practice-round leaderboard (see getPracticeLeaderboard) passes Practice Handicap instead.
+  getHandicap: (player: Player, doc: PayloadScorecard) => number = (p, d) =>
+    d.playingHandicap ?? p.championshipHandicap ?? 0,
 ): CompetitionEntry[] {
   const rows = docs.map((doc) => {
     const player = mapPlayer(doc.player as PayloadPlayer);
@@ -172,7 +175,7 @@ function buildLeaderboardFromDocs(
     const thru = started ? (finished ? "F" : String(holesCompleted)) : "-";
     const teeTimeMinutes = parseTeeTimeMinutes(teeTime);
 
-    const strokesReceived = allocateStrokes(getHandicap(player), holeInfos);
+    const strokesReceived = allocateStrokes(getHandicap(player, doc), holeInfos);
     const holes: HoleScore[] = holeInfos.map((info, i) => {
       const strokes = doc.holes?.[i]?.strokes ?? undefined;
       if (doc.holes?.[i]?.noReturn) {
@@ -382,7 +385,13 @@ export async function getPracticeLeaderboard(teeTimeRoundId: string, req?: Paylo
   // Same fallback as Scorecards.ts's own handicap resolution -- see the comment there for why an
   // unset practice handicap must not mean scratch. Kept identical so the leaderboard can never
   // disagree with the totals stored on the scorecards themselves.
-  return buildLeaderboardFromDocs("stableford", holeInfos, result.docs, teeTimeByPlayer, (p) => p.practiceHandicap ?? p.championshipHandicap ?? 0);
+  return buildLeaderboardFromDocs(
+    "stableford",
+    holeInfos,
+    result.docs,
+    teeTimeByPlayer,
+    (p, d) => d.playingHandicap ?? p.practiceHandicap ?? p.championshipHandicap ?? 0,
+  );
 }
 
 export interface LeaderboardSnapshotPair {
