@@ -6,7 +6,10 @@ import configPromise from "@/payload.config";
 interface TickEntry {
   playerName: string;
   holeNumber: number;
-  strokes: number;
+  /** Omitted when the hole is a no return. */
+  strokes?: number;
+  /** A pick-up. The 2016 cards record these as "NP"; the site stores them as noReturn. */
+  noReturn?: boolean;
 }
 
 /**
@@ -27,7 +30,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No active championship found" }, { status: 404 });
   }
 
-  const results: { playerName: string; holeNumber: number; strokes: number; holesCompleted?: number | null }[] = [];
+  const results: { playerName: string; holeNumber: number; strokes?: number; noReturn?: boolean; holesCompleted?: number | null }[] = [];
   const errors: { playerName: string; message: string }[] = [];
 
   for (const entry of entries) {
@@ -55,8 +58,8 @@ export async function POST(request: NextRequest) {
       const holes = Array.from({ length: 18 }, (_, i) => {
         const existing = existingHoles[i];
         return {
-          strokes: i === entry.holeNumber - 1 ? entry.strokes : (existing?.strokes ?? undefined),
-          noReturn: existing?.noReturn ?? false,
+          strokes: i === entry.holeNumber - 1 ? (entry.noReturn ? undefined : entry.strokes) : (existing?.strokes ?? undefined),
+          noReturn: i === entry.holeNumber - 1 ? Boolean(entry.noReturn) : (existing?.noReturn ?? false),
           fairwayHit: existing?.fairwayHit ?? undefined,
           greenInRegulation: existing?.greenInRegulation ?? undefined,
           putts: existing?.putts ?? undefined,
@@ -64,7 +67,7 @@ export async function POST(request: NextRequest) {
       });
 
       const updated = await payload.update({ collection: "scorecards", id: scorecard.id, data: { holes } });
-      results.push({ playerName: entry.playerName, holeNumber: entry.holeNumber, strokes: entry.strokes, holesCompleted: updated.holesCompleted });
+      results.push({ playerName: entry.playerName, holeNumber: entry.holeNumber, strokes: entry.strokes, noReturn: entry.noReturn, holesCompleted: updated.holesCompleted });
     } catch (err) {
       errors.push({ playerName: entry.playerName, message: err instanceof Error ? err.message : String(err) });
     }
