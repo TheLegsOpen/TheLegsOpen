@@ -314,12 +314,16 @@ export async function computeAutoFacts(championship: ChampionshipWinner): Promis
   const mainWinnerConfirmed = Boolean(winner && !winner.tied && winner.player.name === championship.winnerName);
 
   let runnerUp: ReturnType<typeof namesFor> = { names: "" };
-  let runnerUpScratch: CompetitionEntry | undefined;
+  let runnerUpMain: CompetitionEntry | undefined;
   let marginStrokes: number | undefined;
 
   if (mainWinnerConfirmed && winner) {
     runnerUp = namesFor(main, 2);
-    runnerUpScratch = runnerUp.playerId ? scratch.find((e) => e.player.id === runnerUp.playerId) : undefined;
+    // The runner-up's own Main total, which is what the record means and what the field on
+    // Championships says it holds. This used to read the same player's entry off the SCRATCH board,
+    // so the Records page showed a nett runner-up beside a gross score -- 2026 read 91 for Stevie
+    // Connelly, his gross, where his Main total was 77.
+    runnerUpMain = runnerUp.playerId ? main.find((e) => e.player.id === runnerUp.playerId) : undefined;
     const runnerUpToPar = main.find((e) => e.position === 2)?.toPar;
     marginStrokes = winner.toPar !== undefined && runnerUpToPar !== undefined ? runnerUpToPar - winner.toPar : undefined;
   }
@@ -359,7 +363,7 @@ export async function computeAutoFacts(championship: ChampionshipWinner): Promis
     scratchWinnerScore: scratchWinnerEntry?.score,
     scratchWinnerScoreToPar: scratchWinnerEntry?.toPar,
     runnerUpName: runnerUp.names || undefined,
-    runnerUpScore: runnerUpScratch?.score,
+    runnerUpScore: runnerUpMain?.score,
     marginStrokes,
     ledOutrightAfter9,
     deficitAfter9,
