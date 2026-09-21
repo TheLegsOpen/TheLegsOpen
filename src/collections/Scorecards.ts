@@ -107,9 +107,8 @@ export const Scorecards: CollectionConfig = {
       label: "Playing Handicap",
       type: "number",
       admin: {
-        readOnly: true,
         description:
-          "The handicap this card was actually scored off, captured the first time a score is entered and never changed afterwards. Kept on the card rather than read from the player, so a finished championship keeps its own numbers when that player's handicap later moves -- which it does every time a new year is set up.",
+          "The handicap this card was actually scored off. Filled in automatically the first time a score is entered and left alone after that, so a finished championship keeps its own numbers when the player's handicap later moves -- which it does every time a new year is set up. Editable because a few old cards cannot be recovered exactly and may need correcting by hand; clear it to have it re-captured from the player on the next save.",
       },
     },
     {
