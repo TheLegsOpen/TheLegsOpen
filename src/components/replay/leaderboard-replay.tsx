@@ -18,9 +18,10 @@ const COMPETITIONS: { value: Competition; label: string }[] = [
   { value: "scratch", label: "Scratch" },
 ];
 
-/** Minutes of round time per real second of playback -- a five-and-a-half hour round in about a
- * minute, which is slow enough for the board's own row-movement animation to read. */
-const SPEED = 6;
+/** Minutes of round time per real second of playback. A five-and-a-half hour round takes a little
+ * under two minutes to play out -- slow enough to follow a position change while it happens, rather
+ * than only seeing where everyone ended up. Scrub or step with the arrow keys to move faster. */
+const SPEED = 3;
 const TICK_MS = 100;
 
 /**
@@ -186,6 +187,25 @@ export function LeaderboardReplay({ replay }: { replay: ChampionshipReplay }) {
     return () => clearInterval(id);
   }, [playing, replay.durationMinutes]);
 
+  // Arrow keys step a minute at a time, anywhere on the page -- the board is the whole point of
+  // this page, and requiring the slider to be focused first makes a fine-grained step hard to
+  // discover. Left/Right don't scroll, so nothing is being taken away from the viewer.
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      // The slider handles its own arrow keys; anything else typable is left alone on principle.
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target?.isContentEditable) return;
+      event.preventDefault();
+      setPlaying(false);
+      setMinute((current) => Math.min(replay.durationMinutes, Math.max(0, Math.round(current) + (event.key === "ArrowRight" ? 1 : -1))));
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [replay.durationMinutes]);
+
   const finished = minute >= replay.durationMinutes;
 
   return (
@@ -252,6 +272,9 @@ export function LeaderboardReplay({ replay }: { replay: ChampionshipReplay }) {
           excludeFromTitle={mainChampionId}
         />
 
+        <p className="text-xs text-surface-dark-foreground/80">
+          Use the ← and → arrow keys to step back and forward a minute at a time, or drag the timeline to jump.
+        </p>
         <p className="text-xs text-surface-dark-foreground/60">
           Reconstructed from the tee sheet and the card of each player, allowing 10 minutes for a par 3, 13 for a par 4
           and 15 for a par 5. Hole-by-hole times were never recorded, so the order holes were completed in is exact but

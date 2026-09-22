@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PlayCircle } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LeaderboardView } from "@/components/leaderboard/leaderboard-view";
@@ -91,6 +92,11 @@ export function PreviousOpenView({
   results: PreviousOpenResults | undefined;
 }) {
   const story = overviewStory(championship, autoFacts);
+  // The replay page needs a scored card AND a Championship tee time for each player -- without the
+  // tee sheet there's no way to place a hole in time. A CompetitionEntry carries both, so this is
+  // the same condition getChampionshipReplay applies, answered from data already on the page rather
+  // than by asking the database again. Years still being backdated simply don't show the link.
+  const hasReplay = Boolean(results?.main.some((entry) => entry.started && entry.teeTime));
 
   return (
     <Tabs defaultValue="overview">
@@ -140,9 +146,16 @@ export function PreviousOpenView({
           ))}
         </dl>
 
-        <Link href={`/venues/${championship.venueSlug}`} className="mt-6 inline-block w-fit text-sm font-medium text-primary hover:underline">
-          View {championship.venueName} →
-        </Link>
+        <div className="mt-6 flex flex-wrap items-center gap-6">
+          <Link href={`/venues/${championship.venueSlug}`} className="w-fit text-sm font-medium text-primary hover:underline">
+            View {championship.venueName} →
+          </Link>
+          {hasReplay ? (
+            <Link href={`/previous-opens/${championship.year}/replay`} className="w-fit text-sm font-medium text-primary hover:underline">
+              Replay the {championship.year} leaderboard →
+            </Link>
+          ) : null}
+        </div>
       </TabsContent>
 
       <TabsContent value="results" className="mt-8">
@@ -155,12 +168,23 @@ export function PreviousOpenView({
           </div>
         ) : (
           <Tabs defaultValue="leaderboard">
-            <TabsList>
-              <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-              <TabsTrigger value="tee-times">Tee Times</TabsTrigger>
-              <TabsTrigger value="statistics">Statistics</TabsTrigger>
-              <TabsTrigger value="live-blog">Live Blog</TabsTrigger>
-            </TabsList>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <TabsList>
+                <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+                <TabsTrigger value="tee-times">Tee Times</TabsTrigger>
+                <TabsTrigger value="statistics">Statistics</TabsTrigger>
+                <TabsTrigger value="live-blog">Live Blog</TabsTrigger>
+              </TabsList>
+              {hasReplay ? (
+                <Link
+                  href={`/previous-opens/${championship.year}/replay`}
+                  className="inline-flex h-11 items-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold uppercase tracking-wide text-accent-foreground transition-opacity hover:opacity-90"
+                >
+                  <PlayCircle className="h-4 w-4" />
+                  Replay the round
+                </Link>
+              ) : null}
+            </div>
 
             <TabsContent value="leaderboard" className="mt-6">
               <LeaderboardView
