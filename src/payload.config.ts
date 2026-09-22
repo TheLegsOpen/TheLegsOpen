@@ -26,9 +26,7 @@ import { Players } from "./collections/Players";
 import { Venues } from "./collections/Venues";
 import { Articles } from "./collections/Articles";
 import { Championships } from "./collections/Championships";
-import { LeaderboardEntries } from "./collections/LeaderboardEntries";
 import { TeeTimeRounds } from "./collections/TeeTimeRounds";
-import { PlayerStatistics } from "./collections/PlayerStatistics";
 import { LegalPages } from "./collections/LegalPages";
 import { Scorecards } from "./collections/Scorecards";
 import { LiveBlogPosts } from "./collections/LiveBlogPosts";
@@ -110,9 +108,7 @@ export default buildConfig({
     Venues,
     Articles,
     Championships,
-    LeaderboardEntries,
     TeeTimeRounds,
-    PlayerStatistics,
     LegalPages,
     Scorecards,
     LiveBlogPosts,
