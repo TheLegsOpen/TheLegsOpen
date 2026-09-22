@@ -92,7 +92,11 @@ const getPlayerScoresByMode = cache(async function getPlayerScoresByMode(
 
   const playerScores: PlayerHoleScores[] = scorecards.docs.map((doc) => {
     const player = mapPlayer(doc.player as PayloadPlayer);
-    const handicap = mode === "nett" ? ((doc.player as PayloadPlayer).championshipHandicap ?? 0) : 0;
+    // The card's own handicap, not the player's current one. Reading the player meant every nett
+    // statistic was recomputed from whatever that figure happens to be today, so setting up a new
+    // year silently rewrote finished ones -- Mark Alston's 2026 par-3 scoring read E off his 2016
+    // handicap of 24 where the round he actually played, off 13, was +4.
+    const handicap = mode === "nett" ? (doc.playingHandicap ?? (doc.player as PayloadPlayer).championshipHandicap ?? 0) : 0;
     const strokesReceived = allocateStrokes(handicap, holeInfos);
     const scoreByHole = holeInfos.map((_, i) => {
       const strokes = doc.holes?.[i]?.strokes;

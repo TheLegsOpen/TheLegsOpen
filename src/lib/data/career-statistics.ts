@@ -92,7 +92,9 @@ function scoresForMode(mode: ScoringMode, inputs: CareerInputs): PlayerYearScore
     for (const doc of docs) {
       const payloadPlayer = doc.player as PayloadPlayer;
       const player = mapPlayer(payloadPlayer);
-      const handicap = mode === "nett" ? (payloadPlayer.championshipHandicap ?? 0) : 0;
+      // The card's own handicap -- see the same note in scoring-statistics.ts. It matters more here:
+      // a career spans many years, and reading the player applied one current figure to all of them.
+      const handicap = mode === "nett" ? (doc.playingHandicap ?? payloadPlayer.championshipHandicap ?? 0) : 0;
       const strokesReceived = allocateStrokes(handicap, holeInfos);
       const scoreByHole = holeInfos.map((_, i) => {
         const strokes = doc.holes?.[i]?.strokes;
