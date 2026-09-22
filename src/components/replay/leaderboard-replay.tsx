@@ -1,115 +1,150 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Pause, Play, RotateCcw } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { CountryFlag } from "@/components/shared/country-flag";
+import { Container } from "@/components/shared/container";
+import { LeaderboardTable } from "@/components/leaderboard/leaderboard-table";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFavorites } from "@/hooks/use-favorites";
+import { isConcluded } from "@/lib/leaderboard";
 import { allocateStrokes, stablefordPoints } from "@/lib/scoring";
-import { cn, splitSurnameFirst } from "@/lib/utils";
 import type { ChampionshipReplay } from "@/lib/data/championship-replay";
-
-type Competition = "main" | "stableford" | "scratch";
+import type { Competition, CompetitionEntry, HoleScore } from "@/lib/data/scorecards";
 
 const COMPETITIONS: { value: Competition; label: string }[] = [
-  { value: "main", label: "Main (Nett)" },
+  { value: "main", label: "Main" },
   { value: "stableford", label: "Stableford" },
   { value: "scratch", label: "Scratch" },
 ];
 
-/** Minutes of round time advanced per real second while playing. The whole round in about a minute. */
-const SPEED = 240;
-
-/** How far back "moved up/down" looks. A quarter hour of play is roughly a hole, so an arrow means
- * a player has genuinely gained or lost ground rather than flickering on every tick. */
-const MOVEMENT_WINDOW = 15;
-
-interface Row {
-  id: string;
-  name: string;
-  countryCode?: string;
-  thru: number;
-  noReturn: boolean;
-  value: number;
-  display: string;
-  sortKey: number;
-  position: number;
-  tied: boolean;
-  movement: number;
-}
+/** Minutes of round time per real second of playback -- a five-and-a-half hour round in about a
+ * minute, which is slow enough for the board's own row-movement animation to read. */
+const SPEED = 6;
+const TICK_MS = 100;
 
 /**
  * Rebuilds the standings as they stood at a given minute of the round, from the holes each player
- * had completed by then. Mirrors buildLeaderboardFromDocs: a pick-up disqualifies Main and Scratch
- * but never Stableford, which keeps scoring from the rest of the card.
+ * had completed by then.
+ *
+ * Deliberately mirrors buildLeaderboardFromDocs (src/lib/data/scorecards.ts) field for field and
+ * sort for sort, and returns its CompetitionEntry -- that is what lets the replay render the site's
+ * real LeaderboardTable rather than an imitation of it. That module can't simply be called here: it
+ * opens a Payload connection at import time, and this is a client component scrubbing through
+ * hundreds of moments in the round. The scoring itself is the shared lib either way.
  */
-function boardAt(replay: ChampionshipReplay, competition: Competition, minute: number): Row[] {
-  const rows = replay.players.map((player) => {
-    const received = allocateStrokes(player.handicap, replay.holeInfos);
-    let gross = 0;
-    let nett = 0;
-    let points = 0;
-    let thru = 0;
-    let noReturn = false;
-    let parPlayed = 0;
+function boardAt(replay: ChampionshipReplay, competition: Competition, minute: number): CompetitionEntry[] {
+  const rows = replay.players.map((entry) => {
+    const received = allocateStrokes(entry.handicap, replay.holeInfos);
 
-    player.holes.forEach((hole, i) => {
-      if (hole.at > minute) return;
-      if (hole.noReturn) {
-        noReturn = true;
-        thru += 1;
-        parPlayed += replay.holeInfos[i].par;
-        return;
+    let holesCompleted = 0;
+    let parPlayed = 0;
+    let grossTotal = 0;
+    let nettTotal = 0;
+    let stablefordTotal = 0;
+    let anyNoReturn = false;
+
+    const holes: HoleScore[] = replay.holeInfos.map((info, i) => {
+      const hole = entry.holes[i];
+      const holeNumber = i + 1;
+      const reached = hole.at <= minute;
+
+      if (!reached || (hole.strokes == null && !hole.noReturn)) {
+        return { holeNumber, par: info.par, value: undefined, relative: 0 };
       }
-      if (hole.strokes == null) return;
-      thru += 1;
-      parPlayed += replay.holeInfos[i].par;
-      gross += hole.strokes;
-      const holeNett = hole.strokes - received[i];
-      nett += holeNett;
-      points += stablefordPoints(holeNett, replay.holeInfos[i].par);
+      if (hole.noReturn) {
+        // A pickup: out of gross and nett entirely (and out of par played, so the to-par figure
+        // stays honest), but still worth zero Stableford points rather than nothing at all.
+        holesCompleted += 1;
+        anyNoReturn = true;
+        if (competition === "stableford") return { holeNumber, par: info.par, value: 0, relative: -2 };
+        return { holeNumber, par: info.par, value: undefined, relative: 0, noReturn: true };
+      }
+
+      const strokes = hole.strokes as number;
+      holesCompleted += 1;
+      parPlayed += info.par;
+      grossTotal += strokes;
+      const nett = strokes - received[i];
+      nettTotal += nett;
+      const points = stablefordPoints(nett, info.par);
+      stablefordTotal += points;
+
+      if (competition === "scratch") return { holeNumber, par: info.par, value: strokes, relative: strokes - info.par };
+      if (competition === "main") return { holeNumber, par: info.par, value: nett, relative: nett - info.par };
+      return { holeNumber, par: info.par, value: points, relative: points - 2 };
     });
 
-    const out = (() => {
-      if (competition === "stableford") {
-        return { value: points, display: thru === 0 ? "-" : String(points), sortKey: -points };
-      }
-      const total = competition === "main" ? nett : gross;
-      const toPar = total - parPlayed;
-      if (thru === 0) return { value: 0, display: "-", sortKey: Number.POSITIVE_INFINITY };
-      if (noReturn) return { value: 0, display: "NR", sortKey: Number.POSITIVE_INFINITY };
-      return { value: toPar, display: toPar === 0 ? "E" : toPar > 0 ? `+${toPar}` : String(toPar), sortKey: toPar };
-    })();
+    const started = holesCompleted > 0;
+    const finished = holesCompleted >= 18;
+    const thru = started ? (finished ? "F" : String(holesCompleted)) : "-";
+    const noReturn = competition !== "stableford" && anyNoReturn;
+    const toParGross = grossTotal - parPlayed;
+    const toParNett = nettTotal - parPlayed;
 
-    return {
-      id: player.id,
-      name: player.name,
-      countryCode: player.countryCode,
+    const base = {
+      player: entry.player,
+      holesCompleted,
+      started,
       thru,
-      noReturn: competition !== "stableford" && noReturn,
-      ...out,
-      position: 0,
-      tied: false,
-      movement: 0,
-    } as Row;
-  });
+      teeTime: entry.teeTime,
+      teeTimeMinutes: entry.teeTimeMinutes,
+      holes,
+      noReturn,
+    };
 
-  rows.sort((a, b) => a.sortKey - b.sortKey || a.name.localeCompare(b.name));
-
-  let position = 0;
-  let lastKey: number | undefined;
-  rows.forEach((row, i) => {
-    if (row.sortKey !== lastKey) {
-      position = i + 1;
-      lastKey = row.sortKey;
+    if (competition === "stableford") {
+      return {
+        ...base,
+        score: stablefordTotal,
+        // The Main nett-to-par, shown for reference -- and meaningless once Main is disqualified.
+        toPar: anyNoReturn ? undefined : started ? toParNett : 0,
+        tieKey: -stablefordTotal,
+      };
     }
-    row.position = position;
-    row.tied = rows.filter((r) => r.sortKey === row.sortKey).length > 1 && Number.isFinite(row.sortKey);
+    const total = competition === "main" ? nettTotal : grossTotal;
+    const toPar = competition === "main" ? toParNett : toParGross;
+    return {
+      ...base,
+      score: noReturn ? undefined : finished ? total : undefined,
+      toPar: noReturn ? undefined : started ? toPar : 0,
+      tieKey: noReturn ? Number.POSITIVE_INFINITY : toPar,
+    };
   });
 
-  return rows;
+  rows.sort((a, b) => {
+    if (a.tieKey !== b.tieKey) return a.tieKey - b.tieKey;
+    if (a.holesCompleted !== b.holesCompleted) return b.holesCompleted - a.holesCompleted;
+    return a.teeTimeMinutes - b.teeTimeMinutes;
+  });
+
+  const entries: CompetitionEntry[] = [];
+  let position = 0;
+  let previousGroupKey: string | undefined;
+
+  rows.forEach((row, index) => {
+    const groupKey = String(row.tieKey);
+    if (groupKey !== previousGroupKey) position = index + 1;
+    entries.push({
+      position,
+      // Each no-return is individually disqualified, not level with the others sharing the sentinel.
+      tied: !row.noReturn && rows.filter((r) => String(r.tieKey) === groupKey).length > 1,
+      player: row.player,
+      score: row.score,
+      toPar: row.toPar,
+      started: row.started,
+      thru: row.thru,
+      teeTime: row.teeTime,
+      holes: row.holes,
+      noReturn: row.noReturn,
+    });
+    previousGroupKey = groupKey;
+  });
+
+  return entries;
 }
 
-/** "10.00" plus n minutes, as a clock label. */
+/** The first tee time plus n minutes, as a clock label. */
 function clockLabel(firstTeeTime: string, minute: number): string {
   const match = firstTeeTime.match(/(\d{1,2})[.:](\d{2})/);
   const baseHour = match ? Number(match[1]) : 10;
@@ -124,19 +159,18 @@ export function LeaderboardReplay({ replay }: { replay: ChampionshipReplay }) {
   const [minute, setMinute] = useState(replay.durationMinutes);
   const [competition, setCompetition] = useState<Competition>("main");
   const [playing, setPlaying] = useState(false);
-  const rows = useMemo(() => boardAt(replay, competition, minute), [replay, competition, minute]);
+  const { favorites, toggleFavorite } = useFavorites();
 
-  // Movement against the board a quarter of an hour earlier, rather than against the previous
-  // render. Deterministic -- scrubbing to the same minute always shows the same arrows -- and it
-  // measures something real about the round instead of an artefact of how the viewer got here.
-  const earlier = useMemo(
-    () => boardAt(replay, competition, Math.max(0, minute - MOVEMENT_WINDOW)),
+  const entries = useMemo(() => boardAt(replay, competition, minute), [replay, competition, minute]);
+
+  // The Main champion never also takes the Stableford title -- the same rule the live leaderboard
+  // applies, and it only comes into force once Main has actually concluded.
+  const mainEntries = useMemo(
+    () => (competition === "stableford" ? boardAt(replay, "main", minute) : undefined),
     [replay, competition, minute],
   );
-  const withMovement = useMemo(() => {
-    const positionsEarlier = new Map(earlier.map((r) => [r.id, r.position]));
-    return rows.map((row) => ({ ...row, movement: (positionsEarlier.get(row.id) ?? row.position) - row.position }));
-  }, [rows, earlier]);
+  const mainChampionId =
+    mainEntries && isConcluded(mainEntries) ? mainEntries.find((e) => e.position === 1 && !e.tied)?.player.id : undefined;
 
   useEffect(() => {
     if (!playing) return;
@@ -146,95 +180,84 @@ export function LeaderboardReplay({ replay }: { replay: ChampionshipReplay }) {
           setPlaying(false);
           return replay.durationMinutes;
         }
-        return Math.min(replay.durationMinutes, current + SPEED / 10);
+        return Math.min(replay.durationMinutes, current + (SPEED * TICK_MS) / 1000);
       });
-    }, 100);
+    }, TICK_MS);
     return () => clearInterval(id);
   }, [playing, replay.durationMinutes]);
 
-  const anyStarted = rows.some((r) => r.thru > 0);
+  const finished = minute >= replay.durationMinutes;
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-center gap-3">
-        <Button
-          type="button"
-          variant="accent"
-          size="lg"
-          className="uppercase tracking-wide"
-          onClick={() => {
-            if (minute >= replay.durationMinutes) setMinute(0);
-            setPlaying((p) => !p);
-          }}
-        >
-          {playing ? "Pause" : minute >= replay.durationMinutes ? "Replay round" : "Play"}
-        </Button>
-        <div className="flex flex-wrap gap-2">
-          {COMPETITIONS.map((c) => (
+    <div className="bg-primary text-surface-dark-foreground">
+      <Container className="flex flex-col gap-6 py-10 sm:py-14">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <Tabs value={competition} onValueChange={(value) => setCompetition(value as Competition)}>
+            <TabsList className="border border-surface-dark-foreground/15 bg-surface-dark-foreground/10">
+              {COMPETITIONS.map((c) => (
+                <TabsTrigger
+                  key={c.value}
+                  value={c.value}
+                  className="text-surface-dark-foreground data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-none"
+                >
+                  {c.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+
+          <div className="flex items-center gap-4">
             <button
-              key={c.value}
               type="button"
-              onClick={() => setCompetition(c.value)}
-              className={cn(
-                "rounded-full border px-4 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors",
-                competition === c.value ? "border-accent bg-accent text-accent-foreground" : "border-border text-muted-foreground hover:text-foreground",
-              )}
+              onClick={() => {
+                if (finished) setMinute(0);
+                setPlaying((p) => !p);
+              }}
+              className="inline-flex h-11 items-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold uppercase tracking-wide text-accent-foreground transition-opacity hover:opacity-90"
             >
-              {c.label}
+              {playing ? <Pause className="h-4 w-4" /> : finished ? <RotateCcw className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              {playing ? "Pause" : finished ? "Replay" : "Play"}
             </button>
-          ))}
+            <div className="text-right">
+              <p className="font-display text-2xl font-bold leading-none tabular-nums">
+                {clockLabel(replay.firstTeeTime, minute)}
+              </p>
+              <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-surface-dark-foreground/60">
+                {finished ? "Final" : `${Math.round(minute)} min in`}
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="ml-auto text-right">
-          <p className="font-display text-2xl font-bold tabular-nums">{clockLabel(replay.firstTeeTime, minute)}</p>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            {minute >= replay.durationMinutes ? "Final" : `${Math.round(minute)} min in`}
-          </p>
-        </div>
-      </div>
 
-      <input
-        type="range"
-        min={0}
-        max={replay.durationMinutes}
-        value={minute}
-        onChange={(e) => {
-          setPlaying(false);
-          setMinute(Number(e.target.value));
-        }}
-        aria-label="Time through the round"
-        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-border accent-accent"
-      />
+        <input
+          type="range"
+          min={0}
+          max={replay.durationMinutes}
+          value={minute}
+          onChange={(event) => {
+            setPlaying(false);
+            setMinute(Number(event.target.value));
+          }}
+          aria-label="Time through the round"
+          className="h-2 w-full cursor-pointer appearance-none rounded-full bg-surface-dark-foreground/20 accent-accent"
+        />
 
-      {!anyStarted ? (
-        <p className="py-10 text-center text-sm text-muted-foreground">Nobody has teed off yet.</p>
-      ) : (
-        <ol className="flex flex-col divide-y divide-border border border-border">
-          {withMovement.map((row) => (
-            <li key={row.id} className="flex items-center gap-4 px-4 py-2.5">
-              <span className="w-10 shrink-0 font-display text-lg font-bold tabular-nums">
-                {row.thru === 0 ? "-" : row.noReturn ? "" : `${row.tied ? "T" : ""}${row.position}`}
-              </span>
-              <span className="w-5 shrink-0 text-center text-xs tabular-nums">
-                {row.movement > 0 ? <span className="text-emerald-600">▲{row.movement}</span> : row.movement < 0 ? <span className="text-destructive">▼{-row.movement}</span> : null}
-              </span>
-              <CountryFlag code={row.countryCode ?? ""} className="h-3 w-4 shrink-0" />
-              <span className="min-w-0 flex-1 truncate font-display text-base">
-                <span className="font-bold">{splitSurnameFirst(row.name).surname}</span>
-                <span className="font-normal">, {splitSurnameFirst(row.name).firstName}</span>
-              </span>
-              <span className="w-12 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
-                {row.thru === 0 ? "-" : row.thru === 18 ? "F" : `thru ${row.thru}`}
-              </span>
-              <span className="w-14 shrink-0 text-right font-display text-lg font-bold tabular-nums">{row.display}</span>
-            </li>
-          ))}
-        </ol>
-      )}
+        <LeaderboardTable
+          entries={entries}
+          competition={competition}
+          favorites={favorites}
+          onToggleFavorite={toggleFavorite}
+          favoritesOnly={false}
+          onSelectPlayer={() => {}}
+          excludeFromTitle={mainChampionId}
+        />
 
-      <p className="text-xs text-muted-foreground">
-        Reconstructed from the tee sheet and the card of each player, allowing 10 minutes for a par 3, 13 for a par 4 and
-        15 for a par 5. Hole-by-hole times were never recorded, so the order is exact but a given minute is an estimate.
-      </p>
+        <p className="text-xs text-surface-dark-foreground/60">
+          Reconstructed from the tee sheet and the card of each player, allowing 10 minutes for a par 3, 13 for a par 4
+          and 15 for a par 5. Hole-by-hole times were never recorded, so the order holes were completed in is exact but
+          a given minute is an estimate.
+        </p>
+      </Container>
     </div>
   );
 }

@@ -36,7 +36,7 @@ export default async function ReplayPage({ params }: { params: Promise<{ year: s
   return (
     <>
       <PageHero eyebrow={`${replay.year} · ${replay.venueName}`} title="Championship replay" />
-      <Container className="flex flex-col gap-6 py-10">
+      <Container className="py-8">
         <Link
           href={`/previous-opens/${replay.year}`}
           className="flex w-fit items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
@@ -44,8 +44,10 @@ export default async function ReplayPage({ params }: { params: Promise<{ year: s
           <ArrowLeft className="h-4 w-4" />
           Back to {replay.year}
         </Link>
-        <LeaderboardReplay replay={replay} />
       </Container>
+      {/* Renders its own full-width dark section, so the board sits on the same surface as the
+          live leaderboard rather than floating on the page background. */}
+      <LeaderboardReplay replay={replay} />
     </>
   );
 }

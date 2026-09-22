@@ -3,6 +3,7 @@ import { getPayload } from "payload";
 import configPromise from "@/payload.config";
 import { allocateStrokes } from "@/lib/scoring";
 import { parseTeeTimeMinutes } from "@/lib/data/scorecards";
+import type { Player } from "@/types/player";
 import type { Player as PayloadPlayer, Scorecard, TeeTimeRound, Venue } from "@/payload-types";
 
 /**
@@ -33,11 +34,15 @@ export interface ReplayHole {
 }
 
 export interface ReplayPlayer {
-  id: string;
-  name: string;
-  countryCode?: string;
+  /** Trimmed deliberately. The replay renders the site's real LeaderboardTable, which wants a
+   * Player, but that component only ever reads the id, the name and the flag -- shipping 36 full
+   * bios and photo galleries down the wire would dwarf the rest of this payload. */
+  player: Player;
   handicap: number;
   teeTime: string;
+  /** The tee time as minutes past midnight, so the client can break ties exactly as the real
+   * leaderboard does without importing the server-only scorecards module to parse it. */
+  teeTimeMinutes: number;
   holes: ReplayHole[];
 }
 
@@ -118,11 +123,17 @@ export async function getChampionshipReplay(year: number): Promise<ChampionshipR
     durationMinutes = Math.max(durationMinutes, elapsed);
 
     players.push({
-      id,
-      name: payloadPlayer.name,
-      countryCode: payloadPlayer.countryCode ?? undefined,
+      player: {
+        id,
+        name: payloadPlayer.name,
+        country: payloadPlayer.country,
+        countryCode: payloadPlayer.countryCode,
+        previousOpens: payloadPlayer.previousOpens,
+        bio: null,
+      },
       handicap,
       teeTime,
+      teeTimeMinutes: parseTeeTimeMinutes(teeTime),
       holes,
     });
   }
