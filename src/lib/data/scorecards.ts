@@ -299,9 +299,10 @@ function buildLeaderboardFromDocs(
     if (groupKey !== previousGroupKey) {
       position = index + 1;
     }
-    // NR and WD players share the same sentinel tieKey but aren't meaningfully "tied" with each
-    // other — each individually has no result, rather than being level on score.
-    const tied = !row.noReturn && !row.withdrawn && rows.filter((r) => `${r.rank}:${r.tieKey}` === groupKey).length > 1;
+    // Everyone sharing a position shares a "T", the no returns and withdrawals included: six
+    // players with no result really are all equal last, and printing a bare "6" six times over
+    // reads like six different placings.
+    const tied = rows.filter((r) => `${r.rank}:${r.tieKey}` === groupKey).length > 1;
     entries.push({
       position,
       tied,

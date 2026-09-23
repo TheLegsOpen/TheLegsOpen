@@ -135,8 +135,8 @@ function boardAt(replay: ChampionshipReplay, competition: Competition, minute: n
     if (groupKey !== previousGroupKey) position = index + 1;
     entries.push({
       position,
-      // Each no-return is individually disqualified, not level with the others sharing the sentinel.
-      tied: !row.noReturn && !row.withdrawn && rows.filter((r) => `${r.rank}:${r.tieKey}` === groupKey).length > 1,
+      // Everyone sharing a position shares a "T", the no returns and withdrawals included.
+      tied: rows.filter((r) => `${r.rank}:${r.tieKey}` === groupKey).length > 1,
       player: row.player,
       score: row.score,
       toPar: row.toPar,

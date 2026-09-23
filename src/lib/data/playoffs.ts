@@ -52,10 +52,14 @@ export interface PlayoffResult {
 /**
  * `tied` on the leaderboard also groups in not-started players, who share the same baseline
  * tieKey as a genuinely level-par finisher -- only players who actually posted a score belong
- * in a real tiebreak.
+ * in a real tiebreak. It likewise groups the no returns and the withdrawals with each other, so
+ * those are excluded here too: in the degenerate case where nobody returns a card they'd
+ * otherwise occupy position 1 as a "tie", and a playoff would be run for a title nobody won.
  */
 function tiedForFirst(entries: CompetitionEntry[]): CompetitionEntry[] {
-  return entries.filter((entry) => entry.position === 1 && entry.tied && entry.started);
+  return entries.filter(
+    (entry) => entry.position === 1 && entry.tied && entry.started && !entry.noReturn && !entry.withdrawn,
+  );
 }
 
 /** Exported for reuse by the Championship auto-stats populator (src/lib/data/championship-stats.ts), which needs the same countback rules to determine a competition's winner from scratch rather than just verifying one that's already confirmed. */
@@ -103,7 +107,7 @@ function getWinners(entries: CompetitionEntry[], competition: Competition): Play
   if (!isConcluded(entries)) return [];
   const tied = tiedForFirst(entries);
   if (tied.length === 0) {
-    const leader = entries.find((entry) => entry.position === 1 && entry.started);
+    const leader = entries.find((entry) => entry.position === 1 && entry.started && !entry.noReturn && !entry.withdrawn);
     return leader ? [leader.player] : [];
   }
   if (tied.length === 1) return [tied[0].player];
