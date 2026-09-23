@@ -39,6 +39,10 @@ export interface CompetitionEntry {
   /** Raw tee time (e.g. "12.00") from the Championship-round tee sheet, empty if not found. */
   teeTime: string;
   holes: HoleScore[];
+  /** The player left the course without finishing (injury, illness). Unlike a no return this isn't
+   * a scoring decision, so it applies to every competition -- Stableford included -- and sorts
+   * below the no returns rather than among them. Shown as "WD". */
+  withdrawn?: boolean;
   /** Main/Scratch only — a hole marked "no return" disqualifies this player from this competition; shown as "NR" and sorted to the bottom. Stableford is never affected. */
   noReturn?: boolean;
 }
@@ -206,6 +210,13 @@ function buildLeaderboardFromDocs(
     // is never disqualified: it keeps accumulating from the player's other holes as normal.
     const noReturn = competition !== "stableford" && Boolean(doc.noReturn);
 
+    // A withdrawal outranks a no return as a reason to have no result: the player didn't decline
+    // to finish, they couldn't. It therefore applies to Stableford too, where a pick-up doesn't.
+    // rank sorts the board into three bands before score is even considered -- players with a
+    // result, then the no returns, then the withdrawals.
+    const withdrawn = Boolean(doc.withdrawn);
+    const rank = withdrawn ? 2 : noReturn ? 1 : 0;
+
     // tieKey groups players into the same standing — lower is better for main/scratch (to-par),
     // negated Stableford points so the same ascending comparator works for both.
     if (competition === "main") {
@@ -218,9 +229,11 @@ function buildLeaderboardFromDocs(
         thru,
         holes,
         noReturn,
-        score: noReturn ? undefined : finished ? (doc.nettTotal ?? 0) : undefined,
-        toPar: noReturn ? undefined : started ? (doc.toParNett ?? 0) : 0,
-        tieKey: noReturn ? Number.POSITIVE_INFINITY : (doc.toParNett ?? 0),
+        withdrawn,
+        rank,
+        score: noReturn || withdrawn ? undefined : finished ? (doc.nettTotal ?? 0) : undefined,
+        toPar: noReturn || withdrawn ? undefined : started ? (doc.toParNett ?? 0) : 0,
+        tieKey: noReturn || withdrawn ? Number.POSITIVE_INFINITY : (doc.toParNett ?? 0),
       };
     }
     if (competition === "scratch") {
@@ -233,9 +246,11 @@ function buildLeaderboardFromDocs(
         thru,
         holes,
         noReturn,
-        score: noReturn ? undefined : finished ? (doc.grossTotal ?? 0) : undefined,
-        toPar: noReturn ? undefined : started ? (doc.toParGross ?? 0) : 0,
-        tieKey: noReturn ? Number.POSITIVE_INFINITY : (doc.toParGross ?? 0),
+        withdrawn,
+        rank,
+        score: noReturn || withdrawn ? undefined : finished ? (doc.grossTotal ?? 0) : undefined,
+        toPar: noReturn || withdrawn ? undefined : started ? (doc.toParGross ?? 0) : 0,
+        tieKey: noReturn || withdrawn ? Number.POSITIVE_INFINITY : (doc.toParGross ?? 0),
       };
     }
     return {
@@ -247,15 +262,17 @@ function buildLeaderboardFromDocs(
       thru,
       holes,
       noReturn,
+      withdrawn,
+      rank,
       // Stableford points show live from 0 rather than waiting for the round to start, unlike Main/Scratch.
-      score: doc.stablefordTotal ?? 0,
+      score: withdrawn ? undefined : (doc.stablefordTotal ?? 0),
       // Unlike `noReturn` above (which stays false -- Stableford correctly keeps scoring through a
       // pickup, worth 0 points for that hole, not disqualified), this "Par" figure is actually the
       // Main competition's nett-to-par shown for reference -- and that number is genuinely
       // meaningless once Main itself is disqualified, so it goes to "NR" here too rather than
       // showing a stale/misleading value.
-      toPar: doc.noReturn ? undefined : started ? (doc.toParNett ?? 0) : 0,
-      tieKey: -(doc.stablefordTotal ?? 0),
+      toPar: doc.noReturn || withdrawn ? undefined : started ? (doc.toParNett ?? 0) : 0,
+      tieKey: withdrawn ? Number.POSITIVE_INFINITY : -(doc.stablefordTotal ?? 0),
     };
   });
 
@@ -265,6 +282,7 @@ function buildLeaderboardFromDocs(
   // Holes played breaks ties within a score group, then tee-time breaks ties among players who
   // are still level on both (chiefly the not-yet-started group).
   rows.sort((a, b) => {
+    if (a.rank !== b.rank) return a.rank - b.rank;
     if (a.tieKey !== b.tieKey) return a.tieKey - b.tieKey;
     if (a.holesCompleted !== b.holesCompleted) return b.holesCompleted - a.holesCompleted;
     return a.teeTimeMinutes - b.teeTimeMinutes;
@@ -275,13 +293,15 @@ function buildLeaderboardFromDocs(
   let previousGroupKey: string | undefined;
 
   rows.forEach((row, index) => {
-    const groupKey = String(row.tieKey);
+    // The band is part of the key, so a no return and a withdrawal sharing the sentinel tieKey
+    // don't get merged into one position group.
+    const groupKey = `${row.rank}:${row.tieKey}`;
     if (groupKey !== previousGroupKey) {
       position = index + 1;
     }
-    // NR players share the same sentinel tieKey but aren't meaningfully "tied" with each other —
-    // each is individually disqualified, not level on score.
-    const tied = !row.noReturn && rows.filter((r) => String(r.tieKey) === groupKey).length > 1;
+    // NR and WD players share the same sentinel tieKey but aren't meaningfully "tied" with each
+    // other — each individually has no result, rather than being level on score.
+    const tied = !row.noReturn && !row.withdrawn && rows.filter((r) => `${r.rank}:${r.tieKey}` === groupKey).length > 1;
     entries.push({
       position,
       tied,
@@ -293,6 +313,7 @@ function buildLeaderboardFromDocs(
       teeTime: row.teeTime,
       holes: row.holes,
       noReturn: row.noReturn,
+      withdrawn: row.withdrawn,
     });
     previousGroupKey = groupKey;
   });

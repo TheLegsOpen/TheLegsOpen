@@ -80,6 +80,10 @@ function boardAt(replay: ChampionshipReplay, competition: Competition, minute: n
     const finished = holesCompleted >= 18;
     const thru = started ? (finished ? "F" : String(holesCompleted)) : "-";
     const noReturn = competition !== "stableford" && anyNoReturn;
+    // A withdrawal applies from the moment the player stopped, not from the first tee -- they were
+    // a live competitor until they left, and the replay should show them as one.
+    const withdrawn = entry.withdrawn && minute >= (entry.lastScoredAt ?? 0);
+    const rank = withdrawn ? 2 : noReturn ? 1 : 0;
     const toParGross = grossTotal - parPlayed;
     const toParNett = nettTotal - parPlayed;
 
@@ -92,28 +96,31 @@ function boardAt(replay: ChampionshipReplay, competition: Competition, minute: n
       teeTimeMinutes: entry.teeTimeMinutes,
       holes,
       noReturn,
+      withdrawn,
+      rank,
     };
 
     if (competition === "stableford") {
       return {
         ...base,
-        score: stablefordTotal,
+        score: withdrawn ? undefined : stablefordTotal,
         // The Main nett-to-par, shown for reference -- and meaningless once Main is disqualified.
-        toPar: anyNoReturn ? undefined : started ? toParNett : 0,
-        tieKey: -stablefordTotal,
+        toPar: anyNoReturn || withdrawn ? undefined : started ? toParNett : 0,
+        tieKey: withdrawn ? Number.POSITIVE_INFINITY : -stablefordTotal,
       };
     }
     const total = competition === "main" ? nettTotal : grossTotal;
     const toPar = competition === "main" ? toParNett : toParGross;
     return {
       ...base,
-      score: noReturn ? undefined : finished ? total : undefined,
-      toPar: noReturn ? undefined : started ? toPar : 0,
-      tieKey: noReturn ? Number.POSITIVE_INFINITY : toPar,
+      score: noReturn || withdrawn ? undefined : finished ? total : undefined,
+      toPar: noReturn || withdrawn ? undefined : started ? toPar : 0,
+      tieKey: noReturn || withdrawn ? Number.POSITIVE_INFINITY : toPar,
     };
   });
 
   rows.sort((a, b) => {
+    if (a.rank !== b.rank) return a.rank - b.rank;
     if (a.tieKey !== b.tieKey) return a.tieKey - b.tieKey;
     if (a.holesCompleted !== b.holesCompleted) return b.holesCompleted - a.holesCompleted;
     return a.teeTimeMinutes - b.teeTimeMinutes;
@@ -124,12 +131,12 @@ function boardAt(replay: ChampionshipReplay, competition: Competition, minute: n
   let previousGroupKey: string | undefined;
 
   rows.forEach((row, index) => {
-    const groupKey = String(row.tieKey);
+    const groupKey = `${row.rank}:${row.tieKey}`;
     if (groupKey !== previousGroupKey) position = index + 1;
     entries.push({
       position,
       // Each no-return is individually disqualified, not level with the others sharing the sentinel.
-      tied: !row.noReturn && rows.filter((r) => String(r.tieKey) === groupKey).length > 1,
+      tied: !row.noReturn && !row.withdrawn && rows.filter((r) => `${r.rank}:${r.tieKey}` === groupKey).length > 1,
       player: row.player,
       score: row.score,
       toPar: row.toPar,
@@ -138,6 +145,7 @@ function boardAt(replay: ChampionshipReplay, competition: Competition, minute: n
       teeTime: row.teeTime,
       holes: row.holes,
       noReturn: row.noReturn,
+      withdrawn: row.withdrawn,
     });
     previousGroupKey = groupKey;
   });

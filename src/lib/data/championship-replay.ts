@@ -34,6 +34,14 @@ export interface ReplayHole {
 }
 
 export interface ReplayPlayer {
+  /** The player left the course without finishing. Sorts below the no returns, in every
+   * competition -- see buildLeaderboardFromDocs, which this mirrors. */
+  withdrawn: boolean;
+  /** Minutes from the first tee shot to the last hole this player actually wrote a score on. A
+   * withdrawal only takes effect here, rather than from the first tee: they were a live competitor
+   * until the moment they left, and a replay that greyed them out from the start would be lying
+   * about the round. */
+  lastScoredAt: number;
   /** Trimmed deliberately. The replay renders the site's real LeaderboardTable, which wants a
    * Player, but that component only ever reads the id, the name and the flag -- shipping 36 full
    * bios and photo galleries down the wire would dwarf the rest of this payload. */
@@ -131,6 +139,8 @@ export async function getChampionshipReplay(year: number): Promise<ChampionshipR
         previousOpens: payloadPlayer.previousOpens,
         bio: null,
       },
+      withdrawn: Boolean(card.withdrawn),
+      lastScoredAt: holes.reduce((last, hole) => (hole.strokes != null ? hole.at : last), 0),
       handicap,
       teeTime,
       teeTimeMinutes: parseTeeTimeMinutes(teeTime),

@@ -68,13 +68,15 @@ export function PlayerPopup({
   const { surname, firstName } = splitSurnameFirst(player.name);
 
   const shotsOffLead = main.toPar !== undefined ? main.toPar - leaderToPar : undefined;
-  const leadText = main.noReturn
-    ? "No return."
-    : shotsOffLead === undefined
-      ? "Yet to start."
-      : shotsOffLead === 0
-        ? "Leading the championship."
-        : `${shotsOffLead} shot${shotsOffLead === 1 ? "" : "s"} off the lead.`;
+  const leadText = main.withdrawn
+    ? "Withdrawn."
+    : main.noReturn
+      ? "No return."
+      : shotsOffLead === undefined
+        ? "Yet to start."
+        : shotsOffLead === 0
+          ? "Leading the championship."
+          : `${shotsOffLead} shot${shotsOffLead === 1 ? "" : "s"} off the lead.`;
 
   const entryByCompetition: Record<Competition, CompetitionEntry | undefined> = { main, stableford, scratch };
   const activeEntry = entryByCompetition[competition];
@@ -99,14 +101,14 @@ export function PlayerPopup({
             <span
               className={cn(
                 "inline-flex h-12 w-14 shrink-0 items-center justify-center font-display text-xl font-bold tabular-nums",
-                main.noReturn || main.toPar === undefined
-                  ? main.noReturn
+                main.withdrawn || main.noReturn || main.toPar === undefined
+                  ? main.withdrawn || main.noReturn
                     ? "bg-[#B0B0B0] text-[#08325A]"
                     : "bg-primary-foreground/15"
                   : scorePillClass(main.toPar),
               )}
             >
-              {main.noReturn ? "NR" : main.toPar !== undefined ? formatToPar(main.toPar) : "—"}
+              {main.withdrawn ? "WD" : main.noReturn ? "NR" : main.toPar !== undefined ? formatToPar(main.toPar) : "—"}
             </span>
 
             <PlaceholderArt

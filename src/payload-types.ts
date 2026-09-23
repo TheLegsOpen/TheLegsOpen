@@ -750,6 +750,7 @@ export interface Scorecard {
   teeTimeRound?: (string | TeeTimeRound) | null;
   teeTime?: string | null;
   playingHandicap?: number | null;
+  withdrawn?: boolean | null;
   scoreUpdatedAt?: string | null;
   holes?:
     | {

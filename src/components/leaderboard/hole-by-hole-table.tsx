@@ -91,8 +91,8 @@ export function HoleByHoleTable({ entries, onSelectPlayer, competition }: HoleBy
                   ) : null}
                 </td>
                 <td className="px-2 py-3 text-right">
-                  {entry.noReturn || entry.toPar === undefined ? (
-                    <span className={cn(TILE_CLASS, "bg-[#B0B0B0] text-[#08325A]")}>NR</span>
+                  {entry.withdrawn || entry.noReturn || entry.toPar === undefined ? (
+                    <span className={cn(TILE_CLASS, "bg-[#B0B0B0] text-[#08325A]")}>{entry.withdrawn ? "WD" : "NR"}</span>
                   ) : (
                     <span className={cn(TILE_CLASS, scorePillClass(entry.toPar))}>
                       <AnimatedValue value={formatToPar(entry.toPar)} />
@@ -120,8 +120,8 @@ export function HoleByHoleTable({ entries, onSelectPlayer, competition }: HoleBy
                   </td>
                 ))}
                 <td className="px-4 py-3 text-right tabular-nums">
-                  <span className={cn(TILE_CLASS, entry.noReturn ? "bg-[#B0B0B0] text-[#08325A]" : NEUTRAL_TILE_CLASS)}>
-                    <AnimatedValue value={entry.noReturn ? "NR" : entry.started && entry.score !== undefined ? entry.score : "-"} />
+                  <span className={cn(TILE_CLASS, entry.noReturn || entry.withdrawn ? "bg-[#B0B0B0] text-[#08325A]" : NEUTRAL_TILE_CLASS)}>
+                    <AnimatedValue value={entry.withdrawn ? "WD" : entry.noReturn ? "NR" : entry.started && entry.score !== undefined ? entry.score : "-"} />
                   </span>
                 </td>
               </tr>

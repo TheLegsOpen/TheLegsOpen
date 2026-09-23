@@ -48,9 +48,12 @@ export function formatToPar(value: number): string {
   return value > 0 ? `+${value}` : `${value}`;
 }
 
-/** The round only has a final result once nobody who teed off is still out on course. */
-export function isConcluded(entries: { started: boolean; thru: string }[]): boolean {
-  const started = entries.filter((entry) => entry.started);
+/** The round only has a final result once nobody who teed off is still out on course. A player who
+ * withdrew is off the course for good and is never coming back with eighteen holes, so they don't
+ * hold the round open -- otherwise a championship with a withdrawal in it could never conclude, and
+ * its champion would never be recognised as one. */
+export function isConcluded(entries: { started: boolean; thru: string; withdrawn?: boolean }[]): boolean {
+  const started = entries.filter((entry) => entry.started && !entry.withdrawn);
   return started.length > 0 && started.every((entry) => entry.thru === "F");
 }
 

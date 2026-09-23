@@ -141,6 +141,15 @@ export const Scorecards: CollectionConfig = {
         description: "Set automatically when any hole is marked \"X\" — disqualifies this card from Main and Scratch. Stableford is unaffected.",
       },
     },
+    {
+      name: "withdrawn",
+      label: "WD (Withdrawn)",
+      type: "checkbox",
+      admin: {
+        description:
+          "The player left the course without finishing — injury, illness or similar. Unlike a no return, this is not a scoring decision, so it applies to every competition including Stableford, and sorts below the no returns rather than among them. Set by hand; nothing infers it, because a withdrawal and a card full of pick-ups look identical in the hole data.",
+      },
+    },
   ],
   hooks: {
     beforeValidate: [
