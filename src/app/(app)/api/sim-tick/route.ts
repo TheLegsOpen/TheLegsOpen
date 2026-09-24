@@ -46,6 +46,27 @@ export async function POST(request: NextRequest) {
 
   if (body.post) {
     try {
+      // Re-sending a hole that is already stored changes nothing, which is what makes this script
+      // safe to restart -- and it gets restarted, because the machine running it goes to sleep.
+      // A post had no such protection: the first restart tonight created the weather report twice.
+      // Same championship, same headline, same moment means it is the same post.
+      const postedAt = simulatedNow ?? new Date().toISOString();
+      const existing = await payload.find({
+        collection: "live-blog-posts",
+        where: {
+          and: [
+            { championship: { equals: championship.id } },
+            { headline: { equals: body.post.headline } },
+            { postedAt: { equals: postedAt } },
+          ],
+        },
+        limit: 1,
+        depth: 0,
+      });
+      if (existing.docs[0]) {
+        posted = `already posted (${existing.docs[0].id})`;
+        return NextResponse.json({ championshipId: championship.id, results, errors, posted });
+      }
       const doc = await payload.create({
         collection: "live-blog-posts",
         data: {
@@ -53,7 +74,7 @@ export async function POST(request: NextRequest) {
           headline: body.post.headline,
           body: body.post.body,
           championship: championship.id,
-          postedAt: simulatedNow ?? new Date().toISOString(),
+          postedAt,
         },
       });
       posted = String(doc.id);
