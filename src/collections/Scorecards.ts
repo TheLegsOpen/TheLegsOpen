@@ -83,6 +83,17 @@ export const Scorecards: CollectionConfig = {
           },
         },
         {
+          name: "recordedAt",
+          label: "Recorded",
+          type: "date",
+          admin: {
+            hidden: true,
+            readOnly: true,
+            description:
+              "When this hole was first posted. Stamped once and never moved by a later correction -- a corrected score changes what the player took, not when they played it. Rounds before 2027 have none, and the leaderboard timeline falls back to the tee sheet for those.",
+          },
+        },
+        {
           type: "row",
           fields: [
             {
@@ -169,6 +180,20 @@ export const Scorecards: CollectionConfig = {
           if (strokesChanged) {
             data.scoreUpdatedAt = new Date().toISOString();
           }
+
+          // Stamp each hole the first time it carries a score, so the leaderboard can be rebuilt as
+          // it actually stood at any moment rather than inferred from the tee sheet. Stamped once
+          // on purpose: a correction entered an hour later changes the score, not the time the
+          // player walked off the green, and moving the stamp would drag their whole round
+          // forwards through the timeline. Backdated rounds keep whatever they already have --
+          // which is nothing, hence the fallback in round-timeline.ts.
+          const now = new Date().toISOString();
+          data.holes = data.holes.map((hole: Record<string, unknown>, index: number) => {
+            const existing = hole.recordedAt ?? originalDoc?.holes?.[index]?.recordedAt;
+            if (existing) return { ...hole, recordedAt: existing };
+            const scored = hole.strokes != null || hole.noReturn === true;
+            return scored ? { ...hole, recordedAt: now } : hole;
+          });
         }
 
         const playerId = typeof data.player === "object" ? (data.player as { id?: string })?.id : data.player;

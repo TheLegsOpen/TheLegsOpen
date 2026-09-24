@@ -39,11 +39,22 @@ export function clockLabel(minutes: number): string {
   return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 
-/** When this player finished each hole, in minutes past midnight. */
+/**
+ * When this player finished each hole, in minutes past midnight.
+ *
+ * A real stamp wins wherever there is one, and re-anchors the model for the holes after it — so a
+ * round that was scored live is measured, and a round that predates the stamps is estimated, and a
+ * round that has both (a card part-entered live, part-filled afterwards) uses whichever it has for
+ * each hole rather than throwing the good data away.
+ */
 function holeClock(entry: CompetitionEntry): number[] {
   const start = parseTeeTimeMinutes(entry.teeTime);
   let elapsed = Number.isFinite(start) ? start : 0;
   return entry.holes.map((hole) => {
+    if (hole.recordedAtMinutes !== undefined) {
+      elapsed = hole.recordedAtMinutes;
+      return elapsed;
+    }
     elapsed += HOLE_MINUTES[hole.par] ?? 13;
     return elapsed;
   });

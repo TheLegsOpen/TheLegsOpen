@@ -23,6 +23,10 @@ export interface HoleScore {
   relative: number;
   /** A pickup on this specific hole (Main/Scratch only -- see below). Distinguishes "picked up here" from merely "not played yet", both of which otherwise show as the same blank `value: undefined`. */
   noReturn?: boolean;
+  /** Minutes past midnight when this hole was posted, from the scorecard's own stamp. Present from
+   * 2027; undefined for every backdated round, which is why round-timeline.ts still needs its
+   * tee-sheet model. */
+  recordedAtMinutes?: number;
 }
 
 export interface CompetitionEntry {
@@ -180,29 +184,37 @@ function buildLeaderboardFromDocs(
     const teeTimeMinutes = parseTeeTimeMinutes(teeTime);
 
     const strokesReceived = allocateStrokes(getHandicap(player, doc), holeInfos);
+    /** The stored stamp as minutes past midnight, in the championship's own local time. */
+    const recordedMinutes = (i: number): number | undefined => {
+      const iso = doc.holes?.[i]?.recordedAt;
+      if (!iso) return undefined;
+      const at = new Date(iso);
+      return Number.isNaN(at.getTime()) ? undefined : at.getHours() * 60 + at.getMinutes();
+    };
     const holes: HoleScore[] = holeInfos.map((info, i) => {
       const strokes = doc.holes?.[i]?.strokes ?? undefined;
+      const recordedAtMinutes = recordedMinutes(i);
       if (doc.holes?.[i]?.noReturn) {
         // A pickup on this specific hole. Main/Scratch have no valid score for it -- and the
         // whole card is disqualified anyway, see `noReturn` below -- but Stableford scores an
         // unreturned hole as 0 points, same as real Stableford rules, so it isn't itself "NR".
         if (competition === "stableford") {
-          return { holeNumber: i + 1, par: info.par, value: 0, relative: 0 - 2 };
+          return { holeNumber: i + 1, par: info.par, recordedAtMinutes, value: 0, relative: 0 - 2 };
         }
-        return { holeNumber: i + 1, par: info.par, value: undefined, relative: 0, noReturn: true };
+        return { holeNumber: i + 1, par: info.par, recordedAtMinutes, value: undefined, relative: 0, noReturn: true };
       }
       if (strokes == null) {
-        return { holeNumber: i + 1, par: info.par, value: undefined, relative: 0 };
+        return { holeNumber: i + 1, par: info.par, recordedAtMinutes, value: undefined, relative: 0 };
       }
       if (competition === "scratch") {
-        return { holeNumber: i + 1, par: info.par, value: strokes, relative: strokes - info.par };
+        return { holeNumber: i + 1, par: info.par, recordedAtMinutes, value: strokes, relative: strokes - info.par };
       }
       const nett = strokes - strokesReceived[i];
       if (competition === "main") {
-        return { holeNumber: i + 1, par: info.par, value: nett, relative: nett - info.par };
+        return { holeNumber: i + 1, par: info.par, recordedAtMinutes, value: nett, relative: nett - info.par };
       }
       const points = stablefordPoints(nett, info.par);
-      return { holeNumber: i + 1, par: info.par, value: points, relative: points - 2 };
+      return { holeNumber: i + 1, par: info.par, recordedAtMinutes, value: points, relative: points - 2 };
     });
 
     // A hole marked "no return" disqualifies Main/Scratch for that player — sorted below every

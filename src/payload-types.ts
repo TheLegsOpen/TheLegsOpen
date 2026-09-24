@@ -757,6 +757,7 @@ export interface Scorecard {
         holeNumber: number;
         strokes?: number | null;
         noReturn?: boolean | null;
+        recordedAt?: string | null;
         fairwayHit?: boolean | null;
         greenInRegulation?: boolean | null;
         putts?: number | null;
