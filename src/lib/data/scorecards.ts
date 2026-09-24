@@ -47,6 +47,11 @@ export interface CompetitionEntry {
    * a scoring decision, so it applies to every competition -- Stableford included -- and sorts
    * below the no returns rather than among them. Shown as "WD". */
   withdrawn?: boolean;
+  /** The player was on the tee sheet but never returned a score, and the round is over -- so they
+   * didn't play. Sorts below everyone with a result, including the no returns and withdrawals.
+   * While a round is still in progress this stays false: a player yet to tee off belongs in the
+   * field at level par, not at the foot of the board. */
+  didNotStart?: boolean;
   /** Main/Scratch only — a hole marked "no return" disqualifies this player from this competition; shown as "NR" and sorted to the bottom. Stableford is never affected. */
   noReturn?: boolean;
 }
@@ -288,6 +293,17 @@ function buildLeaderboardFromDocs(
     };
   });
 
+  // Once every player who teed off has finished, anyone still without a score never played, and
+  // parking them at level par would float them above the whole field -- in 2018 that would have
+  // put four men who never hit a shot ahead of the champion, and handed one of them the title,
+  // since the title-holder is simply the first row. They drop below the no returns and the
+  // withdrawals instead. Mid-round this doesn't apply, for the reason below.
+  const startedRows = rows.filter((row) => row.started);
+  const concluded = startedRows.length > 0 && startedRows.every((row) => row.holesCompleted >= 18);
+  if (concluded) {
+    for (const row of rows) if (!row.started) row.rank = 3;
+  }
+
   // Not-started players carry the same baseline tieKey (level par / 0 points) as a genuinely
   // level-scoring started player, so they sort into the field by that value first — a player
   // who's actually over par outranks nobody just because someone else hasn't teed off yet.
@@ -327,6 +343,7 @@ function buildLeaderboardFromDocs(
       holes: row.holes,
       noReturn: row.noReturn,
       withdrawn: row.withdrawn,
+      didNotStart: concluded && !row.started,
     });
     previousGroupKey = groupKey;
   });

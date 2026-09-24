@@ -191,7 +191,11 @@ function LeaderboardRow({
         ) : null}
       </td>
       <td className="px-1 py-3 text-right sm:px-2">
-        {entry.withdrawn ? (
+        {entry.didNotStart ? (
+          <span className={cn(TILE_CLASS, RESPONSIVE_TILE, "bg-[#B0B0B0] text-[#08325A]")} title="Did not play">
+            —
+          </span>
+        ) : entry.withdrawn ? (
           <span className={cn(TILE_CLASS, RESPONSIVE_TILE, "bg-[#B0B0B0] text-[#08325A]")} title="Withdrawn — left the course without finishing">
             WD
           </span>

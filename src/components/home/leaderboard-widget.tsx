@@ -194,7 +194,7 @@ export function LeaderboardWidget({
                       ) : null}
                     </td>
                     <td className="px-2 py-2 text-right">
-                      {entry.withdrawn || entry.noReturn || entry.toPar === undefined ? (
+                      {entry.didNotStart || entry.withdrawn || entry.noReturn || entry.toPar === undefined ? (
                         <span className={cn(TILE_CLASS, COMPACT_TILE_CLASS, "bg-[#B0B0B0] text-[#08325A]")}>NR</span>
                       ) : (
                         <span className={cn(TILE_CLASS, COMPACT_TILE_CLASS, scorePillClass(entry.toPar))}>
