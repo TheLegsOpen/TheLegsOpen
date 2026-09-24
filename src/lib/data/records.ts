@@ -4,6 +4,7 @@ import configPromise from "@/payload.config";
 import { getChampionshipHistory } from "@/lib/data/championships";
 import { getPlayers } from "@/lib/data/players";
 import { getCompetitionLeaderboardForChampionshipId, getAllScorecardParticipation } from "@/lib/data/scorecards";
+import { clockLabel, largestLeadOnTheClock, type LeadOnTheClock } from "@/lib/data/round-timeline";
 import { getEligibleStablefordChampion, getPlayoffs } from "@/lib/data/playoffs";
 import { playerSlug } from "@/lib/utils";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
@@ -82,6 +83,9 @@ export interface LargestLeadEntry {
   venueName: string;
   margin: number;
   afterHole: number;
+  /** Clock time the board showed it, e.g. "12:29" -- absent for a year stored before this was
+   * measured on the clock, where only the hole number was ever recorded. */
+  at?: string;
 }
 
 export interface DecadeSpanEntry {
@@ -259,7 +263,7 @@ export interface AutoFacts {
   marginStrokes?: number;
   ledOutrightAfter9: boolean;
   deficitAfter9?: number;
-  largestLead?: { holderName: string; margin: number; afterHole: number };
+  largestLead?: LeadOnTheClock;
   /** The Main competition's own tiebreak resolution, when it needed one -- reused by the Records "Play-offs" list so it doesn't have to re-derive the same countback a second time. */
   mainPlayoffResult?: PlayoffResult;
 }
@@ -295,15 +299,10 @@ export async function computeAutoFacts(championship: ChampionshipWinner): Promis
 
   const cumulative = runningTotalsByPlayer(main);
 
-  // Largest lead by any player at any point doesn't depend on who eventually won either.
-  let largestLead: AutoFacts["largestLead"];
-  for (let hole = 0; hole < 18; hole++) {
-    const lead = leadAtHole(cumulative, hole);
-    if (lead && (!largestLead || lead.lead > largestLead.margin)) {
-      const holder = main.find((e) => e.player.id === lead.leaderId);
-      if (holder) largestLead = { holderName: holder.player.name, margin: lead.lead, afterHole: hole + 1 };
-    }
-  }
+  // Largest lead is the one record here that asks what the leaderboard showed rather than how two
+  // rounds compare, so it's measured on the clock -- see largestLeadOnTheClock. The two after-nine
+  // records below stay hole-for-hole, deliberately: they ask about the rounds.
+  const largestLead = largestLeadOnTheClock(main);
 
   const winner = main.find((e) => e.position === 1);
   // Runner-up/margin genuinely need the raw scorecards to independently agree on who's 1st and
@@ -534,7 +533,7 @@ export async function getRecords(): Promise<RecordsData> {
   const largestLeadByAnyPlayer: LargestLeadEntry[] = played
     .map((c) => {
       const auto = autoFactsByYear.get(c.year)?.largestLead;
-      if (auto) return { year: c.year, name: auto.holderName, venueName: c.venueName, margin: auto.margin, afterHole: auto.afterHole };
+      if (auto) return { year: c.year, name: auto.holderName, venueName: c.venueName, margin: auto.margin, afterHole: auto.afterHole, at: clockLabel(auto.atMinutes) };
       if (c.largestLeadHolderName && c.largestLeadMargin !== undefined) {
         return { year: c.year, name: c.largestLeadHolderName, venueName: c.venueName, margin: c.largestLeadMargin, afterHole: c.largestLeadAfterHole ?? 0 };
       }

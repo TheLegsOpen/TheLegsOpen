@@ -7,6 +7,7 @@ import type { Competition, CompetitionEntry } from "@/lib/data/scorecards";
 import type { TiebreakStepResult } from "@/lib/data/playoffs";
 import type { Player } from "@/types/player";
 import type { Scorecard } from "@/payload-types";
+import { largestLeadOnTheClock } from "@/lib/data/round-timeline";
 
 /**
  * Auto-derives the Championships collection's "Records" fields straight from real scorecard
@@ -195,14 +196,9 @@ export async function computeChampionshipAutoStats(payload: Payload, championshi
     }
   }
 
-  let largestLead: { holderName: string; margin: number; afterHole: number } | undefined;
-  for (let hole = 0; hole < 18; hole++) {
-    const lead = leadAtHole(cumulative, hole);
-    if (lead && (!largestLead || lead.lead > largestLead.margin)) {
-      const holderEntry = main.find((e) => e.player.id === lead.leaderId);
-      if (holderEntry) largestLead = { holderName: holderEntry.player.name, margin: lead.lead, afterHole: hole + 1 };
-    }
-  }
+  // Measured on the clock, not hole-for-hole -- see largestLeadOnTheClock for why this one record
+  // differs from the two after-nine records above.
+  const largestLead = largestLeadOnTheClock(main);
   if (largestLead) {
     stats.largestLeadHolderName = largestLead.holderName;
     stats.largestLeadMargin = largestLead.margin;

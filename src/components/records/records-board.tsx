@@ -276,7 +276,7 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
                 <RecordRow
                   key={`${e.year}-${e.name}`}
                   left={e.name}
-                  sub={`${e.venueName} · ${e.year}${e.afterHole ? ` · after hole ${e.afterHole}` : ""}`}
+                  sub={`${e.venueName} · ${e.year}${e.afterHole ? ` · ${e.at ? `${e.at}, ` : ""}thru ${e.afterHole}` : ""}`}
                   right={e.margin}
                 />
               ))

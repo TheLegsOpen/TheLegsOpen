@@ -68,7 +68,7 @@ function overviewStory(championship: ChampionshipWinner, autoFacts: AutoFacts | 
 
   if (autoFacts?.largestLead) {
     paragraphs.push(
-      `${autoFacts.largestLead.holderName}'s ${autoFacts.largestLead.margin}-shot lead after hole ${autoFacts.largestLead.afterHole} was the largest advantage anyone held all week.`,
+      `${autoFacts.largestLead.holderName}'s ${autoFacts.largestLead.margin}-shot lead, ${autoFacts.largestLead.afterHole} holes in, was the largest advantage the leaderboard showed all week.`,
     );
   }
 
