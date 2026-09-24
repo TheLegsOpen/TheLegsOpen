@@ -21,7 +21,14 @@ interface TickEntry {
  */
 export async function POST(request: NextRequest) {
   const payload = await getPayload({ config: configPromise });
-  const body = (await request.json()) as { entries?: TickEntry[]; simulatedNow?: string };
+  const body = (await request.json()) as {
+    entries?: TickEntry[];
+    simulatedNow?: string;
+    /** A post the trigger engine could never produce, because it isn't about a score -- weather,
+     * conditions, anything that happened to the round rather than in it. Written straight to the
+     * live blog and stamped with simulatedNow, so it lands in the right place in the feed. */
+    post?: { category: string; headline: string; body: string };
+  };
   const entries = body.entries ?? [];
   // The moment on the original day that this tick represents, so the live blog reads as a record of
   // that afternoon rather than of the evening it was replayed.
@@ -35,6 +42,25 @@ export async function POST(request: NextRequest) {
 
   const results: { playerName: string; holeNumber: number; strokes?: number; noReturn?: boolean; holesCompleted?: number | null }[] = [];
   const errors: { playerName: string; message: string }[] = [];
+  let posted: string | undefined;
+
+  if (body.post) {
+    try {
+      const doc = await payload.create({
+        collection: "live-blog-posts",
+        data: {
+          category: body.post.category as "championship",
+          headline: body.post.headline,
+          body: body.post.body,
+          championship: championship.id,
+          postedAt: simulatedNow ?? new Date().toISOString(),
+        },
+      });
+      posted = String(doc.id);
+    } catch (err) {
+      errors.push({ playerName: "(live blog post)", message: err instanceof Error ? err.message : "failed" });
+    }
+  }
 
   for (const entry of entries) {
     try {
@@ -81,5 +107,5 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ championshipId: championship.id, results, errors });
+  return NextResponse.json({ championshipId: championship.id, results, errors, posted });
 }
