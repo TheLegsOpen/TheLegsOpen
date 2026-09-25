@@ -188,3 +188,64 @@ describe("diffPositionMovement", () => {
     expect(diffPositionMovement(closeBefore, closeAfter, "mover")).toEqual(expect.objectContaining({ kind: "enter-top-5" }));
   });
 });
+
+describe("leaving contention reports where the player is now", () => {
+  /**
+   * Gullane, 2018. Mark Alston led the championship one over through thirteen, then took eleven
+   * at his sixteenth. The post that fired read "slips out of contention ... they're now 0 shots
+   * behind the leader, thru 15" -- both figures taken from the snapshot before the hole that
+   * caused the post. He was four behind, through sixteen.
+   */
+  it("uses the gap and hole count from after the save, not before it", () => {
+    const alston = makePlayer("alston", "Mark Alston");
+    const burns = makePlayer("burns", "David Burns");
+
+    const before = buildRaceTracker(
+      [makeEntry({ player: alston, toPar: 1, thru: "15" }), makeEntry({ player: burns, toPar: 1, thru: "15" })],
+      "main",
+    );
+    const after = buildRaceTracker(
+      [makeEntry({ player: alston, toPar: 7, thru: "16" }), makeEntry({ player: burns, toPar: 3, thru: "16" })],
+      "main",
+    );
+
+    const leaving = diffRaceTrackers(before, after).find((c) => c.kind === "leaving-contention");
+    expect(leaving?.playerName).toBe("Mark Alston");
+    expect(leaving?.scoreValue).toBe(4);
+    expect(leaving?.thru).toBe("16");
+  });
+
+  it("falls back to the last known figures when the player has left the board entirely", () => {
+    const quitter = makePlayer("q", "Picked Up");
+    const leader = makePlayer("l", "Leader");
+
+    const before = buildRaceTracker(
+      [makeEntry({ player: quitter, toPar: 2, thru: "11" }), makeEntry({ player: leader, toPar: 1, thru: "11" })],
+      "main",
+    );
+    // A no return isn't in the tracker at all, so there is no "now" to report.
+    const after = buildRaceTracker(
+      [
+        makeEntry({ player: quitter, toPar: undefined, thru: "12", noReturn: true }),
+        makeEntry({ player: leader, toPar: 1, thru: "12" }),
+      ],
+      "main",
+    );
+
+    const leaving = diffRaceTrackers(before, after).find((c) => c.kind === "leaving-contention");
+    expect(leaving?.scoreValue).toBe(1);
+    expect(leaving?.thru).toBe("11");
+  });
+
+  it("keeps a standing for every started player, not only those in contention", () => {
+    const tracker = buildRaceTracker(
+      [
+        makeEntry({ player: makePlayer("leader"), toPar: 0, thru: "9" }),
+        makeEntry({ player: makePlayer("miles-back"), toPar: 20, thru: "9" }),
+      ],
+      "main",
+    );
+    expect(tracker.members.map((m) => m.playerId)).toEqual(["leader"]);
+    expect(tracker.standingByPlayer.get("miles-back")).toEqual({ margin: 20, thru: "9" });
+  });
+});
