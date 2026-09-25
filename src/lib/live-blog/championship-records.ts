@@ -1,6 +1,7 @@
 import type { PayloadRequest } from "payload";
 
 import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
+import { resolveCompetitionWinner } from "@/lib/data/championship-stats";
 
 /**
  * These three mirror the exact same figures the /records page shows ("Largest margin of victory",
@@ -59,14 +60,32 @@ export async function getLargestMarginRecord(req: PayloadRequest, currentChampio
   return best;
 }
 
-/** Lowest winning total (Main, nett-to-par) ever recorded, from any prior championship. */
+/**
+ * Lowest winning total (Main, nett-to-par) ever recorded, from any prior championship.
+ *
+ * Unlike the margin record above, a playoff year counts here. That distinction was missed and it
+ * published a false claim: in 2019 the blog told everyone Bryan Forbes's -1 was the lowest winning
+ * total in championship history, when Alastair Campbell had won at -4 in 2013. Campbell was
+ * invisible to this lookup because he won on countback, so the raw leaderboard has him tied for
+ * first and the outright-winner filter borrowed from getLargestMarginRecord skipped his year
+ * entirely. A tiebreak has no stroke margin to compare, which is why that filter is right there --
+ * but it has a score, which is all this record needs. The Records page had it right all along,
+ * reading the stored figure, so the two disagreed in public.
+ */
 export async function getLowestWinningScoreRecord(req: PayloadRequest, currentChampionshipId: string | number): Promise<WinningScoreRecord | null> {
   const championships = await priorChampionships(req, currentChampionshipId);
   let best: WinningScoreRecord | null = null;
   for (const championship of championships) {
     const entries = await getCompetitionLeaderboardForChampionshipId(championship.id, "main", req);
-    const winner = entries.find((e) => e.position === 1 && !e.tied && e.thru === "F");
-    if (!winner || winner.toPar === undefined) continue;
+    // The record is about the score, not about who took the trophy, so it reads the leading
+    // finished score directly -- which is the same whether the title was won outright, on
+    // countback, or shared. The countback is still resolved where it can be, purely to put the
+    // right name against it.
+    const leaders = entries.filter((e) => e.position === 1 && e.thru === "F" && !e.noReturn && e.toPar !== undefined);
+    if (leaders.length === 0) continue;
+    const resolved = resolveCompetitionWinner(entries, "main", new Set());
+    const winner = resolved.winnerEntry ?? leaders[0];
+    if (winner.toPar === undefined) continue;
     if (!best || winner.toPar < best.toParNett) {
       best = { toParNett: winner.toPar, holderName: winner.player.name, year: championship.year };
     }
