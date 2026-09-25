@@ -50,11 +50,33 @@ export async function buildWinnerConfirmedCandidates(
   snapshots: LeaderboardSnapshotPair,
   saveNonce: string,
 ): Promise<TriggerCandidate[]> {
-  const mainBefore = snapshots.before.main.filter((e) => !e.noReturn);
-  const mainAfter = snapshots.after.main.filter((e) => !e.noReturn);
-  if (isConcluded(mainBefore) || !isConcluded(mainAfter)) return [];
+  // Each competition concludes on its own terms, and they do not always conclude together.
+  //
+  // Main and Scratch disregard a no-return player -- they're disqualified -- so those two are
+  // decided as soon as every player still holding a card has finished. Stableford doesn't
+  // disqualify anyone, because a pick-up only costs that one hole, so it stays live until the
+  // last player walks off the eighteenth.
+  //
+  // At Gullane in 2018 the final group out was four no returns. Main was settled while they were
+  // on their seventeenth; Stableford was not settled until ten minutes later. Keying all three
+  // off Main, as this did, meant the Stableford champion was never announced at all -- the
+  // pipeline had already fired and its own guard stopped it running again.
+  const eligible = (competition: Competition, entries: CompetitionEntry[]) =>
+    competition === "stableford" ? entries : entries.filter((e) => !e.noReturn);
 
-  const mainResult = resolveCompetitionWinner(mainAfter, "main", new Set());
+  const newlyConcluded = (competition: Competition) => {
+    const before = eligible(competition, snapshots.before[competition]);
+    const after = eligible(competition, snapshots.after[competition]);
+    return !isConcluded(before) && isConcluded(after);
+  };
+
+  const mainAfter = eligible("main", snapshots.after.main);
+  // Resolved whenever Main is settled, not only on the save that settled it -- Stableford needs
+  // to know who the Main champion is in order to exclude them, and by the time Stableford
+  // concludes that may have been decided several saves ago.
+  const mainResult = isConcluded(mainAfter) ? resolveCompetitionWinner(mainAfter, "main", new Set()) : { viaTiebreak: false as const };
+
+  if (!newlyConcluded("main") && !newlyConcluded("stableford") && !newlyConcluded("scratch")) return [];
 
   // A player can't also be Stableford champion -- mirrors computeChampionshipAutoStats' own
   // exclusion rule, so the live post and the eventual admin-facing stats never disagree.
@@ -65,7 +87,7 @@ export async function buildWinnerConfirmedCandidates(
   // for Main/Scratch, a no-return player's toPar is deliberately undefined (they're
   // disqualified), and 0 would misread as "level par", so they must be filtered out first rather
   // than passed through and relying on excludeIds (which only excludes by id, not by DQ status).
-  const scratchAfter = snapshots.after.scratch.filter((e) => !e.noReturn);
+  const scratchAfter = eligible("scratch", snapshots.after.scratch);
   const scratchResult = resolveCompetitionWinner(scratchAfter, "scratch", new Set());
 
   const jobs: { competition: Competition; result: WinnerResolution }[] = [
@@ -78,6 +100,7 @@ export async function buildWinnerConfirmedCandidates(
 
   for (const { competition, result } of jobs) {
     if (!result.winner || !result.winnerEntry) continue;
+    if (!newlyConcluded(competition)) continue;
 
     // Main only: the drama of a genuine playoff gets its own announcement first ("it's going to
     // a playoff between X and Y"), then a second post for the result -- rather than jumping

@@ -19,6 +19,10 @@ export interface RaceTracker {
   /** Gap between the leader(s) and the next-best distinct score. 0 if nobody else has started. */
   leadMargin: number;
   members: TrackerMember[];
+  /** How far behind the leader every started player is, whether or not they're close enough to
+   * count as being in contention. `members` only holds the ones near the front, which is no use
+   * for saying where a player stands at the moment they drop away from it. */
+  marginsByPlayer: Map<string, number>;
 }
 
 export type RaceEventKind = "new-leader" | "tie-for-lead" | "lead-extends" | "entering-contention" | "leaving-contention";
@@ -82,7 +86,7 @@ export function marginBehind(value: number, leaderValue: number, competition: Co
 export function buildRaceTracker(entries: CompetitionEntry[], competition: Competition, priorMemberIds?: Set<string>): RaceTracker {
   const started = entries.filter((e) => e.started && !e.noReturn);
   if (started.length === 0) {
-    return { competition, leaderIds: [], leaderName: undefined, leaderMetric: undefined, leadMargin: 0, members: [] };
+    return { competition, leaderIds: [], leaderName: undefined, leaderMetric: undefined, leadMargin: 0, members: [], marginsByPlayer: new Map() };
   }
 
   const leaderValue = started.reduce(
@@ -118,7 +122,15 @@ export function buildRaceTracker(entries: CompetitionEntry[], competition: Compe
       thru: e.thru,
     }));
 
-  return { competition, leaderIds, leaderName: leaders[0]?.player.name, leaderMetric: leaderValue, leadMargin, members };
+  // Every started player's margin, not just the ones close enough to be "in contention". A player
+  // who has just dropped out is by definition no longer in members, and reporting the margin they
+  // had before they dropped -- as "they're now N behind" -- is how Mark Alston came to be told he
+  // was nought shots behind the leader in the same sentence as slipping out of contention.
+  const marginsByPlayer = new Map(
+    started.map((e) => [e.player.id, marginBehind(metricValue(e, competition), leaderValue, competition)]),
+  );
+
+  return { competition, leaderIds, leaderName: leaders[0]?.player.name, leaderMetric: leaderValue, leadMargin, members, marginsByPlayer };
 }
 
 export type MovementEventKind = "enter-top-5" | "enter-top-10" | "big-gain" | "big-drop";
@@ -250,13 +262,16 @@ export function diffRaceTrackers(before: RaceTracker, after: RaceTracker): RaceC
   const afterMemberIds = new Set(after.members.map((m) => m.playerId));
   for (const m of before.members) {
     if (!afterMemberIds.has(m.playerId)) {
+      const nowBehind = after.marginsByPlayer.get(m.playerId);
       candidates.push({
         kind: "leaving-contention",
         competition: before.competition,
         playerId: m.playerId,
         playerName: m.playerName,
-        scoreValue: m.margin,
-        thru: m.thru,
+        // The gap as it stands after this save. Falls back to the old one only if the player has
+        // left the board entirely (a pick-up), where there is no "now" to report.
+        scoreValue: nowBehind ?? m.margin,
+        thru: after.members.find((x) => x.playerId === m.playerId)?.thru ?? m.thru,
       });
     }
   }

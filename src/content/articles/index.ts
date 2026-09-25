@@ -1,4 +1,5 @@
 import { markdown as southerness2016 } from "./2016-southerness";
+import { markdown as gullane2018 } from "./2018-gullane";
 
 /**
  * Championship write-ups authored as Markdown and published through /api/admin-article.
@@ -37,6 +38,18 @@ export const ARTICLE_SOURCES: ArticleSource[] = [
     publishedAt: "2016-07-24T12:00:00.000Z",
     heroLabel: "David Clee at Southerness, July 2016",
     markdown: southerness2016,
+  },
+  {
+    // Slug deliberately matches the draft already in the admin, so publishing this updates that
+    // article in place rather than leaving a second copy behind. The dek and hero label are the
+    // ones written by hand there -- this only replaces the body with a properly converted one.
+    slug: "four-men-played-eighteen-holes-for-nothing-rain-takes-the-2018-legs-open-apart",
+    title: "Four men played eighteen holes for nothing: rain takes the 2018 Legs Open apart",
+    dek: "David Burns Wins Moist Championship",
+    category: "Championship News",
+    publishedAt: "2018-08-12T12:00:00.000Z",
+    heroLabel: "David Burns Wins Moist Championship",
+    markdown: gullane2018,
   },
 ];
 
