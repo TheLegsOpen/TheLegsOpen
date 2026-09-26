@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { applyPlayoffToEntries, type PlayoffResult } from "@/lib/data/playoffs";
+import { applyPlayoffToEntries, resolveTiebreak, type PlayoffResult } from "@/lib/data/playoffs";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { Player } from "@/types/player";
 
@@ -120,5 +120,45 @@ describe("applyPlayoffToEntries", () => {
       ineligible: [],
     };
     expect(applyPlayoffToEntries(entries, playoff)).toEqual(entries);
+  });
+});
+
+describe("resolveTiebreak reports a figure the competition recognises", () => {
+  /** Four holes, so the difference between points and points-minus-two is obvious. */
+  function withHoles(p: Player, points: number[], over: Partial<CompetitionEntry> = {}): CompetitionEntry {
+    return entry(p, {
+      score: points.reduce((a, b) => a + b, 0),
+      holes: Array.from({ length: 18 }, (_, i) => ({
+        holeNumber: i + 1,
+        par: 4,
+        value: points[i] ?? 0,
+        relative: (points[i] ?? 0) - 2,
+      })),
+      ...over,
+    });
+  }
+
+  it("counts Stableford in points, not strokes against par", () => {
+    // Magowan 3,2 … 2,3 on holes 1, 2, 17 and 18 = 10 points. Colum Watters 2,2 … 0,1 = 5.
+    // The board announced this as "(+2)" against "(-3)" -- the same ranking, expressed as a
+    // number that means nothing on a points competition.
+    const magowanPoints = [3, 2, ...Array(14).fill(0), 2, 3];
+    const wattersPoints = [2, 2, ...Array(14).fill(0), 0, 1];
+    const { steps, winner } = resolveTiebreak(
+      [withHoles(MAGOWAN, magowanPoints), withHoles(WATTERS, wattersPoints)],
+      "stableford",
+    );
+    expect(winner?.id).toBe("magowan");
+    const first = steps[0].contenders;
+    expect(first.find((c) => c.player.id === "magowan")?.display).toBe("10 pts");
+    expect(first.find((c) => c.player.id === "watters")?.display).toBe("5 pts");
+  });
+
+  it("still counts Main against par", () => {
+    const { steps } = resolveTiebreak(
+      [withHoles(MAGOWAN, [1, 2, ...Array(14).fill(2), 2, 2]), withHoles(WATTERS, [2, 2, ...Array(14).fill(2), 2, 2])],
+      "main",
+    );
+    expect(steps[0].contenders.every((c) => /^[+-]|^E$/.test(c.display))).toBe(true);
   });
 });

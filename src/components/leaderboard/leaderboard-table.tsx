@@ -173,7 +173,18 @@ function LeaderboardRow({
                     <br />
                     {hole.par}
                   </span>
-                  <span className={cn(TILE_CLASS, "min-w-0 w-8 px-0", hole.value !== undefined ? holeScorePillClass(hole.relative) : NEUTRAL_TILE_CLASS)}>
+                  <span
+                    className={cn(
+                      TILE_CLASS,
+                      "min-w-0 w-8 px-0",
+                      // Matches the hole-by-hole grid: holeScorePillClass assumes lower is better,
+                      // so on Stableford it paints a three-point hole navy and a nought dark red.
+                      // Points keep the neutral tile until there's a scale that runs the right way.
+                      competition !== "stableford" && hole.value !== undefined
+                        ? holeScorePillClass(hole.relative)
+                        : NEUTRAL_TILE_CLASS,
+                    )}
+                  >
                     {hole.value ?? "—"}
                   </span>
                 </div>

@@ -89,9 +89,16 @@ export function resolveTiebreak(
   const steps: TiebreakStepResult[] = [];
 
   for (const step of TIEBREAK_STEPS) {
+    // Stableford counts the points themselves; Main and Scratch count strokes against par. Both
+    // orderings are unchanged by this -- relative is points minus two on a Stableford hole, so it
+    // ranks identically -- but "+2" is not a number anyone recognises on a points competition.
+    // The 2020 board announced a countback won "(+2)" to "(-3)" when it was 10 points to 5.
     const scored = contenders.map((entry) => ({
       entry,
-      value: step.holeIndices.reduce((total, i) => total + (entry.holes[i]?.relative ?? 0), 0),
+      value: step.holeIndices.reduce(
+        (total, i) => total + (higherIsBetter ? (entry.holes[i]?.value ?? 0) : (entry.holes[i]?.relative ?? 0)),
+        0,
+      ),
     }));
     const best = higherIsBetter ? Math.max(...scored.map((s) => s.value)) : Math.min(...scored.map((s) => s.value));
     const survivors = scored.filter((s) => s.value === best);
@@ -100,7 +107,11 @@ export function resolveTiebreak(
       label: step.label,
       description: step.description,
       holeIndices: step.holeIndices,
-      contenders: scored.map((s) => ({ player: s.entry.player, display: formatToPar(s.value), value: s.value })),
+      contenders: scored.map((s) => ({
+        player: s.entry.player,
+        display: higherIsBetter ? `${s.value} pts` : formatToPar(s.value),
+        value: s.value,
+      })),
       survivors: survivors.map((s) => s.entry.player),
     });
 
