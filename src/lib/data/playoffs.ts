@@ -56,6 +56,22 @@ export interface PlayoffResult {
  * those are excluded here too: in the degenerate case where nobody returns a card they'd
  * otherwise occupy position 1 as a "tie", and a playoff would be run for a title nobody won.
  */
+/**
+ * The players sharing the best score among those still allowed to win.
+ *
+ * Only Stableford needs this. The Main champion can't also take the Stableford, and when his
+ * points put him clear at the top on his own, the tie that actually decides the title sits a
+ * place below him -- invisible to tiedForFirst, which only ever looks at first. St Andrews in
+ * 2020 is the case: Park's 39 left Magowan and Colum Watters level on 33, and the countback
+ * between them decided a championship without the board ever saying so.
+ */
+function tiedAtTopOfEligible(entries: CompetitionEntry[], excludeIds: Set<string>): CompetitionEntry[] {
+  const eligible = entries.filter((entry) => entry.started && !entry.withdrawn && !excludeIds.has(entry.player.id));
+  if (eligible.length === 0) return [];
+  const best = Math.max(...eligible.map((entry) => entry.score ?? 0));
+  return eligible.filter((entry) => (entry.score ?? 0) === best);
+}
+
 function tiedForFirst(entries: CompetitionEntry[]): CompetitionEntry[] {
   return entries.filter(
     (entry) => entry.position === 1 && entry.tied && entry.started && !entry.noReturn && !entry.withdrawn,
@@ -187,19 +203,28 @@ export function applyPlayoffToEntries(entries: CompetitionEntry[], playoff: Play
 
   const winnerId = playoff.winner.id;
   const ineligibleIds = new Set(playoff.ineligible.map((p) => p.id));
-  const otherTied = entries.filter(
-    (entry) => entry.position === 1 && entry.tied && entry.started && entry.player.id !== winnerId,
-  );
-  const loserIds = new Set(otherTied.filter((entry) => !ineligibleIds.has(entry.player.id)).map((entry) => entry.player.id));
 
-  if (otherTied.length === 0) return entries;
+  // The group that went to the tiebreak, taken from the playoff itself rather than assumed to be
+  // whoever sits at first. A Stableford tie can be decided a place down the board, beneath a Main
+  // champion who isn't allowed to win it -- see tiedAtTopOfEligible.
+  const groupIds = new Set<string>([
+    winnerId,
+    ...(playoff.steps[0]?.contenders ?? []).map((c) => c.player.id),
+    ...ineligibleIds,
+  ]);
+  const group = entries.filter((entry) => entry.started && groupIds.has(entry.player.id));
+  const loserIds = new Set(group.filter((entry) => entry.player.id !== winnerId && !ineligibleIds.has(entry.player.id)).map((entry) => entry.player.id));
+
+  if (group.length < 2) return entries;
+  // Everyone in the group shared a position; the winner keeps it and the rest drop one.
+  const basePosition = Math.min(...group.map((entry) => entry.position));
 
   const ranked = entries.map((entry): RankedEntry => {
     if (entry.player.id === winnerId) {
       const found = findLastStepFor(playoff.steps, winnerId);
       return {
         ...entry,
-        position: 1,
+        position: basePosition,
         tied: false,
         playoffNote: found && {
           won: true,
@@ -214,8 +239,8 @@ export function applyPlayoffToEntries(entries: CompetitionEntry[], playoff: Play
       const found = findLastStepFor(playoff.steps, entry.player.id);
       return {
         ...entry,
-        position: 2,
-        tied: otherTied.length > 1,
+        position: basePosition + 1,
+        tied: loserIds.size > 1,
         playoffNote: found && {
           won: false,
           label: `Lost ${found.step.label}`,
@@ -228,8 +253,8 @@ export function applyPlayoffToEntries(entries: CompetitionEntry[], playoff: Play
     if (ineligibleIds.has(entry.player.id)) {
       return {
         ...entry,
-        position: 2,
-        tied: otherTied.length > 1,
+        position: basePosition + 1,
+        tied: loserIds.size > 1,
         playoffNote: { won: false, label: "Ineligible", description: "Already the Main Champion", display: "", holeIndices: [] },
       };
     }
@@ -271,6 +296,15 @@ export async function getPlayoffs(championshipId?: string): Promise<PlayoffResul
     if (competition === "stableford" && mainWinnerIds.size > 0) {
       ineligible = tied.filter((entry) => mainWinnerIds.has(entry.player.id)).map((entry) => entry.player);
       tied = tied.filter((entry) => !mainWinnerIds.has(entry.player.id));
+
+      // Nothing tied at the top, or the exclusion left only one man there -- but the title may
+      // still be decided by a tie underneath an ineligible leader. Only adopt it when it really
+      // is a tie, so a year where the champion simply tops the points (2018, 2019, 2026) still
+      // produces no playoff at all.
+      if (tied.length < 2) {
+        const beneath = tiedAtTopOfEligible(entries, mainWinnerIds);
+        if (beneath.length >= 2) tied = beneath;
+      }
     }
 
     if (ineligible.length === 0 && tied.length < 2) continue;
