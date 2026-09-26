@@ -477,7 +477,18 @@ export async function getRecords(): Promise<RecordsData> {
     })
     .map((c) => ({ year: c.year, name: c.winnerName, venueName: c.venueName }));
 
+  // "Before his FIRST victory" -- so a champion belongs here once, for the year he broke through,
+  // and not again for anything he won afterwards. Keyed on the player where one is linked, since
+  // the field has had two Burnses and two Watters and a name is not an identity.
+  const firstVictoryKeyYear = new Map<string, number>();
+  for (const c of played) {
+    const key = c.winnerPlayerId ?? c.winnerName;
+    const earliest = firstVictoryKeyYear.get(key);
+    if (earliest === undefined || c.year < earliest) firstVictoryKeyYear.set(key, c.year);
+  }
+
   const mostAppearancesBeforeFirstVictory = played
+    .filter((c) => firstVictoryKeyYear.get(c.winnerPlayerId ?? c.winnerName) === c.year)
     .map((c) => {
       if (c.winnerPlayerId) {
         const base = playersById.get(c.winnerPlayerId)?.previousOpens ?? 0;
