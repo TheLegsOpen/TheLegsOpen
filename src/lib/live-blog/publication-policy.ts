@@ -197,11 +197,42 @@ async function loadCooldownAndRateLimitState(
  * them meaningful: an hour of simulated play is an hour, not the four minutes of wall time it
  * might actually take.
  */
-function clockFor(req: PayloadRequest): Date {
+function simulatedClock(req: PayloadRequest): Date | undefined {
   const simulated = (req as unknown as { context?: { simulatedNow?: string } }).context?.simulatedNow;
-  if (!simulated) return new Date();
+  if (!simulated) return undefined;
   const parsed = new Date(simulated);
-  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+function clockFor(req: PayloadRequest): Date {
+  return simulatedClock(req) ?? new Date();
+}
+
+/**
+ * Ordering within a single replayed tick.
+ *
+ * Every post a tick produces is stamped with that tick's historic minute, so posts that were
+ * genuinely sequential land on a postedAt identical to the second and the feed is free to draw
+ * them in either order. In the 2021 replay that put "Magowan leads the clubhouse at +14" above
+ * "Park posts the lowest gross of the day, +28" -- both true when written, reading as a
+ * contradiction side by side, because Park's target was beaten by his own playing partner before
+ * the minute was out. Real play never hits this: each post takes its own new Date().
+ *
+ * So under a simulated clock, successive posts in the same tick are nudged a millisecond apart.
+ * Order becomes deterministic and matches the order events actually happened, and the offset is
+ * far too small to move a post out of the minute it is displayed under. The counter resets
+ * whenever the tick's timestamp changes, so it can't run away across a replay.
+ */
+const simulatedTick = { stamp: "", published: 0 };
+
+export function postedAtFor(now: Date, simulated: boolean): string {
+  const stamp = now.toISOString();
+  if (!simulated) return stamp;
+  if (simulatedTick.stamp !== stamp) {
+    simulatedTick.stamp = stamp;
+    simulatedTick.published = 0;
+  }
+  return new Date(now.getTime() + simulatedTick.published++).toISOString();
 }
 
 export async function evaluateAndPublish(
@@ -311,7 +342,7 @@ export async function evaluateAndPublish(
 
     const post = await req.payload.create({
       collection: "live-blog-posts",
-      data: { ...candidate.post, postedAt: now.toISOString() },
+      data: { ...candidate.post, postedAt: postedAtFor(now, simulatedClock(req) !== undefined) },
       req,
     });
     await req.payload

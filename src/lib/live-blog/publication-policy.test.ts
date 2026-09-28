@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildFingerprint, decidePublication, findLowerPriorityCandidates, isInCooldown, isRateLimited, validateFacts, type TriggerCandidate } from "@/lib/live-blog/publication-policy";
+import { buildFingerprint, decidePublication, findLowerPriorityCandidates, isInCooldown, isRateLimited, postedAtFor, validateFacts, type TriggerCandidate } from "@/lib/live-blog/publication-policy";
 import type { TriggerCategory } from "@/lib/live-blog/significance";
 
 /** `competition` has no default -- JS default parameters also apply when a caller passes
@@ -211,5 +211,46 @@ describe("findLowerPriorityCandidates", () => {
     const result = findLowerPriorityCandidates([first, second]);
     expect(result.has(first)).toBe(false);
     expect(result.has(second)).toBe(true);
+  });
+});
+
+describe("postedAtFor — ordering inside a replayed tick", () => {
+  /**
+   * 2021, Blairgowrie. Park, Magowan and Duncan all holed out on the same tick, so the engine
+   * wrote Park's "+28 is the lowest gross so far" and Magowan's "+14 leads the clubhouse" against
+   * an identical postedAt. Both were true when written, but with nothing to order them the feed
+   * printed the beaten target above the one that replaced it.
+   */
+  it("separates successive posts sharing one simulated tick", () => {
+    const tick = new Date("2021-09-12T17:08:00.000Z");
+    const first = postedAtFor(tick, true);
+    const second = postedAtFor(tick, true);
+    const third = postedAtFor(tick, true);
+
+    expect(new Date(first).getTime()).toBeLessThan(new Date(second).getTime());
+    expect(new Date(second).getTime()).toBeLessThan(new Date(third).getTime());
+  });
+
+  it("keeps the nudge inside the minute the post is displayed under", () => {
+    const tick = new Date("2021-09-12T17:08:00.000Z");
+    const stamps = Array.from({ length: 30 }, () => postedAtFor(tick, true));
+    for (const stamp of stamps) {
+      expect(stamp.slice(0, 17)).toBe("2021-09-12T17:08:");
+    }
+  });
+
+  it("restarts the count on the next tick, so a replay can't drift", () => {
+    const first = new Date("2021-09-12T17:08:00.000Z");
+    postedAtFor(first, true);
+    postedAtFor(first, true);
+
+    const next = new Date("2021-09-12T17:12:00.000Z");
+    expect(postedAtFor(next, true)).toBe("2021-09-12T17:12:00.000Z");
+  });
+
+  it("leaves a real championship's clock untouched", () => {
+    const now = new Date("2027-09-12T17:08:00.000Z");
+    expect(postedAtFor(now, false)).toBe("2027-09-12T17:08:00.000Z");
+    expect(postedAtFor(now, false)).toBe("2027-09-12T17:08:00.000Z");
   });
 });
