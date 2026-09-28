@@ -239,7 +239,7 @@ export const Players: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [
-      async ({ data }) => {
+      async ({ data, originalDoc, operation }) => {
         if (data && !data.slug && data.name) {
           data.slug = slugify(data.name);
         }
@@ -249,7 +249,21 @@ export const Players: CollectionConfig = {
         if (data && data.dateOfBirth) {
           data.age = calculateAge(data.dateOfBirth);
         }
-        if (data && typeof data.handicapIndex === "number") {
+        // Course handicaps are derived from the index, but not on every single save.
+        //
+        // Deriving unconditionally meant an editor could not set a course handicap by hand at all:
+        // the admin form posts the whole document, so the index came back with it and the typed
+        // figure was recomputed away before it reached the database. It reads as the form refusing
+        // to save. That matters most for backdating, where the course handicap wanted is the one a
+        // player had in 2021, not the one today's index produces -- Andrew Duncan is off about 1.2
+        // now and was off 12 then.
+        //
+        // So: derive when the index itself moves (a real handicap change, which should flow
+        // through), and when the caller didn't state a course handicap at all -- which is how
+        // admin-recalculate asks for a re-derivation, by re-saving the index on its own.
+        const indexChanged = operation === "create" || data?.handicapIndex !== originalDoc?.handicapIndex;
+        const courseHandicapStated = data?.championshipHandicap !== undefined;
+        if (data && typeof data.handicapIndex === "number" && (indexChanged || !courseHandicapStated)) {
           const [championshipVenue, practiceVenue] = await Promise.all([resolveActiveVenueRating(), resolveActivePracticeVenueRating()]);
           if (championshipVenue) {
             data.championshipHandicap = calculateCourseHandicap(
