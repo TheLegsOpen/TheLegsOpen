@@ -8,8 +8,28 @@ export interface HoleInfo {
  * of handicap, plus one more on holes whose Stroke Index is at or below
  * the remainder. Handles handicaps above 18 (extra strokes stack on the
  * hardest holes) as well as the common 0-18 case.
+ *
+ * A plus handicap gives strokes back rather than receiving them, and does so
+ * from the EASIEST hole down -- a plus-1 drops a shot at stroke index 18, not
+ * at stroke index 1. That is the mirror of the ordinary case, not the same
+ * arithmetic with a negative number: `Math.floor(-1 / 18)` is -1, so the
+ * original expression handed a plus-1 player a stroke back on all eighteen
+ * holes. Doug Scott played off plus-1 at Panmure in 2023, which is where this
+ * surfaced -- his card only reconciles when the single shot comes off the 11th,
+ * the stroke index 18 hole.
  */
 export function allocateStrokes(handicap: number, holes: HoleInfo[]): number[] {
+  if (handicap < 0) {
+    const given = -handicap;
+    const fullRounds = Math.floor(given / 18);
+    const remainder = given % 18;
+    // Stroke index 18 is given back first, then 17, and so on. Negated only when
+    // there is something to negate, so an untouched hole is 0 rather than -0.
+    return holes.map((hole) => {
+      const back = fullRounds + (hole.si > 18 - remainder ? 1 : 0);
+      return back === 0 ? 0 : -back;
+    });
+  }
   const fullRounds = Math.floor(handicap / 18);
   const remainder = handicap % 18;
   return holes.map((hole) => fullRounds + (hole.si <= remainder ? 1 : 0));

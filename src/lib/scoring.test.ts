@@ -101,3 +101,44 @@ describe("computeScorecardTotals — no-return (X)", () => {
     expect(totals.stablefordTotal).toBe(expectedPoints);
   });
 });
+
+describe("allocateStrokes with a plus handicap", () => {
+  /** Panmure's card: stroke index 18 is the 11th, stroke index 1 the 6th. */
+  const PANMURE: HoleInfo[] = [
+    { par: 4, si: 15 }, { par: 5, si: 11 }, { par: 4, si: 5 }, { par: 4, si: 3 }, { par: 3, si: 17 }, { par: 4, si: 1 },
+    { par: 4, si: 7 }, { par: 4, si: 9 }, { par: 3, si: 13 }, { par: 4, si: 2 }, { par: 3, si: 18 }, { par: 4, si: 8 },
+    { par: 4, si: 10 }, { par: 5, si: 4 }, { par: 3, si: 14 }, { par: 4, si: 16 }, { par: 4, si: 6 }, { par: 4, si: 12 },
+  ];
+
+  it("gives one stroke back at the easiest hole, not at every hole", () => {
+    const strokes = allocateStrokes(-1, PANMURE);
+    expect(strokes.filter((s) => s !== 0)).toEqual([-1]);
+    // The 11th is stroke index 18.
+    expect(strokes[10]).toBe(-1);
+    expect(strokes[5]).toBe(0); // the 6th, stroke index 1, is untouched
+  });
+
+  it("gives back from the easiest hole downwards as the plus handicap grows", () => {
+    const strokes = allocateStrokes(-3, PANMURE);
+    expect(strokes.filter((s) => s === -1)).toHaveLength(3);
+    const givenBack = PANMURE.filter((_, i) => strokes[i] === -1).map((h) => h.si).sort((a, b) => b - a);
+    expect(givenBack).toEqual([18, 17, 16]);
+  });
+
+  it("reconciles Doug Scott's 2023 card exactly", () => {
+    // Gross, then the points his card actually shows.
+    const gross = [5, 5, 5, 4, 4, 6, 4, 4, 2, 10, 3, 5, 4, 6, 3, 4, 5, 5];
+    const points = [1, 2, 1, 2, 1, 0, 2, 2, 3, 0, 1, 1, 2, 1, 2, 2, 1, 1];
+    const strokes = allocateStrokes(-1, PANMURE);
+    const computed = gross.map((g, i) => stablefordPoints(g - strokes[i], PANMURE[i].par));
+    expect(computed).toEqual(points);
+  });
+
+  it("leaves ordinary handicaps exactly as they were", () => {
+    expect(allocateStrokes(0, PANMURE).every((s) => s === 0)).toBe(true);
+    expect(allocateStrokes(18, PANMURE).every((s) => s === 1)).toBe(true);
+    const off10 = allocateStrokes(10, PANMURE);
+    expect(off10.filter((s) => s === 1)).toHaveLength(10);
+    expect(PANMURE.filter((_, i) => off10[i] === 1).every((h) => h.si <= 10)).toBe(true);
+  });
+});
