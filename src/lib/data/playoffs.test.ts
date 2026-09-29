@@ -139,9 +139,9 @@ describe("resolveTiebreak reports a figure the competition recognises", () => {
   }
 
   it("counts Stableford in points, not strokes against par", () => {
-    // Magowan 3,2 … 2,3 on holes 1, 2, 17 and 18 = 10 points. Colum Watters 2,2 … 0,1 = 5.
-    // The board announced this as "(+2)" against "(-3)" -- the same ranking, expressed as a
-    // number that means nothing on a points competition.
+    // Magowan finishes 2,3 for 5 points over the inward nine; Colum Watters 0,1 for 1. The board
+    // announced this as "(+2)" against "(-3)" -- the same ranking, expressed as a number that
+    // means nothing on a points competition.
     const magowanPoints = [3, 2, ...Array(14).fill(0), 2, 3];
     const wattersPoints = [2, 2, ...Array(14).fill(0), 0, 1];
     const { steps, winner } = resolveTiebreak(
@@ -150,8 +150,8 @@ describe("resolveTiebreak reports a figure the competition recognises", () => {
     );
     expect(winner?.id).toBe("magowan");
     const first = steps[0].contenders;
-    expect(first.find((c) => c.player.id === "magowan")?.display).toBe("10 pts");
-    expect(first.find((c) => c.player.id === "watters")?.display).toBe("5 pts");
+    expect(first.find((c) => c.player.id === "magowan")?.display).toBe("5 pts");
+    expect(first.find((c) => c.player.id === "watters")?.display).toBe("1 pts");
   });
 
   it("still counts Main against par", () => {
@@ -160,5 +160,68 @@ describe("resolveTiebreak reports a figure the competition recognises", () => {
       "main",
     );
     expect(steps[0].contenders.every((c) => /^[+-]|^E$/.test(c.display))).toBe(true);
+  });
+});
+
+describe("the two competitions count back on different holes", () => {
+  const EADIE = player("eadie", "Neal Eadie");
+  const SINTON = player("sinton", "Tom Sinton");
+  const FERGUSON = player("ferguson", "Bobby Ferguson");
+  const CAMPBELL = player("campbell", "Alastair Campbell");
+
+  /** Stableford holes carry the points themselves; Main holes carry strokes against par. */
+  function withHoles(p: Player, per: number[], stableford: boolean): CompetitionEntry {
+    return entry(p, {
+      score: stableford ? per.reduce((a, b) => a + b, 0) : undefined,
+      holes: Array.from({ length: 18 }, (_, i) => ({
+        holeNumber: i + 1,
+        par: 4,
+        value: stableford ? per[i] : 4 + per[i],
+        relative: stableford ? per[i] - 2 : per[i],
+      })),
+    });
+  }
+
+  /**
+   * Loch Lomond, 2022. Swan's 36 topped the Stableford but he had already won the Main, leaving
+   * four level on 34. Eadie's 19 points coming home won it; on holes 1, 2, 17 & 18 Sinton's 9 to
+   * Eadie's 6 would have taken it the other way.
+   */
+  it("settles the Stableford on the inward nine", () => {
+    const eadie = [2, 1, 1, 0, 1, 4, 2, 2, 2, 2, 2, 2, 2, 3, 2, 3, 2, 1];
+    const sinton = [2, 2, 1, 2, 2, 3, 2, 3, 3, 1, 2, 0, 2, 2, 1, 1, 2, 3];
+    const { steps, winner } = resolveTiebreak(
+      [withHoles(EADIE, eadie, true), withHoles(SINTON, sinton, true)],
+      "stableford",
+    );
+
+    expect(steps[0].description).toBe("Holes 10–18");
+    expect(winner?.id).toBe("eadie");
+    expect(steps[0].contenders.find((c) => c.player.id === "eadie")?.display).toBe("19 pts");
+    expect(steps[0].contenders.find((c) => c.player.id === "sinton")?.display).toBe("14 pts");
+  });
+
+  it("never opens a Stableford countback on holes 1, 2, 17 & 18", () => {
+    const flat = Array(18).fill(2);
+    const { steps } = resolveTiebreak([withHoles(EADIE, flat, true), withHoles(SINTON, flat, true)], "stableford");
+    expect(steps.map((s) => s.description)).not.toContain("Holes 1, 2, 17 & 18");
+  });
+
+  /**
+   * Carnwath, 2013. Ferguson and Campbell tied on nett 65. Holes 1, 2, 17 & 18 separate them and
+   * the back nine does not (both -3, the last six then favouring Ferguson), so the Main keeping
+   * its own order is what makes Campbell the champion.
+   */
+  it("still settles the Main on holes 1, 2, 17 & 18", () => {
+    // Only the four countback holes carry anything; the rest are level so the back nine ties.
+    const campbell = [-1, -1, ...Array(14).fill(0), 0, 0];
+    const ferguson = [0, 0, ...Array(14).fill(0), 0, 0];
+    const { steps, winner } = resolveTiebreak(
+      [withHoles(CAMPBELL, campbell, false), withHoles(FERGUSON, ferguson, false)],
+      "main",
+    );
+
+    expect(steps[0].description).toBe("Holes 1, 2, 17 & 18");
+    expect(winner?.id).toBe("campbell");
   });
 });

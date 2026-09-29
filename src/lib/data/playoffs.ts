@@ -10,12 +10,19 @@ function holeRange(startHole: number, endHole: number): number[] {
   return Array.from({ length: endHole - startHole + 1 }, (_, i) => startHole - 1 + i);
 }
 
+type TiebreakStep = { label: string; description: string; holeIndices: number[] };
+
 /**
- * Standard match-of-cards countback, in the club's own priority order (not the usual
- * back-9-first convention) -- narrows the tied group step by step until one player is left,
- * or exhausts every step and the title is genuinely shared.
+ * Match-of-cards countback for the Main and the Scratch, in the club's own priority order rather
+ * than the usual back-9-first convention -- narrows the tied group step by step until one player
+ * is left, or exhausts every step and the title is genuinely shared.
+ *
+ * This order is load-bearing for 2013, and not interchangeable with the Stableford's below.
+ * Ferguson and Campbell tied at Carnwath on nett 65; holes 1, 2, 17 & 18 separate them (Campbell
+ * -2 to 0) while the back nine does not (both -3, with the last six then going to Ferguson). The
+ * championship is Campbell's because of this ladder, so changing it rewrites a title.
  */
-const TIEBREAK_STEPS: { label: string; description: string; holeIndices: number[] }[] = [
+const MAIN_TIEBREAK_STEPS: TiebreakStep[] = [
   { label: "First Tiebreaker", description: "Holes 1, 2, 17 & 18", holeIndices: [0, 1, 16, 17] },
   { label: "Second Tiebreaker", description: "Holes 10–18", holeIndices: holeRange(10, 18) },
   { label: "Third Tiebreaker", description: "Holes 13–18", holeIndices: holeRange(13, 18) },
@@ -25,6 +32,29 @@ const TIEBREAK_STEPS: { label: string; description: string; holeIndices: number[
   { label: "Seventh Tiebreaker", description: "Holes 4–9", holeIndices: holeRange(4, 9) },
   { label: "Eighth Tiebreaker", description: "Holes 7–9", holeIndices: holeRange(7, 9) },
   { label: "Ninth Tiebreaker", description: "Hole 9", holeIndices: holeRange(9, 9) },
+];
+
+/**
+ * The Stableford settles its ties on the inward half, as the society does in practice -- holes
+ * 1, 2, 17 & 18 are not part of its ladder at all.
+ *
+ * 2022 at Loch Lomond is the case that established it. Lloyd Swan's 36 points topped the
+ * Stableford but he had already won the Main, so the title fell to four players level on 34 --
+ * Duncan, Eadie, Scott and Sinton. The club gave it to Neal Eadie, whose 19 points coming home
+ * beat the field outright; holes 1, 2, 17 & 18 would have handed it to Tom Sinton instead.
+ *
+ * Only the Stableford changes. The Main and Scratch keep their own order above, which matters:
+ * on the back nine 2013 would have gone to Ferguson rather than Campbell.
+ */
+const STABLEFORD_TIEBREAK_STEPS: TiebreakStep[] = [
+  { label: "First Tiebreaker", description: "Holes 10–18", holeIndices: holeRange(10, 18) },
+  { label: "Second Tiebreaker", description: "Holes 13–18", holeIndices: holeRange(13, 18) },
+  { label: "Third Tiebreaker", description: "Holes 16–18", holeIndices: holeRange(16, 18) },
+  { label: "Fourth Tiebreaker", description: "Hole 18", holeIndices: holeRange(18, 18) },
+  { label: "Fifth Tiebreaker", description: "Holes 1–9", holeIndices: holeRange(1, 9) },
+  { label: "Sixth Tiebreaker", description: "Holes 4–9", holeIndices: holeRange(4, 9) },
+  { label: "Seventh Tiebreaker", description: "Holes 7–9", holeIndices: holeRange(7, 9) },
+  { label: "Eighth Tiebreaker", description: "Hole 9", holeIndices: holeRange(9, 9) },
 ];
 
 export interface TiebreakStepResult {
@@ -88,7 +118,7 @@ export function resolveTiebreak(
   let contenders = tied;
   const steps: TiebreakStepResult[] = [];
 
-  for (const step of TIEBREAK_STEPS) {
+  for (const step of competition === "stableford" ? STABLEFORD_TIEBREAK_STEPS : MAIN_TIEBREAK_STEPS) {
     // Stableford counts the points themselves; Main and Scratch count strokes against par. Both
     // orderings are unchanged by this -- relative is points minus two on a Stableford hole, so it
     // ranks identically -- but "+2" is not a number anyone recognises on a points competition.
