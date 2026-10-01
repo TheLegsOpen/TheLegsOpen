@@ -101,3 +101,19 @@ export function computeScorecardTotals(
     noReturn: anyNoReturn,
   };
 }
+
+/**
+ * How a handicap is written down.
+ *
+ * A handicap below zero is a plus handicap: the player gives strokes back rather than receiving
+ * them, and golf writes that with a leading plus -- a player stored as -1 is "+1" on a tee sheet
+ * and everywhere else. The sign is inverted on purpose, which is why this exists rather than
+ * `String(handicap)` at each call site. Doug Scott played off +1 at Panmure in 2023 and Gary
+ * Drummond off +1 at Balmedie in 2025; both would otherwise read as "-1", which means nothing.
+ *
+ * Keep the stored value negative. The arithmetic in allocateStrokes depends on it, and the sign is
+ * flipped only for display.
+ */
+export function formatHandicap(handicap: number): string {
+  return handicap < 0 ? `+${-handicap}` : String(handicap);
+}

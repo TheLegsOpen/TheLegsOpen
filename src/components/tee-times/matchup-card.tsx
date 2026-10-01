@@ -3,6 +3,7 @@ import { Flag, Star } from "lucide-react";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
+import { formatHandicap } from "@/lib/scoring";
 import { cn, splitSurnameFirst } from "@/lib/utils";
 import { scorePillClass, TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { TeeTimeEntry } from "@/types/championship";
@@ -61,7 +62,7 @@ function PlayerChip({
           </span>
           <span className="font-display text-lg font-bold uppercase tracking-wide hover:underline">
             {surname}
-            {handicap !== undefined ? <span className="ml-1 text-sm font-normal normal-case tracking-normal">({handicap})</span> : null}
+            {handicap !== undefined ? <span className="ml-1 text-sm font-normal normal-case tracking-normal">({formatHandicap(handicap)})</span> : null}
           </span>
         </button>
         <p

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { COUNTRIES } from "@/data/countries";
+import { formatHandicap } from "@/lib/scoring";
 
 const COLUMNS = [
   "name",
@@ -252,7 +253,7 @@ export function BulkPlayerUpload() {
                     <td className="px-3 py-2 font-medium">{row.name || "—"}</td>
                     <td className="px-3 py-2">{row.countryCode ?? "SCO"}</td>
                     <td className="px-3 py-2">{row.raw.dateofbirth || "—"}</td>
-                    <td className="px-3 py-2">{row.championshipHandicap ?? "—"}</td>
+                    <td className="px-3 py-2">{row.championshipHandicap === undefined ? "—" : formatHandicap(row.championshipHandicap)}</td>
                     <td className="px-3 py-2">{row.previousOpens ?? "—"}</td>
                     <td className="px-3 py-2">{row.inField === undefined ? "—" : row.inField ? "Yes" : "No"}</td>
                     <td className="px-3 py-2 text-xs text-destructive">{row.errors.join("; ")}</td>

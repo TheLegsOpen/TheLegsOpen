@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { allocateStrokes, computeScorecardTotals, stablefordPoints, type HoleInfo } from "@/lib/scoring";
+import { allocateStrokes, computeScorecardTotals, formatHandicap, stablefordPoints, type HoleInfo } from "@/lib/scoring";
 
 /** 18 holes, all par 4, stroke indices 1-18 -- a simple, deterministic course for the tests below. */
 const FLAT_HOLES: HoleInfo[] = Array.from({ length: 18 }, (_, i) => ({ par: 4, si: i + 1 }));
@@ -140,5 +140,22 @@ describe("allocateStrokes with a plus handicap", () => {
     const off10 = allocateStrokes(10, PANMURE);
     expect(off10.filter((s) => s === 1)).toHaveLength(10);
     expect(PANMURE.filter((_, i) => off10[i] === 1).every((h) => h.si <= 10)).toBe(true);
+  });
+});
+
+describe("formatHandicap", () => {
+  it("writes a plus handicap with a plus, not a minus", () => {
+    expect(formatHandicap(-1)).toBe("+1");
+    expect(formatHandicap(-3)).toBe("+3");
+  });
+
+  it("leaves ordinary handicaps alone", () => {
+    expect(formatHandicap(0)).toBe("0");
+    expect(formatHandicap(7)).toBe("7");
+    expect(formatHandicap(28)).toBe("28");
+  });
+
+  it("does not write negative zero as a plus", () => {
+    expect(formatHandicap(-0)).toBe("0");
   });
 });

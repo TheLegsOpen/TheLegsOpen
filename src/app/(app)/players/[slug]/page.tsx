@@ -5,6 +5,7 @@ import { Trophy } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
 import { RichTextBlock } from "@/components/shared/rich-text";
+import { formatHandicap } from "@/lib/scoring";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { ArticleCard } from "@/components/news/article-card";
@@ -113,7 +114,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     { label: "Age", value: player.ageAtChampionship ?? "—" },
     ...(player.turnedPro ? [{ label: "Turned Pro", value: player.turnedPro }] : []),
     ...(debutYear ? [{ label: "Legs Open Debut", value: debutYear }] : []),
-    { label: "Championship Handicap", value: player.championshipHandicap ?? "—" },
+    { label: "Championship Handicap", value: player.championshipHandicap === undefined ? "—" : formatHandicap(player.championshipHandicap) },
     // player.previousOpens is the hand-maintained pre-digital-era count; results (already
     // filtered to concluded championships) covers every digital-era Legs Open this player has a
     // real scorecard for, one-for-one with what the Results tab below lists -- including the
