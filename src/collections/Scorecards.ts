@@ -164,7 +164,7 @@ export const Scorecards: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [
-      async ({ data, req, originalDoc }) => {
+      async ({ data, req, originalDoc, context }) => {
         if (!data) return data;
 
         if (Array.isArray(data.holes)) {
@@ -181,19 +181,38 @@ export const Scorecards: CollectionConfig = {
             data.scoreUpdatedAt = new Date().toISOString();
           }
 
-          // Stamp each hole the first time it carries a score, so the leaderboard can be rebuilt as
-          // it actually stood at any moment rather than inferred from the tee sheet. Stamped once
-          // on purpose: a correction entered an hour later changes the score, not the time the
-          // player walked off the green, and moving the stamp would drag their whole round
-          // forwards through the timeline. Backdated rounds keep whatever they already have --
-          // which is nothing, hence the fallback in round-timeline.ts.
-          const now = new Date().toISOString();
-          data.holes = data.holes.map((hole: Record<string, unknown>, index: number) => {
-            const existing = hole.recordedAt ?? originalDoc?.holes?.[index]?.recordedAt;
-            if (existing) return { ...hole, recordedAt: existing };
-            const scored = hole.strokes != null || hole.noReturn === true;
-            return scored ? { ...hole, recordedAt: now } : hole;
-          });
+          // Stamp each hole at the moment its score is first ENTERED, so the leaderboard can be
+          // rebuilt as it actually stood rather than inferred from the tee sheet. Stamped once on
+          // purpose: a correction entered an hour later changes the score, not the time the player
+          // walked off the green, and moving the stamp would drag their whole round forwards
+          // through the timeline.
+          //
+          // "First entered" has to mean the hole went from blank to scored in THIS save. The first
+          // version stamped any scored hole that lacked a stamp, which is every hole of a backdated
+          // round -- so re-saving an old card for something unrelated retro-stamped the entire
+          // championship with today's date. Fixing 2026's handicaps did exactly that on 1 October:
+          // all 648 holes acquired timestamps spanning the twenty minutes of the edit, and because
+          // round-timeline.ts prefers a stamp over the tee sheet, the largest-lead record was
+          // recomputed off them and changed from Findlay by 4 after the 5th to Leisegang by 2 after
+          // the 18th. A round played in September does not acquire a timeline in October.
+          //
+          // Stripping them again has to be explicit. Passing recordedAt: null would be resurrected
+          // by the originalDoc fallback below, so admin-clear-recorded-at says what it means.
+          if ((context as { clearRecordedAt?: boolean } | undefined)?.clearRecordedAt === true) {
+            data.holes = data.holes.map((hole: Record<string, unknown>) => ({ ...hole, recordedAt: null }));
+          } else {
+            const now = new Date().toISOString();
+            const wasScoredBefore = (index: number): boolean => {
+              const before = originalDoc?.holes?.[index];
+              return Boolean(before) && (before.strokes != null || before.noReturn === true);
+            };
+            data.holes = data.holes.map((hole: Record<string, unknown>, index: number) => {
+              const existing = hole.recordedAt ?? originalDoc?.holes?.[index]?.recordedAt;
+              if (existing) return { ...hole, recordedAt: existing };
+              const scored = hole.strokes != null || hole.noReturn === true;
+              return scored && !wasScoredBefore(index) ? { ...hole, recordedAt: now } : hole;
+            });
+          }
         }
 
         const playerId = typeof data.player === "object" ? (data.player as { id?: string })?.id : data.player;
