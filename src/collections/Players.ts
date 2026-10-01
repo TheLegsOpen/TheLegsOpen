@@ -239,7 +239,7 @@ export const Players: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [
-      async ({ data, originalDoc, operation, req }) => {
+      async ({ data, originalDoc, operation, context }) => {
         if (data && !data.slug && data.name) {
           data.slug = slugify(data.name);
         }
@@ -269,7 +269,12 @@ export const Players: CollectionConfig = {
         // and changed nothing, leaving the whole field on another venue's figures after 2026 went
         // active. Nothing in the response said so. An explicit flag cannot be read into a payload
         // Payload itself filled in.
-        const forced = (req as { context?: { rederiveCourseHandicaps?: boolean } } | undefined)?.context?.rederiveCourseHandicaps === true;
+        //
+        // Read off the hook's own `context` argument, which is where Payload puts it -- the same
+        // place generateLiveBlogPosts reads suppressLiveBlog from. Not req.context: Payload does
+        // not reliably mirror context onto req, which is why that hook sets req.context by hand
+        // before handing off. Reading the wrong one of the two fails exactly like no flag at all.
+        const forced = (context as { rederiveCourseHandicaps?: boolean } | undefined)?.rederiveCourseHandicaps === true;
         const indexChanged = operation === "create" || data?.handicapIndex !== originalDoc?.handicapIndex;
         if (data && typeof data.handicapIndex === "number" && (indexChanged || forced)) {
           const [championshipVenue, practiceVenue] = await Promise.all([resolveActiveVenueRating(), resolveActivePracticeVenueRating()]);
