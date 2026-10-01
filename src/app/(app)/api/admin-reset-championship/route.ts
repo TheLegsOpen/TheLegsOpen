@@ -44,6 +44,18 @@ interface Resettable {
 
 const RESETTABLE: Resettable[] = [
   {
+    year: 2026,
+    reason:
+      "Played live, and the scores for group 2 -- McGuire, Dundas, Park and Merrilees, out at " +
+      "10.36 -- did not reach the site until around their 9th. The blog shows it plainly: their " +
+      "first eight holes all appear at 12:37, three hours after they played them, in a single " +
+      "burst of 32 posts. For those three hours the leaderboard and the commentary ran without " +
+      "four players in the field, Dundas among them, who finished T4. The scores themselves are " +
+      "right and have been verified against the export; it is the order they arrived in that was " +
+      "wrong, and commentary reasons from that order. ONLY reset this with the full export in " +
+      "hand -- 2026 was never entered from HandicapMaster, so there is no PDF to re-enter it from.",
+  },
+  {
     year: 2022,
     reason:
       "Replayed from invented tee times (noon, uniform nine-minute intervals) because the tee " +

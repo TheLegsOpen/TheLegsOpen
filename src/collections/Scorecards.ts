@@ -6,6 +6,9 @@ import { generateLiveBlogPosts } from "@/lib/live-blog/generate";
 import { syncChampionshipStatsAfterScoreChange } from "@/lib/data/championship-stats";
 import type { Venue, Player, Championship, TeeTimeRound } from "@/payload-types";
 
+/** From this championship onwards a hole carries a real recordedAt; before it, the round is timed from its tee sheet (see round-timeline.ts). */
+const FIRST_TIMED_YEAR = 2027;
+
 export const Scorecards: CollectionConfig = {
   slug: "scorecards",
   labels: { singular: "Scorecard", plural: "Scorecards" },
@@ -198,7 +201,21 @@ export const Scorecards: CollectionConfig = {
           //
           // Stripping them again has to be explicit. Passing recordedAt: null would be resurrected
           // by the originalDoc fallback below, so admin-clear-recorded-at says what it means.
-          if ((context as { clearRecordedAt?: boolean } | undefined)?.clearRecordedAt === true) {
+          // Only from FIRST_TIMED_YEAR. Before that the club times a round from its tee sheet, so
+          // a stamp is not merely unnecessary, it overrides the tee sheet in holeClock and gives a
+          // worse answer. Replaying a backdated championship scores every hole blank-to-scored,
+          // which is exactly the case the rule above stamps -- so without this, every replay
+          // re-creates the problem admin-clear-recorded-at exists to undo.
+          const championshipRef = data.championship ?? originalDoc?.championship;
+          const championshipYear =
+            typeof championshipRef === "object" && championshipRef
+              ? (championshipRef as { year?: number }).year
+              : championshipRef != null
+                ? (await req.payload.findByID({ collection: "championships", id: String(championshipRef), depth: 0, req }).catch(() => undefined))?.year
+                : undefined;
+          const timedRound = typeof championshipYear === "number" && championshipYear >= FIRST_TIMED_YEAR;
+
+          if ((context as { clearRecordedAt?: boolean } | undefined)?.clearRecordedAt === true || !timedRound) {
             data.holes = data.holes.map((hole: Record<string, unknown>) => ({ ...hole, recordedAt: null }));
           } else {
             const now = new Date().toISOString();
