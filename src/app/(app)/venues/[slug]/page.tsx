@@ -46,11 +46,24 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
     getArticles(),
     isActiveChampionshipVenue(venue.slug),
   ]);
-  const [toughestHolesNett, toughestHolesScratch] = isActiveVenue
-    ? await Promise.all([getToughestHoles("nett"), getToughestHoles("scratch")])
-    : [[], []];
   const championshipsHere = [...championshipsRaw].sort((a, b) => b.year - a.year);
   const championshipsChronological = [...championshipsRaw].sort((a, b) => a.year - b.year);
+
+  // Course scoring used to appear only while the venue was hosting, which meant a course the
+  // society has played a dozen times showed nothing the rest of the year. A venue is far more
+  // often between championships than hosting one, so it falls back to the last championship
+  // actually played here -- the most recent completed one, since a championship scheduled but not
+  // yet played has no scores to report. getToughestHoles with no id reads the active championship,
+  // which is what the live case still wants.
+  const lastPlayedHere = championshipsHere.find((c) => c.completed);
+  const scoringYear = isActiveVenue ? undefined : lastPlayedHere?.year;
+  const [toughestHolesNett, toughestHolesScratch] =
+    isActiveVenue || lastPlayedHere
+      ? await Promise.all([
+          getToughestHoles("nett", isActiveVenue ? undefined : lastPlayedHere!.id),
+          getToughestHoles("scratch", isActiveVenue ? undefined : lastPlayedHere!.id),
+        ])
+      : [[], []];
 
   const playerByName = new Map(players.map((player) => [player.name, player]));
   const championsByKey = new Map<string, VenueChampion>();
@@ -114,16 +127,27 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
 
           <TabsContent value="course-card" className="flex flex-col gap-8">
             {venue.stats.length > 0 ? <StatBlock stats={venue.stats} /> : null}
-            {isActiveVenue ? (
+            {toughestHolesNett.length > 0 || toughestHolesScratch.length > 0 ? (
               <div className="bg-surface-dark text-surface-dark-foreground">
                 <div className="flex flex-col gap-8 p-6">
-                  <ToughestHolesBoard title="Course Scoring - Nett" rows={toughestHolesNett} />
-                  <ToughestHolesBoard title="Course Scoring - Scratch" rows={toughestHolesScratch} />
+                  {scoringYear ? (
+                    <p className="text-sm text-surface-dark-foreground/60">
+                      How the field scored here at the {scoringYear} Legs Open, the last championship played at {venue.name}.
+                    </p>
+                  ) : null}
+                  <ToughestHolesBoard
+                    title={scoringYear ? `Course Scoring - Nett (${scoringYear})` : "Course Scoring - Nett"}
+                    rows={toughestHolesNett}
+                  />
+                  <ToughestHolesBoard
+                    title={scoringYear ? `Course Scoring - Scratch (${scoringYear})` : "Course Scoring - Scratch"}
+                    rows={toughestHolesScratch}
+                  />
                 </div>
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Hole-by-hole course scoring appears here once {venue.name} is hosting a live championship.
+                Hole-by-hole course scoring appears here once {venue.name} has hosted a championship.
               </p>
             )}
           </TabsContent>
