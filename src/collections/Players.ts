@@ -239,7 +239,7 @@ export const Players: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [
-      async ({ data, originalDoc, operation }) => {
+      async ({ data, originalDoc, operation, req }) => {
         if (data && !data.slug && data.name) {
           data.slug = slugify(data.name);
         }
@@ -259,11 +259,19 @@ export const Players: CollectionConfig = {
         // now and was off 12 then.
         //
         // So: derive when the index itself moves (a real handicap change, which should flow
-        // through), and when the caller didn't state a course handicap at all -- which is how
-        // admin-recalculate asks for a re-derivation, by re-saving the index on its own.
+        // through), and when a caller explicitly asks for a re-derivation.
+        //
+        // That ask is a context flag rather than an inference. The first version read "the caller
+        // sent no course handicap" as the request, which admin-recalculate was written against --
+        // it re-saves the index on its own. Payload hands beforeValidate the MERGED document on an
+        // update, though, so the stored course handicap is always present and that test is never
+        // true. The symptom was the worst kind: the route wrote all 36 players, reported success,
+        // and changed nothing, leaving the whole field on another venue's figures after 2026 went
+        // active. Nothing in the response said so. An explicit flag cannot be read into a payload
+        // Payload itself filled in.
+        const forced = (req as { context?: { rederiveCourseHandicaps?: boolean } } | undefined)?.context?.rederiveCourseHandicaps === true;
         const indexChanged = operation === "create" || data?.handicapIndex !== originalDoc?.handicapIndex;
-        const courseHandicapStated = data?.championshipHandicap !== undefined;
-        if (data && typeof data.handicapIndex === "number" && (indexChanged || !courseHandicapStated)) {
+        if (data && typeof data.handicapIndex === "number" && (indexChanged || forced)) {
           const [championshipVenue, practiceVenue] = await Promise.all([resolveActiveVenueRating(), resolveActivePracticeVenueRating()]);
           if (championshipVenue) {
             data.championshipHandicap = calculateCourseHandicap(

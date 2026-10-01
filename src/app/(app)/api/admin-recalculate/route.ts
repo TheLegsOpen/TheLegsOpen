@@ -16,8 +16,13 @@ import type { Player, Scorecard } from "@/payload-types";
  *
  * Two details make this work, and both are easy to miss:
  *
- *   - A player only recalculates when handicapIndex is present in the update payload, so the index
- *     is read and written straight back rather than saving an empty patch.
+ *   - A player only recalculates when the save says so, via context.rederiveCourseHandicaps. The
+ *     index is read and written straight back as well, since there is nothing to derive from
+ *     without it. Sending the index alone used to be the signal and is not enough: Payload merges
+ *     the stored document into `data` before Players' beforeValidate sees it, so the hook cannot
+ *     tell a bare index from a full form post. That cost a silent no-op -- all 36 players written,
+ *     success reported, nothing changed. `handicapChanges` in the response is the thing to read:
+ *     if it comes back empty, no handicap moved, whatever playersUpdated says.
  *   - A scorecard only recalculates when `holes` is present, so its own holes go back untouched.
  *     Untouched matters: the strokes are identical, so scoreUpdatedAt does not move and the
  *     live-blog hook bails on its own. suppressLiveBlog is set as well, belt and braces -- nobody
@@ -94,6 +99,10 @@ export async function GET(request: NextRequest) {
         collection: "players",
         id: p.id,
         data: { handicapIndex: p.handicapIndex },
+        // Says outright that this save wants the course handicaps re-derived. Sending the index
+        // alone is not enough on its own: Payload merges the stored document into `data` before
+        // beforeValidate sees it, so the hook cannot tell a bare index from a full form post.
+        context: { rederiveCourseHandicaps: true },
       });
       playersUpdated++;
     } catch (err) {
