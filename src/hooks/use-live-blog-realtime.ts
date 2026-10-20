@@ -10,6 +10,21 @@ import { getSupabaseBrowserClient } from "@/lib/supabase-client";
  * field name "championship" isn't what Realtime's filter syntax matches against) so bulk
  * backdating work on other championships doesn't trigger refetches on a page showing this one.
  * No-ops when championshipId is null or Realtime isn't configured, so pages keep working without it.
+ *
+ * A table has to be readable by the `anon` role before Realtime will send anything for it. Since
+ * 30 October 2026 Supabase no longer grants that automatically on new tables in `public`, so a
+ * table created from then on needs it stated:
+ *
+ *   grant select on public.your_table to anon;
+ *
+ * live_blog_posts predates the change and kept its grant, so this hook is unaffected. It matters
+ * for any NEW table someone later wants Realtime on, and for a rebuilt database -- a new project,
+ * a preview branch or `supabase db reset` recreates every table without grants, and this project
+ * has no migrations for a grant to live in. Nothing else here touches the Data API: Payload talks
+ * to Postgres directly over a connection string, which these grants do not govern.
+ *
+ * Worth stating because the failure is silent. Everything below swallows its errors by design, so
+ * a missing grant looks like no live updates rather than like an error.
  */
 export function useLiveBlogRealtime(championshipId: string | null | undefined, onNewPost: () => void) {
   const onNewPostRef = useRef(onNewPost);
