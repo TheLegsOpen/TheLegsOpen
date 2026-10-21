@@ -95,13 +95,25 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   // Labelling from the earliest year instead showed Robert Hamilton as "T2 - 2015, 2025" when his
   // 2025 was an outright second -- contradicted by his own bio further down the same page, which
   // is how it surfaced.
-  const bestPosition = results.length > 0 ? Math.min(...results.map((r) => r.position)) : undefined;
-  const bestFinishYears = results.filter((r) => r.position === bestPosition).sort((a, b) => a.year - b.year);
+  // Only a completed round counts. A no-return still takes a position on the Main leaderboard --
+  // ranked below everyone who finished, but a position all the same -- and in a small field that
+  // can look better than a real finish from another year. Iain MacLeod read "T6 - 2016" off a
+  // round he picked up in, ahead of the 8th he actually played to in 2013. A withdrawal is treated
+  // the same way: Alastair Campbell's 2016 is not a result either.
+  const completed = results.filter((r) => !r.main.noReturn && !r.main.withdrawn);
+  const bestPosition = completed.length > 0 ? Math.min(...completed.map((r) => r.position)) : undefined;
+  const bestFinishYears = completed.filter((r) => r.position === bestPosition).sort((a, b) => a.year - b.year);
   const finishedAlone = bestFinishYears.some((r) => !r.finish.startsWith("T"));
+
+  // Nobody who has never completed a round has a best finish to show, so say what actually
+  // happened instead: WD only when every appearance was a withdrawal, NR otherwise.
+  const unfinishedYears = results.filter((r) => r.main.noReturn || r.main.withdrawn).sort((a, b) => a.year - b.year);
   const bestFinish =
     bestFinishYears.length > 0
       ? `${bestPosition === 1 ? "1" : `${finishedAlone ? "" : "T"}${bestPosition}`} - ${bestFinishYears.map((r) => r.year).join(", ")}`
-      : undefined;
+      : unfinishedYears.length > 0
+        ? `${unfinishedYears.every((r) => r.main.withdrawn) ? "WD" : "NR"} - ${unfinishedYears.map((r) => r.year).join(", ")}`
+        : undefined;
 
   const statsYears = results
     .filter((r) => r.hasScorecards)

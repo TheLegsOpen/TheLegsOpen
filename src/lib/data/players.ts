@@ -88,6 +88,7 @@ export interface PlayerCompetitionResult {
   /** undefined for stableford (points, not to-par) */
   toPar?: number;
   noReturn?: boolean;
+  withdrawn?: boolean;
   /** Present only when hasScorecards is true on the parent PlayerYearResult. */
   holes?: HoleScore[];
 }
@@ -110,7 +111,7 @@ export interface PlayerYearResult {
 }
 
 function toResult(entry: CompetitionEntry): PlayerCompetitionResult {
-  return { position: entry.position, tied: entry.tied, score: entry.score, toPar: entry.toPar, noReturn: entry.noReturn, holes: entry.holes };
+  return { position: entry.position, tied: entry.tied, score: entry.score, toPar: entry.toPar, noReturn: entry.noReturn, withdrawn: entry.withdrawn, holes: entry.holes };
 }
 
 function winnerFallback(c: ChampionshipWinner): PlayerYearResult {
