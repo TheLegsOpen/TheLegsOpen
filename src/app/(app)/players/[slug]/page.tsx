@@ -88,20 +88,19 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
   // "1 - 2015, 2016" rather than just "Winner" -- makes a repeat best finish (e.g. winning twice) visible at a glance instead of collapsing to one word.
   //
-  // Finishing alone beats sharing the place, so the order runs 2, T2, 3, T3 and only years at the
-  // SAME position and the same side of that split are listed together. Ranking on position alone
-  // put an outright second and a tied second in one group and then labelled the group with
-  // whichever year came first -- Robert Hamilton's outright 2 in 2025 was shown as "T2 - 2015,
-  // 2025" because his 2015 was tied, which his own bio on the same page contradicts.
-  const isTied = (r: (typeof results)[number]) => r.finish.startsWith("T");
-  const rank = (r: (typeof results)[number]) => r.position * 2 + (isTied(r) ? 1 : 0);
-  const best = results.length > 0 ? results.reduce((a, b) => (rank(b) < rank(a) ? b : a)) : undefined;
-  const bestFinishYears = best
-    ? results.filter((r) => r.position === best.position && isTied(r) === isTied(best)).sort((a, b) => a.year - b.year)
-    : [];
+  // Every year at the best position is listed, and the label takes the best of them: a player who
+  // has finished both 2nd and T2 reads "2", with both years beside it, because he has been
+  // outright second. Only a player whose every finish at that position was shared reads "T2".
+  //
+  // Labelling from the earliest year instead showed Robert Hamilton as "T2 - 2015, 2025" when his
+  // 2025 was an outright second -- contradicted by his own bio further down the same page, which
+  // is how it surfaced.
+  const bestPosition = results.length > 0 ? Math.min(...results.map((r) => r.position)) : undefined;
+  const bestFinishYears = results.filter((r) => r.position === bestPosition).sort((a, b) => a.year - b.year);
+  const finishedAlone = bestFinishYears.some((r) => !r.finish.startsWith("T"));
   const bestFinish =
-    best && bestFinishYears.length > 0
-      ? `${best.position === 1 ? "1" : best.finish} - ${bestFinishYears.map((r) => r.year).join(", ")}`
+    bestFinishYears.length > 0
+      ? `${bestPosition === 1 ? "1" : `${finishedAlone ? "" : "T"}${bestPosition}`} - ${bestFinishYears.map((r) => r.year).join(", ")}`
       : undefined;
 
   const statsYears = results
