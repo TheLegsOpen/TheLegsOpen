@@ -262,8 +262,8 @@ export const Players: CollectionConfig = {
         // through), and when a caller explicitly asks for a re-derivation.
         //
         // That ask is a context flag rather than an inference. The first version read "the caller
-        // sent no course handicap" as the request, which admin-recalculate was written against --
-        // it re-saves the index on its own. Payload hands beforeValidate the MERGED document on an
+        // sent no course handicap" as the request, which suits a bulk re-derivation that re-saves the
+        // index on its own and nothing else. Payload hands beforeValidate the MERGED document on an
         // update, though, so the stored course handicap is always present and that test is never
         // true. The symptom was the worst kind: the route wrote all 36 players, reported success,
         // and changed nothing, leaving the whole field on another venue's figures after 2026 went

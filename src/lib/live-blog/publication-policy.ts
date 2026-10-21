@@ -196,6 +196,10 @@ async function loadCooldownAndRateLimitState(
  * timestamp here follows it. Cooldowns and the hourly cap read from the same clock, which keeps
  * them meaningful: an hour of simulated play is an hour, not the four minutes of wall time it
  * might actually take.
+ *
+ * Nothing in the app sets simulatedNow any more: the fourteen backdated championships are in and
+ * the route that drove them, sim-tick, has been deleted. The clock stays because it is the
+ * contract a future replay driver has to meet, and because the tick ordering below is built on it.
  */
 function simulatedClock(req: PayloadRequest): Date | undefined {
   const simulated = (req as unknown as { context?: { simulatedNow?: string } }).context?.simulatedNow;
