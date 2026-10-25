@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { NewsTicker } from "@/components/layout/news-ticker";
 import { CookieBanner } from "@/components/layout/cookie-banner";
 import { MotionProvider } from "@/components/providers/motion-provider";
 import { SITE } from "@/constants/site";
@@ -13,6 +14,7 @@ import { getSocialLinks } from "@/lib/data/social-links";
 import { getCookieBannerText } from "@/lib/data/cookie-banner";
 import { getMenuVenueLinks } from "@/lib/data/championships";
 import { getFooterLegalLinks } from "@/lib/data/legal";
+import { getNewsTicker } from "@/lib/data/news-ticker";
 import { hexToHslTriplet } from "@/lib/utils";
 
 import "./globals.css";
@@ -113,13 +115,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [theme, sponsors, socialLinks, cookieBannerText, venueLinks, legalLinks] = await Promise.all([
+  const [theme, sponsors, socialLinks, cookieBannerText, venueLinks, legalLinks, tickerItems] = await Promise.all([
     getSiteTheme(),
     getSponsors(),
     getSocialLinks(),
     getCookieBannerText(),
     getMenuVenueLinks(),
     getFooterLegalLinks(),
+    getNewsTicker(),
   ]);
   const fontVars = FONT_PRESET_VARS[theme.fontPreset];
 
@@ -144,6 +147,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             Skip to main content
           </a>
           <Header logoUrl={theme.logoUrl} venueLinks={venueLinks} />
+          {/* Sits in the layout rather than the homepage so it runs on every page, under the
+              header, the way The Open's live band does. Renders nothing when there is no ticker
+              content, so pages outside a championship are unaffected. */}
+          <NewsTicker items={tickerItems} />
           <main id="main-content" className="flex-1">
             {children}
           </main>

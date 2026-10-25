@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import { AutoRefresh } from "@/components/shared/auto-refresh";
 import { Hero } from "@/components/home/hero";
-import { NewsTicker } from "@/components/home/news-ticker";
 import { LeaderboardWidget } from "@/components/home/leaderboard-widget";
 import { LiveBlogWidget } from "@/components/home/live-blog-widget";
 import { HomepageSections } from "@/components/home/sections/homepage-sections";
@@ -16,7 +15,6 @@ import { getLiveBlogPosts } from "@/lib/data/live-blog";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getSiteTheme } from "@/lib/data/site-theme";
 import { getVenueWeather } from "@/lib/data/weather";
-import { getNewsTicker } from "@/lib/data/news-ticker";
 import { getPlayoffs, applyPlayoffToEntries } from "@/lib/data/playoffs";
 import { getSeoSettings } from "@/lib/data/seo-settings";
 import {
@@ -65,7 +63,6 @@ export default async function HomePage() {
     sections,
     clockConfig,
     weather,
-    tickerItems,
     playoffs,
     nettCategories,
     scratchCategories,
@@ -84,7 +81,6 @@ export default async function HomePage() {
     getHomepageSections(),
     getSponsorClock(),
     getVenueWeather(),
-    getNewsTicker(),
     getPlayoffs(),
     getNettScoringCategories(),
     getScratchScoringCategories(),
@@ -102,7 +98,6 @@ export default async function HomePage() {
   return (
     <>
       <AutoRefresh intervalMs={10_000} />
-      <NewsTicker items={tickerItems} />
       {currentChampion ? <Hero currentChampion={currentChampion} clockConfig={clockConfig} weather={weather} /> : null}
       <section className="bg-surface-dark py-16 text-surface-dark-foreground sm:py-24">
         <Container>
