@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
+import { SectionGrid } from "@/components/shared/section-grid";
 import { SectionHeading } from "@/components/shared/section-heading";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CTASection } from "@/components/shared/cta-section";
@@ -31,7 +32,7 @@ export default async function MediaPage() {
 
       <Container className="py-16 sm:py-24">
         <SectionHeading eyebrow={settings.resourcesEyebrow} title={settings.resourcesTitle} />
-        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <SectionGrid layout="thirds" className="mt-10 sm:grid-cols-3">
           {settings.resources.map((resource) => {
             const Icon = ICON_MAP[resource.icon];
             return (
@@ -44,7 +45,7 @@ export default async function MediaPage() {
               </Card>
             );
           })}
-        </div>
+        </SectionGrid>
       </Container>
 
       <CTASection

@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { ArticleCard } from "@/components/news/article-card";
 import { SectionHeading } from "@/components/shared/section-heading";
 import { Container } from "@/components/shared/container";
+import { SectionGrid } from "@/components/shared/section-grid";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Article } from "@/types/article";
@@ -41,7 +42,10 @@ export function NewsGrid({ initialArticles, initialHasMore }: { initialArticles:
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Horizontal gutter comes from SectionGrid (20px), which is what puts these cards on the
+            same 442-wide column as every other band. The vertical gap stays wider than the
+            horizontal one -- rows of articles need more separation than neighbours in a row do. */}
+        <SectionGrid layout="thirds" className="gap-y-12 sm:grid-cols-2">
           {articles.map((article, index) => (
             <motion.div
               key={article.slug}
@@ -63,7 +67,7 @@ export function NewsGrid({ initialArticles, initialHasMore }: { initialArticles:
                 </div>
               ))
             : null}
-        </div>
+        </SectionGrid>
 
         {hasMore ? (
           <div className="flex justify-center">

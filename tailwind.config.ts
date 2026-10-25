@@ -87,6 +87,15 @@ const config: Config = {
       maxWidth: {
         container: "1440px",
       },
+      // The Open splits every band with the same two proportions, at a 20px gutter: a main column
+      // beside a sidebar, or three equal columns. Measured off theopen.com at 1920 -- 891 + 455
+      // inside a 1366 container, and 442 x 3. Held as fr so the ratio survives our slightly wider
+      // container rather than being pinned to their pixel widths.
+      gridTemplateColumns: {
+        "main-side": "minmax(0, 891fr) minmax(0, 455fr)",
+        "side-main": "minmax(0, 455fr) minmax(0, 891fr)",
+        thirds: "repeat(3, minmax(0, 1fr))",
+      },
       transitionTimingFunction: {
         standard: "cubic-bezier(0.16, 1, 0.3, 1)",
       },

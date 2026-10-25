@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 
 import { ArticleCard } from "@/components/news/article-card";
+import { SectionGrid } from "@/components/shared/section-grid";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -75,7 +76,7 @@ export function NewsListing({ initialArticles, initialHasMore }: { initialArticl
           <p className="text-sm text-muted-foreground">Try a different category, or check back during championship week.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+        <SectionGrid layout="thirds" className="gap-y-12 sm:grid-cols-2">
           {(loading || isPending) && articles.length === 0
             ? Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="flex flex-col gap-3">
@@ -85,7 +86,7 @@ export function NewsListing({ initialArticles, initialHasMore }: { initialArticl
                 </div>
               ))
             : articles.map((article) => <ArticleCard key={article.slug} article={article} />)}
-        </div>
+        </SectionGrid>
       )}
 
       {hasMore ? (

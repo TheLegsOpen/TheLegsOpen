@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Trophy } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
+import { SectionGrid } from "@/components/shared/section-grid";
 import { RichTextBlock } from "@/components/shared/rich-text";
 import { formatHandicap } from "@/lib/scoring";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
@@ -248,52 +249,65 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             <TabsTrigger value="stats">Stats</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="flex flex-col gap-10 pt-8">
-            {entry ? (
-              <div>
-                <p className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  This championship
-                </p>
-                <dl className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-                  {[
-                    { label: "Position", value: `${entry.tied ? "T" : ""}${entry.position}` },
-                    { label: "To Par", value: entry.toPar !== undefined ? formatToPar(entry.toPar) : "—" },
-                    { label: "Score", value: entry.score ?? "—" },
-                    { label: "Thru", value: entry.thru },
-                  ].map((stat) => (
-                    <div key={stat.label} className="flex flex-col gap-1 border border-border p-4">
-                      <dt className="text-xs uppercase tracking-wide text-muted-foreground">{stat.label}</dt>
-                      <dd className="font-display text-2xl font-bold">{stat.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            ) : (
-              <p className="text-muted-foreground">{player.name} is not currently in the field for this championship.</p>
-            )}
-
-            {teeTimes.length > 0 ? (
-              <div>
-                <p className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Tee times</p>
-                <ul className="flex flex-col divide-y divide-border border-y border-border">
-                  {teeTimes.map((t, index) => (
-                    <li key={index} className="flex items-center justify-between px-1 py-3 text-sm">
-                      <span className="font-medium">
-                        {t.round} Round · {t.date}
-                      </span>
-                      <span className="tabular-nums text-muted-foreground">
-                        {t.time} · {t.tee} tee
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
+          <TabsContent value="overview" className="pt-8">
+            {/* Tee times go in the sidebar. Each row is two short values with justify-between, so
+                across the full 1361px container it read as a scattering of text rather than a list
+                -- at 453px it closes up. The championship stats keep the main column. Either slot
+                can be absent (no entry, no tee times) and the one that remains takes the main
+                track on its own. */}
+            <SectionGrid layout="main-side" className="gap-y-10">
+              {entry ? (
+                <div>
+                  <p className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    This championship
+                  </p>
+                  <dl className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+                    {[
+                      { label: "Position", value: `${entry.tied ? "T" : ""}${entry.position}` },
+                      { label: "To Par", value: entry.toPar !== undefined ? formatToPar(entry.toPar) : "—" },
+                      { label: "Score", value: entry.score ?? "—" },
+                      { label: "Thru", value: entry.thru },
+                    ].map((stat) => (
+                      <div key={stat.label} className="flex flex-col gap-1 border border-border p-4">
+                        <dt className="text-xs uppercase tracking-wide text-muted-foreground">{stat.label}</dt>
+                        <dd className="font-display text-2xl font-bold">{stat.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">{player.name} is not currently in the field for this championship.</p>
+              )}
+  
+              {teeTimes.length > 0 ? (
+                <div>
+                  <p className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Tee times</p>
+                  <ul className="flex flex-col divide-y divide-border border-y border-border">
+                    {teeTimes.map((t, index) => (
+                      <li key={index} className="flex items-center justify-between px-1 py-3 text-sm">
+                        <span className="font-medium">
+                          {t.round} Round · {t.date}
+                        </span>
+                        <span className="tabular-nums text-muted-foreground">
+                          {t.time} · {t.tee} tee
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </SectionGrid>
           </TabsContent>
 
-          <TabsContent value="bio" className="flex flex-col gap-10 pt-8">
-            <RichTextBlock data={player.bio} className="max-w-2xl text-muted-foreground" />
-            <PlayerGallery playerName={firstName} photos={player.gallery ?? []} />
+          <TabsContent value="bio" className="pt-8">
+            {/* The gallery is a 16/9 carousel that fills its container, so at full width a single
+                photo rendered about 1361x766 and swamped the bio it was there to illustrate. In the
+                sidebar it sits beside the text at a sane size. PlayerGallery returns null when
+                there are no photos, in which case the bio takes the main track alone. */}
+            <SectionGrid layout="main-side" className="gap-y-10">
+              <RichTextBlock data={player.bio} className="max-w-2xl text-muted-foreground" />
+              <PlayerGallery playerName={firstName} photos={player.gallery ?? []} />
+            </SectionGrid>
           </TabsContent>
 
           <TabsContent value="results" className="pt-8">
@@ -315,11 +329,11 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                 See more
               </Link>
             </div>
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
+            <SectionGrid layout="thirds" className="sm:grid-cols-3">
               {featuredArticles.map((article) => (
                 <ArticleCard key={article.slug} article={article} />
               ))}
-            </div>
+            </SectionGrid>
           </Container>
         </section>
       ) : null}

@@ -98,8 +98,8 @@ export function LeaderboardView({
         <Container className="py-12 sm:py-16">
           <div
             className={cn(
-              "grid grid-cols-1 gap-10 lg:items-start",
-              holeByHole ? "lg:grid-cols-1" : "lg:grid-cols-[1fr_320px]",
+              "grid grid-cols-1 gap-x-5 gap-y-10 lg:items-start",
+              holeByHole ? "lg:grid-cols-1" : "lg:grid-cols-main-side",
             )}
           >
             <div>

@@ -63,7 +63,12 @@ export function InfoCardGroup({ section }: { section: InfoCardGroupSection }) {
         </div>
 
         <div className="overflow-hidden" ref={emblaRef}>
-          <div className="flex gap-6">
+          {/* Three to a view on the same 442-wide column as the grid bands: each card takes a third
+              of what is left after the two 20px gutters. It was 31% at a 24px gap, which read as
+              nearly-thirds and lined up with nothing. Staying a carousel is deliberate -- The Open
+              runs its own feature rows the same way, so a fourth card scrolls rather than dropping
+              to a second row. */}
+          <div className="flex gap-5">
             {section.cards.map((card, index) => (
               <motion.div
                 key={index}
@@ -71,7 +76,7 @@ export function InfoCardGroup({ section }: { section: InfoCardGroupSection }) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ duration: 0.4, delay: index * 0.08 }}
-                className="min-w-0 flex-[0_0_85%] sm:flex-[0_0_45%] lg:flex-[0_0_31%]"
+                className="min-w-0 flex-[0_0_85%] sm:flex-[0_0_45%] lg:flex-[0_0_calc((100%-40px)/3)]"
               >
                 <Link href={card.linkHref} className="group flex h-full flex-col gap-4 bg-primary p-5">
                   <PlaceholderArt label={card.title} imageUrl={card.imageUrl} tone={card.tone} ratio="16/9" />

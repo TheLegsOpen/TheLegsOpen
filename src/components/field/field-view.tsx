@@ -120,7 +120,7 @@ export function FieldView({ players, championshipHistory, championLogoUrl }: Fie
           <p className="text-sm text-muted-foreground">Try a different search, country, or filter.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-x-5 gap-y-10 sm:grid-cols-3 lg:grid-cols-5">
           {filtered.map((player) => (
             <PlayerCard
               key={player.id}

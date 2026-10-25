@@ -16,7 +16,7 @@ export function VenueChampions({ venueName, champions }: { venueName: string; ch
   return (
     <div className="flex flex-col gap-6">
       <h2 className="font-display font-bold text-2xl">Champion Golfers at {venueName}</h2>
-      <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
         {champions.map((champion) => (
           <div key={champion.key} className="flex flex-col gap-3">
             <div className="relative aspect-[3/4] w-full overflow-hidden bg-primary">

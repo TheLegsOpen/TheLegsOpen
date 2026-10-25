@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function BrandWall({ entries }: { entries: SponsorEntry[] }) {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
       {entries.map((entry) => {
         const content = entry.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

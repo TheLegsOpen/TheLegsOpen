@@ -8,6 +8,7 @@ import { LiveBlogWidget } from "@/components/home/live-blog-widget";
 import { HomepageSections } from "@/components/home/sections/homepage-sections";
 import { NewsGrid } from "@/components/home/news-grid";
 import { Container } from "@/components/shared/container";
+import { SectionGrid } from "@/components/shared/section-grid";
 import { getArticlesPage } from "@/lib/data/articles";
 import { getCurrentChampion, getHomepageSections } from "@/lib/data/homepage-settings";
 import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
@@ -104,38 +105,43 @@ export default async function HomePage() {
       <NewsTicker items={tickerItems} />
       {currentChampion ? <Hero currentChampion={currentChampion} clockConfig={clockConfig} weather={weather} /> : null}
       <section className="bg-surface-dark py-16 text-surface-dark-foreground sm:py-24">
-        <Container className="grid grid-cols-1 gap-10 lg:grid-cols-2">
-          {/* Breaks out of the Container's own side padding below `lg` (matches
-              aigwomensopen.com's edge-to-edge mobile leaderboard) -- resets to normal once it's
-              sharing the row with the live blog widget at `lg` and up. */}
-          <div className="-mx-4 sm:-mx-6 lg:mx-0">
-            <LeaderboardWidget
-              entries={leaderboard}
-              stableford={stableford}
-              scratch={scratch}
+        <Container>
+          {/* Leaderboard takes the main column and the live blog the sidebar, which is the split The
+              Open uses for exactly this pairing: a wide table beside a narrow feed. It was 50/50, so
+              the leaderboard's columns were cramped while the blog ran short lines. */}
+          <SectionGrid layout="main-side">
+            {/* Breaks out of the Container's own side padding below `lg` (matches
+                aigwomensopen.com's edge-to-edge mobile leaderboard) -- resets to normal once it's
+                sharing the row with the live blog widget at `lg` and up. */}
+            <div className="-mx-4 sm:-mx-6 lg:mx-0">
+              <LeaderboardWidget
+                entries={leaderboard}
+                stableford={stableford}
+                scratch={scratch}
+                nettCategories={nettCategories}
+                scratchCategories={scratchCategories}
+                streakCategories={streakCategories}
+                drivingCategories={drivingCategories}
+                approachCategories={approachCategories}
+                puttingCategories={puttingCategories}
+                championWinnerBadgeUrl={theme.championWinnerBadgeUrl}
+              />
+            </div>
+            <LiveBlogWidget
+              entries={liveBlogPage.entries}
+              championshipId={liveBlogPage.championshipId}
+              mainEntries={leaderboard}
+              stablefordEntries={stableford}
+              scratchEntries={scratch}
               nettCategories={nettCategories}
               scratchCategories={scratchCategories}
               streakCategories={streakCategories}
               drivingCategories={drivingCategories}
               approachCategories={approachCategories}
               puttingCategories={puttingCategories}
-              championWinnerBadgeUrl={theme.championWinnerBadgeUrl}
+              logoUrl={theme.logoUrl}
             />
-          </div>
-          <LiveBlogWidget
-            entries={liveBlogPage.entries}
-            championshipId={liveBlogPage.championshipId}
-            mainEntries={leaderboard}
-            stablefordEntries={stableford}
-            scratchEntries={scratch}
-            nettCategories={nettCategories}
-            scratchCategories={scratchCategories}
-            streakCategories={streakCategories}
-            drivingCategories={drivingCategories}
-            approachCategories={approachCategories}
-            puttingCategories={puttingCategories}
-            logoUrl={theme.logoUrl}
-          />
+          </SectionGrid>
         </Container>
       </section>
       <HomepageSections sections={sections} />
