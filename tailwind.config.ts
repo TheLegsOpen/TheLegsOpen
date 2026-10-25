@@ -103,6 +103,9 @@ const config: Config = {
         "main-side": "minmax(0, 891fr) minmax(0, 455fr)",
         "side-main": "minmax(0, 455fr) minmax(0, 891fr)",
         thirds: "repeat(3, minmax(0, 1fr))",
+        // Not one of The Open's, but the gutter is. Two widgets that each want the room, rather
+        // than a main thing and a thing beside it.
+        halves: "repeat(2, minmax(0, 1fr))",
       },
       transitionTimingFunction: {
         standard: "cubic-bezier(0.16, 1, 0.3, 1)",

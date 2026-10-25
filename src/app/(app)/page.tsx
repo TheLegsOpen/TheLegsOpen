@@ -101,10 +101,12 @@ export default async function HomePage() {
       {currentChampion ? <Hero currentChampion={currentChampion} clockConfig={clockConfig} weather={weather} /> : null}
       <section className="bg-surface-dark py-16 text-surface-dark-foreground sm:py-24">
         <Container>
-          {/* Leaderboard takes the main column and the live blog the sidebar, which is the split The
-              Open uses for exactly this pairing: a wide table beside a narrow feed. It was 50/50, so
-              the leaderboard's columns were cramped while the blog ran short lines. */}
-          <SectionGrid layout="main-side">
+          {/* Equal halves. These are two widgets rather than a main one and a sidebar: the
+              leaderboard wants width for its columns, but the live blog is the thing people sit on
+              during a championship and it reads badly squeezed into a third. The 20px gutter is
+              the one every other band uses; it is the proportion that is ours rather than The
+              Open's. */}
+          <SectionGrid layout="halves">
             {/* Breaks out of the Container's own side padding below `lg` (matches
                 aigwomensopen.com's edge-to-edge mobile leaderboard) -- resets to normal once it's
                 sharing the row with the live blog widget at `lg` and up. */}

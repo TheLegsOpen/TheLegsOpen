@@ -14,6 +14,7 @@ const LAYOUTS = {
   "main-side": "lg:grid-cols-main-side",
   "side-main": "lg:grid-cols-side-main",
   thirds: "lg:grid-cols-thirds",
+  halves: "lg:grid-cols-halves",
 } as const;
 
 export type SectionGridLayout = keyof typeof LAYOUTS;
