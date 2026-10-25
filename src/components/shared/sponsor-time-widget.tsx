@@ -63,7 +63,19 @@ function AnalogClock({ date, config }: { date: Date | null; config: SponsorClock
 
   return (
     <div
-      className="relative h-28 w-28 shrink-0 rounded-full"
+      // 100px because that is exactly how big the dial artwork is. It was 112, which meant the
+      // browser stretched a 100px image over 112px of dial and the face came out soft -- no
+      // amount of re-uploading fixes that while the box is bigger than the asset.
+      //
+      // This is how The Open does it: their clock is a Rolex-hosted embed, and it never resizes a
+      // face at all. Below 1366 it loads a build whose dial is 50px and draws it at 50; above,
+      // one whose dial is 100px, drawn at 100. Two assets, each 1:1, swapped whole. They ship no
+      // retina face anywhere -- the crispness in the moving parts comes from the hands being
+      // drawn on a canvas with a 2x backing store, not from a higher-resolution dial.
+      //
+      // So the dial matches the asset and the hands come down with it, by 100/112, to keep the
+      // clock the same clock at 89% of the size.
+      className="relative h-[100px] w-[100px] shrink-0 rounded-full"
       style={
         hasFaceImage
           ? { boxShadow: "0 2px 6px rgba(0,0,0,0.35)" }
@@ -95,9 +107,12 @@ function AnalogClock({ date, config }: { date: Date | null; config: SponsorClock
           </svg>
         )}
 
-        <Hand angleDeg={hourAngle} imageUrl={config.hourHandUrl} length={24} thickness={6} color={config.faceColor} />
-        <Hand angleDeg={minuteAngle} imageUrl={config.minuteHandUrl} length={36} thickness={4} color={config.faceColor} />
-        <Hand angleDeg={secondAngle} imageUrl={config.secondHandUrl} length={40} thickness={2} color="#b5442e" />
+        {/* Lengths are absolute pixels measured from the centre, not a share of the dial, so they
+            have to come down with it or the hands reach further across a smaller face than they
+            used to. 24/36/40 scaled by 100/112. */}
+        <Hand angleDeg={hourAngle} imageUrl={config.hourHandUrl} length={21} thickness={6} color={config.faceColor} />
+        <Hand angleDeg={minuteAngle} imageUrl={config.minuteHandUrl} length={32} thickness={4} color={config.faceColor} />
+        <Hand angleDeg={secondAngle} imageUrl={config.secondHandUrl} length={36} thickness={2} color="#b5442e" />
 
         {config.centerCapUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -105,12 +120,12 @@ function AnalogClock({ date, config }: { date: Date | null; config: SponsorClock
             src={config.centerCapUrl}
             alt=""
             aria-hidden="true"
-            className="absolute left-1/2 top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2"
+            className="absolute left-1/2 top-1/2 h-[14px] w-[14px] -translate-x-1/2 -translate-y-1/2"
           />
         ) : (
           <div
             aria-hidden="true"
-            className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            className="absolute left-1/2 top-1/2 h-[9px] w-[9px] -translate-x-1/2 -translate-y-1/2 rounded-full"
             style={{ background: config.faceColor }}
           />
         )}
