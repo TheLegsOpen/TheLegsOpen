@@ -76,7 +76,14 @@ function ScoringCards({
   const strokesGained = findRow(categories, `strokes-gained-${mode}`, playerId);
 
   return (
-    <div className="flex flex-col gap-3">
+    // These three stacked, which is what forced the popup to scroll: each card was 969px wide
+    // carrying 252, 213 and 114px of content, so the panel spent 380px of height on about a
+    // third of a row's worth of numbers. Side by side they come to one row.
+    //
+    // auto-fit rather than a fixed three columns because the other tabs put a single card
+    // through here-shaped markup: with one item the empty tracks collapse and it takes the full
+    // width, and on a narrow dialog the three wrap to two then one on their own.
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-3">
       <StatCard title="Scoring by par vs field">
         <StatValue row={par3} useParColoring label="Par 3s" />
         <StatValue row={par4} useParColoring label="Par 4s" />
