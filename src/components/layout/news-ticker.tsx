@@ -4,7 +4,21 @@ import type { NewsTickerItem } from "@/lib/data/news-ticker";
 
 function TickerLink({ item }: { item: NewsTickerItem }) {
   const isExternal = /^https?:\/\//.test(item.url);
-  const className = "text-sm font-bold text-accent-foreground hover:underline";
+  // The Open's live-band link, matched to its computed style: Founders Grotesk 16/700, 25.12px
+  // line-height, no tracking, #2a2a2a, underlined by default rather than on hover. The family
+  // reads as "Founders Grotesk Light" there, which is just what they named the webfont -- the
+  // weight is 700 either way, and font-sans resolves to our own 700 face.
+  //
+  // #2a2a2a is a softer dark than the near-black we had; on the gold bar it measures 8.4:1, so
+  // it clears AA comfortably. Hover drops the underline, which is the pattern the rich-text
+  // block already uses for links.
+  //
+  // tracking-normal rather than an arbitrary [0px]: Chrome serialises letter-spacing: 0 back as
+  // `normal`, so the two are indistinguishable once computed and the standard class is the
+  // honest one. Measuring tools will read `normal` here against the `0` theopen.com reports --
+  // same zero tracking either way.
+  const className =
+    "font-sans text-[16px] font-bold leading-[25.12px] tracking-normal text-[#2a2a2a] underline hover:no-underline";
 
   if (isExternal) {
     return (
