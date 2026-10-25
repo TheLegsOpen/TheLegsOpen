@@ -20,7 +20,7 @@ export interface SiteTheme {
 
 const DEFAULTS: SiteTheme = {
   primaryColor: "#06051E",
-  accentColor: "#FFB800",
+  accentColor: "#FFBA00",
   fontPreset: "fraunces-inter",
   showBreadcrumbs: true,
 };

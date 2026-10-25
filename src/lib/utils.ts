@@ -132,5 +132,11 @@ export function hexToHslTriplet(hex: string): string {
     h *= 60;
   }
 
-  return `${Math.round(h)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+  // Two decimal places, not whole numbers. Hue carries the most information of the three at full
+  // saturation -- one degree of hue is about four points of green in the amber range -- so
+  // rounding it to an integer visibly moves the colour. The accent went in as #FFB800 and came
+  // out of here as #FFB700, and #FFBA00 would have overshot to #FFBB00, which is how this was
+  // found. hsl() takes decimals, so there is nothing to gain by rounding hard.
+  const trim = (n: number) => String(Math.round(n * 100) / 100);
+  return `${trim(h)} ${trim(s * 100)}% ${trim(l * 100)}%`;
 }
