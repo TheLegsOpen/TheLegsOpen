@@ -85,7 +85,15 @@ const config: Config = {
         header: "0 1px 0 0 hsl(var(--border))",
       },
       maxWidth: {
-        container: "1440px",
+        // 1366 of content plus Container's own 32px of padding each side. The number that matters
+        // is the 1366: it is what The Open caps at, and it puts the side margins on 270px at a
+        // 1920 screen. Sizing the box rather than the content keeps a gutter on narrow screens,
+        // where the padding is doing real work -- cap the content directly and anything between
+        // `lg` and 1366 would run edge to edge.
+        //
+        // This is a cap, not a fixed margin: past 1920 the content stays 1366 and the margins
+        // grow, which is how The Open behaves too.
+        container: "1430px",
       },
       // The Open splits every band with the same two proportions, at a 20px gutter: a main column
       // beside a sidebar, or three equal columns. Measured off theopen.com at 1920 -- 891 + 455
