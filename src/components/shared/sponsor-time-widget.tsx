@@ -169,18 +169,18 @@ export function SponsorTimeWidget({ config }: { config: SponsorClock }) {
         style={config.clockFont === "timekeeper" ? { fontFamily: "var(--font-timekeeper)" } : undefined}
       >
         <div>
-          <p className="text-[11px] uppercase leading-tight tracking-[0.04em]" style={{ color: "#E8B04B" }}>
+          <p className="text-[10px] uppercase leading-tight tracking-[0.04em]" style={{ color: "#E8B04B" }}>
             {config.venueName}
           </p>
-          <p className={cn("text-[11px] font-bold tabular-nums leading-tight", config.clockFont !== "timekeeper" && "font-display")}>
+          <p className={cn("text-[10px] font-bold tabular-nums leading-tight", config.clockFont !== "timekeeper" && "font-display")}>
             {venueTime}
           </p>
         </div>
         <div>
-          <p className="text-[11px] uppercase leading-tight tracking-[0.04em]" style={{ color: "#E8B04B" }}>
+          <p className="text-[10px] uppercase leading-tight tracking-[0.04em]" style={{ color: "#E8B04B" }}>
             Your time
           </p>
-          <p className={cn("text-[11px] font-bold tabular-nums leading-tight", config.clockFont !== "timekeeper" && "font-display")}>
+          <p className={cn("text-[10px] font-bold tabular-nums leading-tight", config.clockFont !== "timekeeper" && "font-display")}>
             {localTime}
           </p>
         </div>
