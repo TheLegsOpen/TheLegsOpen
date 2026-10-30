@@ -122,7 +122,10 @@ export function PreviousOpensTimeline({ history }: { history: ChampionshipWinner
                 </div>
                 <Link
                   href={`/previous-opens/${c.year}`}
-                  className="col-start-2 w-fit font-sans text-[14px] font-bold uppercase leading-[20.02px] tracking-[0.2px] text-primary transition-colors hover:text-accent sm:col-start-auto"
+                  // #2269AB is the blue The Open uses for this link. It is deliberately outside
+                  // our palette -- nothing else on the site is this colour -- so it stays a
+                  // literal here rather than becoming a token that invites reuse.
+                  className="col-start-2 w-fit font-sans text-[14px] font-bold uppercase leading-[20.02px] tracking-[0.2px] text-[#2269AB] transition-colors hover:text-accent sm:col-start-auto"
                 >
                   Info
                 </Link>

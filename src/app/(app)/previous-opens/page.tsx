@@ -20,7 +20,7 @@ export default async function PreviousOpensPage() {
   return (
     <>
       <PageHero
-        eyebrow="Since 1948"
+        eyebrow="Since 2013"
         title="Previous Opens"
         description="Every champion, venue and winning margin in The Legs Open's roll of honour."
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Previous Opens" }]}
