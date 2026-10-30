@@ -7,6 +7,16 @@ interface SectionHeadingProps {
   align?: "left" | "center";
   className?: string;
   tone?: "light" | "dark";
+  /**
+   * "display" (default) is the 28px rule-underlined heading this has always been. "label" is the
+   * quiet 14/700 uppercase line The Open puts above a list, which leaves the items beneath it as
+   * the loudest thing on the page rather than competing with them.
+   *
+   * Opt-in, so the five other places using this keep what they have. Same arrangement as
+   * PageHero's titleClassName: if the quiet label turns out to be right everywhere, it becomes
+   * the default and this goes.
+   */
+  size?: "display" | "label";
 }
 
 export function SectionHeading({
@@ -16,6 +26,7 @@ export function SectionHeading({
   align = "left",
   className,
   tone = "light",
+  size = "display",
 }: SectionHeadingProps) {
   const isDark = tone === "dark";
   return (
@@ -33,7 +44,9 @@ export function SectionHeading({
       ) : null}
       <h2
         className={cn(
-          "w-fit border-b-2 border-accent pb-2 font-display text-[28px] font-semibold uppercase leading-[normal] tracking-[0.672px] text-balance",
+          size === "label"
+            ? "font-menu text-[14px] font-bold uppercase leading-[16.1px] tracking-[1.2px]"
+            : "w-fit border-b-2 border-accent pb-2 font-display text-[28px] font-semibold uppercase leading-[normal] tracking-[0.672px] text-balance",
           isDark ? "text-white" : "text-foreground",
         )}
       >
