@@ -21,9 +21,23 @@ interface PageHeroProps {
   heightPx?: number;
   imageLabel?: string;
   imageUrl?: string;
+  /**
+   * Renders in place of `title` when the heading is more than a run of text -- a championship
+   * page reads "2026 / Castle Stuart" with the year bold and the slash in the accent, which no
+   * single string can carry. `title` is still required and still does the work it always did:
+   * the image's alt text and the placeholder's label.
+   */
+  titleNode?: React.ReactNode;
+  /**
+   * Replaces the h1's own classes. Opt-in, so the seventeen pages that don't pass it keep the
+   * display face they have. This is the narrow version of the sitewide question about whether
+   * our hero should take The Open's title treatment everywhere -- when that is settled, what is
+   * passed here becomes the default and this prop goes.
+   */
+  titleClassName?: string;
 }
 
-export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "light", size = "large", heightPx, imageLabel, imageUrl }: PageHeroProps) {
+export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "light", size = "large", heightPx, imageLabel, imageUrl, titleNode, titleClassName }: PageHeroProps) {
   if (variant === "photo") {
     return (
       <section
@@ -46,7 +60,7 @@ export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "
             {eyebrow ? (
               <span className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">{eyebrow}</span>
             ) : null}
-            <h1 className="font-display font-bold text-display-lg text-balance">{title}</h1>
+            <h1 className={titleClassName ?? "font-display font-bold text-display-lg text-balance"}>{titleNode ?? title}</h1>
             {description ? (
               <p className={cn("max-w-2xl text-base text-white/85 sm:text-lg", size === "compact" && "hidden sm:block")}>{description}</p>
             ) : null}
@@ -64,7 +78,7 @@ export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "
           {eyebrow ? (
             <span className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">{eyebrow}</span>
           ) : null}
-          <h1 className="font-display font-bold text-display-lg text-balance text-primary">{title}</h1>
+          <h1 className={titleClassName ?? "font-display font-bold text-display-lg text-balance text-primary"}>{titleNode ?? title}</h1>
           {description ? (
             <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">{description}</p>
           ) : null}

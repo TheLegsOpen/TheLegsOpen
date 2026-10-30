@@ -1,10 +1,12 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import { PlayCircle } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
 import { RichTextBlock } from "@/components/shared/rich-text";
+import { OverviewVideo } from "@/components/previous-opens/overview-video";
 import { SectionGrid } from "@/components/shared/section-grid";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LeaderboardView } from "@/components/leaderboard/leaderboard-view";
@@ -153,16 +155,20 @@ export function PreviousOpenView({
                 />
               ) : story.length > 0 ? (
                 story.map((paragraph, i) => (
-                  <p
-                    key={i}
-                    className={
-                      i === 0
-                        ? "font-sans text-[26px] leading-[35.88px] text-[#2a2a2a]"
-                        : "font-sans text-[21px] font-light leading-[37.38px] text-[#2a2a2a]"
-                    }
-                  >
-                    {paragraph}
-                  </p>
+                  <Fragment key={i}>
+                    <p
+                      className={
+                        i === 0
+                          ? "font-sans text-[26px] leading-[35.88px] text-[#2a2a2a]"
+                          : "font-sans text-[21px] font-light leading-[37.38px] text-[#2a2a2a]"
+                      }
+                    >
+                      {paragraph}
+                    </p>
+                    {/* Under the standfirst, which is where The Open runs its player -- after the
+                        line that says what happened, before the detail. */}
+                    {i === 0 && championship.overviewVideoUrl ? <OverviewVideo url={championship.overviewVideoUrl} /> : null}
+                  </Fragment>
                 ))
               ) : (
                 <p className="text-lg">

@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 
 import { PageHero } from "@/components/shared/page-hero";
 import { PreviousOpenView, type PreviousOpenResults } from "@/components/previous-opens/previous-open-view";
-import { formatDate } from "@/lib/utils";
 import { getArticlesForChampionship } from "@/lib/data/articles";
 import { getChampionshipByYear } from "@/lib/data/championships";
 import { computeAutoFacts } from "@/lib/data/records";
@@ -124,12 +123,23 @@ export default async function PreviousOpenYearPage({ params }: YearPageProps) {
 
   return (
     <>
+      {/* "2026 / Castle Stuart" on one line, which is all The Open puts in this hero: the year
+          bold, the slash in the accent, the venue regular, Cardinal Photo at 36px rather than our
+          64px display serif. It replaces a gold date eyebrow sitting over a very large venue name.
+          Once the year moved into the title the eyebrow's only remaining information was the day
+          and month, so that has gone from the hero -- easily restored if it is wanted. */}
       <PageHero
         variant="photo"
         imageUrl={championship.winnerPhotoUrl}
         imageLabel={championship.winnerName ? `${championship.winnerName} at ${championship.venueName}` : championship.venueName}
-        eyebrow={championship.date ? formatDate(championship.date) : String(championship.year)}
         title={championship.venueName}
+        titleNode={
+          <>
+            <b className="font-bold">{championship.year}</b> <span className="text-accent">/</span>{" "}
+            <span>{championship.venueName}</span>
+          </>
+        }
+        titleClassName="font-menu text-[36px] font-normal leading-[44.28px] tracking-[1.6px] text-white"
         breadcrumbs={[
           { label: "Home", href: "/" },
           { label: "Previous Opens", href: "/previous-opens" },

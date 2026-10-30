@@ -16,6 +16,8 @@ export interface ChampionshipWinner {
   margin?: string;
   /** Editorial override for the Overview tab. Empty means the story is generated from the fields around it. */
   overviewStory?: unknown;
+  /** Optional YouTube or Vimeo link shown in the Overview tab. */
+  overviewVideoUrl?: string;
   winnerPlayerSlug?: string;
   winnerPlayerId?: string;
   winnerPlayerDateOfBirth?: string;

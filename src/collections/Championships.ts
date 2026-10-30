@@ -113,6 +113,14 @@ export const Championships: CollectionConfig = {
       // Filled, this replaces those sentences outright rather than joining them, so a year that
       // deserves a proper account can have one without the generated lines repeating it
       // underneath.
+      name: "overviewVideoUrl",
+      type: "text",
+      admin: {
+        description:
+          "Optional. A YouTube or Vimeo link. Appears under the opening paragraph of the Overview tab, where The Open puts its own player. Paste the normal watch link — it is converted to an embed.",
+      },
+    },
+    {
       name: "overviewStory",
       type: "richText",
       admin: {

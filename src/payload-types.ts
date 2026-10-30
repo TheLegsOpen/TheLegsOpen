@@ -323,6 +323,7 @@ export interface Championship {
   margin?: string | null;
   /** Hand-added with the field -- see note at top of file. */
   overviewStory?: unknown;
+  overviewVideoUrl?: string | null;
   stablefordWinnerName?: string | null;
   stablefordWinnerCountry?: string | null;
   scratchWinnerName?: string | null;
