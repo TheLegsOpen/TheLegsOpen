@@ -80,6 +80,17 @@ export const Venues: CollectionConfig = {
     { name: "lastHosted", type: "number", required: true },
     { name: "description", type: "textarea", required: true },
     {
+      // Optional. With a link here the venue page gains the dark band The Open runs on theirs --
+      // the film on one side, the opening paragraph of the overview on the other. Without one
+      // the band does not render at all, which is why it is safe to leave empty on every course.
+      name: "overviewVideoUrl",
+      type: "text",
+      admin: {
+        description:
+          "Optional. A YouTube or Vimeo link. Shows as a film band under the course blurb. Paste the normal watch link — it is converted to an embed.",
+      },
+    },
+    {
       name: "overview",
       type: "array",
       labels: { singular: "Paragraph", plural: "Overview paragraphs" },

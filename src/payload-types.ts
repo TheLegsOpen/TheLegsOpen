@@ -241,6 +241,7 @@ export interface Venue {
   firstHosted: number;
   lastHosted: number;
   description: string;
+  overviewVideoUrl?: string | null;
   overview?:
     | {
         paragraph: string;

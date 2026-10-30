@@ -11,6 +11,7 @@ import { VenueChampions, type VenueChampion } from "@/components/venues/venue-ch
 import { VenueChampionshipCarousel } from "@/components/venues/venue-championship-carousel";
 import { VenueChampionshipTimeline } from "@/components/venues/venue-championship-timeline";
 import { ArticleCard } from "@/components/news/article-card";
+import { OverviewVideo } from "@/components/previous-opens/overview-video";
 import { ToughestHolesBoard } from "@/components/statistics/toughest-holes-board";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getVenueBySlug } from "@/lib/data/venues";
@@ -160,6 +161,27 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
           ) : null}
         </Container>
       </section>
+
+      {/* The Open's film band: a dark full-bleed strip with the video on one side and a short
+          piece of writing on the other, 1068 against 838 at 1920. Only renders with a link on the
+          venue, so a course without one simply does not have this section.
+
+          Theirs carries an editorial headline above the copy -- "One of the toughest" -- which is
+          written per course and has no field here. Rather than invent one or repeat the course
+          name, the panel runs the first paragraph of the overview on its own. Say if the headline
+          is wanted and it is one more field. */}
+      {venue.overviewVideoUrl ? (
+        <section className="w-full bg-[#06051E]">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1068fr)_minmax(0,838fr)]">
+            <OverviewVideo url={venue.overviewVideoUrl} className="bg-black" />
+            {venue.overview.length > 0 ? (
+              <div className="flex flex-col justify-center gap-4 px-6 py-10 sm:px-12 lg:px-16">
+                <p className="font-sans text-[20px] font-normal leading-[28.57px] text-white">{venue.overview[0]}</p>
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
 
       <Container className="flex flex-col gap-16 py-10 sm:py-14">
 

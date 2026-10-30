@@ -20,6 +20,8 @@ export interface Venue {
   firstHosted: number;
   lastHosted: number;
   description: string;
+  /** Optional YouTube or Vimeo link; shows as a film band on the venue page. */
+  overviewVideoUrl?: string;
   overview: string[];
   stats: VenueStat[];
   imageLabel: string;

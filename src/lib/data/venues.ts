@@ -23,6 +23,7 @@ export function mapVenue(doc: PayloadVenue): Venue {
     firstHosted: doc.firstHosted,
     lastHosted: doc.lastHosted,
     description: doc.description,
+    overviewVideoUrl: doc.overviewVideoUrl ?? undefined,
     overview: (doc.overview ?? []).map((entry) => entry.paragraph),
     stats: (doc.stats ?? []).map((stat) => ({ label: stat.label, value: stat.value })),
     imageLabel: doc.imageLabel,
