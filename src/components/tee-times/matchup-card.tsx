@@ -139,14 +139,26 @@ export function MatchupCard({
         )}
         <span>Game {gameNumber}</span>
       </div>
+      {/* A four-ball laid out as a flex row did not fit. Each player is an avatar plus a name, and
+          flex-1 will not shrink an item below its content, so in an 847px column the row wanted
+          1050 and the fourth player was simply cut off the end -- not wrapped, not shrunk, gone.
+          Two across instead, which gives each player around 410px in the same column and holds up
+          in the narrower ones this card also appears in. The divider follows the grid: a left
+          border on the second of each pair rather than a divide-x along a row. */}
       <div
         className={cn(
-          "flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-6 sm:divide-x",
-          isDark ? "bg-primary sm:divide-surface-dark-foreground/15" : "bg-card sm:divide-border",
+          "grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-5",
+          isDark ? "bg-primary" : "bg-card",
         )}
       >
         {group.players.map((player, index) => (
-          <div key={player.id} className={cn("flex-1", index > 0 && "sm:pl-6")}>
+          <div
+            key={player.id}
+            className={cn(
+              "min-w-0",
+              index % 2 === 1 && (isDark ? "sm:border-l sm:border-surface-dark-foreground/15 sm:pl-6" : "sm:border-l sm:border-border sm:pl-6"),
+            )}
+          >
             <PlayerChip
               player={player}
               isFavorite={favorites.includes(player.id)}

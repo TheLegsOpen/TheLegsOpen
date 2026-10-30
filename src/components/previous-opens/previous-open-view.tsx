@@ -138,13 +138,32 @@ export function PreviousOpenView({
               same ratio held as fr over our own 20px gutter, so they come out a little narrower
               than theirs but keep the proportion and the gutter every other band uses. */}
           <SectionGrid layout="article">
-            <div className="flex flex-col gap-3 text-base text-muted-foreground">
+            {/* The Open sets this prose much larger than we did -- 21px at weight 300 over a
+                37.38px line, with the opening paragraph lifted to 26px at 400 as a standfirst.
+                Ours was 16px throughout. The first of our generated sentences is already the
+                summary line (who won, where, by how much), so it takes the standfirst treatment
+                and the rest follow as body. Colour is their #2a2a2a rather than our muted grey. */}
+            <div className="flex flex-col gap-6">
               {championship.overviewStory ? (
                 // Written in the admin, and when it is there it is the whole story -- the
                 // generated sentences would only say the same things again underneath it.
-                <RichTextBlock data={championship.overviewStory} className="text-muted-foreground" />
+                <RichTextBlock
+                  data={championship.overviewStory}
+                  className="font-sans text-[21px] font-light leading-[37.38px] text-[#2a2a2a]"
+                />
               ) : story.length > 0 ? (
-                story.map((paragraph, i) => <p key={i}>{paragraph}</p>)
+                story.map((paragraph, i) => (
+                  <p
+                    key={i}
+                    className={
+                      i === 0
+                        ? "font-sans text-[26px] leading-[35.88px] text-[#2a2a2a]"
+                        : "font-sans text-[21px] font-light leading-[37.38px] text-[#2a2a2a]"
+                    }
+                  >
+                    {paragraph}
+                  </p>
+                ))
               ) : (
                 <p className="text-lg">
                   {championship.winnerName ? (
@@ -266,7 +285,12 @@ export function PreviousOpenView({
                 />
               </TabsContent>
   
-              <TabsContent value="statistics" className="mt-6">
+              {/* Leaderboard and Tee Times each carry their own dark band -- navy and dark grey --
+                  because they are also whole pages elsewhere on the site. Statistics and the live
+                  blog had none here, so the Results tab went dark, dark, light, light. Both take
+                  bg-surface-dark, which is what their own standalone pages use, so a section looks
+                  the same whether it is read here or on its own page. */}
+              <TabsContent value="statistics" className="mt-6 bg-surface-dark p-6 text-surface-dark-foreground sm:p-8">
                 <StatPreviewBoard
                   championshipYear={championship.year}
                   nettCategories={results.nettCategories}
@@ -284,7 +308,7 @@ export function PreviousOpenView({
                 />
               </TabsContent>
   
-              <TabsContent value="live-blog" className="mt-6">
+              <TabsContent value="live-blog" className="mt-6 bg-surface-dark p-6 text-surface-dark-foreground sm:p-8">
                 <LiveBlogFeed
                   initialEntries={results.liveBlogPage.entries}
                   initialHasNextPage={results.liveBlogPage.hasNextPage}
