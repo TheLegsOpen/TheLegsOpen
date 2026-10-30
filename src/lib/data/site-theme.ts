@@ -4,7 +4,7 @@ import { unstable_cache } from "next/cache";
 import configPromise from "@/payload.config";
 import { mediaUrl } from "@/lib/utils";
 
-export type FontPreset = "fraunces-inter" | "playfair-source-sans" | "newsreader-manrope";
+export type FontPreset = "fraunces-inter";
 
 export interface SiteTheme {
   primaryColor: string;
@@ -58,7 +58,10 @@ export async function getSiteTheme(): Promise<SiteTheme> {
     championBadgeUrl: mediaUrl(settings.branding?.championBadge),
     championWinnerBadgeUrl: mediaUrl(settings.branding?.championWinnerBadge),
     championTrophyGraphicUrl: mediaUrl(settings.branding?.championTrophyGraphic),
-    fontPreset: settings.fontPreset || DEFAULTS.fontPreset,
+    // Checked rather than cast. Two presets were removed, and if either is still sitting in the
+    // database from before, passing it through would miss in FONT_PRESET_VARS and leave the page
+    // with no display or body font at all. An unknown value falls back to the one that exists.
+    fontPreset: settings.fontPreset === "fraunces-inter" ? "fraunces-inter" : DEFAULTS.fontPreset,
     showBreadcrumbs: settings.showBreadcrumbs ?? DEFAULTS.showBreadcrumbs,
   };
 }

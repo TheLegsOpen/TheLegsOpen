@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Source_Sans_3, Newsreader, Manrope } from "next/font/google";
 import localFont from "next/font/local";
 
 import { getSiteTheme, type FontPreset } from "@/lib/data/site-theme";
@@ -31,38 +30,8 @@ const founders = localFont({
   display: "swap",
 });
 
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-playfair",
-  weight: ["600", "700", "800"],
-  display: "swap",
-});
-
-const sourceSans = Source_Sans_3({
-  subsets: ["latin"],
-  variable: "--font-source-sans",
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-const newsreader = Newsreader({
-  subsets: ["latin"],
-  variable: "--font-newsreader",
-  weight: ["600", "700"],
-  display: "swap",
-});
-
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-manrope",
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
 const FONT_PRESET_VARS: Record<FontPreset, { display: string; sans: string }> = {
   "fraunces-inter": { display: "var(--font-cardinal)", sans: "var(--font-founders)" },
-  "playfair-source-sans": { display: "var(--font-playfair)", sans: "var(--font-source-sans)" },
-  "newsreader-manrope": { display: "var(--font-newsreader)", sans: "var(--font-manrope)" },
 };
 
 export const metadata: Metadata = {
@@ -106,7 +75,7 @@ export default async function ScoringLayout({ children }: { children: React.Reac
   }`;
 
   return (
-    <html lang="en" className={`${cardinal.variable} ${founders.variable} ${playfair.variable} ${sourceSans.variable} ${newsreader.variable} ${manrope.variable}`}>
+    <html lang="en" className={`${cardinal.variable} ${founders.variable}`}>
       <head>
         <style dangerouslySetInnerHTML={{ __html: themeStyle }} />
       </head>

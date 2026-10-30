@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Source_Sans_3, Newsreader, Manrope } from "next/font/google";
 import localFont from "next/font/local";
 
 import { Header } from "@/components/layout/header";
@@ -47,34 +46,6 @@ const founders = localFont({
   display: "swap",
 });
 
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-playfair",
-  weight: ["600", "700", "800"],
-  display: "swap",
-});
-
-const sourceSans = Source_Sans_3({
-  subsets: ["latin"],
-  variable: "--font-source-sans",
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-const newsreader = Newsreader({
-  subsets: ["latin"],
-  variable: "--font-newsreader",
-  weight: ["600", "700"],
-  display: "swap",
-});
-
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-manrope",
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
 /** Optional alternate face for the sponsor clock widget's course/local time display -- selected per the Sponsor Clock Widget global. */
 const timekeeper = localFont({
   src: "../../fonts/timekeeper.woff",
@@ -84,8 +55,6 @@ const timekeeper = localFont({
 
 const FONT_PRESET_VARS: Record<FontPreset, { display: string; sans: string }> = {
   "fraunces-inter": { display: "var(--font-cardinal)", sans: "var(--font-founders)" },
-  "playfair-source-sans": { display: "var(--font-playfair)", sans: "var(--font-source-sans)" },
-  "newsreader-manrope": { display: "var(--font-newsreader)", sans: "var(--font-manrope)" },
 };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -136,7 +105,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang="en"
-      className={`${cardinal.variable} ${cardinalPhoto.variable} ${founders.variable} ${playfair.variable} ${sourceSans.variable} ${newsreader.variable} ${manrope.variable} ${timekeeper.variable}`}
+      className={`${cardinal.variable} ${cardinalPhoto.variable} ${founders.variable} ${timekeeper.variable}`}
     >
       <head>
         <style dangerouslySetInnerHTML={{ __html: themeStyle }} />

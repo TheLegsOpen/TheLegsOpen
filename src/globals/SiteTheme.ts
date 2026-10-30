@@ -98,11 +98,16 @@ export const SiteTheme: GlobalConfig = {
       name: "fontPreset",
       type: "select",
       defaultValue: "fraunces-inter",
-      options: [
-        { label: "Cardinal + Founders Grotesk (default)", value: "fraunces-inter" },
-        { label: "Playfair Display + Source Sans 3", value: "playfair-source-sans" },
-        { label: "Newsreader + Manrope", value: "newsreader-manrope" },
-      ],
+      // Playfair + Source Sans and Newsreader + Manrope are gone. They were never selected, and
+      // keeping them meant next/font/google downloading four families at build time for a pairing
+      // nobody would see -- a network call Google intermittently refused, which failed the build
+      // three times in one afternoon with sixty font errors and nothing wrong with the code.
+      // Every face the site actually renders is a localFont, so builds now touch no font server.
+      //
+      // The stored value is still "fraunces-inter", which is why that is the value here. It is a
+      // misleading name -- it pairs Cardinal with Founders Grotesk and always did -- but renaming
+      // it means rewriting the value in the database, and a bad label is cheaper than that.
+      options: [{ label: "Cardinal + Founders Grotesk", value: "fraunces-inter" }],
       admin: { description: "Display (headline) + body font pairing for the whole site." },
     },
     {
