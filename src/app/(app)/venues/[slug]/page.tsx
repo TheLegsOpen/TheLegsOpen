@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
@@ -13,7 +14,7 @@ import { ArticleCard } from "@/components/news/article-card";
 import { ToughestHolesBoard } from "@/components/statistics/toughest-holes-board";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getVenueBySlug } from "@/lib/data/venues";
-import { getChampionshipsByVenueSlug } from "@/lib/data/championships";
+import { getChampionshipsByVenueSlug, getUpcomingChampionships } from "@/lib/data/championships";
 import { getPlayers } from "@/lib/data/players";
 import { getArticles } from "@/lib/data/articles";
 import { isActiveChampionshipVenue } from "@/lib/data/scorecards";
@@ -40,11 +41,12 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
   const venue = await getVenueBySlug(slug);
   if (!venue) notFound();
 
-  const [championshipsRaw, players, allArticles, isActiveVenue] = await Promise.all([
+  const [championshipsRaw, players, allArticles, isActiveVenue, upcomingChampionships] = await Promise.all([
     getChampionshipsByVenueSlug(venue.slug),
     getPlayers(),
     getArticles(),
     isActiveChampionshipVenue(venue.slug),
+    getUpcomingChampionships(3),
   ]);
   const championshipsHere = [...championshipsRaw].sort((a, b) => b.year - a.year);
   const championshipsChronological = [...championshipsRaw].sort((a, b) => a.year - b.year);
@@ -94,24 +96,72 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
 
   return (
     <>
+      {/* 520 and a 58px Cardinal Photo title, measured off their own venue hero. Each of their
+          page types sets this differently -- 70px on the venues index, 58 here, 36 on a
+          championship -- so it is per-page rather than one treatment, which is why it goes
+          through titleClassName rather than changing PageHero for everyone.
+
+          The region eyebrow stays. Their hero carries nothing but the course name, but the region
+          is real information and dropping it would be a content decision dressed up as a style
+          one. */}
       <PageHero
         variant="photo"
-        heightPx={450}
+        heightPx={520}
         imageLabel={venue.imageLabel}
         imageUrl={venue.imageUrl}
         eyebrow={venue.region}
         title={venue.name}
+        titleClassName="font-menu text-[58px] font-normal leading-[62.06px] tracking-[1.6px] text-white"
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Venues", href: "/venues" }, { label: venue.name }]}
       />
 
+      {/* The Open's band under a venue hero: the course's own blurb at 26px beside a short list
+          of where the championship goes next, on a #F7F7F7 strip across the full width with the
+          content held to 1366. Theirs splits 834 and 392, which is the ratio here; the gutter is
+          our usual 20px rather than the 140 they leave between the two.
+
+          The description used to sit under the hero at 18px as body copy. It is the first thing
+          written about the course, so it reads as a standfirst rather than a paragraph -- which
+          is how they set it.
+
+          An inline grid rather than another SectionGrid token: 834:392 is used here and nowhere
+          else, and five named proportions is already enough to have to remember. */}
+      <section className="w-full bg-[#F7F7F7]">
+        <Container className="grid grid-cols-1 gap-5 py-12 lg:grid-cols-[minmax(0,834fr)_minmax(0,392fr)] lg:py-16">
+          <div className="flex flex-col gap-3">
+            <p className="flex items-center gap-2 font-sans text-[14px] uppercase tracking-[1.2px] text-[#43524E]">
+              {venue.countryCode ? <CountryFlag code={venue.countryCode} className="h-3 w-[18px] shrink-0" /> : null}
+              <span>{[venue.location, venue.region, venue.country].filter(Boolean).join(", ")}</span>
+            </p>
+            {venue.description ? (
+              <p className="font-sans text-[26px] font-normal leading-[36.4px] tracking-[0.6px] text-[#06051E]">{venue.description}</p>
+            ) : null}
+          </div>
+
+          {/* Only when there is somewhere to point at. An empty "Upcoming Venues" heading beside
+              a course description would read as something that had failed to load. */}
+          {upcomingChampionships.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              <p className="font-menu text-[14px] font-bold uppercase leading-[16.1px] tracking-[1.2px] text-[#06051E]">Upcoming Venues</p>
+              <ul className="flex flex-col divide-y divide-[#06051E]/15 border-y border-[#06051E]/15">
+                {upcomingChampionships.map((championship) => (
+                  <li key={championship.venueSlug}>
+                    <Link
+                      href={`/venues/${championship.venueSlug}`}
+                      className="flex items-center justify-between gap-3 py-4 font-menu text-[16px] uppercase tracking-[1.2px] text-[#06051E] transition-colors hover:text-primary"
+                    >
+                      <span>{championship.venueName}</span>
+                      <span className="font-sans text-[14px] font-bold tracking-[1.2px] text-[#2269AB]">{championship.year}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </Container>
+      </section>
+
       <Container className="flex flex-col gap-16 py-10 sm:py-14">
-        <div className="flex flex-col gap-3">
-          <p className="flex items-center gap-2 text-muted-foreground">
-            {venue.countryCode ? <CountryFlag code={venue.countryCode} className="h-3 w-[18px] shrink-0" /> : null}
-            <span>{[venue.location, venue.region, venue.country].filter(Boolean).join(", ")}</span>
-          </p>
-          <p className="max-w-3xl text-lg text-muted-foreground">{venue.description}</p>
-        </div>
 
         <Tabs defaultValue="overview">
           <TabsList>
