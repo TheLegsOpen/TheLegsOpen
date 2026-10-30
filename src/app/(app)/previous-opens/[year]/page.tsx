@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { Container } from "@/components/shared/container";
 import { PageHero } from "@/components/shared/page-hero";
 import { PreviousOpenView, type PreviousOpenResults } from "@/components/previous-opens/previous-open-view";
 import { formatDate } from "@/lib/utils";
@@ -135,9 +134,11 @@ export default async function PreviousOpenYearPage({ params }: YearPageProps) {
           { label: String(championship.year) },
         ]}
       />
-      <Container className="flex flex-col gap-10 py-10 sm:py-14">
-        <PreviousOpenView championship={championship} autoFacts={autoFacts} results={results} />
-      </Container>
+      {/* No Container here any more. The tab strip runs the full width of the window on The
+          Open, with only its list held to the container, so the view owns its own wrapping --
+          a Container on the outside would cap the strip at 1366 and there is no way to break
+          back out of it that is not a negative-margin trick. */}
+      <PreviousOpenView championship={championship} autoFacts={autoFacts} results={results} />
     </>
   );
 }

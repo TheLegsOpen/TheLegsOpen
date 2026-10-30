@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { PlayCircle } from "lucide-react";
 
+import { Container } from "@/components/shared/container";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LeaderboardView } from "@/components/leaderboard/leaderboard-view";
 import { TeeTimesView } from "@/components/tee-times/tee-times-view";
@@ -100,164 +101,187 @@ export function PreviousOpenView({
 
   return (
     <Tabs defaultValue="overview">
-      <TabsList>
-        <TabsTrigger value="overview">Overview</TabsTrigger>
-        <TabsTrigger value="results">Results</TabsTrigger>
-      </TabsList>
+      {/* The Open's sub-page nav: a strip the full width of the window, white, closed by a 1px
+          #B9BEC0 rule, with the list itself held to the container. The active tab is #2269AB
+          over a 3px underline of the same blue, and the labels are uppercase Cardinal Photo
+          rather than the sentence-case UI tabs this was.
 
-      <TabsContent value="overview" className="mt-8">
-        {story.length > 0 ? (
-          <div className="flex flex-col gap-3 text-base text-muted-foreground">
-            {story.map((paragraph, i) => (
-              <p key={i}>{paragraph}</p>
+          Their list carries a 70px left indent with nothing in it -- vestigial, as far as the
+          markup shows -- so ours starts at the container edge instead. */}
+      <div className="w-full border-b border-[#B9BEC0] bg-white">
+        <Container>
+          <TabsList className="h-[60px] gap-[30px] rounded-none bg-transparent p-0">
+            {[
+              { value: "overview", label: "Overview" },
+              { value: "results", label: "Results" },
+            ].map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="h-full rounded-none border-b-[3px] border-transparent px-0 pb-5 pt-[23px] font-menu text-[15px] font-bold uppercase leading-none tracking-[1.5px] text-[#43524E] shadow-none data-[state=active]:border-[#2269AB] data-[state=active]:bg-transparent data-[state=active]:text-[#2269AB] data-[state=active]:shadow-none"
+              >
+                {tab.label}
+              </TabsTrigger>
             ))}
-          </div>
-        ) : (
-          <p className="text-lg text-muted-foreground">
-            {championship.winnerName ? (
-              <>
-                Won by{" "}
-                {championship.winnerPlayerSlug ? (
-                  <Link href={`/players/${championship.winnerPlayerSlug}`} className="font-semibold text-primary hover:underline">
-                    {championship.winnerName}
-                  </Link>
-                ) : (
-                  <span className="font-semibold text-foreground">{championship.winnerName}</span>
-                )}
-                {championship.winnerCountry ? ` of ${championship.winnerCountry}` : null}
-              </>
-            ) : (
-              "Championship not yet played."
-            )}
-          </p>
-        )}
+          </TabsList>
+        </Container>
+      </div>
 
-        <dl className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-4">
-          {[
-            { label: "Champion", value: championship.winnerName ?? "TBD" },
-            { label: "Score", value: championship.scoreToPar !== undefined ? formatToPar(championship.scoreToPar) : "—" },
-            { label: "Margin", value: championship.margin ?? "—" },
-            { label: "Venue", value: championship.venueName },
-          ].map((stat) => (
-            <div key={stat.label} className="flex flex-col gap-1 border border-border bg-muted p-4">
-              <dt className="text-xs uppercase tracking-wide text-muted-foreground">{stat.label}</dt>
-              <dd className="font-display text-lg font-bold">{stat.value}</dd>
+      <Container className="flex flex-col gap-10 py-10 sm:py-14">
+        <TabsContent value="overview" className="mt-8">
+          {story.length > 0 ? (
+            <div className="flex flex-col gap-3 text-base text-muted-foreground">
+              {story.map((paragraph, i) => (
+                <p key={i}>{paragraph}</p>
+              ))}
             </div>
-          ))}
-        </dl>
-
-        <div className="mt-6 flex flex-wrap items-center gap-6">
-          <Link href={`/venues/${championship.venueSlug}`} className="w-fit text-sm font-medium text-primary hover:underline">
-            View {championship.venueName} →
-          </Link>
-          {hasReplay ? (
-            <Link href={`/previous-opens/${championship.year}/replay`} className="w-fit text-sm font-medium text-primary hover:underline">
-              Replay the {championship.year} leaderboard →
-            </Link>
-          ) : null}
-        </div>
-      </TabsContent>
-
-      <TabsContent value="results" className="mt-8">
-        {!results ? (
-          <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border py-16 text-center">
-            <p className="font-display font-bold text-lg">Not yet recorded</p>
-            <p className="max-w-md text-sm text-muted-foreground">
-              Full results for the {championship.year} Legs Open will appear here once this championship is marked Completed in the admin.
+          ) : (
+            <p className="text-lg text-muted-foreground">
+              {championship.winnerName ? (
+                <>
+                  Won by{" "}
+                  {championship.winnerPlayerSlug ? (
+                    <Link href={`/players/${championship.winnerPlayerSlug}`} className="font-semibold text-primary hover:underline">
+                      {championship.winnerName}
+                    </Link>
+                  ) : (
+                    <span className="font-semibold text-foreground">{championship.winnerName}</span>
+                  )}
+                  {championship.winnerCountry ? ` of ${championship.winnerCountry}` : null}
+                </>
+              ) : (
+                "Championship not yet played."
+              )}
             </p>
+          )}
+  
+          <dl className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-4">
+            {[
+              { label: "Champion", value: championship.winnerName ?? "TBD" },
+              { label: "Score", value: championship.scoreToPar !== undefined ? formatToPar(championship.scoreToPar) : "—" },
+              { label: "Margin", value: championship.margin ?? "—" },
+              { label: "Venue", value: championship.venueName },
+            ].map((stat) => (
+              <div key={stat.label} className="flex flex-col gap-1 border border-border bg-muted p-4">
+                <dt className="text-xs uppercase tracking-wide text-muted-foreground">{stat.label}</dt>
+                <dd className="font-display text-lg font-bold">{stat.value}</dd>
+              </div>
+            ))}
+          </dl>
+  
+          <div className="mt-6 flex flex-wrap items-center gap-6">
+            <Link href={`/venues/${championship.venueSlug}`} className="w-fit text-sm font-medium text-primary hover:underline">
+              View {championship.venueName} →
+            </Link>
+            {hasReplay ? (
+              <Link href={`/previous-opens/${championship.year}/replay`} className="w-fit text-sm font-medium text-primary hover:underline">
+                Replay the {championship.year} leaderboard →
+              </Link>
+            ) : null}
           </div>
-        ) : (
-          <Tabs defaultValue="leaderboard">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <TabsList>
-                <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-                <TabsTrigger value="tee-times">Tee Times</TabsTrigger>
-                <TabsTrigger value="statistics">Statistics</TabsTrigger>
-                <TabsTrigger value="live-blog">Live Blog</TabsTrigger>
-              </TabsList>
-              {hasReplay ? (
-                <Link
-                  href={`/previous-opens/${championship.year}/replay`}
-                  className="inline-flex h-11 items-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold uppercase tracking-wide text-accent-foreground transition-opacity hover:opacity-90"
-                >
-                  <PlayCircle className="h-4 w-4" />
-                  Replay the round
-                </Link>
-              ) : null}
+        </TabsContent>
+  
+        <TabsContent value="results" className="mt-8">
+          {!results ? (
+            <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border py-16 text-center">
+              <p className="font-display font-bold text-lg">Not yet recorded</p>
+              <p className="max-w-md text-sm text-muted-foreground">
+                Full results for the {championship.year} Legs Open will appear here once this championship is marked Completed in the admin.
+              </p>
             </div>
-
-            <TabsContent value="leaderboard" className="mt-6">
-              <LeaderboardView
-                main={results.main}
-                stableford={results.stableford}
-                scratch={results.scratch}
-                featuredArticle={results.featuredArticle}
-                clockConfig={results.clockConfig}
-                nettCategories={results.nettCategories}
-                scratchCategories={results.scratchCategories}
-                streakCategories={results.streakCategories}
-                drivingCategories={results.drivingCategories}
-                approachCategories={results.approachCategories}
-                puttingCategories={results.puttingCategories}
-                stablefordTitleHolderId={results.stablefordTitleHolderId}
-              />
-            </TabsContent>
-
-            <TabsContent value="tee-times" className="mt-6">
-              <TeeTimesView
-                rounds={results.rounds}
-                featuredArticle={results.featuredArticle}
-                clockConfig={results.clockConfig}
-                mainEntries={results.main}
-                stablefordEntries={results.stableford}
-                scratchEntries={results.scratch}
-                nettCategories={results.nettCategories}
-                scratchCategories={results.scratchCategories}
-                streakCategories={results.streakCategories}
-                drivingCategories={results.drivingCategories}
-                approachCategories={results.approachCategories}
-                puttingCategories={results.puttingCategories}
-              />
-            </TabsContent>
-
-            <TabsContent value="statistics" className="mt-6">
-              <StatPreviewBoard
-                championshipYear={championship.year}
-                nettCategories={results.nettCategories}
-                scratchCategories={results.scratchCategories}
-                streakCategories={results.streakCategories}
-                drivingCategories={results.drivingCategories}
-                approachCategories={results.approachCategories}
-                puttingCategories={results.puttingCategories}
-                toughestHolesNett={results.toughestHolesNett}
-                toughestHolesScratch={results.toughestHolesScratch}
-                playoffs={results.playoffs}
-                mainEntries={results.main}
-                stablefordEntries={results.stableford}
-                scratchEntries={results.scratch}
-              />
-            </TabsContent>
-
-            <TabsContent value="live-blog" className="mt-6">
-              <LiveBlogFeed
-                initialEntries={results.liveBlogPage.entries}
-                initialHasNextPage={results.liveBlogPage.hasNextPage}
-                mainEntries={results.main}
-                stablefordEntries={results.stableford}
-                scratchEntries={results.scratch}
-                nettCategories={results.nettCategories}
-                scratchCategories={results.scratchCategories}
-                streakCategories={results.streakCategories}
-                drivingCategories={results.drivingCategories}
-                approachCategories={results.approachCategories}
-                puttingCategories={results.puttingCategories}
-                championshipId={championship.id}
-                logoUrl={results.logoUrl}
-              />
-            </TabsContent>
-          </Tabs>
-        )}
-      </TabsContent>
+          ) : (
+            <Tabs defaultValue="leaderboard">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <TabsList>
+                  <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+                  <TabsTrigger value="tee-times">Tee Times</TabsTrigger>
+                  <TabsTrigger value="statistics">Statistics</TabsTrigger>
+                  <TabsTrigger value="live-blog">Live Blog</TabsTrigger>
+                </TabsList>
+                {hasReplay ? (
+                  <Link
+                    href={`/previous-opens/${championship.year}/replay`}
+                    className="inline-flex h-11 items-center gap-2 rounded-full bg-accent px-5 text-sm font-semibold uppercase tracking-wide text-accent-foreground transition-opacity hover:opacity-90"
+                  >
+                    <PlayCircle className="h-4 w-4" />
+                    Replay the round
+                  </Link>
+                ) : null}
+              </div>
+  
+              <TabsContent value="leaderboard" className="mt-6">
+                <LeaderboardView
+                  main={results.main}
+                  stableford={results.stableford}
+                  scratch={results.scratch}
+                  featuredArticle={results.featuredArticle}
+                  clockConfig={results.clockConfig}
+                  nettCategories={results.nettCategories}
+                  scratchCategories={results.scratchCategories}
+                  streakCategories={results.streakCategories}
+                  drivingCategories={results.drivingCategories}
+                  approachCategories={results.approachCategories}
+                  puttingCategories={results.puttingCategories}
+                  stablefordTitleHolderId={results.stablefordTitleHolderId}
+                />
+              </TabsContent>
+  
+              <TabsContent value="tee-times" className="mt-6">
+                <TeeTimesView
+                  rounds={results.rounds}
+                  featuredArticle={results.featuredArticle}
+                  clockConfig={results.clockConfig}
+                  mainEntries={results.main}
+                  stablefordEntries={results.stableford}
+                  scratchEntries={results.scratch}
+                  nettCategories={results.nettCategories}
+                  scratchCategories={results.scratchCategories}
+                  streakCategories={results.streakCategories}
+                  drivingCategories={results.drivingCategories}
+                  approachCategories={results.approachCategories}
+                  puttingCategories={results.puttingCategories}
+                />
+              </TabsContent>
+  
+              <TabsContent value="statistics" className="mt-6">
+                <StatPreviewBoard
+                  championshipYear={championship.year}
+                  nettCategories={results.nettCategories}
+                  scratchCategories={results.scratchCategories}
+                  streakCategories={results.streakCategories}
+                  drivingCategories={results.drivingCategories}
+                  approachCategories={results.approachCategories}
+                  puttingCategories={results.puttingCategories}
+                  toughestHolesNett={results.toughestHolesNett}
+                  toughestHolesScratch={results.toughestHolesScratch}
+                  playoffs={results.playoffs}
+                  mainEntries={results.main}
+                  stablefordEntries={results.stableford}
+                  scratchEntries={results.scratch}
+                />
+              </TabsContent>
+  
+              <TabsContent value="live-blog" className="mt-6">
+                <LiveBlogFeed
+                  initialEntries={results.liveBlogPage.entries}
+                  initialHasNextPage={results.liveBlogPage.hasNextPage}
+                  mainEntries={results.main}
+                  stablefordEntries={results.stableford}
+                  scratchEntries={results.scratch}
+                  nettCategories={results.nettCategories}
+                  scratchCategories={results.scratchCategories}
+                  streakCategories={results.streakCategories}
+                  drivingCategories={results.drivingCategories}
+                  approachCategories={results.approachCategories}
+                  puttingCategories={results.puttingCategories}
+                  championshipId={championship.id}
+                  logoUrl={results.logoUrl}
+                />
+              </TabsContent>
+            </Tabs>
+          )}
+        </TabsContent>
+      </Container>
     </Tabs>
   );
 }
