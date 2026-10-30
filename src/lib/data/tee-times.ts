@@ -37,12 +37,22 @@ export async function getTeeTimes(): Promise<TeeTimeRound[]> {
   return mapTeeTimeRounds(result.docs);
 }
 
-/** Same as `getTeeTimes`, but for a specific (possibly past, possibly archived) championship rather than whichever is currently active -- used by Previous Opens to show a concluded year's tee sheet regardless of its archived flag. */
+/**
+ * Same as `getTeeTimes`, but for a specific (possibly past, possibly archived) championship rather
+ * than whichever is currently active -- used by Previous Opens to show a concluded year's tee
+ * sheet regardless of its archived flag.
+ *
+ * Championship rounds only. A practice round is filed under the championship's year, which is how
+ * it is organised in the admin, but it is not part of the result: nothing on it was scored towards
+ * anything, and in the Results tab it sat above the round that counted as though the two were
+ * equals. The live Tee Times page still shows both, which is where a practice tee sheet is
+ * actually useful.
+ */
 export async function getTeeTimesForChampionshipId(championshipId: string): Promise<TeeTimeRound[]> {
   const payload = await getPayload({ config: configPromise });
   const result = await payload.find({
     collection: "tee-time-rounds",
-    where: { championship: { equals: championshipId } },
+    where: { and: [{ championship: { equals: championshipId } }, { round: { equals: "Championship" } }] },
     sort: "id",
     depth: 2,
     limit: 50,
