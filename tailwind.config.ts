@@ -106,6 +106,9 @@ const config: Config = {
         // Not one of The Open's, but the gutter is. Two widgets that each want the room, rather
         // than a main thing and a thing beside it.
         halves: "repeat(2, minmax(0, 1fr))",
+        // The split they use on a championship page: prose beside a related-content rail. Wider
+        // sidebar than main-side because it holds article cards rather than a widget.
+        article: "minmax(0, 888fr) minmax(0, 478fr)",
       },
       transitionTimingFunction: {
         standard: "cubic-bezier(0.16, 1, 0.3, 1)",

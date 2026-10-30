@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PlayCircle } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
+import { SectionGrid } from "@/components/shared/section-grid";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LeaderboardView } from "@/components/leaderboard/leaderboard-view";
 import { TeeTimesView } from "@/components/tee-times/tee-times-view";
@@ -129,56 +130,50 @@ export function PreviousOpenView({
 
       <Container className="flex flex-col gap-10 py-10 sm:py-14">
         <TabsContent value="overview" className="mt-8">
-          {story.length > 0 ? (
+          {/* Prose beside a rail, the way The Open lays out a championship page. Their columns are
+              888 and 478 and sit flush, with the gap made by padding inside each; ours are the
+              same ratio held as fr over our own 20px gutter, so they come out a little narrower
+              than theirs but keep the proportion and the gutter every other band uses. */}
+          <SectionGrid layout="article">
             <div className="flex flex-col gap-3 text-base text-muted-foreground">
-              {story.map((paragraph, i) => (
-                <p key={i}>{paragraph}</p>
-              ))}
-            </div>
-          ) : (
-            <p className="text-lg text-muted-foreground">
-              {championship.winnerName ? (
-                <>
-                  Won by{" "}
-                  {championship.winnerPlayerSlug ? (
-                    <Link href={`/players/${championship.winnerPlayerSlug}`} className="font-semibold text-primary hover:underline">
-                      {championship.winnerName}
-                    </Link>
-                  ) : (
-                    <span className="font-semibold text-foreground">{championship.winnerName}</span>
-                  )}
-                  {championship.winnerCountry ? ` of ${championship.winnerCountry}` : null}
-                </>
+              {story.length > 0 ? (
+                story.map((paragraph, i) => <p key={i}>{paragraph}</p>)
               ) : (
-                "Championship not yet played."
+                <p className="text-lg">
+                  {championship.winnerName ? (
+                    <>
+                      Won by{" "}
+                      {championship.winnerPlayerSlug ? (
+                        <Link href={`/players/${championship.winnerPlayerSlug}`} className="font-semibold text-primary hover:underline">
+                          {championship.winnerName}
+                        </Link>
+                      ) : (
+                        <span className="font-semibold text-foreground">{championship.winnerName}</span>
+                      )}
+                      {championship.winnerCountry ? ` of ${championship.winnerCountry}` : null}
+                    </>
+                  ) : (
+                    "Championship not yet played."
+                  )}
+                </p>
               )}
-            </p>
-          )}
-  
-          <dl className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-4">
-            {[
-              { label: "Champion", value: championship.winnerName ?? "TBD" },
-              { label: "Score", value: championship.scoreToPar !== undefined ? formatToPar(championship.scoreToPar) : "—" },
-              { label: "Margin", value: championship.margin ?? "—" },
-              { label: "Venue", value: championship.venueName },
-            ].map((stat) => (
-              <div key={stat.label} className="flex flex-col gap-1 border border-border bg-muted p-4">
-                <dt className="text-xs uppercase tracking-wide text-muted-foreground">{stat.label}</dt>
-                <dd className="font-display text-lg font-bold">{stat.value}</dd>
-              </div>
-            ))}
-          </dl>
-  
-          <div className="mt-6 flex flex-wrap items-center gap-6">
-            <Link href={`/venues/${championship.venueSlug}`} className="w-fit text-sm font-medium text-primary hover:underline">
-              View {championship.venueName} →
-            </Link>
-            {hasReplay ? (
-              <Link href={`/previous-opens/${championship.year}/replay`} className="w-fit text-sm font-medium text-primary hover:underline">
-                Replay the {championship.year} leaderboard →
+            </div>
+
+            {/* The rail. Related articles belong here and arrive once the championship field on
+                Articles exists and pieces are tagged to a year; until then it carries the two
+                links that used to sit under the stat tiles, which are ancillary to the story
+                rather than part of it. An empty column would just read as a mistake. */}
+            <aside className="flex flex-col gap-3 border-t border-border pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+              <Link href={`/venues/${championship.venueSlug}`} className="w-fit text-sm font-medium text-primary hover:underline">
+                View {championship.venueName} →
               </Link>
-            ) : null}
-          </div>
+              {hasReplay ? (
+                <Link href={`/previous-opens/${championship.year}/replay`} className="w-fit text-sm font-medium text-primary hover:underline">
+                  Replay the {championship.year} leaderboard →
+                </Link>
+              ) : null}
+            </aside>
+          </SectionGrid>
         </TabsContent>
   
         <TabsContent value="results" className="mt-8">
