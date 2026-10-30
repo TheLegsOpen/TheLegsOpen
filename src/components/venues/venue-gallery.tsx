@@ -29,7 +29,11 @@ export function VenueGallery({ venueName, photos }: { venueName: string; photos:
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="font-display font-bold text-2xl">Pictures at {venueName}</h2>
+      {/* The Open's gallery runs with no heading at all. Ours keeps one, because by this point the
+          page has several sections and an unlabelled carousel is hard to place -- but it drops to
+          the quiet 14/700 label the rest of the page now uses rather than a 24px display heading
+          competing with the pictures. */}
+      <h2 className="font-menu text-[14px] font-bold uppercase leading-[16.1px] tracking-[1.2px] text-foreground">Pictures at {venueName}</h2>
       <div className="relative">
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex">
@@ -47,7 +51,7 @@ export function VenueGallery({ venueName, photos }: { venueName: string; photos:
               type="button"
               aria-label="Previous slide"
               onClick={() => emblaApi?.scrollPrev()}
-              className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center bg-primary/80 text-primary-foreground transition-colors hover:bg-primary"
+              className="absolute left-0 top-1/2 flex h-[55px] w-[45px] -translate-y-1/2 items-center justify-center bg-primary/80 text-primary-foreground transition-colors hover:bg-primary"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -55,7 +59,7 @@ export function VenueGallery({ venueName, photos }: { venueName: string; photos:
               type="button"
               aria-label="Next slide"
               onClick={() => emblaApi?.scrollNext()}
-              className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center bg-primary/80 text-primary-foreground transition-colors hover:bg-primary"
+              className="absolute right-0 top-1/2 flex h-[55px] w-[45px] -translate-y-1/2 items-center justify-center bg-primary/80 text-primary-foreground transition-colors hover:bg-primary"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -65,7 +69,15 @@ export function VenueGallery({ venueName, photos }: { venueName: string; photos:
           </>
         ) : null}
       </div>
-      {photos[selectedIndex]?.caption ? <p className={cn("text-sm text-muted-foreground")}>{photos[selectedIndex].caption}</p> : null}
+      {/* Their caption sits under the picture in bold 14 at a 20px line, black rather than grey,
+          and stops well short of the right edge -- 145px of padding there, so a long caption wraps
+          rather than running the full width of a 1226 image. Ours was grey and regular at the same
+          size, which read as a footnote instead of a label. */}
+      {photos[selectedIndex]?.caption ? (
+        <p className={cn("font-sans text-[14px] font-bold leading-[20px] text-foreground lg:pr-[145px]")}>
+          {photos[selectedIndex].caption}
+        </p>
+      ) : null}
     </div>
   );
 }
