@@ -26,7 +26,15 @@ export default async function PreviousOpensPage() {
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Previous Opens" }]}
       />
       <Container className="py-16 sm:py-24">
-        <PreviousOpensTimeline history={history} />
+        {/* 1226 is the narrower measure theopen.com puts this page's list in, and the full 1366
+            leaves the venue and the champion stranded at opposite ends of a row. Nested rather
+            than passed to Container as a max-w override: tailwind-merge does not know
+            `max-w-container` is a max-width class, since it is a custom theme key, so it keeps
+            both and the sitewide one wins on stylesheet order. The override looks applied in the
+            class list and does nothing. */}
+        <div className="mx-auto w-full max-w-[1226px]">
+          <PreviousOpensTimeline history={history} />
+        </div>
       </Container>
     </>
   );

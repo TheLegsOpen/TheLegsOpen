@@ -2,68 +2,147 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 
+import { SITE } from "@/constants/site";
+import { ordinal } from "@/lib/utils";
 import type { ChampionshipWinner } from "@/types/championship";
 
+const decadeOf = (year: number) => Math.floor(year / 10) * 10;
+
+/** "2020 - 2029", the way the dropdown on theopen.com/previous-opens reads. */
+const decadeLabel = (decade: number) => `${decade} - ${decade + 9}`;
+
+/**
+ * "2019 - 2010" -- the load-earlier button counts down where the dropdown counts up. That is
+ * genuinely how The Open labels the two, and it reads correctly in both places: the dropdown is
+ * naming a decade, the button is describing a direction of travel.
+ */
+const earlierLabel = (decade: number) => `${decade + 9} - ${decade}`;
+
+/** Surname carries the weight, as on their card. A one-word name is all surname. */
+function splitName(name: string) {
+  const parts = name.trim().split(/\s+/);
+  const surname = parts.pop() ?? name;
+  return { forename: parts.join(" "), surname };
+}
+
 export function PreviousOpensTimeline({ history }: { history: ChampionshipWinner[] }) {
-  const decades = useMemo(() => {
-    const set = new Set(history.map((c) => Math.floor(c.year / 10) * 10));
-    return Array.from(set).sort((a, b) => b - a);
+  // Which championship each year was -- counted from the first ever recorded rather than stored,
+  // so it stays right if an older one is ever added behind them.
+  const ordinals = useMemo(() => {
+    const map = new Map<number, number>();
+    [...history]
+      .sort((a, b) => a.year - b.year)
+      .forEach((championship, index) => map.set(championship.year, index + 1));
+    return map;
   }, [history]);
 
-  const [decade, setDecade] = useState<string>("all");
+  const decades = useMemo(
+    () => Array.from(new Set(history.map((c) => decadeOf(c.year)))).sort((a, b) => b - a),
+    [history],
+  );
 
-  const filtered =
-    decade === "all" ? history : history.filter((c) => Math.floor(c.year / 10) * 10 === Number(decade));
+  // Open on the decade we are actually in, which is the one people came to look at. It used to
+  // open on "All decades", so the first thing on the page was the full roll of honour and the
+  // filter had nothing to do. Falls back to the most recent decade that has championships in it,
+  // so the page still has something in it during a gap year.
+  const thisDecade = decadeOf(new Date().getFullYear());
+  const opening = decades.includes(thisDecade) ? thisDecade : (decades[0] ?? thisDecade);
+
+  const [newest, setNewest] = useState(opening);
+  const [oldest, setOldest] = useState(opening);
+
+  const shown = history
+    .filter((c) => decadeOf(c.year) <= newest && decadeOf(c.year) >= oldest)
+    .sort((a, b) => b.year - a.year);
+
+  const earlier = decades.find((d) => d < oldest);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <label htmlFor="decade-filter" className="text-sm font-medium text-muted-foreground">
+    <div className="flex flex-col">
+      <div className="flex items-center gap-3 border-b border-border pb-6">
+        <label htmlFor="decade-filter" className="font-sans text-[14px] font-bold text-muted-foreground">
           Select decade
         </label>
         <select
           id="decade-filter"
-          value={decade}
-          onChange={(event) => setDecade(event.target.value)}
-          className="h-10 rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          value={newest}
+          onChange={(event) => {
+            const chosen = Number(event.target.value);
+            setNewest(chosen);
+            setOldest(chosen);
+          }}
+          className="h-10 rounded-md border border-border bg-background px-3 font-sans text-[14px] font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <option value="all">All decades</option>
           {decades.map((d) => (
             <option key={d} value={d}>
-              {d}s
+              {decadeLabel(d)}
             </option>
           ))}
         </select>
       </div>
 
-      {filtered.length === 0 ? (
+      {shown.length === 0 ? (
         <p className="py-12 text-center text-muted-foreground">No championships recorded for that decade.</p>
       ) : (
         <div className="flex flex-col">
-          {filtered.map((c) => (
-            <div
-              key={c.year}
-              className="grid grid-cols-[64px_1fr] items-start gap-4 border-t border-border py-6 first:border-t-0 sm:grid-cols-[110px_1fr] sm:items-center sm:gap-8 sm:py-8"
-            >
-              <span className="font-display text-2xl font-bold text-muted-foreground sm:text-3xl">{c.year}</span>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">{c.venueName}</p>
-                  <p className="font-display text-xl font-bold">{c.winnerName ?? "TBD"}</p>
+          {shown.map((c) => {
+            const number = ordinals.get(c.year);
+            const winner = c.winnerName ? splitName(c.winnerName) : null;
+            return (
+              <article
+                key={c.year}
+                className="grid grid-cols-[72px_1fr] items-start gap-x-6 gap-y-3 border-b border-border py-6 sm:grid-cols-[100px_minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-center sm:gap-8"
+              >
+                <time dateTime={String(c.year)} className="font-menu text-[24px] leading-[24px] text-foreground">
+                  {c.year}
+                </time>
+                <div className="flex flex-col gap-1">
+                  {number ? (
+                    <p className="font-menu text-[14px] font-bold uppercase leading-[16.1px] tracking-[2px] text-muted-foreground">
+                      The {ordinal(number)} {SITE.shortName}
+                    </p>
+                  ) : null}
+                  <p className="font-menu text-[32px] leading-[36.8px] tracking-[0.8px] text-foreground">{c.venueName}</p>
+                </div>
+                <div className="col-start-2 flex flex-col gap-1 sm:col-start-auto">
+                  <p className="font-menu text-[14px] uppercase leading-[16.1px] tracking-[1.6px] text-foreground">
+                    Champion golfer of the year
+                  </p>
+                  <p className="font-sans text-[16px] leading-[24px] text-muted-foreground">
+                    {winner ? (
+                      <>
+                        {winner.forename ? `${winner.forename} ` : ""}
+                        <span className="font-bold">{winner.surname}</span>
+                      </>
+                    ) : (
+                      "TBD"
+                    )}
+                  </p>
                 </div>
                 <Link
                   href={`/previous-opens/${c.year}`}
-                  className="inline-flex w-fit items-center gap-1 text-sm font-bold uppercase tracking-wide text-primary transition-colors hover:text-accent"
+                  className="col-start-2 w-fit font-sans text-[14px] font-bold uppercase leading-[20.02px] tracking-[0.2px] text-primary transition-colors hover:text-accent sm:col-start-auto"
                 >
-                  Info <ArrowRight className="h-4 w-4" />
+                  Info
                 </Link>
-              </div>
-            </div>
-          ))}
+              </article>
+            );
+          })}
         </div>
       )}
+
+      {earlier !== undefined ? (
+        <div className="flex justify-center pt-8">
+          <button
+            type="button"
+            onClick={() => setOldest(earlier)}
+            className="border border-border px-6 py-3 font-sans text-[17px] font-bold uppercase leading-[20.4px] tracking-[0.3px] text-foreground transition-colors hover:border-accent hover:text-accent"
+          >
+            {earlierLabel(earlier)}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
