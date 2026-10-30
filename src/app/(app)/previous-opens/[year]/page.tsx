@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { PageHero } from "@/components/shared/page-hero";
 import { PreviousOpenView, type PreviousOpenResults } from "@/components/previous-opens/previous-open-view";
 import { formatDate } from "@/lib/utils";
+import { getArticlesForChampionship } from "@/lib/data/articles";
 import { getChampionshipByYear } from "@/lib/data/championships";
 import { computeAutoFacts } from "@/lib/data/records";
 import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
@@ -115,9 +116,10 @@ export default async function PreviousOpenYearPage({ params }: YearPageProps) {
   const championship = await getChampionshipByYear(Number(year));
   if (!championship) notFound();
 
-  const [autoFacts, results] = await Promise.all([
+  const [autoFacts, results, relatedArticles] = await Promise.all([
     computeAutoFacts(championship),
     championship.completed ? loadResults(championship.id) : Promise.resolve(undefined),
+    getArticlesForChampionship(championship.id),
   ]);
 
   return (
@@ -138,7 +140,7 @@ export default async function PreviousOpenYearPage({ params }: YearPageProps) {
           Open, with only its list held to the container, so the view owns its own wrapping --
           a Container on the outside would cap the strip at 1366 and there is no way to break
           back out of it that is not a negative-margin trick. */}
-      <PreviousOpenView championship={championship} autoFacts={autoFacts} results={results} />
+      <PreviousOpenView championship={championship} autoFacts={autoFacts} results={results} relatedArticles={relatedArticles} />
     </>
   );
 }

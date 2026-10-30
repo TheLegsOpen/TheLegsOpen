@@ -105,6 +105,22 @@ export const Championships: CollectionConfig = {
     },
     { name: "margin", type: "text", admin: { description: "e.g. \"2\" (shots) or \"Playoff\"" } },
     {
+      // Optional. Left empty, the Overview tab writes itself from the fields above and below --
+      // champion, venue, score, margin, runner-up, the lead at the turn, the largest lead of the
+      // day, the Stableford and Scratch winners. That is why all fourteen backdated championships
+      // read sensibly without anyone having written a word for them.
+      //
+      // Filled, this replaces those sentences outright rather than joining them, so a year that
+      // deserves a proper account can have one without the generated lines repeating it
+      // underneath.
+      name: "overviewStory",
+      type: "richText",
+      admin: {
+        description:
+          "Optional. The Overview tab's story. Leave empty and it is written automatically from the result and the records below. Anything here replaces that entirely.",
+      },
+    },
+    {
       type: "collapsible",
       label: "Records — additional facts (optional, fill in as known)",
       fields: [

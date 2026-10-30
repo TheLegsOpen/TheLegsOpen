@@ -14,6 +14,8 @@ export interface ChampionshipWinner {
   winningScore?: number;
   scoreToPar?: number;
   margin?: string;
+  /** Editorial override for the Overview tab. Empty means the story is generated from the fields around it. */
+  overviewStory?: unknown;
   winnerPlayerSlug?: string;
   winnerPlayerId?: string;
   winnerPlayerDateOfBirth?: string;

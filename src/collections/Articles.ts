@@ -38,6 +38,20 @@ export const Articles: CollectionConfig = {
       options: ["Championship News", "Player Features", "History", "Tickets", "Course Guide"],
     },
     { name: "publishedAt", type: "date", required: true, admin: { date: { pickerAppearance: "dayOnly" } } },
+    {
+      // What fills the rail on a championship's Overview tab. Deliberately a relationship rather
+      // than matching on the year: publishedAt would group a piece with whatever championship
+      // happened to share its year, and the backdating left genuine features sitting in those
+      // years -- the roll of honour was published in August 2026 and belongs to no championship
+      // at all. Tagging is explicit, so the rail only ever shows pieces someone put there.
+      name: "championship",
+      type: "relationship",
+      relationTo: "championships",
+      admin: {
+        position: "sidebar",
+        description: "Optional. Tag this to a championship to have it appear in that year's Overview rail.",
+      },
+    },
     { name: "readTimeMinutes", type: "number", required: true, defaultValue: 4 },
     { name: "heroLabel", type: "text", required: true, admin: { description: "Caption used when no image is uploaded, and as alt text when one is." } },
     {

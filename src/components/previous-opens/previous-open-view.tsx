@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PlayCircle } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
+import { RichTextBlock } from "@/components/shared/rich-text";
 import { SectionGrid } from "@/components/shared/section-grid";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LeaderboardView } from "@/components/leaderboard/leaderboard-view";
@@ -88,10 +89,12 @@ export function PreviousOpenView({
   championship,
   autoFacts,
   results,
+  relatedArticles = [],
 }: {
   championship: ChampionshipWinner;
   autoFacts: AutoFacts | undefined;
   results: PreviousOpenResults | undefined;
+  relatedArticles?: Article[];
 }) {
   const story = overviewStory(championship, autoFacts);
   // The replay page needs a scored card AND a Championship tee time for each player -- without the
@@ -136,7 +139,11 @@ export function PreviousOpenView({
               than theirs but keep the proportion and the gutter every other band uses. */}
           <SectionGrid layout="article">
             <div className="flex flex-col gap-3 text-base text-muted-foreground">
-              {story.length > 0 ? (
+              {championship.overviewStory ? (
+                // Written in the admin, and when it is there it is the whole story -- the
+                // generated sentences would only say the same things again underneath it.
+                <RichTextBlock data={championship.overviewStory} className="text-muted-foreground" />
+              ) : story.length > 0 ? (
                 story.map((paragraph, i) => <p key={i}>{paragraph}</p>)
               ) : (
                 <p className="text-lg">
@@ -159,11 +166,31 @@ export function PreviousOpenView({
               )}
             </div>
 
-            {/* The rail. Related articles belong here and arrive once the championship field on
-                Articles exists and pieces are tagged to a year; until then it carries the two
-                links that used to sit under the stat tiles, which are ancillary to the story
-                rather than part of it. An empty column would just read as a mistake. */}
-            <aside className="flex flex-col gap-3 border-t border-border pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+            {/* The rail. Tagged articles first, under The Open's own heading, then the two links
+                that used to sit beneath the stat tiles -- ancillary to the story rather than part
+                of it. The heading only appears when there is something under it, so a
+                championship nobody has tagged yet shows the links alone rather than an empty
+                "Related". */}
+            <aside className="flex flex-col gap-6 border-t border-border pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+              {relatedArticles.length > 0 ? (
+                <div className="flex flex-col gap-3">
+                  <p className="font-menu text-[14px] font-bold uppercase tracking-[1.6px] text-muted-foreground">Related</p>
+                  <ul className="flex flex-col divide-y divide-border border-y border-border">
+                    {relatedArticles.map((article) => (
+                      <li key={article.slug}>
+                        <Link href={`/latest/${article.slug}`} className="group flex flex-col gap-1 py-3">
+                          <span className="font-menu text-[12px] font-bold uppercase tracking-[1.6px] text-accent">{article.category}</span>
+                          <span className="font-sans text-[16px] font-bold leading-[20px] text-foreground group-hover:text-primary">
+                            {article.title}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <div className="flex flex-col gap-3">
               <Link href={`/venues/${championship.venueSlug}`} className="w-fit text-sm font-medium text-primary hover:underline">
                 View {championship.venueName} →
               </Link>
@@ -172,6 +199,7 @@ export function PreviousOpenView({
                   Replay the {championship.year} leaderboard →
                 </Link>
               ) : null}
+              </div>
             </aside>
           </SectionGrid>
         </TabsContent>

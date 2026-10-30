@@ -49,6 +49,7 @@ function mapChampionship(doc: PayloadChampionship): ChampionshipWinner {
     winningScore: doc.winningScore ?? undefined,
     scoreToPar: doc.scoreToPar ?? undefined,
     margin: doc.margin ?? undefined,
+    overviewStory: doc.overviewStory ?? undefined,
     winnerPlayerSlug: winnerPlayer?.slug ?? undefined,
     winnerPlayerId: winnerPlayer?.id ? String(winnerPlayer.id) : undefined,
     winnerPlayerDateOfBirth: winnerPlayer?.dateOfBirth ?? undefined,

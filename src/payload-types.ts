@@ -294,6 +294,8 @@ export interface Article {
   dek: string;
   category: 'Championship News' | 'Player Features' | 'History' | 'Tickets' | 'Course Guide';
   publishedAt: string;
+  /** Hand-added with the field -- see note at top of file. */
+  championship?: (string | null) | Championship;
   readTimeMinutes: number;
   heroLabel: string;
   image?: (string | Media) | null;
@@ -319,6 +321,8 @@ export interface Championship {
   winningScore?: number | null;
   scoreToPar?: number | null;
   margin?: string | null;
+  /** Hand-added with the field -- see note at top of file. */
+  overviewStory?: unknown;
   stablefordWinnerName?: string | null;
   stablefordWinnerCountry?: string | null;
   scratchWinnerName?: string | null;

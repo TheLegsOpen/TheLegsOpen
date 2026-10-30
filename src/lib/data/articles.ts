@@ -87,3 +87,30 @@ export async function getAllArticleSlugs(): Promise<string[]> {
   const result = await payload.find({ collection: "articles", where: PUBLISHED, limit: 200 });
   return result.docs.map((doc) => doc.slug ?? slugify(doc.title));
 }
+
+/**
+ * Articles tagged to a championship, for the rail on its Overview tab.
+ *
+ * Tagged rather than matched on publishedAt: the backdating gave every piece the real date it
+ * would have carried, so a year filter would be mostly right and occasionally wrong -- the roll
+ * of honour went out in August 2026 and belongs to no single championship. An explicit field
+ * means the rail only ever shows what someone put there, and shows nothing when nobody has.
+ *
+ * Swallows its errors like the rest of this file: a pooler timeout should cost the page its rail,
+ * not the whole championship.
+ */
+export async function getArticlesForChampionship(championshipId: string, limit = 4): Promise<Article[]> {
+  try {
+    const payload = await getPayload({ config: configPromise });
+    const result = await payload.find({
+      collection: "articles",
+      where: { ...PUBLISHED, championship: { equals: championshipId } },
+      limit,
+      sort: "-publishedAt",
+      depth: 1,
+    });
+    return result.docs.map(mapArticle);
+  } catch {
+    return [];
+  }
+}
