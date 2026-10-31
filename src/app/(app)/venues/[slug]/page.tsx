@@ -20,6 +20,7 @@ import { getPlayers } from "@/lib/data/players";
 import { getArticles } from "@/lib/data/articles";
 import { isActiveChampionshipVenue } from "@/lib/data/scorecards";
 import { getToughestHoles } from "@/lib/data/scoring-statistics";
+import { cn } from "@/lib/utils";
 
 interface VenuePageProps {
   params: Promise<{ slug: string }>;
@@ -51,6 +52,32 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
   ]);
   const championshipsHere = [...championshipsRaw].sort((a, b) => b.year - a.year);
   const championshipsChronological = [...championshipsRaw].sort((a, b) => a.year - b.year);
+
+  // Derived from the championship records rather than the venue's own timesHosted/firstHosted/
+  // lastHosted fields. Those are typed by hand and three of them are already wrong -- Southerness
+  // says 2014 against a 2016 championship, Dundonald 2013 against 2014, Carnwath 2012 against
+  // 2013 -- so reading them here would print a year that the Championship Years timeline further
+  // down this same page contradicts. Nothing else on the site renders those three fields.
+  //
+  // Most courses have hosted exactly once, where "First Hosted 2025 / Last Hosted 2025" reads as
+  // a bug rather than a fact, so a single hosting collapses to one line.
+  const hostedYears = championshipsChronological.map((c) => c.year);
+  const hostingFacts =
+    hostedYears.length === 0
+      ? []
+      : hostedYears.length === 1
+        ? [
+            { label: "Times Hosted", value: "1" },
+            { label: "Hosted", value: String(hostedYears[0]) },
+          ]
+        : [
+            { label: "Times Hosted", value: String(hostedYears.length) },
+            { label: "First Hosted", value: String(hostedYears[0]) },
+            { label: "Last Hosted", value: String(hostedYears[hostedYears.length - 1]) },
+          ];
+  // A venue added before it has hosted anything has neither list, and reserving the second track
+  // for it would leave exactly the 392 of empty tint this fallback exists to remove.
+  const bandHasSidebar = upcomingChampionships.length > 0 || hostingFacts.length > 0;
 
   // Course scoring used to appear only while the venue was hosting, which meant a course the
   // society has played a dozen times showed nothing the rest of the year. A venue is far more
@@ -128,7 +155,7 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
           An inline grid rather than another SectionGrid token: 834:392 is used here and nowhere
           else, and five named proportions is already enough to have to remember. */}
       <section className="w-full bg-[#F7F7F7]">
-        <Container className="grid grid-cols-1 gap-5 py-12 lg:grid-cols-[minmax(0,834fr)_minmax(0,392fr)] lg:py-16">
+        <Container className={cn("grid grid-cols-1 gap-5 py-12 lg:py-16", bandHasSidebar && "lg:grid-cols-[minmax(0,834fr)_minmax(0,392fr)]")}>
           <div className="flex flex-col gap-3">
             <p className="flex items-center gap-2 font-sans text-[14px] uppercase tracking-[1.2px] text-[#43524E]">
               {venue.countryCode ? <CountryFlag code={venue.countryCode} className="h-3 w-[18px] shrink-0" /> : null}
@@ -139,8 +166,16 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
             ) : null}
           </div>
 
-          {/* Only when there is somewhere to point at. An empty "Upcoming Venues" heading beside
-              a course description would read as something that had failed to load. */}
+          {/* The Open points this column at where the championship goes next. Ours is empty for
+              most of the year -- there is nothing upcoming between the last championship being
+              marked complete and the next one being created, which is the state every venue page
+              is in right now -- and an empty third of a tinted band reads as a section that
+              failed to load rather than one with nothing to say.
+
+              So it falls back to this course's own hosting record, which every venue that has
+              hosted always has. Same list treatment either way, so the band does not change shape
+              when a championship is scheduled. A course that has never hosted gets neither, and
+              the blurb keeps the full width. */}
           {upcomingChampionships.length > 0 ? (
             <div className="flex flex-col gap-3">
               <p className="font-menu text-[14px] font-bold uppercase leading-[16.1px] tracking-[1.2px] text-[#06051E]">Upcoming Venues</p>
@@ -154,6 +189,18 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
                       <span>{championship.venueName}</span>
                       <span className="font-sans text-[14px] font-bold tracking-[1.2px] text-[#2269AB]">{championship.year}</span>
                     </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : hostingFacts.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              <p className="font-menu text-[14px] font-bold uppercase leading-[16.1px] tracking-[1.2px] text-[#06051E]">Championship Record</p>
+              <ul className="flex flex-col divide-y divide-[#06051E]/15 border-y border-[#06051E]/15">
+                {hostingFacts.map((fact) => (
+                  <li key={fact.label} className="flex items-center justify-between gap-3 py-4">
+                    <span className="font-menu text-[16px] uppercase tracking-[1.2px] text-[#06051E]">{fact.label}</span>
+                    <span className="font-sans text-[14px] font-bold tracking-[1.2px] text-[#2269AB]">{fact.value}</span>
                   </li>
                 ))}
               </ul>
