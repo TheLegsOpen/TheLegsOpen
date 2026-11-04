@@ -54,6 +54,36 @@ export interface UkGolfClubSearchPage {
 }
 
 /**
+ * Punctuation in this API's club names cannot be trusted to match what anyone types. It writes
+ * "St. Andrews" with a full stop, so a plain substring test on "St Andrews" matched nothing at all
+ * and silently hid eight Scottish clubs: St. Andrews, St. Michaels, St. Regulus, St. Boswells,
+ * St. Fillans, Prestwick St. Cuthbert, Prestwick St. Nicholas and Troon St. Meddans.
+ *
+ * Apostrophes and full stops are removed rather than turned into a space, so "Duke's" becomes
+ * "dukes" and "St." becomes "st". Everything else non-alphanumeric becomes a space, so a
+ * hyphenated name is still found by typing it with a space instead.
+ */
+export function normaliseForSearch(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/['‘’`.]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/**
+ * Matches the town and county as well as the club's own name. Several clubs sit in a town without
+ * carrying it in their name -- Kingsbarns Golf Links and Drumoig Golf Club are both in St Andrews
+ * -- and the place you are playing is an obvious thing to search for.
+ */
+export function clubMatchesQuery(club: { name: string; city?: string; county?: string }, query: string): boolean {
+  const needle = normaliseForSearch(query);
+  // A query of nothing but punctuation normalises to empty, which would match every club.
+  if (!needle) return false;
+  return [club.name, club.city, club.county].some((field) => (field ? normaliseForSearch(field).includes(needle) : false));
+}
+
+/**
  * The API's `/clubs` endpoint doesn't actually filter by name server-side (verified against the
  * real API — a `name` query param is silently ignored), so finding a club by name means paging
  * through every club for the country (max 50/page) and filtering here. The free tier's 5
@@ -63,10 +93,9 @@ export interface UkGolfClubSearchPage {
  * they're found instead of blocking on the whole country at once.
  */
 export async function searchUkGolfClubsPage(countryCode: UkGolfCountryCode, query: string, page: number): Promise<UkGolfClubSearchPage> {
-  const needle = query.trim().toLowerCase();
   const data = await ukGolfFetch<RawClubsResponse>(`/clubs?country=${countryCode}&per_page=50&page=${page}`);
   const matches = data.clubs
-    .filter((club) => club.name.toLowerCase().includes(needle))
+    .filter((club) => clubMatchesQuery(club, query))
     .map((club) => ({
       id: club.id,
       name: club.name,
