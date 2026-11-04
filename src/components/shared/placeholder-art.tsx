@@ -24,7 +24,7 @@ interface PlaceholderArtProps {
   /** Real uploaded photo. When set, this is rendered instead of the generated placeholder. */
   imageUrl?: string;
   tone?: Tone;
-  ratio?: "16/9" | "4/3" | "3/4" | "1/1" | "21/9";
+  ratio?: "16/9" | "4/3" | "3/4" | "1/1" | "21/9" | "5/3";
   className?: string;
   showCaption?: boolean;
   /** Fill the parent element (absolute inset-0) instead of sizing by `ratio`. */

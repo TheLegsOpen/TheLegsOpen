@@ -4,7 +4,6 @@ import Link from "next/link";
 
 import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
-import { CountryFlag } from "@/components/shared/country-flag";
 import { StatBlock } from "@/components/venues/stat-block";
 import { VenueGallery } from "@/components/venues/venue-gallery";
 import { VenueChampions, type VenueChampion } from "@/components/venues/venue-champions";
@@ -129,15 +128,16 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
           championship -- so it is per-page rather than one treatment, which is why it goes
           through titleClassName rather than changing PageHero for everyone.
 
-          The region eyebrow stays. Their hero carries nothing but the course name, but the region
-          is real information and dropping it would be a content decision dressed up as a style
-          one. */}
+          Their hero carries nothing but the course name -- measured at 1920, the whole hero
+          element reads "Carnoustie" and nothing else -- so the region eyebrow is gone. It was
+          also the duplicate: the hero said "Aberdeen" and the band below said "Balmedie,
+          Aberdeen, Scotland". The location is still in the page title, on the venues index and
+          in the breadcrumb trail when that is switched on. */}
       <PageHero
         variant="photo"
         heightPx={520}
         imageLabel={venue.imageLabel}
         imageUrl={venue.imageUrl}
-        eyebrow={venue.region}
         title={venue.name}
         titleClassName="font-menu text-[58px] font-normal leading-[62.06px] tracking-[1.6px] text-white"
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Venues", href: "/venues" }, { label: venue.name }]}
@@ -156,11 +156,10 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
           else, and five named proportions is already enough to have to remember. */}
       <section className="w-full bg-[#F7F7F7]">
         <Container className={cn("grid grid-cols-1 gap-5 py-12 lg:py-16", bandHasSidebar && "lg:grid-cols-[minmax(0,834fr)_minmax(0,392fr)]")}>
+          {/* No flag and no address line. Theirs carries neither -- the band is the blurb and
+              the list, nothing else -- and ours was printing the region twice between here and
+              the hero. */}
           <div className="flex flex-col gap-3">
-            <p className="flex items-center gap-2 font-sans text-[14px] uppercase tracking-[1.2px] text-[#43524E]">
-              {venue.countryCode ? <CountryFlag code={venue.countryCode} className="h-3 w-[18px] shrink-0" /> : null}
-              <span>{[venue.location, venue.region, venue.country].filter(Boolean).join(", ")}</span>
-            </p>
             {venue.description ? (
               <p className="font-sans text-[26px] font-normal leading-[36.4px] tracking-[0.6px] text-[#06051E]">{venue.description}</p>
             ) : null}
@@ -178,13 +177,13 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
               the blurb keeps the full width. */}
           {upcomingChampionships.length > 0 ? (
             <div className="flex flex-col gap-3">
-              <p className="font-menu text-[14px] font-bold uppercase leading-[16.1px] tracking-[1.2px] text-[#06051E]">Upcoming Venues</p>
+              <p className="font-sans text-[14px] font-bold uppercase leading-[16.1px] tracking-[0.9px] text-[#43524E]">Upcoming Venues</p>
               <ul className="flex flex-col divide-y divide-[#06051E]/15 border-y border-[#06051E]/15">
                 {upcomingChampionships.map((championship) => (
                   <li key={championship.venueSlug}>
                     <Link
                       href={`/venues/${championship.venueSlug}`}
-                      className="flex items-center justify-between gap-3 py-4 font-menu text-[16px] uppercase tracking-[1.2px] text-[#06051E] transition-colors hover:text-primary"
+                      className="flex items-center justify-between gap-3 py-4 font-menu text-[14px] font-bold uppercase leading-[16.1px] tracking-[1px] text-[#06051E] transition-colors hover:text-primary"
                     >
                       <span>{championship.venueName}</span>
                       <span className="font-sans text-[14px] font-bold tracking-[1.2px] text-[#2269AB]">{championship.year}</span>
@@ -195,11 +194,11 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
             </div>
           ) : hostingFacts.length > 0 ? (
             <div className="flex flex-col gap-3">
-              <p className="font-menu text-[14px] font-bold uppercase leading-[16.1px] tracking-[1.2px] text-[#06051E]">Championship Record</p>
+              <p className="font-sans text-[14px] font-bold uppercase leading-[16.1px] tracking-[0.9px] text-[#43524E]">Championship Record</p>
               <ul className="flex flex-col divide-y divide-[#06051E]/15 border-y border-[#06051E]/15">
                 {hostingFacts.map((fact) => (
                   <li key={fact.label} className="flex items-center justify-between gap-3 py-4">
-                    <span className="font-menu text-[16px] uppercase tracking-[1.2px] text-[#06051E]">{fact.label}</span>
+                    <span className="font-menu text-[14px] font-bold uppercase leading-[16.1px] tracking-[1px] text-[#06051E]">{fact.label}</span>
                     <span className="font-sans text-[14px] font-bold tracking-[1.2px] text-[#2269AB]">{fact.value}</span>
                   </li>
                 ))}

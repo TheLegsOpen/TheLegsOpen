@@ -29,17 +29,19 @@ export function VenueGallery({ venueName, photos }: { venueName: string; photos:
 
   return (
     <div className="flex flex-col gap-4">
-      {/* The Open's gallery runs with no heading at all. Ours keeps one, because by this point the
-          page has several sections and an unlabelled carousel is hard to place -- but it drops to
-          the quiet 14/700 label the rest of the page now uses rather than a 24px display heading
-          competing with the pictures. */}
-      <h2 className="font-menu text-[14px] font-bold uppercase leading-[16.1px] tracking-[1.2px] text-foreground">Pictures at {venueName}</h2>
+      {/* Their gallery does carry a heading -- "Carnoustie in pictures", as h3.section__title --
+          which an earlier pass here wrongly recorded as having none. It is the same quiet label
+          treatment rather than a display heading: 14/700 Cardinal Photo, uppercase, 1.6px of
+          tracking, in #43524E rather than full black so it does not compete with the pictures. */}
+      <h2 className="font-menu text-[14px] font-bold uppercase leading-[16.1px] tracking-[1.6px] text-[#43524E]">Pictures at {venueName}</h2>
       <div className="relative">
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex">
             {photos.map((photo, index) => (
               <div key={index} className="min-w-0 flex-[0_0_100%]">
-                <PlaceholderArt label={photo.caption ?? `${venueName} photo ${index + 1}`} imageUrl={photo.imageUrl} tone="dusk" ratio="16/9" />
+                {/* 5/3, not 16/9. Measured at 1920 theirs renders 1226x732 -- a ratio of 1.675,
+                    which is 5:3 and noticeably taller than the 1.778 of 16:9. */}
+                <PlaceholderArt label={photo.caption ?? `${venueName} photo ${index + 1}`} imageUrl={photo.imageUrl} tone="dusk" ratio="5/3" />
               </div>
             ))}
           </div>
@@ -63,7 +65,10 @@ export function VenueGallery({ venueName, photos }: { venueName: string; photos:
             >
               <ChevronRight className="h-5 w-5" />
             </button>
-            <span className="absolute bottom-3 right-3 bg-primary/80 px-2 py-1 text-xs font-bold tabular-nums text-primary-foreground">
+            {/* Plain white type on the picture, no chip behind it: theirs is Founders 12/700 at
+                a 20px line with 20px/35px of padding holding it off the bottom-left corner. The
+                navy chip was ours. */}
+            <span className="absolute bottom-0 left-0 px-[35px] py-5 font-sans text-[12px] font-bold leading-[20px] tabular-nums text-white">
               {String(selectedIndex + 1).padStart(2, "0")} / {String(photos.length).padStart(2, "0")}
             </span>
           </>
