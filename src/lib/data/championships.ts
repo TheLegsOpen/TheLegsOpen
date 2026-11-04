@@ -2,6 +2,7 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { slugify, mediaUrl } from "@/lib/utils";
+import { activeChampionshipIndex, isStillToCome } from "@/lib/data/championship-timing";
 import type { ChampionshipWinner } from "@/types/championship";
 import type { Championship as PayloadChampionship, Venue as PayloadVenue, Player as PayloadPlayer } from "@/payload-types";
 
@@ -95,7 +96,7 @@ export async function getChampionshipsByVenueSlug(slug: string): Promise<Champio
   return history.filter((c) => c.venueSlug === slug);
 }
 
-/** Championships scheduled after today, soonest first — driven by `date` when set, otherwise `year`. */
+/** Championships not yet played, soonest first — today's counts, so a venue does not drop off the band partway through its own championship. */
 export async function getUpcomingChampionships(limit = 3): Promise<UpcomingChampionship[]> {
   const payload = await getPayload({ config: configPromise });
   const result = await payload.find({ collection: "championships", limit: 100, sort: "year" });
@@ -107,7 +108,7 @@ export async function getUpcomingChampionships(limit = 3): Promise<UpcomingChamp
       venue: doc.venue as PayloadVenue,
       effectiveDate: doc.date ? new Date(doc.date) : new Date(`${doc.year}-12-31`),
     }))
-    .filter(({ doc, effectiveDate }) => (doc.date ? effectiveDate > now : doc.year > now.getFullYear()))
+    .filter(({ doc }) => isStillToCome(doc, now))
     .sort((a, b) => a.effectiveDate.getTime() - b.effectiveDate.getTime())
     .slice(0, limit);
 
@@ -123,17 +124,17 @@ export async function getUpcomingChampionships(limit = 3): Promise<UpcomingChamp
 }
 
 /**
- * Whichever championship is flagged "Currently Being Scored" — falls back to the most recent by
- * year, same rule as the live-scoring lookup in lib/data/scorecards.ts (kept separate here to
- * avoid a circular import between the two data-access seams).
+ * Whichever championship is flagged "Currently Being Scored" — falls back to the most recently
+ * played one, the shared rule in lib/data/championship-timing.ts. The live-scoring lookup in
+ * lib/data/scorecards.ts resolves the same way; both go through that module rather than importing
+ * each other, which is what kept the two copies of the rule from being noticed as they drifted.
  */
 export async function getActiveChampionshipSummary(): Promise<ActiveChampionshipSummary | undefined> {
   const payload = await getPayload({ config: configPromise });
   const allChampionships = await payload.find({ collection: "championships", limit: 500, depth: 0, sort: "year" });
   if (allChampionships.docs.length === 0) return undefined;
 
-  const activeIndex = allChampionships.docs.findIndex((doc) => doc.isActive);
-  const index = activeIndex === -1 ? allChampionships.docs.length - 1 : activeIndex;
+  const index = activeChampionshipIndex(allChampionships.docs);
   const doc = allChampionships.docs[index];
 
   const venueResult = await payload.find({
@@ -154,14 +155,18 @@ export async function getActiveChampionshipSummary(): Promise<ActiveChampionship
 }
 
 /**
- * Venues for the slide-in menu's "Venues" group -- championships still to be played, plus whichever
- * one is currently being scored.
+ * Venues for the slide-in menu's "Venues" group -- championships still to be played, today's
+ * included.
  *
- * The active championship is included deliberately: filtering on date alone would drop a venue out
- * of the menu partway through its own tournament, which is exactly when people are looking for it.
- * Note this checks isActive directly rather than going through getActiveChampionshipSummary, whose
- * fallback to "most recent by year" would put a finished championship's venue back in the menu once
- * nothing is flagged active.
+ * This used to force-include whichever championship was flagged "Currently Being Scored", because
+ * comparing the stored date against `now` dropped a venue out of the menu partway through its own
+ * tournament -- championship dates are stored at noon, so a round vanished from the menu at
+ * lunchtime, exactly when people were looking for it. isStillToCome compares whole days instead,
+ * which keeps the venue listed all through its own championship without the flag.
+ *
+ * Losing the force-include is the point: the flag is normally left on the last championship between
+ * events so the homepage leaderboard and live blog keep showing it, and that was putting a course
+ * played two months ago in a list of courses still to come.
  *
  * Returns [] on any failure -- this renders in the root layout, so a database blip should cost the
  * menu one group, not every page on the site.
@@ -179,7 +184,7 @@ export async function getMenuVenueLinks(): Promise<{ label: string; href: string
         return { doc, venue, effectiveDate: doc.date ? new Date(doc.date) : new Date(`${doc.year}-12-31`) };
       })
       .filter((row): row is NonNullable<typeof row> => row !== undefined)
-      .filter(({ doc, effectiveDate }) => doc.isActive || (doc.date ? effectiveDate > now : doc.year > now.getFullYear()))
+      .filter(({ doc }) => isStillToCome(doc, now))
       .sort((a, b) => a.effectiveDate.getTime() - b.effectiveDate.getTime());
 
     // A venue can host more than once; show it at its earliest upcoming appearance only.

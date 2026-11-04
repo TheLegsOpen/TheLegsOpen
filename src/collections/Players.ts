@@ -2,6 +2,7 @@ import type { CollectionConfig } from "payload";
 import { getPayload } from "payload";
 
 import { COUNTRIES, countryName } from "@/data/countries";
+import { activeChampionshipIndex } from "@/lib/data/championship-timing";
 import { revalidatePlayers } from "@/lib/revalidate";
 import configPromise from "@/payload.config";
 
@@ -29,19 +30,19 @@ function calculateCourseHandicap(handicapIndex: number, slopeRating: number, cou
 }
 
 /**
- * The venue for whichever championship is "being played" -- same active/most-recent-by-year rule
- * used everywhere else (see getActiveChampionshipSummary in lib/data/championships.ts, kept
- * separate here rather than imported to avoid this collection depending on that data-access seam
- * just for one field). Returns undefined if that venue hasn't had its Course Rating/Slope/Par
- * filled in yet, so a half-configured venue never produces a bogus handicap.
+ * The venue for whichever championship is "being played" -- the shared active-else-most-recently-
+ * played rule in lib/data/championship-timing.ts, imported rather than reimplemented. This
+ * collection used to keep its own copy so it wouldn't depend on a data-access seam for one field,
+ * and that copy carried the same highest-year bug as the other two. Returns undefined if the venue
+ * hasn't had its Course Rating/Slope/Par filled in yet, so a half-configured venue never produces
+ * a bogus handicap.
  */
 async function resolveActiveVenueRating(): Promise<{ slopeRating: number; courseRating: number; par: number } | undefined> {
   const payload = await getPayload({ config: configPromise });
   const championships = await payload.find({ collection: "championships", limit: 500, depth: 1, sort: "year" });
   if (championships.docs.length === 0) return undefined;
 
-  const activeIndex = championships.docs.findIndex((doc) => doc.isActive);
-  const doc = championships.docs[activeIndex === -1 ? championships.docs.length - 1 : activeIndex];
+  const doc = championships.docs[activeChampionshipIndex(championships.docs)];
   const venue = typeof doc.venue === "object" ? doc.venue : undefined;
   if (!venue || venue.slopeRating == null || venue.courseRating == null || !venue.totalPar) return undefined;
 

@@ -2,6 +2,7 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { mapPlayer } from "@/lib/data/players";
+import { activeChampionshipIndex } from "@/lib/data/championship-timing";
 import { allocateStrokes, stablefordPoints } from "@/lib/scoring";
 import type { Player } from "@/types/player";
 import type {
@@ -57,7 +58,10 @@ export interface CompetitionEntry {
 }
 
 /**
- * Whichever championship is flagged "Currently Being Scored" — falls back to the most recent by year.
+ * Whichever championship is flagged "Currently Being Scored" — falls back to the most recently
+ * *played* one, not simply the highest year. See lib/data/championship-timing.ts for why that
+ * distinction matters now that championships are entered ahead of being played.
+ *
  * Pass `req` when calling from inside a hook so this reads within the same in-flight transaction
  * (e.g. the very write that triggered the hook) instead of a separate connection that can't see it yet.
  */
@@ -69,8 +73,11 @@ export async function getActiveChampionship(payload: Payload, req?: PayloadReque
   try {
     const active = await payload.find({ collection: "championships", where: { isActive: { equals: true } }, limit: 1, req });
     if (active.docs[0]) return active.docs[0];
-    const latest = await payload.find({ collection: "championships", sort: "-year", limit: 1, req });
-    return latest.docs[0];
+    // No flag set: pick from the whole list rather than querying for the highest year, so the
+    // "already played" rule is the shared one and a future championship can never be chosen.
+    const all = await payload.find({ collection: "championships", limit: 500, sort: "year", req });
+    const index = activeChampionshipIndex(all.docs);
+    return index === -1 ? undefined : all.docs[index];
   } catch {
     return undefined;
   }

@@ -50,7 +50,8 @@ export const Championships: CollectionConfig = {
       type: "checkbox",
       defaultValue: false,
       admin: {
-        description: "Tick this for whichever championship is on today — the live leaderboard reads scores for this event.",
+        description:
+          "Tick this for whichever championship is on today — the live leaderboard reads scores for this event, and only a ticked championship generates live blog commentary. Between championships you can leave it ticked on the last one played, or untick it entirely: either way the homepage leaderboard, live blog, weather and sponsor clock show the most recently played championship. It no longer affects which courses appear under Venues in the menu — that follows the Championship Date.",
       },
     },
     {
