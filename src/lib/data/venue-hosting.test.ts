@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { computeVenueHosting, syncVenueHostingAfterChange, syncVenueHostingAfterDelete } from "@/lib/data/venue-hosting";
+import { computeVenueHosting, deriveVenueHosting, syncVenueHostingAfterChange, syncVenueHostingAfterDelete } from "@/lib/data/venue-hosting";
 
 /**
  * A payload stub holding championships keyed by venue id. Only `find` and `update` are used by the
@@ -55,6 +55,70 @@ describe("computeVenueHosting", () => {
     await expect(computeVenueHosting(payload as never, "carnwath")).resolves.toMatchObject({ firstHosted: 2013 });
     await expect(computeVenueHosting(payload as never, "dundonald")).resolves.toMatchObject({ firstHosted: 2014 });
     await expect(computeVenueHosting(payload as never, "southerness")).resolves.toMatchObject({ firstHosted: 2016 });
+  });
+});
+
+describe("deriveVenueHosting", () => {
+  it("sets the three fields when a venue is created", async () => {
+    // The regression that blocked adding a new course: with no originalDoc there is no id to
+    // count against, and because the fields are both required and read-only, leaving them unset
+    // failed validation with no way for the admin to supply a value.
+    const { payload } = fakePayload({});
+    const data: Record<string, unknown> = { name: "Royal Dornoch" };
+    await deriveVenueHosting(asHookArgs({ data, req: { payload }, originalDoc: undefined, context: {} }));
+    expect(data).toMatchObject({ timesHosted: 0, firstHosted: 0, lastHosted: 0 });
+  });
+
+  it("does not query for championships when the venue does not exist yet", async () => {
+    // A championship points at a venue, so one cannot exist before the venue does.
+    const { payload } = fakePayload({});
+    await deriveVenueHosting(asHookArgs({ data: {}, req: { payload }, originalDoc: undefined, context: {} }));
+    expect(payload.find).not.toHaveBeenCalled();
+  });
+
+  it("recounts an existing venue on save", async () => {
+    const { payload } = fakePayload({ "6": [2013] });
+    const data: Record<string, unknown> = { name: "Carnwath" };
+    await deriveVenueHosting(asHookArgs({ data, req: { payload }, originalDoc: { id: 6 }, context: {} }));
+    expect(data).toMatchObject({ timesHosted: 1, firstHosted: 2013, lastHosted: 2013 });
+  });
+
+  it("overwrites a value submitted by hand with the counted one", async () => {
+    // The whole point: the admin cannot reintroduce a year that disagrees with the roll of honour.
+    const { payload } = fakePayload({ "6": [2013] });
+    const data: Record<string, unknown> = { timesHosted: 9, firstHosted: 2012, lastHosted: 2012 };
+    await deriveVenueHosting(asHookArgs({ data, req: { payload }, originalDoc: { id: 6 }, context: {} }));
+    expect(data).toMatchObject({ timesHosted: 1, firstHosted: 2013, lastHosted: 2013 });
+  });
+
+  it("leaves the data alone when the championship sync is the caller", async () => {
+    const { payload } = fakePayload({ "6": [2013] });
+    const data: Record<string, unknown> = { timesHosted: 1, firstHosted: 2013, lastHosted: 2013 };
+    await deriveVenueHosting(asHookArgs({ data, req: { payload }, originalDoc: { id: 6 }, context: { skipHostingDerive: true } }));
+    expect(payload.find).not.toHaveBeenCalled();
+    expect(data).toEqual({ timesHosted: 1, firstHosted: 2013, lastHosted: 2013 });
+  });
+
+  it("falls back to the stored values when the count throws, rather than blocking the save", async () => {
+    // A read-only field may not be submitted at all, so falling back to `data` could leave the
+    // required fields unset and fail the save for an unrelated edit.
+    const { payload } = fakePayload({});
+    payload.find = vi.fn(async () => {
+      throw new Error("pooler timeout");
+    }) as never;
+    const data: Record<string, unknown> = { name: "Carnwath" };
+    await deriveVenueHosting(asHookArgs({ data, req: { payload }, originalDoc: { id: 6, timesHosted: 1, firstHosted: 2013, lastHosted: 2013 }, context: {} }));
+    expect(data).toMatchObject({ timesHosted: 1, firstHosted: 2013, lastHosted: 2013 });
+  });
+
+  it("falls back to zeroes when the count throws and the venue has no stored values", async () => {
+    const { payload } = fakePayload({});
+    payload.find = vi.fn(async () => {
+      throw new Error("pooler timeout");
+    }) as never;
+    const data: Record<string, unknown> = {};
+    await deriveVenueHosting(asHookArgs({ data, req: { payload }, originalDoc: { id: 6 }, context: {} }));
+    expect(data).toMatchObject({ timesHosted: 0, firstHosted: 0, lastHosted: 0 });
   });
 });
 

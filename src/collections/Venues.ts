@@ -3,7 +3,7 @@ import type { CollectionConfig } from "payload";
 import { revalidateVenues } from "@/lib/revalidate";
 import { geocodeVenue } from "@/lib/geocoding";
 import { COUNTRIES, countryName } from "@/data/countries";
-import { computeVenueHosting } from "@/lib/data/venue-hosting";
+import { deriveVenueHosting } from "@/lib/data/venue-hosting";
 
 function slugify(value: string): string {
   return value
@@ -249,19 +249,9 @@ export const Venues: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [
-      async ({ data, req, originalDoc, context }) => {
-        // Recount on every save of an existing venue, so opening and saving one is enough to
-        // correct it. Skipped when the championship hook is the caller, which has just computed
-        // the same figures and would otherwise have them recomputed underneath it.
-        if (data && originalDoc?.id && !context?.skipHostingDerive) {
-          try {
-            Object.assign(data, await computeVenueHosting(req.payload, originalDoc.id, req));
-          } catch {
-            // A failed count must not block saving a venue for an unrelated edit. The fields are
-            // `required`, so leaving the submitted values in place keeps the save valid; the next
-            // championship change or venue save recounts.
-          }
-        }
+      // Sets timesHosted/firstHosted/lastHosted, which are read-only and so have no other source.
+      deriveVenueHosting,
+      async ({ data }) => {
         if (data && !data.slug && data.name) {
           data.slug = slugify(data.name);
         }

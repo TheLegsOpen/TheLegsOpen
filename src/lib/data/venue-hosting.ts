@@ -1,4 +1,4 @@
-import type { Payload, PayloadRequest, CollectionAfterChangeHook, CollectionAfterDeleteHook } from "payload";
+import type { Payload, PayloadRequest, CollectionBeforeValidateHook, CollectionAfterChangeHook, CollectionAfterDeleteHook } from "payload";
 
 /**
  * Derives a venue's timesHosted/firstHosted/lastHosted from the championships actually recorded
@@ -22,7 +22,7 @@ export interface VenueHosting {
  * Zero rather than null for a venue that has never hosted. The fields are `required`, so null
  * would fail validation, and 0/0/0 is already what Old Petty -- the practice course -- holds.
  */
-const NEVER_HOSTED: VenueHosting = { timesHosted: 0, firstHosted: 0, lastHosted: 0 };
+export const NEVER_HOSTED: VenueHosting = { timesHosted: 0, firstHosted: 0, lastHosted: 0 };
 
 export async function computeVenueHosting(payload: Payload, venueId: string | number, req?: PayloadRequest): Promise<VenueHosting> {
   const championships = await payload.find({
@@ -40,6 +40,37 @@ export async function computeVenueHosting(payload: Payload, venueId: string | nu
   years.sort((a, b) => a - b);
   return { timesHosted: years.length, firstHosted: years[0], lastHosted: years[years.length - 1] };
 }
+
+/**
+ * Fills the three fields on every venue save. They are read-only in the admin, so this hook is the
+ * only thing that sets them and it has to set them on every path, including create.
+ *
+ * The create branch is not an optimisation. A championship points at a venue, so a venue being
+ * created cannot have one yet -- but without this branch the fields stayed unset on create, and
+ * being both `required` and `readOnly` meant the save failed validation with no way for anyone to
+ * supply a value. That blocked adding a new course entirely.
+ */
+export const deriveVenueHosting: CollectionBeforeValidateHook = async ({ data, req, originalDoc, context }) => {
+  if (!data) return data;
+
+  // The championship sync has just written these figures; recomputing underneath it is wasted work.
+  if (context?.skipHostingDerive) return data;
+
+  if (!originalDoc?.id) return Object.assign(data, NEVER_HOSTED);
+
+  try {
+    return Object.assign(data, await computeVenueHosting(req.payload, originalDoc.id, req));
+  } catch {
+    // A failed count must not block someone saving a venue for an unrelated edit. Fall back to
+    // what the venue already holds rather than to whatever was submitted, since a read-only field
+    // may not be submitted at all. The next championship change or venue save recounts.
+    return Object.assign(data, {
+      timesHosted: originalDoc.timesHosted ?? NEVER_HOSTED.timesHosted,
+      firstHosted: originalDoc.firstHosted ?? NEVER_HOSTED.firstHosted,
+      lastHosted: originalDoc.lastHosted ?? NEVER_HOSTED.lastHosted,
+    });
+  }
+};
 
 /** A relationship field arrives either as the id or as the populated document, depending on depth. */
 function relationshipId(value: unknown): string | number | undefined {
