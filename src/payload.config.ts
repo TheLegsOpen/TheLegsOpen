@@ -69,8 +69,29 @@ const dirname = path.dirname(filename);
  * is ever pointed at 6543 directly this becomes a no-op. Falls back to the raw value unchanged if
  * it can't be parsed, so a malformed URL fails loudly at connect time rather than silently here.
  */
+/**
+ * The configured connection string, under either name, with Vercel's placeholder rejected.
+ *
+ * `vercel env pull` writes `DATABASE_URL="[SENSITIVE]"` into .env.production.local for an env var
+ * marked sensitive -- it will not export the real value. That literal is not a no-op: pg's
+ * connection-string parser reads it as `{ host: "base", database: "[SENSITIVE]" }`, because the
+ * brackets make it look like a bare database name. So `next build` locally spent months failing
+ * every query with `getaddrinfo ENOTFOUND base` while still exiting 0, and prerendered zero venue
+ * and player pages instead of the full set. A build that compiles but never reaches the database
+ * looks exactly like a build that worked, which is the reason this is worth guarding rather than
+ * leaving as noise.
+ *
+ * DATABASE_URI is accepted too: it is the name Payload's own docs use, the name this project's
+ * .env.local actually sets, and nothing was reading it.
+ */
+function configuredConnectionString(): string {
+  // Vercel writes this for any env var marked sensitive; it is a marker, not a value.
+  const usable = (value: string | undefined): string => (!value || value === "[SENSITIVE]" ? "" : value);
+  return usable(process.env.DATABASE_URL) || usable(process.env.DATABASE_URI) || "";
+}
+
 function transactionPoolerConnectionString(): string {
-  const raw = process.env.DATABASE_URL || "";
+  const raw = configuredConnectionString();
   if (!raw) return "";
   try {
     const url = new URL(raw);
