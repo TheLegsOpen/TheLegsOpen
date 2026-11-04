@@ -10,6 +10,26 @@ import type { Venue as PayloadVenue } from "@/payload-types";
  * Payload/Postgres rather than local fixtures.
  */
 
+/**
+ * Each overview row is a textarea, and every one of the fifteen venues has been filled in with
+ * two paragraphs separated by a blank line inside a single row rather than one row each. The page
+ * renders a row as one <p>, and HTML collapses that blank line to a space, so all fifteen were
+ * reading as a single run-on block of six or seven hundred characters.
+ *
+ * Splitting here rather than in the page fixes every consumer at once, including the venue film
+ * band, which takes overview[0] and was getting both paragraphs glued together. It also means the
+ * admin can keep using whichever shape is convenient -- blank lines within a row, separate rows,
+ * or a mix -- and the result is the same.
+ */
+function toParagraphs(rows: { paragraph: string }[]): string[] {
+  return rows.flatMap((entry) =>
+    entry.paragraph
+      .split(/\n\s*\n/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean),
+  );
+}
+
 export function mapVenue(doc: PayloadVenue): Venue {
   return {
     slug: doc.slug ?? slugify(doc.name),
@@ -24,7 +44,7 @@ export function mapVenue(doc: PayloadVenue): Venue {
     lastHosted: doc.lastHosted,
     description: doc.description,
     overviewVideoUrl: doc.overviewVideoUrl ?? undefined,
-    overview: (doc.overview ?? []).map((entry) => entry.paragraph),
+    overview: toParagraphs(doc.overview ?? []),
     stats: (doc.stats ?? []).map((stat) => ({ label: stat.label, value: stat.value })),
     imageLabel: doc.imageLabel,
     imageUrl: mediaUrl(doc.image),
