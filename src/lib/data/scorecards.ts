@@ -2,7 +2,7 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { mapPlayer } from "@/lib/data/players";
-import { activeChampionshipIndex } from "@/lib/data/championship-timing";
+import { hasBeenPlayedWhere } from "@/lib/data/championship-timing";
 import { allocateStrokes, stablefordPoints } from "@/lib/scoring";
 import type { Player } from "@/types/player";
 import type {
@@ -73,11 +73,21 @@ export async function getActiveChampionship(payload: Payload, req?: PayloadReque
   try {
     const active = await payload.find({ collection: "championships", where: { isActive: { equals: true } }, limit: 1, req });
     if (active.docs[0]) return active.docs[0];
-    // No flag set: pick from the whole list rather than querying for the highest year, so the
-    // "already played" rule is the shared one and a future championship can never be chosen.
-    const all = await payload.find({ collection: "championships", limit: 500, sort: "year", req });
-    const index = activeChampionshipIndex(all.docs);
-    return index === -1 ? undefined : all.docs[index];
+
+    // The most recently played one, as a where clause rather than by loading the collection and
+    // filtering in JS. That shortcut cost the site an outage: this helper runs roughly nine times
+    // per page render (three leaderboards, live blog, weather, sponsor clock, news ticker, two
+    // scoring-statistics calls), and at Payload's default depth every extra championship returned
+    // drags in its venue -- eighteen-row holes array and photo gallery included -- plus the winning
+    // player. Fifteen documents instead of one, nine times over, was enough to exhaust the
+    // connection pool during the re-render storm that follows a revalidation, and dynamic pages
+    // started flapping between 200 and 500. Keep this to limit-1 queries.
+    const played = await payload.find({ collection: "championships", where: hasBeenPlayedWhere(), sort: "-year", limit: 1, req });
+    if (played.docs[0]) return played.docs[0];
+
+    // Nothing has been played yet: the nearest championship still to come beats showing nothing.
+    const nearest = await payload.find({ collection: "championships", sort: "year", limit: 1, req });
+    return nearest.docs[0];
   } catch {
     return undefined;
   }

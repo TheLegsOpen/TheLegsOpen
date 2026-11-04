@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { activeChampionshipIndex, championshipDay, hasBeenPlayed, isStillToCome } from "@/lib/data/championship-timing";
+import type { ChampionshipTiming } from "@/lib/data/championship-timing";
+import { activeChampionshipIndex, championshipDay, hasBeenPlayed, isStillToCome, playedCutoffs } from "@/lib/data/championship-timing";
 
 // The real rota as at November 2026: fourteen played, 2027 entered ahead of time, and the flag
 // still sitting on the finished 2026 championship so the homepage keeps showing it.
@@ -89,11 +90,55 @@ describe("activeChampionshipIndex", () => {
 
   it("falls back to the nearest championship when none has been played yet", () => {
     // A site whose only records are still to come: showing the next one beats showing nothing.
+    // Index 0 of a year-ascending list, matching the `sort: "year", limit: 1` last resort in
+    // getActiveChampionship -- the two forms of this rule have to agree.
     const allUpcoming = [{ year: 2027, date: "2027-09-11T12:00:00.000Z" }, { year: 2028, date: "2028-09-09T12:00:00.000Z" }];
-    expect(activeChampionshipIndex(allUpcoming, NOW)).toBe(1);
+    expect(activeChampionshipIndex(allUpcoming, NOW)).toBe(0);
+    expect(allUpcoming[activeChampionshipIndex(allUpcoming, NOW)].year).toBe(2027);
   });
 
   it("returns -1 for an empty list rather than indexing into nothing", () => {
     expect(activeChampionshipIndex([], NOW)).toBe(-1);
+  });
+});
+
+describe("hasBeenPlayedWhere", () => {
+  /**
+   * The where clause and hasBeenPlayed are the same rule in two forms -- one for the database, one
+   * for a list already in memory. They have to agree, because getActiveChampionship resolves the
+   * fallback with the query while getActiveChampionshipSummary and the Players collection resolve
+   * it with the predicate. This evaluates the clause in JS against the real rota and checks every
+   * record lands on the same side as the predicate.
+   */
+  function matchesWhere(doc: ChampionshipTiming, now: Date): boolean {
+    const { beforeIso, beforeYear } = playedCutoffs(now);
+    if (doc.date) return new Date(doc.date).toISOString() < beforeIso;
+    return doc.year < beforeYear;
+  }
+
+  const DATED_AND_UNDATED: ChampionshipTiming[] = [
+    ...ROTA.map(({ year, date }) => ({ year, date })),
+    { year: 2024 },
+    { year: 2026 },
+    { year: 2028 },
+  ];
+
+  it("agrees with hasBeenPlayed on every record, dated or not", () => {
+    for (const doc of DATED_AND_UNDATED) {
+      expect(matchesWhere(doc, NOW), `year ${doc.year} date ${doc.date ?? "(none)"}`).toBe(hasBeenPlayed(doc, NOW));
+    }
+  });
+
+  it("agrees on championship day itself, when the two could most easily diverge", () => {
+    const day = new Date("2027-09-11T15:00:00.000Z");
+    const today = { year: 2027, date: "2027-09-11T12:00:00.000Z" };
+    expect(matchesWhere(today, day)).toBe(false);
+    expect(hasBeenPlayed(today, day)).toBe(false);
+  });
+
+  it("excludes an undated championship in the current year, matching championshipDay's 31 December", () => {
+    // championshipDay reads an undated 2026 record as 31 Dec 2026, which is still to come today.
+    expect(hasBeenPlayed({ year: 2026 }, NOW)).toBe(false);
+    expect(matchesWhere({ year: 2026 }, NOW)).toBe(false);
   });
 });

@@ -13,6 +13,8 @@
  * emptied. "Most recent" has to mean most recently *played*.
  */
 
+import type { Where } from "payload";
+
 export interface ChampionshipTiming {
   year: number;
   date?: string | null;
@@ -23,6 +25,31 @@ export function startOfToday(now: Date = new Date()): Date {
   const start = new Date(now);
   start.setHours(0, 0, 0, 0);
   return start;
+}
+
+/**
+ * The two cutoffs the "already played" rule compares against: a timestamp for a championship with
+ * a date, and a year for one without. Exported so the query form below and hasBeenPlayed can be
+ * checked against each other on the same numbers rather than on the shape of a where clause.
+ */
+export function playedCutoffs(now: Date = new Date()): { beforeIso: string; beforeYear: number } {
+  return { beforeIso: startOfToday(now).toISOString(), beforeYear: now.getFullYear() };
+}
+
+/**
+ * The same "already played" rule as a Payload `where` clause, so the most recently played
+ * championship can be fetched with one limit-1 query instead of loading the collection and
+ * filtering in JS. Both branches are needed: a championship with no date set is judged on its
+ * year, exactly as championshipDay does.
+ *
+ * `Where` is a type-only import, so this module still pulls nothing from Payload at runtime and
+ * stays safe for the collection config to import.
+ */
+export function hasBeenPlayedWhere(now: Date = new Date()): Where {
+  const { beforeIso, beforeYear } = playedCutoffs(now);
+  return {
+    or: [{ date: { less_than: beforeIso } }, { and: [{ date: { exists: false } }, { year: { less_than: beforeYear } }] }],
+  };
 }
 
 /**
@@ -58,7 +85,9 @@ export function isStillToCome(doc: ChampionshipTiming, now: Date = new Date()): 
  * whichever is flagged active, else the most recently played, else the last in the list.
  *
  * The final fallback matters on a site whose only championships are still to come -- there is
- * nothing played to show, so showing the nearest one is better than showing nothing.
+ * nothing played to show, so the nearest one is better than nothing. Index 0 because the list is
+ * sorted by year ascending, which keeps this in step with the limit-1 query form of the same rule
+ * in getActiveChampionship.
  */
 export function activeChampionshipIndex<T extends ChampionshipTiming & { isActive?: boolean | null }>(
   docs: T[],
@@ -73,5 +102,5 @@ export function activeChampionshipIndex<T extends ChampionshipTiming & { isActiv
     if (hasBeenPlayed(docs[index], now)) return index;
   }
 
-  return docs.length - 1;
+  return 0;
 }
