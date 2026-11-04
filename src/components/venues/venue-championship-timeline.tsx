@@ -27,7 +27,9 @@ export function VenueChampionshipTimeline({
   return (
     <div className="flex flex-col gap-6 bg-surface-dark p-6 text-surface-dark-foreground sm:p-8">
       <div className="flex items-center justify-between gap-4">
-        <h2 className="font-display text-2xl font-bold text-white">Championship Years at {venueName}</h2>
+        {/* Same Cardinal Photo label treatment as the other headings on this page, so this one
+            does not stay the odd sentence-case heading among them. */}
+        <h2 className="font-menu text-[24px] font-bold uppercase leading-[27.6px] tracking-[1.6px] text-white">Championship Years at {venueName}</h2>
         {entries.length > 1 ? (
           <div className="flex shrink-0 gap-2">
             <button

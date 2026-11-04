@@ -284,34 +284,40 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
           </div>
         ) : null}
 
+        {/* The timeline moves up here, ahead of the two full-bleed bands. It has no equivalent on
+            their page, and leaving it between them put a third dark panel between the navy strip
+            and the white champions band. */}
         {championshipsChronological.length > 0 ? (
-          <>
-            <VenueChampionshipCarousel
-              venueName={venue.name}
-              entries={championshipsChronological.map((c) => ({
-                year: c.year,
-                winnerName: c.winnerName,
-                winnerPlayerSlug: c.winnerPlayerSlug,
-                margin: c.margin,
-                photoUrl: c.winnerName ? c.winnerPhotoUrl ?? playerByName.get(c.winnerName)?.photoUrl : undefined,
-              }))}
-            />
-            <VenueChampionshipTimeline
-              venueName={venue.name}
-              entries={championshipsChronological.map((c) => ({
-                year: c.year,
-                winnerName: c.winnerName,
-                winnerPlayerSlug: c.winnerPlayerSlug,
-                photoUrl: c.winnerName ? c.winnerPhotoUrl ?? playerByName.get(c.winnerName)?.photoUrl : undefined,
-              }))}
-            />
-          </>
+          <VenueChampionshipTimeline
+            venueName={venue.name}
+            entries={championshipsChronological.map((c) => ({
+              year: c.year,
+              winnerName: c.winnerName,
+              winnerPlayerSlug: c.winnerPlayerSlug,
+              photoUrl: c.winnerName ? c.winnerPhotoUrl ?? playerByName.get(c.winnerName)?.photoUrl : undefined,
+            }))}
+          />
         ) : (
           <p className="text-sm text-muted-foreground">{venue.name} has not yet hosted a recorded championship in our archive.</p>
         )}
-
-        <VenueChampions venueName={venue.name} champions={champions} />
       </Container>
+
+      {/* Both of these carry their own full-bleed band now, so they sit outside the Container --
+          the same reason the film band above does. */}
+      {championshipsChronological.length > 0 ? (
+        <VenueChampionshipCarousel
+          venueName={venue.name}
+          entries={championshipsChronological.map((c) => ({
+            year: c.year,
+            winnerName: c.winnerName,
+            winnerPlayerSlug: c.winnerPlayerSlug,
+            margin: c.margin,
+            photoUrl: c.winnerName ? c.winnerPhotoUrl ?? playerByName.get(c.winnerName)?.photoUrl : undefined,
+          }))}
+        />
+      ) : null}
+
+      <VenueChampions venueName={venue.name} champions={champions} />
     </>
   );
 }
