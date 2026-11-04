@@ -47,6 +47,9 @@ export function Hero({ currentChampion: CURRENT_CHAMPION, clockConfig, weather }
               imageUrl={CURRENT_CHAMPION.imageUrl}
               tone="navy"
               fill
+              /* Main column of main-side: 891 of the 1366 content width, full width below lg. */
+              sizes="(min-width: 1430px) 891px, (min-width: 1024px) 62vw, 100vw"
+              priority
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/10" />
   

@@ -2,6 +2,12 @@ import { withPayload } from "@payloadcms/next/withPayload";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    // AVIF first, WebP as the fallback. Without this, `formats` defaults to WebP alone and a
+    // browser that advertises AVIF is still served WebP -- measured on the live site, the same
+    // photo came back as image/webp whether or not image/avif was in the Accept header. AVIF is
+    // typically 20-30% smaller again at the same quality. The cost is optimiser CPU on the first
+    // request for each width, which Vercel then caches.
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [{ protocol: "https", hostname: "*.public.blob.vercel-storage.com" }],
   },
   // Vercel's ISR/edge cache is keyed per-hostname -- thelegsopen.com, www.thelegsopen.com and the

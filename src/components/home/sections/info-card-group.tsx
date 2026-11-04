@@ -79,7 +79,14 @@ export function InfoCardGroup({ section }: { section: InfoCardGroupSection }) {
                 className="min-w-0 flex-[0_0_85%] sm:flex-[0_0_45%] lg:flex-[0_0_calc((100%-40px)/3)]"
               >
                 <Link href={card.linkHref} className="group flex h-full flex-col gap-4 bg-primary p-5">
-                  <PlaceholderArt label={card.title} imageUrl={card.imageUrl} tone={card.tone} ratio="16/9" />
+                  <PlaceholderArt
+                    label={card.title}
+                    imageUrl={card.imageUrl}
+                    tone={card.tone}
+                    ratio="16/9"
+                    /* Slide is a third of the 1366 less two 20px gutters; the card p-5 takes 40 more. */
+                    sizes="(min-width: 1430px) 402px, (min-width: 1024px) 29vw, (min-width: 640px) 43vw, 80vw"
+                  />
                   <div className="flex flex-1 flex-col justify-between gap-4">
                     <div>
                       <h3 className="font-sans text-[24px] font-light capitalize leading-[28.8px] tracking-[0px] text-[#d9d9d9]">

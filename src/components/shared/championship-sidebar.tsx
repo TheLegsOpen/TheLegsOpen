@@ -24,7 +24,8 @@ export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "ligh
         >
           Latest News
         </p>
-        <ArticleCard article={featuredArticle} tone={tone} />
+        {/* A 455px rail, not a third of the page -- see GRID_SIZES in ArticleCard. */}
+        <ArticleCard article={featuredArticle} tone={tone} sizes="(min-width: 1430px) 455px, (min-width: 1024px) 32vw, 100vw" />
       </div>
     </aside>
   );

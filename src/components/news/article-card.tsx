@@ -6,16 +6,26 @@ import { Badge } from "@/components/ui/badge";
 import { cn, formatDate } from "@/lib/utils";
 import type { Article } from "@/types/article";
 
+/**
+ * Default `sizes` describes the three-up grid this card renders in nearly everywhere -- the news
+ * grid, the news listing, and the featured-article rows on the venue, player and article pages.
+ * ChampionshipSidebar is the exception and passes its own, because there the card is a 455px rail
+ * rather than a third of the page.
+ */
+const GRID_SIZES = "(min-width: 1430px) 442px, (min-width: 1024px) 31vw, (min-width: 640px) 50vw, 100vw";
+
 export function ArticleCard({
   article,
   priority = false,
   tone = "light",
+  sizes = GRID_SIZES,
 }: {
   article: Article;
+  /** Forwarded to next/image. Only for a card that is the page's largest above-the-fold element. */
   priority?: boolean;
   tone?: "light" | "dark";
+  sizes?: string;
 }) {
-  void priority;
   const isDark = tone === "dark";
   return (
     <Link href={`/latest/${article.slug}`} className="group flex flex-col gap-3">
@@ -24,6 +34,8 @@ export function ArticleCard({
         imageUrl={article.imageUrl}
         tone="navy"
         ratio="4/3"
+        sizes={sizes}
+        priority={priority}
         className="transition-transform duration-300 ease-standard group-hover:scale-[1.02]"
       />
       <div className="flex flex-col gap-2">

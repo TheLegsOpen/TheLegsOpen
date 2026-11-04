@@ -44,6 +44,13 @@ interface PlaceholderArtProps {
    * slides that sit inside a narrower container.
    */
   sizes?: string;
+  /**
+   * Opts this image out of lazy loading and marks it `fetchpriority="high"`. For the one image
+   * that is the page's largest above-the-fold element -- the photo hero, the homepage champion --
+   * being lazy costs a measurable delay before it is even requested. Everything below the fold
+   * must stay lazy, so this is deliberately off by default and set at a handful of call sites.
+   */
+  priority?: boolean;
 }
 
 /**
@@ -63,6 +70,7 @@ export function PlaceholderArt({
   fill = false,
   blendBlack = false,
   sizes = "100vw",
+  priority = false,
 }: PlaceholderArtProps) {
   const seed = hashSeed(label);
   const [dark, mid, light] = TONES[tone];
@@ -79,7 +87,7 @@ export function PlaceholderArt({
       aria-label={label}
     >
       {imageUrl ? (
-        <Image src={imageUrl} alt={label} fill sizes={sizes} className={cn("object-cover", blend && "mix-blend-screen")} />
+        <Image src={imageUrl} alt={label} fill sizes={sizes} priority={priority} className={cn("object-cover", blend && "mix-blend-screen")} />
       ) : (
         <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
           <defs>

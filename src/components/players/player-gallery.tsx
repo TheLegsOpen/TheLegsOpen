@@ -35,7 +35,7 @@ export function PlayerGallery({ playerName, photos }: { playerName: string; phot
           <div className="flex">
             {photos.map((photo, index) => (
               <div key={index} className="min-w-0 flex-[0_0_100%]">
-                <PlaceholderArt label={photo.caption ?? `${playerName} photo ${index + 1}`} imageUrl={photo.imageUrl} tone="navy" ratio="16/9" />
+                <PlaceholderArt sizes="(min-width: 1430px) 455px, (min-width: 1024px) 32vw, 100vw" label={photo.caption ?? `${playerName} photo ${index + 1}`} imageUrl={photo.imageUrl} tone="navy" ratio="16/9" />
               </div>
             ))}
           </div>

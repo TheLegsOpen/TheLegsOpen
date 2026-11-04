@@ -8,9 +8,12 @@ import type { UpcomingChampionship } from "@/lib/data/championships";
 export function UpcomingVenueCard({
   championship,
   emphasis = false,
+  sizes = "100vw",
 }: {
   championship: UpcomingChampionship;
   emphasis?: boolean;
+  /** Set by UpcomingVenues, which is the only place that knows how many cards share the row. */
+  sizes?: string;
 }) {
   const dateLabel = championship.date ? formatDate(championship.date) : String(championship.year);
 
@@ -24,6 +27,7 @@ export function UpcomingVenueCard({
         imageUrl={championship.venueImageUrl}
         tone="dusk"
         fill
+        sizes={sizes}
         className="transition-transform duration-300 ease-standard group-hover:scale-[1.03]"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" aria-hidden="true" />

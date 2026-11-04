@@ -41,7 +41,7 @@ export function VenueGallery({ venueName, photos }: { venueName: string; photos:
               <div key={index} className="min-w-0 flex-[0_0_100%]">
                 {/* 5/3, not 16/9. Measured at 1920 theirs renders 1226x732 -- a ratio of 1.675,
                     which is 5:3 and noticeably taller than the 1.778 of 16:9. */}
-                <PlaceholderArt label={photo.caption ?? `${venueName} photo ${index + 1}`} imageUrl={photo.imageUrl} tone="dusk" ratio="5/3" />
+                <PlaceholderArt sizes="(min-width: 1430px) 1366px, 100vw" label={photo.caption ?? `${venueName} photo ${index + 1}`} imageUrl={photo.imageUrl} tone="dusk" ratio="5/3" />
               </div>
             ))}
           </div>

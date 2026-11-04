@@ -79,6 +79,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           ratio="21/9"
           className="mx-auto w-full max-w-4xl"
           showCaption
+          /* max-w-4xl caps this at 896px however wide the viewport gets. */
+          sizes="(min-width: 896px) 896px, 100vw"
+          priority
         />
 
         <RichTextBlock data={article.body} className="mx-auto max-w-2xl" />
