@@ -3,6 +3,7 @@ import type { CollectionConfig } from "payload";
 import { revalidateVenues } from "@/lib/revalidate";
 import { geocodeVenue } from "@/lib/geocoding";
 import { COUNTRIES, countryName } from "@/data/countries";
+import { computeVenueHosting } from "@/lib/data/venue-hosting";
 
 function slugify(value: string): string {
   return value
@@ -75,9 +76,26 @@ export const Venues: CollectionConfig = {
         description: "Automatically calculated from Hole Setup below once all 18 holes have Par and Yards entered.",
       },
     },
-    { name: "timesHosted", type: "number", required: true },
-    { name: "firstHosted", type: "number", required: true },
-    { name: "lastHosted", type: "number", required: true },
+    // Derived from the championships recorded at this venue, not typed. See lib/data/venue-hosting.ts
+    // for why. Kept `required` because they are always set by the hook below; read-only so the
+    // admin cannot reintroduce a value that disagrees with the roll of honour.
+    {
+      type: "row",
+      fields: [
+        {
+          name: "timesHosted",
+          type: "number",
+          required: true,
+          admin: {
+            readOnly: true,
+            width: "33%",
+            description: "Counted automatically from the championships recorded at this venue.",
+          },
+        },
+        { name: "firstHosted", type: "number", required: true, admin: { readOnly: true, width: "33%" } },
+        { name: "lastHosted", type: "number", required: true, admin: { readOnly: true, width: "33%" } },
+      ],
+    },
     { name: "description", type: "textarea", required: true },
     {
       // Optional. With a link here the venue page gains the dark band The Open runs on theirs --
@@ -231,7 +249,19 @@ export const Venues: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [
-      async ({ data }) => {
+      async ({ data, req, originalDoc, context }) => {
+        // Recount on every save of an existing venue, so opening and saving one is enough to
+        // correct it. Skipped when the championship hook is the caller, which has just computed
+        // the same figures and would otherwise have them recomputed underneath it.
+        if (data && originalDoc?.id && !context?.skipHostingDerive) {
+          try {
+            Object.assign(data, await computeVenueHosting(req.payload, originalDoc.id, req));
+          } catch {
+            // A failed count must not block saving a venue for an unrelated edit. The fields are
+            // `required`, so leaving the submitted values in place keeps the save valid; the next
+            // championship change or venue save recounts.
+          }
+        }
         if (data && !data.slug && data.name) {
           data.slug = slugify(data.name);
         }

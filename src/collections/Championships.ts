@@ -2,6 +2,7 @@ import type { CollectionConfig } from "payload";
 
 import { revalidateChampionships } from "@/lib/revalidate";
 import { computeChampionshipAutoStats } from "@/lib/data/championship-stats";
+import { syncVenueHostingAfterChange, syncVenueHostingAfterDelete } from "@/lib/data/venue-hosting";
 
 export const Championships: CollectionConfig = {
   slug: "championships",
@@ -36,8 +37,10 @@ export const Championships: CollectionConfig = {
         return data;
       },
     ],
-    afterChange: [revalidateChampionships],
-    afterDelete: [revalidateChampionships],
+    // syncVenueHosting first: it writes the venue's hosting counts, and revalidateChampionships
+    // busts /venues/[slug] -- so the counts need to be right before the cache is rebuilt.
+    afterChange: [syncVenueHostingAfterChange, revalidateChampionships],
+    afterDelete: [syncVenueHostingAfterDelete, revalidateChampionships],
   },
   fields: [
     { name: "year", type: "number", required: true, unique: true },
