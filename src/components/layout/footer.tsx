@@ -20,8 +20,22 @@ function LogoWall({ entries }: { entries: SponsorEntry[] }) {
           );
         }
 
-        // eslint-disable-next-line @next/next/no-img-element
-        const logo = <img src={entry.logoUrl} alt={entry.name} className="h-[55px] w-[100px] object-contain" />;
+        // next/image rather than a plain <img>: these are editor-uploaded logos at whatever size they
+        // happened to be exported, and the box is only 100x55. The patron wall was shipping 2.19MB of
+        // PNG on *every* page of the site (one logo alone is 2,222,584 bytes at 3200px wide) to fill
+        // 100 CSS pixels. Fixed width/height means no `sizes` is needed -- Next builds a two-entry
+        // srcset from `imageSizes`, w=128 for 1x and w=256 for 2x, which is ample on either axis once
+        // object-contain has letterboxed the logo into the box. object-contain also means the declared
+        // 100x55 aspect never distorts a logo that is squarer or taller than its box.
+        const logo = (
+          <Image
+            src={entry.logoUrl}
+            alt={entry.name}
+            width={100}
+            height={55}
+            className="h-[55px] w-[100px] object-contain"
+          />
+        );
 
         return entry.websiteUrl ? (
           <a
@@ -95,8 +109,9 @@ export function Footer({ logoUrl, patrons, officialSuppliers, socialLinks, legal
                     rel="noopener noreferrer"
                     className="flex h-12 w-12 items-center justify-center rounded-full border border-primary-foreground/20 transition-colors hover:bg-primary-foreground/10"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={social.iconUrl} alt="" className="h-6 w-6 object-contain" />
+                    {/* Same reason as the logo wall above -- a 24px icon does not need its full-size
+                        upload. alt="" because the Link already carries an aria-label. */}
+                    <Image src={social.iconUrl} alt="" width={24} height={24} className="h-6 w-6 object-contain" />
                   </Link>
                 </li>
               ))}
