@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import Image from "next/image";
 
 import { useLiveClock } from "@/hooks/use-live-clock";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,12 @@ function Hand({ angleDeg, imageUrl, length, thickness, color }: HandProps) {
   };
 
   if (imageUrl) {
+    // Deliberately a plain <img> rather than next/image. A hand is sized by its height with
+    // `width: auto`, so its width has to come from the asset's own aspect ratio -- next/image
+    // requires a declared width/height pair, which would impose an aspect on artwork whose
+    // proportions are the uploader's choice and are the whole point of a hand image. There is also
+    // nothing to win: the three hands are SVGs (~1.7KB for all three), and next/image passes SVG
+    // straight through unoptimised anyway unless dangerouslyAllowSVG is enabled.
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={imageUrl} alt="" aria-hidden="true" style={{ ...style, width: "auto" }} />;
   }
@@ -88,6 +95,13 @@ function AnalogClock({ date, config }: { date: Date | null; config: SponsorClock
     >
       <div className="relative h-full w-full">
         {config.faceImageUrl ? (
+          // Also deliberately a plain <img>. The dial carries a hand-authored 1x/2x pair --
+          // faceImageUrl at 100px and faceImageRetinaUrl at 200px, each 1:1 with the box it is
+          // drawn in, which is the whole point of the comment above. next/image takes a single src
+          // and builds its own srcset, so routing this through it would make faceImageRetinaUrl
+          // dead config and resample a dial that was authored 1:1 precisely because resampling it
+          // made the face look soft. The dial is ~20KB; to cut that, re-export the PNG as WebP and
+          // re-upload it, which keeps the 1:1 property that the code change would throw away.
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={config.faceImageUrl}
@@ -115,11 +129,14 @@ function AnalogClock({ date, config }: { date: Date | null; config: SponsorClock
         <Hand angleDeg={secondAngle} imageUrl={config.secondHandUrl} length={36} thickness={2} color="#b5442e" />
 
         {config.centerCapUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          // Unlike the dial and the hands, the cap is a fixed 14x14 square with no retina
+          // companion, so next/image can express it exactly: w=16 for 1x, w=32 for 2x.
+          <Image
             src={config.centerCapUrl}
             alt=""
             aria-hidden="true"
+            width={14}
+            height={14}
             className="absolute left-1/2 top-1/2 h-[14px] w-[14px] -translate-x-1/2 -translate-y-1/2"
           />
         ) : (
@@ -167,8 +184,12 @@ export function SponsorTimeWidget({ config }: { config: SponsorClock }) {
        */}
       <div className="flex w-[104px] shrink-0 flex-col items-center gap-1 text-center">
         {config.logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={config.logoUrl} alt={config.name} className="h-16 w-full object-contain" />
+          // next/image: see the footer wall (src/components/layout/footer.tsx). The column is fixed
+          // at 104px (above) and the box 64px tall, so that is what is declared; object-contain
+          // keeps a taller or squarer wordmark undistorted inside it. The wordmark in use today is
+          // an SVG, which next/image passes through byte-identical, so this buys nothing right now
+          // -- it is here for the PNG or WebP an admin can just as easily upload instead.
+          <Image src={config.logoUrl} alt={config.name} width={104} height={64} className="h-16 w-full object-contain" />
         ) : (
           <p className="font-menu text-sm font-bold uppercase leading-tight tracking-wide">{config.name}</p>
         )}

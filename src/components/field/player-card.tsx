@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Trophy } from "lucide-react";
 
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
@@ -35,8 +36,16 @@ export function PlayerCard({ player, championYears, championLogoUrl }: PlayerCar
         {championYears?.length ? (
           <span className="absolute left-2 top-2 flex flex-col items-center gap-1">
             {championLogoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={championLogoUrl} alt="" aria-hidden="true" className="h-10 w-10 object-contain drop-shadow-md" />
+              // next/image: a 40x40 badge, repeated once per champion in the field grid, from a
+              // single admin upload at whatever size it was exported.
+              <Image
+                src={championLogoUrl}
+                alt=""
+                aria-hidden="true"
+                width={40}
+                height={40}
+                className="h-10 w-10 object-contain drop-shadow-md"
+              />
             ) : (
               <Trophy className="h-8 w-8 text-white drop-shadow-md" aria-hidden="true" />
             )}

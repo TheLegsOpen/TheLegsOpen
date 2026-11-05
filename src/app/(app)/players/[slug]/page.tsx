@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Trophy } from "lucide-react";
 
@@ -209,8 +210,15 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                 ) : null}
                 <div className="relative flex items-center gap-2">
                   {theme.championBadgeUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={theme.championBadgeUrl} alt="" aria-hidden="true" className="h-4 w-4 shrink-0 object-contain" />
+                    // next/image: a 16x16 badge from a single admin upload at export size.
+                    <Image
+                      src={theme.championBadgeUrl}
+                      alt=""
+                      aria-hidden="true"
+                      width={16}
+                      height={16}
+                      className="h-4 w-4 shrink-0 object-contain"
+                    />
                   ) : (
                     <Trophy className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
                   )}

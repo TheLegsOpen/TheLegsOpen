@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 
 import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
@@ -19,8 +20,13 @@ function BrandWall({ entries }: { entries: SponsorEntry[] }) {
     <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
       {entries.map((entry) => {
         const content = entry.logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={entry.logoUrl} alt={entry.name} className="h-16 max-w-full object-contain" />
+          // next/image for the same reason as the footer wall (src/components/layout/footer.tsx):
+          // these are editor-uploaded logos at whatever size they were exported, and the tile is at
+          // most ~294px wide by 64px tall -- 1366 content width over four columns, less the 20px
+          // gutters and the tile's own px-4. 290x64 is that box. object-contain keeps the
+          // letterboxing, so the declared aspect never distorts a logo squarer or taller than the
+          // tile, and max-w-full still shrinks the box on the 2- and 3-column grids below lg.
+          <Image src={entry.logoUrl} alt={entry.name} width={290} height={64} className="h-16 max-w-full object-contain" />
         ) : (
           <span className="font-display text-lg font-bold">{entry.name}</span>
         );
