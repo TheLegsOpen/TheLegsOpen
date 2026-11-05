@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
 
 import type { ChampionshipTiming } from "@/lib/data/championship-timing";
-import { activeChampionshipIndex, championshipDay, hasBeenPlayed, isStillToCome, playedCutoffs } from "@/lib/data/championship-timing";
+import {
+  LIVE_WINDOW_DAYS,
+  activeChampionshipIndex,
+  championshipDay,
+  hasBeenPlayed,
+  inPlayCutoffs,
+  isStillToCome,
+  isWithinLiveWindow,
+  playedCutoffs,
+} from "@/lib/data/championship-timing";
 
 // The real rota as at November 2026: fourteen played, 2027 entered ahead of time, and the flag
 // still sitting on the finished 2026 championship so the homepage keeps showing it.
@@ -140,5 +149,78 @@ describe("hasBeenPlayedWhere", () => {
     // championshipDay reads an undated 2026 record as 31 Dec 2026, which is still to come today.
     expect(hasBeenPlayed({ year: 2026 }, NOW)).toBe(false);
     expect(matchesWhere({ year: 2026 }, NOW)).toBe(false);
+  });
+});
+
+describe("the live-scoring window", () => {
+  // 2027 is the next championship: Castle Stuart, Saturday 11 September. The practice round is
+  // always the day before, so the window the society actually wants is the 10th, 11th and 12th.
+  const CHAMPIONSHIP = { year: 2027, date: "2027-09-11T12:00:00.000Z" };
+
+  /** What a Payload find() with inPlayWhere() would match, evaluated in JS. */
+  function matchesInPlayWhere(doc: ChampionshipTiming, now: Date): boolean {
+    const { fromIso, untilIso } = inPlayCutoffs(now);
+    if (!doc.date) return false;
+    const stored = new Date(doc.date).toISOString();
+    return stored >= fromIso && stored < untilIso;
+  }
+
+  function at(iso: string): Date {
+    return new Date(iso);
+  }
+
+  it("is open on the practice day, the championship and the day after, and shut either side", () => {
+    const expected: [string, boolean][] = [
+      ["2027-09-08T10:00:00.000Z", false],
+      ["2027-09-09T10:00:00.000Z", false],
+      ["2027-09-10T10:00:00.000Z", true],
+      ["2027-09-11T10:00:00.000Z", true],
+      ["2027-09-12T10:00:00.000Z", true],
+      ["2027-09-13T10:00:00.000Z", false],
+      ["2027-09-14T10:00:00.000Z", false],
+    ];
+
+    for (const [iso, open] of expected) {
+      expect(isWithinLiveWindow(CHAMPIONSHIP, at(iso)), `on ${iso.slice(0, 10)}`).toBe(open);
+    }
+  });
+
+  it("holds right through the championship day, not just its morning", () => {
+    // The stored date is noon. An earlier version of this rule compared raw timestamps, which made
+    // the window flip at lunchtime on the one day it had to hold -- the same trap as the venue menu
+    // (see getMenuVenueLinks).
+    for (const hour of ["00:30", "08:00", "12:00", "16:45", "23:30"]) {
+      expect(isWithinLiveWindow(CHAMPIONSHIP, at(`2027-09-11T${hour}:00.000Z`)), `at ${hour}`).toBe(true);
+    }
+  });
+
+  it("agrees with the where clause on every day around the championship", () => {
+    for (let day = 7; day <= 15; day += 1) {
+      const now = at(`2027-09-${String(day).padStart(2, "0")}T10:00:00.000Z`);
+      expect(matchesInPlayWhere(CHAMPIONSHIP, now), `on 2027-09-${day}`).toBe(isWithinLiveWindow(CHAMPIONSHIP, now));
+    }
+  });
+
+  it("never opens for an undated championship", () => {
+    // An undated record reads as 31 December, and championshipDay would happily put it in the
+    // window on 30 December. An unknown date is not a reason to start polling.
+    for (const iso of ["2026-12-30T10:00:00.000Z", "2026-12-31T10:00:00.000Z", "2027-01-01T10:00:00.000Z"]) {
+      expect(isWithinLiveWindow({ year: 2026 }, at(iso)), `on ${iso.slice(0, 10)}`).toBe(false);
+      expect(matchesInPlayWhere({ year: 2026 }, at(iso))).toBe(false);
+    }
+  });
+
+  it("is shut out of season, which is the whole point", () => {
+    expect(isWithinLiveWindow(CHAMPIONSHIP, NOW)).toBe(false);
+    for (const doc of ROTA) {
+      expect(isWithinLiveWindow(doc, NOW), `year ${doc.year}`).toBe(false);
+    }
+  });
+
+  it("covers exactly three days and no more", () => {
+    const { fromIso, untilIso } = inPlayCutoffs(at("2027-09-11T10:00:00.000Z"));
+    const days = (Date.parse(untilIso) - Date.parse(fromIso)) / 86_400_000;
+    expect(days).toBe(2 * LIVE_WINDOW_DAYS + 1);
+    expect(days).toBe(3);
   });
 });

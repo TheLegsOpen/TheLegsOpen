@@ -104,3 +104,65 @@ export function activeChampionshipIndex<T extends ChampionshipTiming & { isActiv
 
   return 0;
 }
+
+/**
+ * How many days either side of a championship's own day count as "in play", for the pages that
+ * poll the server for live scoring changes.
+ *
+ * 1, so the window is three days: the practice round, which is always played the day before; the
+ * championship itself; and the day after, for late scorecard corrections. Checked against 2027 --
+ * an 11 September championship is in play on the 10th, 11th and 12th, and on no other day.
+ */
+export const LIVE_WINDOW_DAYS = 1;
+
+/**
+ * The half-open window [from, until) that `LIVE_WINDOW_DAYS` describes, as ISO strings.
+ *
+ * Built with setDate rather than by adding 24h in milliseconds: both ends are local midnights, and
+ * a pair of local midnights either side of a BST change is 23 or 25 hours apart, so millisecond
+ * arithmetic drifts a day at exactly the end of March and October. setDate moves whole calendar
+ * days, which is what the window is actually counted in.
+ *
+ * Exported so the test can assert the dates themselves rather than the shape of a Payload clause.
+ */
+export function inPlayCutoffs(now: Date = new Date()): { fromIso: string; untilIso: string } {
+  const from = startOfToday(now);
+  from.setDate(from.getDate() - LIVE_WINDOW_DAYS);
+
+  const until = startOfToday(now);
+  until.setDate(until.getDate() + LIVE_WINDOW_DAYS + 1);
+
+  return { fromIso: from.toISOString(), untilIso: until.toISOString() };
+}
+
+/**
+ * Championships being played right now, give or take `LIVE_WINDOW_DAYS`.
+ *
+ * Asked of the whole collection rather than of whichever championship is "active", on purpose.
+ * getActiveChampionship answers a different question -- which championship's data should the site
+ * be showing -- and between events it deliberately answers with the last one *played*. Hanging the
+ * polling gate off that would mean a championship stopped auto-refreshing on its own morning
+ * whenever the "Currently Being Scored" tick happened to be off, which is a bad failure on the one
+ * day of the year it matters. A date comparison over the collection cannot get that wrong.
+ *
+ * A championship with no date set is excluded, which a clause on `date` does for free: an unknown
+ * date is not a reason to start polling every ten seconds.
+ */
+export function inPlayWhere(now: Date = new Date()): Where {
+  const { fromIso, untilIso } = inPlayCutoffs(now);
+  return { and: [{ date: { greater_than_equal: fromIso } }, { date: { less_than: untilIso } }] };
+}
+
+/**
+ * The same window as `inPlayWhere`, asked of a single document already in hand.
+ *
+ * Agrees with the clause by construction: championshipDay normalises to local midnight and the
+ * cutoffs are local midnights, while the stored dates the clause compares sit at noon -- 11 hours
+ * clear of either boundary, so both forms put every championship on the same side of it.
+ */
+export function isWithinLiveWindow(doc: ChampionshipTiming, now: Date = new Date()): boolean {
+  if (!doc.date) return false;
+  const { fromIso, untilIso } = inPlayCutoffs(now);
+  const day = championshipDay(doc).getTime();
+  return day >= Date.parse(fromIso) && day < Date.parse(untilIso);
+}

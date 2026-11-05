@@ -34,6 +34,17 @@ interface LeaderboardViewProps {
   /** The real, tiebreak-aware Stableford title-holder's player id (see getEligibleStablefordChampion),
    * computed server-side since it needs Payload data the client can't reach. */
   stablefordTitleHolderId?: string;
+  /**
+   * Whether to poll the server for score changes, which only the live leaderboard should do and
+   * only while a championship is being played — see isChampionshipInPlay in
+   * lib/data/championships.ts.
+   *
+   * Defaults to off, deliberately. This view is also what renders an archived championship under
+   * /previous-opens, where it was auto-refreshing every 10 seconds for a result that had been
+   * final for years. Opting in beats opting out: a page that forgets to pass this stops polling,
+   * rather than silently polling forever.
+   */
+  autoRefresh?: boolean;
 }
 
 /** Matches the ~10s live-score polling cadence measured on theopen.com/leaderboard. */
@@ -60,6 +71,7 @@ export function LeaderboardView({
   approachCategories,
   puttingCategories,
   stablefordTitleHolderId,
+  autoRefresh = false,
 }: LeaderboardViewProps) {
   const { favorites, toggleFavorite, hydrated } = useFavorites();
   const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -75,7 +87,7 @@ export function LeaderboardView({
     setPopupCompetition(competition);
   }
 
-  useAutoRefresh(AUTO_REFRESH_INTERVAL_MS);
+  useAutoRefresh(autoRefresh ? AUTO_REFRESH_INTERVAL_MS : null);
 
   const mainEntries = useMemo(() => filterEntries(main, query), [main, query]);
   const stablefordEntries = useMemo(() => filterEntries(stableford, query), [stableford, query]);

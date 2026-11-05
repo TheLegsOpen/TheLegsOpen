@@ -9,6 +9,7 @@ import { NewsGrid } from "@/components/home/news-grid";
 import { Container } from "@/components/shared/container";
 import { SectionGrid } from "@/components/shared/section-grid";
 import { getArticlesPage } from "@/lib/data/articles";
+import { isChampionshipInPlay } from "@/lib/data/championships";
 import { getCurrentChampion, getHomepageSections } from "@/lib/data/homepage-settings";
 import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
 import { getLiveBlogPosts } from "@/lib/data/live-blog";
@@ -28,6 +29,9 @@ import {
 
 const PAGE_SIZE = 6;
 
+/** Matches the ~10s live-score polling cadence measured on theopen.com/leaderboard. */
+const LIVE_POLL_INTERVAL_MS = 10_000;
+
 // Hard ceiling on ISR staleness for this live-scoring page. On-demand revalidation
 // (revalidateSite, fired on every scorecard save) alone isn't enough on a low-traffic hostname --
 // Was 10s: Vercel's edge cache is keyed per-hostname, and www.thelegsopen.com and
@@ -38,8 +42,14 @@ const PAGE_SIZE = 6;
 // a fallback ceiling for on-demand revalidation (see src/lib/revalidate.ts) missing a case, not
 // the primary freshness mechanism. Egress is metered per read this database now (Supabase), and a
 // 10s ceiling across every high-traffic page was reading the same data ~360x its own size in a
-// single billing cycle -- raised well past the client's own 10s auto-refresh poll, which mostly
-// hits Vercel's CDN cache rather than the database as long as this window hasn't elapsed.
+// single billing cycle -- raised well past the client's own auto-refresh poll.
+//
+// That last clause used to end "...which mostly hits Vercel's CDN cache rather than the database
+// as long as this window hasn't elapsed", which stopped being true the moment this page became
+// force-dynamic below: there is no cache window any more, so every poll is a real render against
+// Supabase. The sentence outlived the thing that made it true, and it is why the poll went
+// unexamined for so long. The poll is now gated on a championship actually being played --
+// see isChampionshipInPlay.
 // Was `revalidate = 60` (ISR). Vercel's build machine can't reliably reach Supabase (see
 // src/payload.config.ts), which fails static generation outright -- force-dynamic renders this
 // per-request instead, trading the 60s edge cache for a build that actually succeeds.
@@ -71,6 +81,7 @@ export default async function HomePage() {
     approachCategories,
     puttingCategories,
     theme,
+    inPlay,
   ] = await Promise.all([
     getArticlesPage({ page: 1, pageSize: PAGE_SIZE }),
     getCurrentChampion(),
@@ -89,6 +100,7 @@ export default async function HomePage() {
     getApproachCategories(),
     getPuttingCategories(),
     getSiteTheme(),
+    isChampionshipInPlay(),
   ]);
 
   const leaderboard = applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main"));
@@ -97,7 +109,10 @@ export default async function HomePage() {
 
   return (
     <>
-      <AutoRefresh intervalMs={10_000} />
+      {/* Only during the three days around a championship. The live blog is pushed over a Supabase
+          Realtime websocket regardless (see LiveBlogWidget), so the one thing that genuinely
+          changes out of season still arrives without a poll. */}
+      <AutoRefresh intervalMs={inPlay ? LIVE_POLL_INTERVAL_MS : null} />
       {currentChampion ? <Hero currentChampion={currentChampion} clockConfig={clockConfig} weather={weather} /> : null}
       <section className="bg-surface-dark py-16 text-surface-dark-foreground sm:py-24">
         <Container>

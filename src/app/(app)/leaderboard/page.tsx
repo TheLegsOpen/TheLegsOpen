@@ -4,6 +4,7 @@ import { PageHero } from "@/components/shared/page-hero";
 import { ChampionshipWeekSwitcher } from "@/components/shared/championship-week-switcher";
 import { LeaderboardView } from "@/components/leaderboard/leaderboard-view";
 import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
+import { isChampionshipInPlay } from "@/lib/data/championships";
 import { getArticles } from "@/lib/data/articles";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getPageBanners } from "@/lib/data/page-banners";
@@ -44,6 +45,7 @@ export default async function LeaderboardPage() {
     approachCategories,
     puttingCategories,
     playoffs,
+    inPlay,
   ] = await Promise.all([
     getCompetitionLeaderboard("main"),
     getCompetitionLeaderboard("stableford"),
@@ -58,6 +60,7 @@ export default async function LeaderboardPage() {
     getApproachCategories(),
     getPuttingCategories(),
     getPlayoffs(),
+    isChampionshipInPlay(),
   ]);
 
   const main = applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main"));
@@ -90,6 +93,7 @@ export default async function LeaderboardPage() {
         approachCategories={approachCategories}
         puttingCategories={puttingCategories}
         stablefordTitleHolderId={stablefordTitleHolderId}
+        autoRefresh={inPlay}
       />
     </>
   );

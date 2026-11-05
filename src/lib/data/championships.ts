@@ -2,7 +2,7 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { slugify, mediaUrl } from "@/lib/utils";
-import { activeChampionshipIndex, isStillToCome } from "@/lib/data/championship-timing";
+import { activeChampionshipIndex, inPlayWhere, isStillToCome } from "@/lib/data/championship-timing";
 import type { ChampionshipWinner } from "@/types/championship";
 import type { Championship as PayloadChampionship, Venue as PayloadVenue, Player as PayloadPlayer } from "@/payload-types";
 
@@ -197,5 +197,46 @@ export async function getMenuVenueLinks(): Promise<{ label: string; href: string
     });
   } catch {
     return [];
+  }
+}
+
+/**
+ * Whether a championship is close enough to being played that the homepage and the public
+ * leaderboard should poll the server for changes.
+ *
+ * Those two pages auto-refreshed every 10 seconds unconditionally, all year round. Both are
+ * force-dynamic, so a poll is a full server render against Supabase rather than a cached hit --
+ * roughly 0.9s and the better part of twenty queries, 360 times an hour, per open tab, returning
+ * identical data for the eleven and a half months a year when nobody is playing golf. It is also
+ * the multiplier that turned a query of mine nine times too expensive into an outage: an expensive
+ * render only takes a site down when something calls it unprompted.
+ *
+ * Worth knowing why the old comment on page.tsx did not catch it. It argued the poll was cheap
+ * because it "mostly hits Vercel's CDN cache rather than the database", which was true while the
+ * page was `revalidate = 60`. Moving to force-dynamic to get builds working removed the cache
+ * window and left the sentence explaining why the poll was harmless in place.
+ *
+ * One limit-1 query at depth 0 per render, which is the cost of not doing 359 of them.
+ *
+ * Returns false on any failure -- see the fallback on getSiteTheme (src/lib/data/site-theme.ts).
+ * Not polling is the safe way to fail: the page still renders live data on every real visit.
+ */
+export async function isChampionshipInPlay(): Promise<boolean> {
+  try {
+    const payload = await getPayload({ config: configPromise });
+    const result = await payload.find({
+      collection: "championships",
+      where: inPlayWhere(),
+      depth: 0,
+      // pagination: false rather than limit: 1 -- it skips the count(*) that a paginated find also
+      // runs, and the two are mutually exclusive in Payload (pagination: false ignores limit, so
+      // writing both would just read as though the limit were doing something). A three-day window
+      // holds at most one championship, they being a year apart, and anything more than one still
+      // answers this question the same way.
+      pagination: false,
+    });
+    return result.docs.length > 0;
+  } catch {
+    return false;
   }
 }
