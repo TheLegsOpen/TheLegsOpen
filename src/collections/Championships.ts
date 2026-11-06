@@ -94,7 +94,17 @@ export const Championships: CollectionConfig = {
       relationTo: "media",
       admin: {
         description:
-          "Optional. Shown for this champion on the venue's \"Champion Golfers at [venue]\" section instead of their usual player profile photo. Leave blank to fall back to the profile photo.",
+          "Optional. Shown for this champion on the venue's \"Champion Golfers at [venue]\" section instead of their usual player profile photo, and used by the venue strip below unless that has a photo of its own. Leave blank to fall back to the profile photo.",
+      },
+    },
+    {
+      name: "venueStripPhoto",
+      label: "Photo (venue page strip)",
+      type: "upload",
+      relationTo: "media",
+      admin: {
+        description:
+          "Optional. The photograph on this championship's card in the \"The Legs Open at [venue]\" strip. Leave blank and the strip uses the Champion Photo above, so the two sections only differ once you want them to. Useful where the moment belongs in the strip and the portrait belongs in Champion Golfers -- a shot of the closing hole, the presentation, the weather.",
       },
     },
     {

@@ -320,6 +320,8 @@ export interface Championship {
   winnerPlayer?: (string | Player) | null;
   winnerPhoto?: (string | Media) | null;
   /** Hand-added with the field -- see note at top of file. */
+  venueStripPhoto?: (string | Media) | null;
+  /** Hand-added with the field -- see note at top of file. */
   venueStripCaption?: string | null;
   winningScore?: number | null;
   scoreToPar?: number | null;

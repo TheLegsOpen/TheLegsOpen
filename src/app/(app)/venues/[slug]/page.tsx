@@ -302,7 +302,16 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
             winnerName: c.winnerName,
             caption: c.venueStripCaption,
             hasVideo: Boolean(c.overviewVideoUrl),
-            photoUrl: c.winnerName ? c.winnerPhotoUrl ?? playerByName.get(c.winnerName)?.photoUrl : undefined,
+            // Three deep, and only this section has the first rung: the strip's own photo, then
+            // the Champion Photo that the Champion Golfers band below uses, then the player's
+            // profile portrait. So the two sections show the same picture until someone gives the
+            // strip one of its own, which is the point -- a moment from the day belongs here, a
+            // portrait belongs under Champion Golfers, but nothing goes blank in the meantime.
+            //
+            // The strip photo sits outside the winnerName check deliberately. A championship with
+            // no champion recorded yet can still have a photograph of the course.
+            photoUrl:
+              c.venueStripPhotoUrl ?? (c.winnerName ? c.winnerPhotoUrl ?? playerByName.get(c.winnerName)?.photoUrl : undefined),
           }))}
         />
       ) : null}

@@ -20,6 +20,8 @@ export interface ChampionshipWinner {
   overviewVideoUrl?: string;
   /** Editorial caption written across this championship's photo in the venue page strip. Empty means the photo carries its year alone. */
   venueStripCaption?: string;
+  /** Strip-only photo override. Empty means the strip shows whatever Champion Golfers shows. */
+  venueStripPhotoUrl?: string;
   winnerPlayerSlug?: string;
   winnerPlayerId?: string;
   winnerPlayerDateOfBirth?: string;
