@@ -26,8 +26,9 @@ Sixteen started and nine finished. Owen Watters, Colin Howieson, Andrew Spiers, 
 Jim Yuille, Danny Gardiner and Alastair Campbell all failed to return a card, Gardiner having
 withdrawn.
 
-It is the highest proportion of non-returns in any championship with a full field behind it,
-and the reason is not weather but arithmetic: the Castle Course gave up almost nothing to a
+Seven from sixteen is a heavy toll, and unlike Gullane two years earlier — where a downpour
+destroyed the cards themselves — the reason here is arithmetic rather than weather: the
+Castle Course gave up almost nothing to a
 field of mixed handicaps. The twelfth, a par four of stroke index eight, played to **6.07** —
 more than two shots over its par. Only one man made par there all day, and nine took six or
 worse.
@@ -36,7 +37,7 @@ The seventh followed at 5.71 and the eleventh at 5.57, where nine of the field m
 bogey or worse. Three par fours, each taking a shot and a half or more from everyone who
 played them.
 
-## Magowan takes the Scratch
+## Magowan takes the Scratch and the Stableford
 
 Stephen Magowan's **gross 86** was the lowest round of the championship, level with Bryan
 Forbes and taken on the back nine: Magowan came home in 42, the best inward half of the day,
@@ -46,9 +47,15 @@ It was Magowan's second podium in three years and his first Scratch title. Forbe
 defending champion, went out in 41 — the best outward nine — but could not hold it, and
 finished fifth in the Main on nett 80.
 
-Magowan's 33 Stableford points were second to Park's, tied with Colum Watters, and the
-society's rule does not come into it this time: the Main champion took the Stableford on
-merit, so the points title and the Main title both belong to Park.
+He takes the Stableford too. Park topped the points on 39 and the society's rule removes the
+Main champion from that title, which left **Magowan and Colum Watters tied on 33** — and the
+Stableford goes to Magowan.
+
+Worth noting who else was in that conversation. Owen Watters scored 29 points and Barry Thomas
+28, both having returned no card for the Main. A no-return ends a round for the Main and the
+Scratch, which need a gross total; the Stableford scores the holes a player completes and is
+not affected. Seven men signed no card at the Castle Course, and five of them still appear in
+the points.
 
 ## Where the course relented
 

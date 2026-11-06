@@ -60,8 +60,12 @@ would have given him a third title in an afternoon. The society's rule settles i
 does: the Main champion does not also take the Stableford.
 
 So the Stableford goes to **Andrew Duncan on 35**, and it is worth saying that he had already
-earned it on his own terms — he was second in the Main, second in the Scratch, and the only
-player besides Forbes to break 35 points. Owen Watters was next on 34.
+earned it on his own terms — second in the Main, second in the Scratch, and nobody within
+three of Forbes but him.
+
+Owen Watters and Stephen Magowan were next on 34, Magowan's coming without a card: a
+no-return ends a round for the Main and the Scratch, which need a gross total, but the
+Stableford scores the holes a player completes and is not affected by it.
 
 Kevin Park, off twenty-six, was fourth in the Main on nett 79 and fourth in the Stableford on
 28, a decent return on a course that gave the higher handicaps very little to work with.

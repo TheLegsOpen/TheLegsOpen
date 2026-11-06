@@ -41,7 +41,7 @@ as it always does. That left **four players tied on 34** — Sinton, Eadie, Dunc
 the same four tied in the Main — and the title went to **Neal Eadie**.
 
 It is a fair outcome on the evidence of his card. Three birdies and an inward 36 on a day when
-only four men in the field broke 35 points is the most golf anyone played at Loch Lomond,
+only five men in the field reached 34 points is the most golf anyone played at Loch Lomond,
 whatever the strokeplay said.
 
 ## The second, and the thirteenth

@@ -44,17 +44,26 @@ par three playing to 3.29, with **twenty-three pars** from the field and only tw
 than four. The eleventh, a par five of stroke index four, gave up five birdies — the most of
 any hole — and played only half a shot over par.
 
-## The points
+## McAlpine wins the Stableford without returning a card
 
-Duncan topped the Stableford as well on **36**, and the society's rule removes the Main
-champion from that title as it always does. Behind him Stuart Hamilton and Fraser Donaldson
-were tied on **35**, with Oliphant a shot back on 34.
+**John McAlpine** took the Stableford on **37 points**, playing off forty-six, and he did it
+while being disqualified from the Main championship on the same round.
+
+He played all eighteen holes and picked up on the fourteenth. A single no-return hole ends a
+card for the Main and the Scratch, both of which need a gross total; the Stableford needs no
+such thing, because it scores the holes a player actually completes. Seventeen holes of
+points were worth more than anybody else's eighteen.
+
+It is worth being precise about the margin, because it did not depend on the society's rule at
+all. Duncan topped the field's completed cards on **36**, and the Main champion is removed from
+the Stableford as a matter of course — but McAlpine beat him outright by a point regardless.
+Stuart Hamilton and Fraser Donaldson followed on 35, Oliphant on 34.
 
 ## Eight cards short
 
-Eight men returned no card: John McAlpine, David Pow, Bryan Forbes, Cameron Dyer, Doug Scott,
-Andrew Spiers, Martin McErlean and Mark Kennedy. Forbes was the 2019 champion and Scott the
-reigning Scratch champion from Loch Lomond two years before.
+Eight men returned no card for the Main: McAlpine, David Pow, Bryan Forbes, Cameron Dyer, Doug
+Scott, Andrew Spiers, Martin McErlean and Mark Kennedy. Forbes was the 2019 champion and Scott
+the reigning Scratch champion from Loch Lomond two years before.
 
 Twenty-eight completed rounds was nonetheless the most the championship had seen, and the
 field averaged **90.2 — 18.2 over par**.
