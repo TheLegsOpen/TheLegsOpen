@@ -29,8 +29,8 @@ withdrawn.
 It is the highest proportion of non-returns in any championship with a full field behind it,
 and the reason is not weather but arithmetic: the Castle Course gave up almost nothing to a
 field of mixed handicaps. The twelfth, a par four of stroke index eight, played to **6.07** —
-more than two shots over its par, the hardest single hole in any Legs Open on record. Only one
-man made par there all day, and nine took six or worse.
+more than two shots over its par. Only one man made par there all day, and nine took six or
+worse.
 
 The seventh followed at 5.71 and the eleventh at 5.57, where nine of the field made double
 bogey or worse. Three par fours, each taking a shot and a half or more from everyone who

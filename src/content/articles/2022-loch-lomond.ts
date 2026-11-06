@@ -47,8 +47,8 @@ whatever the strokeplay said.
 ## The second, and the thirteenth
 
 Two holes did most of the damage. The second, a par four of stroke index five, played to
-**5.70** and put **thirteen of the field** into double bogey or worse — the heaviest
-concentration of trouble on any hole in the championship's record. Nobody birdied it.
+**5.70** and put **thirteen of the sixteen men who finished it** into double bogey or worse.
+Nobody birdied it.
 
 The thirteenth, a par five, played to 6.52 with three players taking nine or worse. The
 eleventh, a short hole of stroke index eighteen, played a shot and a half over its par of

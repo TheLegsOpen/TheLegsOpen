@@ -43,7 +43,7 @@ Anderson and Neal Eadie made two birdies apiece, the most by anyone. There were 
 
 ## Half the field signed for nothing
 
-Fourteen non-returns from twenty-eight starters is the highest count the championship has
+Fourteen non-returns from twenty-eight starters was the highest count the championship had
 recorded, and the list reads like a roll call of past and future champions: Robert Hamilton,
 Stevie Connelly, Andrew Spiers, David Clee, Fraser Donaldson, Kevin Park, Colum Watters,
 David Pow, Keiran Dougan, Martin McErlean, Sandy Hogg, John McAlpine, Grant Robertson and
@@ -70,6 +70,6 @@ thirteen pars, the eighth at 4.72 and three birdies — the most generous hole o
 
 ## The eleventh championship
 
-Thomas is the ninth different man to win the Legs Open in eleven years, and the first to do it
+Thomas is the tenth different man to win the Legs Open in eleven years, and the first to do it
 from a handicap in the mid-teens since Kevin Park at the Castle Course three years earlier.
 `;

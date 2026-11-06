@@ -20,8 +20,8 @@ youngest champion the Legs Open has had.
 ## The first hole, which beat everybody
 
 Blairgowrie's opening hole is stroke index four and played to **6.13 against a par of four**,
-the hardest opening hole in the championship's history and the hardest hole of this
-championship by half a shot.
+the hardest hole of this championship by half a shot, and the hardest opening hole in any
+Legs Open whose cards survive.
 
 Nobody made par there. Not one of the fifteen. The best score on it all day was a five, ten
 men made six or worse, and one made nine. A field walks to the first tee of a championship
@@ -56,9 +56,8 @@ the day at 40.
 
 ## A field that mostly finished
 
-Fourteen of the fifteen starters returned a card — much the best completion rate of any
-championship to that point — and the field averaged **91.7 gross, 19.7 over par**, the lowest
-figure in six years.
+Fourteen of the fifteen starters returned a card, and the field averaged **91.7 gross — 19.7
+over par**, the lowest figure in six years.
 
 Blairgowrie, the first hole aside, was a fair test rather than a brutal one. The eleventh gave
 up two birdies and played to only 0.40 over par; the ninth yielded three birdies, the most of

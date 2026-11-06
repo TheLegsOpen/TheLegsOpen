@@ -64,5 +64,5 @@ walk off it level.
 Level par nett, level par on the back nine, lowest round of the day, and the Scratch title
 alongside the Main.
 
-Twelve championships, and only the second successful defence in the society's history.
+Thirteen championships, and only the second successful defence in the society's history.
 `;

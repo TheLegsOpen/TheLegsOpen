@@ -39,7 +39,7 @@ The **tenth** was barely kinder at 5.89 with seventeen doubles and three pars. T
 followed at 5.42, which meant the championship finished on one of the three hardest holes on
 the course, with fifteen men dropping two or more there.
 
-Against that, the **seventeenth** was the most forgiving hole in any Legs Open on record: a
+Against that, the **seventeenth** was the most forgiving hole of the championship: a
 par three playing to 3.29, with **twenty-three pars** from the field and only two scores worse
 than four. The eleventh, a par five of stroke index four, gave up five birdies — the most of
 any hole — and played only half a shot over par.
