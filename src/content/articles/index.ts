@@ -144,3 +144,30 @@ export const ARTICLE_SOURCES: ArticleSource[] = [
 export function findArticleSource(slug: string): ArticleSource | undefined {
   return ARTICLE_SOURCES.find((source) => source.slug === slug);
 }
+
+/**
+ * Articles that were written in the admin rather than here, and so have no Markdown source to
+ * republish, but still need tagging to their championship.
+ *
+ * The tag is what puts a write-up in the rail on that year's Overview tab. It is matched
+ * explicitly rather than by publication year for the reason given on the field itself: a feature
+ * that merely shares a year with a championship does not belong to it, and the roll of honour
+ * went out in August 2026 belonging to no championship at all.
+ *
+ * Listed by live slug, so /api/admin-article?tags sets the field on these without touching a word
+ * of what is already written. Tagging one that is already tagged is a no-op, so the list can stay
+ * here as a record of what belongs where.
+ */
+export const ARTICLE_CHAMPIONSHIP_TAGS: { slug: string; championshipYear: number }[] = [
+  { slug: "pow-holds-firm-at-dundonald-to-claim-second-legs-open", championshipYear: 2014 },
+  { slug: "clee-leads-from-the-turn-to-land-legs-open-crown-at-lanark", championshipYear: 2015 },
+  { slug: "a-championship-that-should-not-have-been-played-clee-goes-back-to-back-at-southerness", championshipYear: 2016 },
+  {
+    slug: "an-eight-at-the-last-and-half-an-hour-in-the-clubhouse-cruickshanks-loses-the-2017-legs-open-twice-on-the-same-hole",
+    championshipYear: 2017,
+  },
+  // Already tagged by hand; listed so this is the full picture rather than only the gaps.
+  { slug: "campbell-clinches-playoff-success", championshipYear: 2013 },
+  { slug: "four-men-played-eighteen-holes-for-nothing-rain-takes-the-2018-legs-open-apart", championshipYear: 2018 },
+  { slug: "leisegang-survives-the-worst-possible-start-to-win-on-debut", championshipYear: 2026 },
+];

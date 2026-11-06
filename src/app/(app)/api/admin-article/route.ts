@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
-import { ARTICLE_SOURCES, findArticleSource } from "@/content/articles";
+import { ARTICLE_CHAMPIONSHIP_TAGS, ARTICLE_SOURCES, findArticleSource } from "@/content/articles";
 import { markdownToLexical, readingTimeMinutes } from "@/lib/articles/markdown-to-lexical";
 
 /**
@@ -20,6 +20,12 @@ import { markdownToLexical, readingTimeMinutes } from "@/lib/articles/markdown-t
  *   /api/admin-article?slug=...                            dry run: show what would be written
  *   /api/admin-article?slug=...&confirm=PUBLISH            write it (draft)
  *   /api/admin-article?slug=...&confirm=PUBLISH&live=true  write it and publish immediately
+ *   /api/admin-article?tags                                dry run: championship tagging
+ *   /api/admin-article?tags&confirm=TAG                    apply it
+ *
+ * Tagging is separate from publishing because the articles that need it were written in the
+ * admin and have no Markdown source -- republishing them would overwrite words nobody has a copy
+ * of. It writes the championship field and nothing else.
  *
  * Re-running against a slug that already exists updates that article rather than making a second
  * copy, and never touches its image -- so a picture added in the admin survives a re-publish.
@@ -36,21 +42,91 @@ export async function GET(request: NextRequest) {
   const slug = request.nextUrl.searchParams.get("slug");
   const confirmed = request.nextUrl.searchParams.get("confirm") === "PUBLISH";
   const live = request.nextUrl.searchParams.get("live") === "true";
+  const tags = request.nextUrl.searchParams.has("tags");
 
   const existingBySlug = new Map(
     (await payload.find({ collection: "articles", limit: 500, depth: 0, draft: true })).docs.map((doc) => [doc.slug, doc]),
   );
 
-  if (!slug) {
+  // ?tags -- set the championship on articles written in the admin, which have no Markdown source
+  // to republish. Only that one field is written, so nothing anyone typed is touched, and each
+  // article keeps whatever status it already had rather than being published as a side effect.
+  if (tags) {
+    const apply = request.nextUrl.searchParams.get("confirm") === "TAG";
+    const championshipByYear = new Map(
+      (await payload.find({ collection: "championships", limit: 500, depth: 0 })).docs.map((doc) => [doc.year, String(doc.id)]),
+    );
+
+    const results = [];
+    for (const tag of ARTICLE_CHAMPIONSHIP_TAGS) {
+      const article = existingBySlug.get(tag.slug);
+      const championshipId = championshipByYear.get(tag.championshipYear);
+
+      if (!article) {
+        results.push({ slug: tag.slug, status: "skipped -- no article on the site with this slug" });
+        continue;
+      }
+      if (!championshipId) {
+        results.push({ slug: tag.slug, status: `skipped -- no championship for ${tag.championshipYear}` });
+        continue;
+      }
+      const current = typeof article.championship === "object" && article.championship ? String(article.championship.id) : article.championship;
+      if (current === championshipId) {
+        results.push({ slug: tag.slug, status: `already tagged to ${tag.championshipYear}` });
+        continue;
+      }
+      if (!apply) {
+        results.push({ slug: tag.slug, status: `would tag to ${tag.championshipYear}`, articleId: article.id });
+        continue;
+      }
+
+      await payload.update({
+        collection: "articles",
+        id: article.id,
+        data: { championship: championshipId },
+        // Keep the article where it is. Passing draft: false on something still in draft would
+        // publish it, which is not what tagging is for.
+        draft: article._status !== "published",
+      });
+      results.push({ slug: tag.slug, status: `tagged to ${tag.championshipYear}`, articleId: article.id });
+    }
+
     return NextResponse.json({
-      available: ARTICLE_SOURCES.map((source) => ({
-        slug: source.slug,
-        title: source.title,
-        publishedAt: source.publishedAt,
-        words: source.markdown.split(/\s+/).filter(Boolean).length,
-        alreadyOnSite: existingBySlug.has(source.slug),
-      })),
+      mode: "tags",
+      applied: apply,
+      message: apply ? "Done." : "Nothing written. Add &confirm=TAG to apply.",
+      results,
+    });
+  }
+
+  if (!slug) {
+    // A source whose championship year already has an article under a *different* slug would be
+    // created alongside it rather than updating it, leaving the year with two write-ups. That is
+    // how the 2016 source sits today, and `alreadyOnSite: false` on its own reads like an
+    // invitation to publish it, so say so plainly here instead.
+    const taggedYearBySlug = new Map(ARTICLE_CHAMPIONSHIP_TAGS.map((tag) => [tag.slug, tag.championshipYear]));
+
+    return NextResponse.json({
+      available: ARTICLE_SOURCES.map((source) => {
+        const clash = source.championshipYear
+          ? [...existingBySlug.keys()]
+              .filter((key): key is string => typeof key === "string")
+              .find((key) => key !== source.slug && taggedYearBySlug.get(key) === source.championshipYear)
+          : undefined;
+        return {
+          slug: source.slug,
+          title: source.title,
+          publishedAt: source.publishedAt,
+          championshipYear: source.championshipYear,
+          words: source.markdown.split(/\s+/).filter(Boolean).length,
+          alreadyOnSite: existingBySlug.has(source.slug),
+          ...(clash
+            ? { warning: `${source.championshipYear} already has an article on the site under the slug "${clash}". Publishing this would add a second one rather than update it.` }
+            : {}),
+        };
+      }),
       usage: "Add ?slug=<slug> for a dry run, then &confirm=PUBLISH to write it (&live=true to publish rather than draft).",
+      tagging: "Add ?tags for a dry run of championship tagging, then &confirm=TAG to apply. That writes only the championship field and never touches an article's words or status.",
     });
   }
 
