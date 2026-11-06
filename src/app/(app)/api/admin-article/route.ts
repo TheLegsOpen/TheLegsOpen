@@ -62,6 +62,26 @@ export async function GET(request: NextRequest) {
   const body = markdownToLexical(source.markdown);
   const existing = existingBySlug.get(source.slug);
 
+  // Articles has carried a `championship` relationship since 30 October 2026, and this route never
+  // set it -- so every article on the site had it empty and nothing was joined to anything.
+  // Resolved by year rather than hardcoded id, since ids are whatever the database handed out.
+  let championship: string | undefined;
+  if (source.championshipYear) {
+    const match = await payload.find({
+      collection: "championships",
+      where: { year: { equals: source.championshipYear } },
+      limit: 1,
+      depth: 0,
+    });
+    championship = match.docs[0] ? String(match.docs[0].id) : undefined;
+    if (!championship) {
+      return NextResponse.json(
+        { error: `No championship found for year ${source.championshipYear} -- refusing to publish an unlinked write-up` },
+        { status: 409 },
+      );
+    }
+  }
+
   const data = {
     title: source.title,
     slug: source.slug,
@@ -71,6 +91,7 @@ export async function GET(request: NextRequest) {
     readTimeMinutes: readingTimeMinutes(source.markdown),
     heroLabel: source.heroLabel,
     body,
+    ...(championship ? { championship } : {}),
   };
 
   if (!confirmed) {
