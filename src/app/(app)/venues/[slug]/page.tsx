@@ -301,6 +301,7 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
             year: c.year,
             winnerName: c.winnerName,
             caption: c.venueStripCaption,
+            hasVideo: Boolean(c.overviewVideoUrl),
             photoUrl: c.winnerName ? c.winnerPhotoUrl ?? playerByName.get(c.winnerName)?.photoUrl : undefined,
           }))}
         />

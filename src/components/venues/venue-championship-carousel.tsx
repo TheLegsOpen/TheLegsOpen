@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { AlignJustify, ChevronLeft, ChevronRight, Play } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
@@ -19,6 +20,18 @@ export interface VenueChampionshipSlide {
    */
   caption?: string;
   photoUrl?: string;
+  /**
+   * Whether this championship has an overview film, which only changes the icon in the corner
+   * badge -- a play triangle rather than the lines of text. theopen.com does the same: their 1951
+   * Faulkner card carries a play symbol and the 2019 and 2025 cards carry text marks, and in both
+   * cases the badge goes to that championship's own page rather than straight to the film.
+   */
+  hasVideo?: boolean;
+}
+
+/** `/previous-opens/{year}` -- the championship's own page, which is what the badge opens. */
+function championshipHref(year: number): string {
+  return `/previous-opens/${year}`;
 }
 
 // Their card is 224 wide by 375 tall: a 26px year on its own line, then a 340-tall picture. The
@@ -86,8 +99,36 @@ export function VenueChampionshipCarousel({ venueName, entries }: { venueName: s
       />
 
       <Container className="relative pb-[120px]">
-        <div className="pb-[65px] pt-[75px]">
+        {/* Heading and arrows share this row, which is where theirs puts them -- the arrows sit
+            top-right, level with the title, rather than floating over the middle of the
+            photographs where they covered whatever was behind them. */}
+        <div className="flex items-center justify-between gap-6 pb-[65px] pt-[75px]">
           <h2 className="font-menu text-[26px] font-bold uppercase leading-[31.98px] tracking-[1.6px] text-white">The Legs Open at {venueName}</h2>
+
+          {/* A strip, not a slideshow: the arrows only mean anything once the cards overflow,
+              and most courses here have hosted once. */}
+          {canScroll.prev || canScroll.next ? (
+            <div className="flex shrink-0 gap-3">
+              <button
+                type="button"
+                aria-label="Previous championships"
+                onClick={() => emblaApi?.scrollPrev()}
+                disabled={!canScroll.prev}
+                className="flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/40 text-white transition-colors hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                aria-label="Next championships"
+                onClick={() => emblaApi?.scrollNext()}
+                disabled={!canScroll.next}
+                className="flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/40 text-white transition-colors hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+          ) : null}
         </div>
 
         <div className="relative">
@@ -108,6 +149,30 @@ export function VenueChampionshipCarousel({ venueName, entries }: { venueName: s
                       fill
                       sizes="224px"
                     />
+
+                    {/*
+                     * Their corner badge, flush into the top-left of the photograph, opening that
+                     * championship's own page. Theirs is a solid square of their brand blue on
+                     * navy; ours is the same move in our palette -- accent gold with the navy
+                     * drawn on it -- rather than borrowing a blue that belongs to somebody else's
+                     * identity.
+                     *
+                     * 40px square. Theirs is ~46 on a ~390-wide card; scaled strictly to our 224
+                     * that would be 26, which is both fiddly to hit and too small to read as a
+                     * deliberate mark, so it is held at 40 instead and allowed to take a slightly
+                     * larger share of a narrower card.
+                     */}
+                    <Link
+                      href={championshipHref(entry.year)}
+                      aria-label={`The ${entry.year} Legs Open at ${venueName}`}
+                      className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center bg-accent text-accent-foreground transition-opacity hover:opacity-85 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                    >
+                      {entry.hasVideo ? (
+                        <Play className="h-[18px] w-[18px] fill-current" aria-hidden="true" />
+                      ) : (
+                        <AlignJustify className="h-[18px] w-[18px]" aria-hidden="true" />
+                      )}
+                    </Link>
                     {/* Theirs sets the caption straight onto the photograph. A gradient stays
                         here because our portraits are not all dark at the foot and white 16px
                         on a bright sky is unreadable -- and it is rendered with the caption
@@ -127,30 +192,6 @@ export function VenueChampionshipCarousel({ venueName, entries }: { venueName: s
             </div>
           </div>
 
-          {/* A strip, not a slideshow: the arrows only mean anything once the cards overflow,
-              and most courses here have hosted once. */}
-          {canScroll.prev || canScroll.next ? (
-            <>
-              <button
-                type="button"
-                aria-label="Previous championships"
-                onClick={() => emblaApi?.scrollPrev()}
-                disabled={!canScroll.prev}
-                className="absolute left-0 top-1/2 flex h-[55px] w-[45px] -translate-y-1/2 items-center justify-center bg-white/15 text-white transition-colors hover:bg-white/30 disabled:opacity-30"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                type="button"
-                aria-label="Next championships"
-                onClick={() => emblaApi?.scrollNext()}
-                disabled={!canScroll.next}
-                className="absolute right-0 top-1/2 flex h-[55px] w-[45px] -translate-y-1/2 items-center justify-center bg-white/15 text-white transition-colors hover:bg-white/30 disabled:opacity-30"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </>
-          ) : null}
         </div>
       </Container>
     </section>
