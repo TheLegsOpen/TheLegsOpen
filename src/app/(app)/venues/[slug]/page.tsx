@@ -8,7 +8,6 @@ import { StatBlock } from "@/components/venues/stat-block";
 import { VenueGallery } from "@/components/venues/venue-gallery";
 import { VenueChampions, type VenueChampion } from "@/components/venues/venue-champions";
 import { VenueChampionshipCarousel } from "@/components/venues/venue-championship-carousel";
-import { VenueChampionshipTimeline } from "@/components/venues/venue-championship-timeline";
 import { ArticleCard } from "@/components/news/article-card";
 import { OverviewVideo } from "@/components/previous-opens/overview-video";
 import { ToughestHolesBoard } from "@/components/statistics/toughest-holes-board";
@@ -284,22 +283,13 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
           </div>
         ) : null}
 
-        {/* The timeline moves up here, ahead of the two full-bleed bands. It has no equivalent on
-            their page, and leaving it between them put a third dark panel between the navy strip
-            and the white champions band. */}
-        {championshipsChronological.length > 0 ? (
-          <VenueChampionshipTimeline
-            venueName={venue.name}
-            entries={championshipsChronological.map((c) => ({
-              year: c.year,
-              winnerName: c.winnerName,
-              winnerPlayerSlug: c.winnerPlayerSlug,
-              photoUrl: c.winnerName ? c.winnerPhotoUrl ?? playerByName.get(c.winnerName)?.photoUrl : undefined,
-            }))}
-          />
-        ) : (
+        {/* "Championship Years at [venue]" used to sit here. It and the navy strip below were two
+            renderings of one list -- same championships, same photographs, same links, a few
+            hundred pixels apart -- so the page asked you to read the venue's history twice. The
+            strip is the one that survives. */}
+        {championshipsChronological.length === 0 ? (
           <p className="text-sm text-muted-foreground">{venue.name} has not yet hosted a recorded championship in our archive.</p>
-        )}
+        ) : null}
       </Container>
 
       {/* Both of these carry their own full-bleed band now, so they sit outside the Container --
@@ -310,8 +300,7 @@ export default async function VenueDetailPage({ params }: VenuePageProps) {
           entries={championshipsChronological.map((c) => ({
             year: c.year,
             winnerName: c.winnerName,
-            winnerPlayerSlug: c.winnerPlayerSlug,
-            margin: c.margin,
+            caption: c.venueStripCaption,
             photoUrl: c.winnerName ? c.winnerPhotoUrl ?? playerByName.get(c.winnerName)?.photoUrl : undefined,
           }))}
         />

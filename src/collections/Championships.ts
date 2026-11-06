@@ -98,6 +98,15 @@ export const Championships: CollectionConfig = {
       },
     },
     {
+      name: "venueStripCaption",
+      label: "Caption (venue page strip)",
+      type: "text",
+      admin: {
+        description:
+          "Optional. The line written across this championship's photograph in the \"The Legs Open at [venue]\" strip. A sentence about what happened rather than a name -- theopen.com's read \"Hogan wins on his only appearance\" and \"Cotton wins for the second time\". Left blank, the photograph carries its year and nothing else.",
+      },
+    },
+    {
       name: "winningScore",
       type: "number",
       admin: { description: "The champion's Main (Nett) total for the round -- the competition that actually decides the title -- e.g. 65." },

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -10,9 +9,15 @@ import { PlaceholderArt } from "@/components/shared/placeholder-art";
 
 export interface VenueChampionshipSlide {
   year: number;
+  /** Only for the photograph's alt text -- the visible caption is `caption` and nothing else. */
   winnerName?: string;
-  winnerPlayerSlug?: string;
-  margin?: string;
+  /**
+   * The editorial line written across the photograph, from the Championship's own "Caption (venue
+   * page strip)" field. Blank is a real answer, not a gap to fill: the card then carries its year
+   * and photograph alone, the way theopen.com's uncaptioned frames do. Nothing is generated from
+   * the winner's name to stand in for it.
+   */
+  caption?: string;
   photoUrl?: string;
 }
 
@@ -53,8 +58,34 @@ export function VenueChampionshipCarousel({ venueName, entries }: { venueName: s
     // Full-bleed #06051E, which is the one real structural difference here -- ours was sitting on
     // the page's own grey with no band at all. Their 120px of bottom padding and the 75/65 either
     // side of the heading are what give the strip its air.
-    <section className="w-full bg-[#06051E]">
-      <Container className="pb-[120px]">
+    <section className="relative w-full overflow-hidden bg-[#06051E]">
+      {/*
+       * The navy is flat on its own, and against black-and-white archive photographs that reads as
+       * an absence rather than a colour. Theirs carries a faint sheen across the top-left corner.
+       *
+       * Two layers, both CSS rather than an uploaded image -- it costs no bytes, scales to any
+       * width without tiling seams, and there is no asset for anyone to lose:
+       *
+       *   1. a broad diagonal wash, brightest at the top-left and gone by just past halfway, which
+       *      is what stops the band reading as a flat rectangle;
+       *   2. hairlines at 1px every 7px, at roughly 1.5% white, which is below the threshold you
+       *      would call a stripe and about at the one where the surface stops looking printed.
+       *
+       * Both angled at 115deg so they agree with each other. Keep the alphas low: at a third of
+       * this strength it is a pattern on a navy background, which is a different and worse thing.
+       */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: [
+            "linear-gradient(115deg, rgba(104,122,205,0.17) 0%, rgba(58,70,142,0.07) 26%, rgba(6,5,30,0) 54%)",
+            "repeating-linear-gradient(115deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, rgba(255,255,255,0) 1px, rgba(255,255,255,0) 7px)",
+          ].join(", "),
+        }}
+      />
+
+      <Container className="relative pb-[120px]">
         <div className="pb-[65px] pt-[75px]">
           <h2 className="font-menu text-[26px] font-bold uppercase leading-[31.98px] tracking-[1.6px] text-white">The Legs Open at {venueName}</h2>
         </div>
@@ -79,22 +110,17 @@ export function VenueChampionshipCarousel({ venueName, entries }: { venueName: s
                     />
                     {/* Theirs sets the caption straight onto the photograph. A gradient stays
                         here because our portraits are not all dark at the foot and white 16px
-                        on a bright sky is unreadable. */}
-                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/85 to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 p-4 font-sans text-[16px] font-normal leading-[24px] tracking-[0.5px] text-white">
-                      {entry.winnerName ? (
-                        entry.winnerPlayerSlug ? (
-                          <Link href={`/players/${entry.winnerPlayerSlug}`} className="hover:underline">
-                            {entry.winnerName}
-                          </Link>
-                        ) : (
-                          <span>{entry.winnerName}</span>
-                        )
-                      ) : (
-                        <span className="text-white/70">Champion not yet recorded</span>
-                      )}
-                      {entry.margin ? <span className="text-white/70"> · {entry.margin}</span> : null}
-                    </div>
+                        on a bright sky is unreadable -- and it is rendered with the caption
+                        rather than always, so an uncaptioned card is a clean photograph instead
+                        of a dark smudge along its bottom edge with nothing written on it. */}
+                    {entry.caption ? (
+                      <>
+                        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/85 to-transparent" />
+                        <p className="absolute inset-x-0 bottom-0 p-4 font-sans text-[16px] font-normal leading-[24px] tracking-[0.5px] text-white">
+                          {entry.caption}
+                        </p>
+                      </>
+                    ) : null}
                   </div>
                 </div>
               ))}

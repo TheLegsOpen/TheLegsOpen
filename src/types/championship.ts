@@ -18,6 +18,8 @@ export interface ChampionshipWinner {
   overviewStory?: unknown;
   /** Optional YouTube or Vimeo link shown in the Overview tab. */
   overviewVideoUrl?: string;
+  /** Editorial caption written across this championship's photo in the venue page strip. Empty means the photo carries its year alone. */
+  venueStripCaption?: string;
   winnerPlayerSlug?: string;
   winnerPlayerId?: string;
   winnerPlayerDateOfBirth?: string;
