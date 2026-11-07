@@ -15,7 +15,10 @@ function mapArticle(doc: PayloadArticle): Article {
     slug: doc.slug ?? slugify(doc.title),
     title: doc.title,
     dek: doc.dek,
-    category: doc.category,
+    // Populated at depth 1 or more, which every site-facing query here uses. Falls back to an
+    // empty string rather than throwing if a query ever runs at depth 0: a card with no category
+    // chip on it is a far better failure than a page that will not render.
+    category: typeof doc.category === "object" && doc.category ? doc.category.name : "",
     publishedAt: doc.publishedAt,
     readTimeMinutes: doc.readTimeMinutes,
     heroLabel: doc.heroLabel,
@@ -48,7 +51,10 @@ export async function getArticlesPage(options: {
     const payload = await getPayload({ config: configPromise });
     const where =
       options.category && options.category !== "All"
-        ? { and: [PUBLISHED, { category: { equals: options.category } }] }
+        // Matched on the category's name rather than its id, so every caller can keep passing the
+        // string it already had -- the homepage, the listing's filter buttons, and the related
+        // rail below. Names carry a unique index, so one name is one row.
+        ? { and: [PUBLISHED, { "category.name": { equals: options.category } }] }
         : PUBLISHED;
     const result = await payload.find({
       collection: "articles",
@@ -77,7 +83,7 @@ export async function getRelatedArticles(article: Article, limit = 3): Promise<A
   const payload = await getPayload({ config: configPromise });
   const result = await payload.find({
     collection: "articles",
-    where: { and: [PUBLISHED, { category: { equals: article.category } }, { slug: { not_equals: article.slug } }] },
+    where: { and: [PUBLISHED, { "category.name": { equals: article.category } }, { slug: { not_equals: article.slug } }] },
     limit,
   });
   return result.docs.map(mapArticle);
@@ -118,6 +124,34 @@ export async function getArticlesForChampionship(championshipId: string, limit =
       depth: 1,
     });
     return result.docs.map(mapArticle);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * The categories, for the filter buttons on the News page.
+ *
+ * Ordered by sortOrder with the blanks last, so a category added in the admin without one lands
+ * at the end rather than jumping to the front -- Postgres sorts NULL first on an ascending sort
+ * unless told otherwise, which would put every new category before the five that were here
+ * already.
+ *
+ * Falls back to an empty list like everything else in this file: no filter buttons is a worse
+ * News page, not a broken one.
+ */
+export async function getArticleCategories(): Promise<string[]> {
+  try {
+    const payload = await getPayload({ config: configPromise });
+    const result = await payload.find({
+      collection: "article-categories",
+      limit: 100,
+      depth: 0,
+      sort: ["sortOrder", "name"],
+    });
+    const withOrder = result.docs.filter((doc) => typeof doc.sortOrder === "number");
+    const without = result.docs.filter((doc) => typeof doc.sortOrder !== "number");
+    return [...withOrder, ...without].map((doc) => doc.name);
   } catch {
     return [];
   }

@@ -25,6 +25,7 @@ import { Media } from "./collections/Media";
 import { Players } from "./collections/Players";
 import { Venues } from "./collections/Venues";
 import { Articles } from "./collections/Articles";
+import { ArticleCategories } from "./collections/ArticleCategories";
 import { Championships } from "./collections/Championships";
 import { TeeTimeRounds } from "./collections/TeeTimeRounds";
 import { LegalPages } from "./collections/LegalPages";
@@ -128,6 +129,7 @@ export default buildConfig({
     Players,
     Venues,
     Articles,
+    ArticleCategories,
     Championships,
     TeeTimeRounds,
     LegalPages,

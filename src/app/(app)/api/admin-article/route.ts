@@ -158,11 +158,27 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Category is a relationship to article-categories now, not an enum, so the name in the source
+  // has to be resolved to a row. Refuse rather than publish something miscategorised.
+  const categoryMatch = await payload.find({
+    collection: "article-categories",
+    where: { name: { equals: source.category } },
+    limit: 1,
+    depth: 0,
+  });
+  const categoryId = categoryMatch.docs[0] ? String(categoryMatch.docs[0].id) : undefined;
+  if (!categoryId) {
+    return NextResponse.json(
+      { error: `No article category named "${source.category}". Add it under Article Categories first, or correct the source.` },
+      { status: 409 },
+    );
+  }
+
   const data = {
     title: source.title,
     slug: source.slug,
     dek: source.dek,
-    category: source.category,
+    category: categoryId,
     publishedAt: source.publishedAt,
     readTimeMinutes: readingTimeMinutes(source.markdown),
     heroLabel: source.heroLabel,

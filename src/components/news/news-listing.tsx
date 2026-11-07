@@ -10,17 +10,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { Article, ArticleCategory } from "@/types/article";
 
-const CATEGORIES: Array<ArticleCategory | "All"> = [
-  "All",
-  "Championship News",
-  "Player Features",
-  "History",
-  "Tickets",
-  "Course Guide",
-];
-
-export function NewsListing({ initialArticles, initialHasMore }: { initialArticles: Article[]; initialHasMore: boolean }) {
-  const [category, setCategory] = useState<(typeof CATEGORIES)[number]>("All");
+// The list used to live here as a hardcoded array that had to be kept in step with the enum on
+// the Articles collection. It comes from the Article Categories collection now, so adding one in
+// the admin adds a button here with nothing to deploy -- "All" is still prepended in code, being
+// a filter rather than a category.
+export function NewsListing({
+  initialArticles,
+  initialHasMore,
+  categories,
+}: {
+  initialArticles: Article[];
+  initialHasMore: boolean;
+  categories: ArticleCategory[];
+}) {
+  const CATEGORIES: Array<ArticleCategory | "All"> = ["All", ...categories];
+  const [category, setCategory] = useState<ArticleCategory | "All">("All");
   const [articles, setArticles] = useState(initialArticles);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [page, setPage] = useState(1);

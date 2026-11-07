@@ -32,10 +32,16 @@ export const Articles: CollectionConfig = {
     { name: "slug", type: "text", unique: true, index: true, admin: { position: "sidebar" } },
     { name: "dek", type: "textarea", required: true, admin: { description: "One-sentence standfirst shown on cards and the article header." } },
     {
+      // A relationship rather than the hardcoded `select` this used to be. Payload stores a
+      // select as a Postgres enum, so adding a category meant an ALTER TYPE against production
+      // plus four places in the source kept in step -- and Postgres cannot remove an enum value,
+      // so a mistake was permanent. Rows can be added, renamed and reordered in the admin, and a
+      // rename reaches every article at once because the name is stored in one place.
       name: "category",
-      type: "select",
+      type: "relationship",
+      relationTo: "article-categories",
       required: true,
-      options: ["Championship News", "Player Features", "History", "Tickets", "Course Guide"],
+      admin: { description: "Manage the list itself under Article Categories." },
     },
     { name: "publishedAt", type: "date", required: true, admin: { date: { pickerAppearance: "dayOnly" } } },
     {

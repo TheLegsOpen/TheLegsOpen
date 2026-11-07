@@ -85,6 +85,8 @@ export interface Config {
     'tee-time-rounds': TeeTimeRound;
     'player-statistics': PlayerStatistic;
     'legal-pages': LegalPage;
+    /** Hand-added with the collection -- see note at top of file. */
+    'article-categories': ArticleCategoryDoc;
     scorecards: Scorecard;
     'live-blog-posts': LiveBlogPost;
     'live-blog-trigger-log': LiveBlogTriggerLog;
@@ -293,7 +295,8 @@ export interface Article {
   title: string;
   slug?: string | null;
   dek: string;
-  category: 'Championship News' | 'Player Features' | 'History' | 'Tickets' | 'Course Guide';
+  /** Hand-changed with the field: a relationship to article-categories, no longer an enum. */
+  category: string | ArticleCategoryDoc;
   publishedAt: string;
   /** Hand-added with the field -- see note at top of file. */
   championship?: (string | null) | Championship;
@@ -749,6 +752,18 @@ export interface LegalPage {
   title: string;
   slug: string;
   body: unknown;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Hand-added with the collection -- see note at top of file. Named ...Doc because
+ * `ArticleCategory` is already the name of the category *string* type in src/types/article.ts,
+ * and both get imported into the same module.
+ */
+export interface ArticleCategoryDoc {
+  id: string;
+  name: string;
+  sortOrder?: number | null;
   updatedAt: string;
   createdAt: string;
 }
