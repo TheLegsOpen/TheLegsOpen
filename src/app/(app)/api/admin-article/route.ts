@@ -70,7 +70,15 @@ export async function GET(request: NextRequest) {
         results.push({ slug: tag.slug, status: `skipped -- no championship for ${tag.championshipYear}` });
         continue;
       }
-      const current = typeof article.championship === "object" && article.championship ? String(article.championship.id) : article.championship;
+      // The find above runs at depth: 0, so an already-tagged article comes back with
+      // `championship` as a raw number rather than a populated object -- and 22 === "22" is
+      // false, so every tagged article read as untagged. Harmless to the data, since writing
+      // the same id twice changes nothing, but it re-saved published articles that needed
+      // nothing and reported four real changes as seven. Normalise both sides to a string.
+      const current =
+        article.championship == null
+          ? undefined
+          : String(typeof article.championship === "object" ? article.championship.id : article.championship);
       if (current === championshipId) {
         results.push({ slug: tag.slug, status: `already tagged to ${tag.championshipYear}` });
         continue;
