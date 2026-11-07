@@ -166,27 +166,34 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Category is a relationship to article-categories now, not an enum, so the name in the source
-  // has to be resolved to a row. Refuse rather than publish something miscategorised.
-  const categoryMatch = await payload.find({
-    collection: "article-categories",
-    where: { name: { equals: source.category } },
-    limit: 1,
-    depth: 0,
-  });
-  const categoryId = categoryMatch.docs[0] ? String(categoryMatch.docs[0].id) : undefined;
-  if (!categoryId) {
-    return NextResponse.json(
-      { error: `No article category named "${source.category}". Add it under Article Categories first, or correct the source.` },
-      { status: 409 },
-    );
+  // Category is a relationship to article-categories now, not an enum, so the name in a source
+  // has to be resolved to a row -- but ONLY when creating. A re-publish leaves the category
+  // exactly as it is in the admin, for the same reason it leaves the image alone: categories are
+  // editable there now, and the one someone picked is a better answer than the one written into
+  // a source file months earlier. Resolving it unconditionally also made every source in this
+  // file unpublishable the moment "Championship News" was deleted, since all nine still name it.
+  let categoryId: string | undefined;
+  if (!existing) {
+    const categoryMatch = await payload.find({
+      collection: "article-categories",
+      where: { name: { equals: source.category } },
+      limit: 1,
+      depth: 0,
+    });
+    categoryId = categoryMatch.docs[0] ? String(categoryMatch.docs[0].id) : undefined;
+    if (!categoryId) {
+      return NextResponse.json(
+        { error: `No article category named "${source.category}". Add it under Article Categories first, or correct the source.` },
+        { status: 409 },
+      );
+    }
   }
 
   const data = {
     title: source.title,
     slug: source.slug,
     dek: source.dek,
-    category: categoryId,
+    ...(categoryId ? { category: categoryId } : {}),
     publishedAt: source.publishedAt,
     readTimeMinutes: readingTimeMinutes(source.markdown),
     heroLabel: source.heroLabel,
@@ -201,6 +208,9 @@ export async function GET(request: NextRequest) {
       message: "Nothing written. Add &confirm=PUBLISH to create it as a draft, plus &live=true to publish it straight away.",
       action: existing ? `would UPDATE existing article ${existing.id}` : "would CREATE a new article",
       ...data,
+      // Spelled out rather than left absent, so a dry run never looks like it is about to blank
+      // the category when it is in fact leaving it alone.
+      category: categoryId ?? "(unchanged -- whatever is set in the admin)",
       body: {
         blocks: blocks.length,
         headings: blocks.filter((node) => node.type === "heading").length,
@@ -212,20 +222,32 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const doc = existing
-      ? await payload.update({
-          collection: "articles",
-          id: existing.id,
-          // The image is left out of `data` entirely, so one attached in the admin isn't wiped by
-          // a re-publish of the words.
-          data: { ...data, ...(live ? { _status: "published" as const } : {}) },
-          draft: !live,
-        })
-      : await payload.create({
-          collection: "articles",
-          data: { ...data, _status: live ? ("published" as const) : ("draft" as const) },
-          draft: !live,
-        });
+    let doc;
+    if (existing) {
+      // The image and the category are both left out of `data`, so neither a picture attached in
+      // the admin nor a category chosen there is wiped by a re-publish of the words.
+      doc = await payload.update({
+        collection: "articles",
+        id: existing.id,
+        data: { ...data, ...(live ? { _status: "published" as const } : {}) },
+        draft: !live,
+      });
+    } else {
+      // Unreachable -- the resolution above already returns 409 when the name matches no row.
+      // Written out rather than asserted because category is required on a create, and this is
+      // what lets the compiler see that a new article always has one.
+      if (!categoryId) {
+        return NextResponse.json(
+          { error: `No article category named "${source.category}". Add it under Article Categories first, or correct the source.` },
+          { status: 409 },
+        );
+      }
+      doc = await payload.create({
+        collection: "articles",
+        data: { ...data, category: categoryId, _status: live ? ("published" as const) : ("draft" as const) },
+        draft: !live,
+      });
+    }
 
     return NextResponse.json({
       ok: true,

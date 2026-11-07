@@ -47,12 +47,20 @@ export interface ArticleSource {
 
 export const ARTICLE_SOURCES: ArticleSource[] = [
   {
-    slug: "2016-southerness-clee-back-to-back",
-    title: "Clee goes back-to-back at Southerness",
-    dek: "The fourth Legs Open was played in a wind that would have justified calling it off: eleven men started, five returned a card, and David Clee won two titles in an afternoon.",
+    // Slug matches the article already on the site, so publishing this replaces its body rather
+    // than leaving 2016 with two write-ups -- the same arrangement as 2018 below. The title, dek
+    // and hero label are the ones written by hand in the admin, kept so a re-publish changes only
+    // the words of the piece and not how it is presented. The old slug was
+    // "2016-southerness-clee-back-to-back", which matched nothing on the site.
+    //
+    // The live body this replaces was written in the admin and exists nowhere else, so take a
+    // copy before publishing: /api/articles/20?depth=1.
+    slug: "a-championship-that-should-not-have-been-played-clee-goes-back-to-back-at-southerness",
+    title: "A championship that should not have been played: Clee goes back-to-back at Southerness",
+    dek: "The fourth Legs Open was played in a wind that would have justified calling the whole thing off, and in all honesty nearly did. It went ahead. Eleven men started. Five returned a card.",
     category: "Championship News",
     publishedAt: "2016-07-24T12:00:00.000Z",
-    heroLabel: "David Clee at Southerness, July 2016",
+    heroLabel: "Clee Hold The Famous Claret Jug",
     championshipYear: 2016,
     markdown: southerness2016,
   },
