@@ -7,6 +7,7 @@ import { getChampionshipHistory, getActiveChampionshipSummary } from "@/lib/data
 import { getPageBanners } from "@/lib/data/page-banners";
 import { getSiteTheme } from "@/lib/data/site-theme";
 import { ordinal } from "@/lib/utils";
+import { hasBeenPlayed, isWithinLiveWindow } from "@/lib/data/championship-timing";
 import { getSeoSettings } from "@/lib/data/seo-settings";
 
 // See src/app/(app)/page.tsx for why this route is force-dynamic.
@@ -31,9 +32,25 @@ export default async function FieldPage() {
     return aSurname.localeCompare(bSurname);
   });
 
-  const description = activeChampionship
-    ? `The following players are in the field at The ${ordinal(activeChampionship.ordinal)} Legs Open at ${activeChampionship.venueName}.`
-    : "The full field of players competing at The Legs Open.";
+  /*
+   * Written in the tense the championship is actually in.
+   *
+   * This used to read "the following players are in the field at ..." all year round, which is
+   * only true during championship week. Out of season it announced a championship finished in
+   * September as though it were under way -- and because the active championship stays ticked
+   * between events by design (see the note on `isActive` in Championships), that is the state the
+   * page is in for all but three days of the year.
+   *
+   * Not editable in the admin, incidentally: Page Banners carries the Field banner's image,
+   * eyebrow and title, but this line is generated here.
+   */
+  const description = (() => {
+    if (!activeChampionship) return "The full field of players competing at The Legs Open.";
+    const event = `The ${ordinal(activeChampionship.ordinal)} Legs Open at ${activeChampionship.venueName}`;
+    const timing = { year: activeChampionship.year, date: activeChampionship.effectiveDate };
+    if (isWithinLiveWindow(timing)) return `The following players are in the field at ${event}.`;
+    return hasBeenPlayed(timing) ? `The field that contested ${event}.` : `The field for ${event}.`;
+  })();
 
   return (
     <>
