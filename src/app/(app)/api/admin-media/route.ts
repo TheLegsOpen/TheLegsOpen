@@ -25,6 +25,8 @@ import configPromise from "@/payload.config";
  *   /api/admin-media?convert&confirm=CONVERT          write them
  *   /api/admin-media?convert&id=123                   dry run one file
  *   /api/admin-media?convert&confirm=CONVERT&limit=5  write at most five
+ *   /api/admin-media?delete&ids=13,14                 dry run: what deleting those would do
+ *   /api/admin-media?delete&ids=13,14&confirm=DELETE  delete them, permanently
  *
  * Converted files stop being PNGs, so re-running simply picks up whatever is left -- the job is
  * resumable by repeating the same URL until it reports nothing remaining. That matters because a
@@ -59,6 +61,69 @@ type Outcome = {
 const kb = (bytes: number) => `${(bytes / 1024).toFixed(0)} KB`;
 const mb = (bytes: number) => `${(bytes / 1048576).toFixed(2)} MB`;
 
+/**
+ * Every place in the database that points at one of these media ids.
+ *
+ * Deleting an upload is the one thing here that cannot be undone, so this does not take an
+ * outside caller's word that a file is unused -- it re-derives that from the database at the
+ * moment of deletion, and anything that turns out to be referenced is refused.
+ *
+ * Everything is read at depth 1, which turns an upload field from a bare id into the populated
+ * media document. That matters: at depth 0 the only thing to match on is a number, and a number
+ * on some unrelated field (readTimeMinutes: 4 against media id 4) would read as a reference.
+ * A populated upload is unmistakable -- it carries both a filename and a mimeType -- so this
+ * walks every value of every document and every global and looks for exactly that shape, rather
+ * than guessing from field names. New fields are therefore covered automatically.
+ */
+async function findReferences(
+  payload: Awaited<ReturnType<typeof getPayload>>,
+  ids: Set<number>,
+): Promise<Map<number, string[]>> {
+  const hits = new Map<number, string[]>();
+  const note = (id: number, where: string) => {
+    if (!ids.has(id)) return;
+    if (!hits.has(id)) hits.set(id, []);
+    if (!hits.get(id)!.includes(where)) hits.get(id)!.push(where);
+  };
+
+  const walk = (node: unknown, where: string, seen = new Set<unknown>()) => {
+    if (!node || typeof node !== "object" || seen.has(node)) return;
+    seen.add(node);
+    if (Array.isArray(node)) {
+      node.forEach((item) => walk(item, where, seen));
+      return;
+    }
+    const rec = node as Record<string, unknown>;
+    if (typeof rec.id === "number" && typeof rec.filename === "string" && typeof rec.mimeType === "string") {
+      note(rec.id, where);
+      return;
+    }
+    Object.values(rec).forEach((value) => walk(value, where, seen));
+  };
+
+  const config = await payload.config;
+
+  for (const collection of config.collections) {
+    if (collection.slug === "media") continue;
+    const result = await payload.find({
+      collection: collection.slug as "articles",
+      limit: 2000,
+      depth: 1,
+      pagination: false,
+      // Drafts count. An image used only by an unpublished article is still in use.
+      ...(collection.versions && typeof collection.versions === "object" && collection.versions.drafts ? { draft: true } : {}),
+    });
+    result.docs.forEach((doc) => walk(doc, `${collection.slug} #${doc.id}`));
+  }
+
+  for (const global of config.globals) {
+    const doc = await payload.findGlobal({ slug: global.slug as "site-theme", depth: 1 });
+    walk(doc, `global: ${global.slug}`);
+  }
+
+  return hits;
+}
+
 export async function GET(request: NextRequest) {
   const payload = await getPayload({ config: configPromise });
   const { user } = await payload.auth({ headers: request.headers });
@@ -67,6 +132,77 @@ export async function GET(request: NextRequest) {
   }
 
   const params = request.nextUrl.searchParams;
+
+  // ?delete -- permanent, so it re-proves each file is unreferenced before removing it and
+  // refuses the whole request if any one of them is not.
+  if (params.has("delete")) {
+    const ids = (params.get("ids") ?? "")
+      .split(",")
+      .map((value) => Number(value.trim()))
+      .filter((value) => Number.isInteger(value) && value > 0);
+    if (!ids.length) {
+      return NextResponse.json({ error: "Pass ids, e.g. ?delete&ids=13,14,16" }, { status: 400 });
+    }
+
+    const wanted = new Set(ids);
+    const docs = await payload.find({
+      collection: "media",
+      where: { id: { in: ids } },
+      limit: 500,
+      depth: 0,
+      pagination: false,
+    });
+    const found = new Map(docs.docs.map((doc) => [Number(doc.id), doc]));
+    const missing = ids.filter((id) => !found.has(id));
+    const references = await findReferences(payload, wanted);
+
+    const blocked = ids.filter((id) => references.has(id));
+    const deletable = ids.filter((id) => found.has(id) && !references.has(id));
+
+    if (blocked.length) {
+      return NextResponse.json(
+        {
+          error: "Refused -- some of these are still in use. Nothing was deleted.",
+          inUse: blocked.map((id) => ({ id, filename: found.get(id)?.filename, usedBy: references.get(id) })),
+        },
+        { status: 409 },
+      );
+    }
+
+    const bytes = deletable.reduce((sum, id) => sum + (found.get(id)?.filesize ?? 0), 0);
+    const listing = deletable.map((id) => ({ id, filename: found.get(id)?.filename, size: kb(found.get(id)?.filesize ?? 0) }));
+
+    if (params.get("confirm") !== "DELETE") {
+      return NextResponse.json({
+        mode: "dry run",
+        message: "Nothing deleted. Add &confirm=DELETE to remove these permanently.",
+        checked: `${ids.length} id(s); none is referenced by any collection, global or article body`,
+        wouldDelete: listing,
+        frees: mb(bytes),
+        ...(missing.length ? { notFound: missing } : {}),
+      });
+    }
+
+    const deleted: typeof listing = [];
+    const failed: { id: number; error: string }[] = [];
+    for (const id of deletable) {
+      try {
+        await payload.delete({ collection: "media", id });
+        deleted.push(listing.find((row) => row.id === id)!);
+      } catch (err) {
+        failed.push({ id, error: err instanceof Error ? err.message : "unknown" });
+      }
+    }
+    return NextResponse.json({
+      mode: "applied",
+      message: `${deleted.length} file(s) deleted. This cannot be undone.`,
+      deleted,
+      freed: mb(bytes),
+      ...(failed.length ? { failed } : {}),
+      ...(missing.length ? { notFound: missing } : {}),
+    });
+  }
+
   const convert = params.has("convert");
   const confirmed = params.get("confirm") === "CONVERT";
   const onlyId = params.get("id");
