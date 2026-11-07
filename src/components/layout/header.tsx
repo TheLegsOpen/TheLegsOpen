@@ -7,7 +7,6 @@ import { usePathname } from "next/navigation";
 import { Menu, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Container } from "@/components/shared/container";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { NavPanel } from "@/components/layout/nav-panel";
 import { SearchOverlay } from "@/components/layout/search-overlay";
@@ -34,7 +33,19 @@ export function Header({ logoUrl, venueLinks }: { logoUrl?: string; venueLinks?:
         isScrolled && "shadow-header",
       )}
     >
-      <Container className="flex h-full items-center justify-between gap-10">
+      {/*
+       * Full-bleed rather than the shared Container, which centres on max-w-container (1430px)
+       * and pads lg:px-8 -- on a wide screen that leaves the logo and the icons floating well
+       * inside the bar instead of sitting near its edges. theopen.com runs its header to the
+       * full width of the window with a fixed inset, which is what this matches: 70px in from
+       * each side, stepping down on narrow screens where 140px of padding would eat the bar.
+       *
+       * The nav is absolutely centred rather than being the middle child of a justify-between
+       * row. In flow it would only ever land halfway between the two groups, so it shifted
+       * whenever the logo or the icons changed width; out of flow it is centred on the header
+       * itself and stays put.
+       */}
+      <div className="relative flex h-full items-center justify-between px-4 sm:px-6 lg:px-[70px]">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-2 font-menu text-[17px] font-black uppercase leading-[16px] tracking-[1.6px] text-white no-underline"
@@ -49,7 +60,7 @@ export function Header({ logoUrl, venueLinks }: { logoUrl?: string; venueLinks?:
           {SITE.name}
         </Link>
 
-        <nav aria-label="Primary" className="hidden lg:block">
+        <nav aria-label="Primary" className="absolute left-1/2 hidden -translate-x-1/2 lg:block">
           <ul className="flex items-center gap-8">
             {PRIMARY_NAV.map((section) => {
               const active = isActive(section.href);
@@ -112,7 +123,7 @@ export function Header({ logoUrl, venueLinks }: { logoUrl?: string; venueLinks?:
             </SheetContent>
           </Sheet>
         </div>
-      </Container>
+      </div>
 
       <SearchOverlay open={searchOpen} onOpenChange={setSearchOpen} />
     </header>
