@@ -77,10 +77,17 @@ export const Articles: CollectionConfig = {
     {
       name: "heroLabel",
       type: "text",
-      // NOT required in the admin, but the column IS still NOT NULL -- `required: true` is what
-      // made it so, and dropping that needs an ALTER, which this project can only do by hand. The
-      // beforeValidate hook below is what keeps the column satisfied: it always leaves a value
-      // here, so nothing ever reaches Postgres empty. Do not remove one without the other.
+      // Not required, and dropping that needed no migration: Articles has drafts enabled, and
+      // Payload makes every column on a drafts-enabled collection's table nullable
+      // (disableNotNull in @payloadcms/drizzle's buildRawSchema), so `required: true` was only
+      // ever a validation rule here, never a NOT NULL.
+      //
+      // The hook below fills it anyway, because blank is worse than absent: it would put alt=""
+      // on the photograph and seed the generated placeholder off an empty string.
+      //
+      // Worth knowing for the next field like this: required-but-empty only ever bit on publish.
+      // Draft saves skip validation entirely, so an article can be saved as a draft with this
+      // null -- which is exactly how article 30 came to exist -- and only fails when published.
       admin: {
         description:
           "Alt text for the photograph, and the caption on the generated artwork when there is no photograph. Leave it blank and it is taken from the image's own Alt text, or from the title when there is no image.",
