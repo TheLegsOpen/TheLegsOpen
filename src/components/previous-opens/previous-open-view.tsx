@@ -8,6 +8,7 @@ import { Container } from "@/components/shared/container";
 import { RichTextBlock } from "@/components/shared/rich-text";
 import { OverviewVideo } from "@/components/previous-opens/overview-video";
 import { SectionGrid } from "@/components/shared/section-grid";
+import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LeaderboardView } from "@/components/leaderboard/leaderboard-view";
 import { TeeTimesView } from "@/components/tee-times/tee-times-view";
@@ -139,19 +140,26 @@ export function PreviousOpenView({
         </Container>
       </div>
 
+      {/* White behind the whole band, so the grey content block below reads as an inset panel
+          rather than a full-width tint. Measured on theopen.com at a 1920 window: the page is
+          white, and #F7F7F7 covers only the 1366 of content, leaving 270px of white down each
+          side. Our container lands on the same 1366 at the same 270 -- max-w-container is 1430
+          and lg:px-8 takes 64 off it -- so the band needs no width of its own. */}
+      <div className="w-full bg-white">
       <Container className="flex flex-col gap-10 py-10 sm:py-14">
         <TabsContent value="overview" className="mt-8">
-          {/* Prose beside a rail, the way The Open lays out a championship page. Their columns are
-              888 and 478 and sit flush, with the gap made by padding inside each; ours are the
-              same ratio held as fr over our own 20px gutter, so they come out a little narrower
-              than theirs but keep the proportion and the gutter every other band uses. */}
-          <SectionGrid layout="article">
+          {/* Prose beside a rail, the way The Open lays out a championship page: 888 and 478,
+              sitting flush with no gutter between them, the gap made by padding inside each
+              column instead -- 70px on the prose, 20px on the rail. Flush matters now that the
+              panel is tinted: a 20px grid gap would draw a white stripe down the middle of it. */}
+          <div className="bg-[#F7F7F7]">
+          <SectionGrid layout="article" className="gap-0">
             {/* The Open sets this prose much larger than we did -- 21px at weight 300 over a
                 37.38px line, with the opening paragraph lifted to 26px at 400 as a standfirst.
                 Ours was 16px throughout. The first of our generated sentences is already the
                 summary line (who won, where, by how much), so it takes the standfirst treatment
                 and the rest follow as body. Colour is their #2a2a2a rather than our muted grey. */}
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-6 px-5 py-8 lg:px-[70px] lg:py-10">
               {championship.overviewStory ? (
                 // Written in the admin, and when it is there it is the whole story -- the
                 // generated sentences would only say the same things again underneath it. It also
@@ -222,17 +230,42 @@ export function PreviousOpenView({
                 of it. The heading only appears when there is something under it, so a
                 championship nobody has tagged yet shows the links alone rather than an empty
                 "Related". */}
-            <aside className="flex flex-col gap-6 border-t border-border pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+            <aside className="flex flex-col gap-6 px-5 pb-8 lg:py-10">
               {railArticles.length > 0 ? (
                 <div className="flex flex-col gap-3">
-                  <p className="font-menu text-[14px] font-bold uppercase tracking-[1.6px] text-muted-foreground">Related</p>
-                  <ul className="flex flex-col divide-y divide-border border-y border-border">
+                  {/* Their heading is 12px Cardinal Photo at weight 400 over 2.4px of tracking --
+                      lighter and wider than the bold 14px this was. */}
+                  <p className="font-menu text-[12px] font-normal uppercase leading-[13.8px] tracking-[2.4px] text-[#2a2a2a]">Related</p>
+                  {/* Each item is a 119x75 thumbnail beside the words, closed by a 1px #C2CCC2
+                      rule. The words run as one sentence -- category above, then TITLE, a gold
+                      slash, and the standfirst continuing inline -- which is why the dek sits
+                      inside the title's span rather than on a line of its own. */}
+                  <ul className="flex flex-col divide-y divide-[#C2CCC2] border-y border-[#C2CCC2]">
                     {railArticles.map((article) => (
                       <li key={article.slug}>
-                        <Link href={`/latest/${article.slug}`} className="group flex flex-col gap-1 py-3">
-                          <span className="font-menu text-[12px] font-bold uppercase tracking-[1.6px] text-accent">{article.category}</span>
-                          <span className="font-sans text-[16px] font-bold leading-[20px] text-foreground group-hover:text-primary">
-                            {article.title}
+                        <Link href={`/latest/${article.slug}`} className="group flex items-start gap-4 py-[11px]">
+                          <span className="relative h-[75px] w-[119px] shrink-0 overflow-hidden">
+                            <PlaceholderArt
+                              label={article.heroLabel}
+                              imageUrl={article.imageUrl}
+                              tone="navy"
+                              fill
+                              sizes="119px"
+                            />
+                          </span>
+                          <span className="flex min-w-0 flex-col gap-1">
+                            <span className="font-menu text-[10px] font-bold uppercase leading-[11.5px] tracking-[1.6px] text-[#43524E]">
+                              {article.category}
+                            </span>
+                            <span className="font-menu text-[16px] font-bold uppercase leading-[19.2px] tracking-[1.6px] text-[#2a2a2a] group-hover:text-[#2269AB]">
+                              {article.title}
+                              <span className="px-[6px] font-normal text-accent" aria-hidden="true">
+                                /
+                              </span>
+                              <span className="font-sans text-[16px] font-light normal-case leading-[19.2px] tracking-normal text-[#2a2a2a]">
+                                {article.dek}
+                              </span>
+                            </span>
                           </span>
                         </Link>
                       </li>
@@ -253,6 +286,7 @@ export function PreviousOpenView({
               </div>
             </aside>
           </SectionGrid>
+          </div>
         </TabsContent>
   
         <TabsContent value="results" className="mt-8">
@@ -361,6 +395,7 @@ export function PreviousOpenView({
           )}
         </TabsContent>
       </Container>
+      </div>
     </Tabs>
   );
 }
