@@ -123,6 +123,31 @@ export default buildConfig({
       },
     },
   },
+  /**
+   * ADDING A COLLECTION ALSO CHANGES payload_locked_documents_rels.
+   *
+   * Payload holds a lock on a document while someone has it open in the admin. The lock row
+   * lives in payload_locked_documents and points at the document through
+   * payload_locked_documents_rels, whose `document` field is a polymorphic relationship to
+   * every collection here that doesn't set lockDocuments: false (payload/dist/locked-documents/
+   * config.js). That means the rels table carries one <collection>_id column per collection, and
+   * a new collection needs its column added there by hand -- this project has no migrations, and
+   * Payload only pushes schema in development, which can't be run against the production
+   * DATABASE_URI.
+   *
+   * Miss it and the symptom points nowhere near the cause: list views still work, because they
+   * take no lock, while EVERY collection's individual record page fails -- players, championships,
+   * the lot -- since they all run the same lock query. The browser console stays clean and the
+   * page just renders empty; the real error is only in the Vercel runtime log, as
+   * `column payload_locked_documents_rels.<new_collection>_id does not exist`. That happened on
+   * 2026-11-07 when article-categories went in, and cost an afternoon of looking at the wrong
+   * collections.
+   *
+   * So a new collection is three things, not one:
+   *   1. its own table (plus _<slug>_v if drafts are enabled -- see Articles)
+   *   2. any column on the collections that reference it
+   *   3. <slug>_id on payload_locked_documents_rels, with its FK and index
+   */
   collections: [
     Users,
     Media,
