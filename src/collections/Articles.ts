@@ -74,7 +74,18 @@ export const Articles: CollectionConfig = {
       },
     },
     { name: "readTimeMinutes", type: "number", required: true, defaultValue: 4 },
-    { name: "heroLabel", type: "text", required: true, admin: { description: "Caption used when no image is uploaded, and as alt text when one is." } },
+    {
+      name: "heroLabel",
+      type: "text",
+      // NOT required in the admin, but the column IS still NOT NULL -- `required: true` is what
+      // made it so, and dropping that needs an ALTER, which this project can only do by hand. The
+      // beforeValidate hook below is what keeps the column satisfied: it always leaves a value
+      // here, so nothing ever reaches Postgres empty. Do not remove one without the other.
+      admin: {
+        description:
+          "Alt text for the photograph, and the caption on the generated artwork when there is no photograph. Leave it blank and it is taken from the image's own Alt text, or from the title when there is no image.",
+      },
+    },
     {
       name: "image",
       type: "upload",
@@ -88,9 +99,48 @@ export const Articles: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [
-      ({ data }) => {
-        if (data && !data.slug && data.title) {
+      async ({ data, originalDoc, req }) => {
+        if (!data) return data;
+
+        if (!data.slug && data.title) {
           data.slug = slugify(data.title);
+        }
+
+        /*
+         * Fill Hero Label rather than making someone write it twice.
+         *
+         * It is the photograph's alt text, the card's aria-label, and -- when there is no
+         * photograph -- the seed and caption for the generated placeholder. That last job is why
+         * a value has to exist. But an article with a picture already has alt text, because `alt`
+         * is required on every Media upload, so asking for it again just duplicates a sentence
+         * that is already written.
+         *
+         * Reads through to originalDoc so a partial update that simply does not mention this
+         * field keeps what is there -- without that, saving any other field would overwrite a
+         * hand-written caption with the title. Clearing the field on purpose sends "", which is
+         * blank rather than absent, and does re-derive.
+         */
+        const current = data.heroLabel ?? originalDoc?.heroLabel;
+        if (typeof current === "string" && current.trim()) return data;
+
+        const image = data.image ?? originalDoc?.image;
+        const imageId = typeof image === "object" && image ? image.id : image;
+        if (imageId) {
+          try {
+            const media = await req.payload.findByID({ collection: "media", id: imageId, depth: 0 });
+            if (typeof media?.alt === "string" && media.alt.trim()) {
+              data.heroLabel = media.alt;
+              return data;
+            }
+          } catch {
+            // An upload that has since been deleted shouldn't block the save -- fall through to
+            // the title, which is required and so always there.
+          }
+        }
+
+        const title = data.title ?? originalDoc?.title;
+        if (typeof title === "string" && title.trim()) {
+          data.heroLabel = title;
         }
         return data;
       },
