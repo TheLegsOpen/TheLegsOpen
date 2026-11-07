@@ -295,11 +295,19 @@ export interface Article {
   title: string;
   slug?: string | null;
   dek: string;
-  /** Hand-changed with the field: a relationship to article-categories, no longer an enum. */
-  category: string | ArticleCategoryDoc;
+  /**
+   * Hand-changed with the field: a relationship to article-categories, no longer an enum.
+   *
+   * `number` because that is what these ids actually are. This project is on Postgres, where ids
+   * are integers -- /api/articles/20 returns `"category": 16`, not `"16"` -- and Payload validates
+   * a relationship with isValidID(value, "number"), which rejects a string outright on any save
+   * that isn't a draft. The hand-written ids above still say `string` because that is how this
+   * file was first written; widening them all is a job for the real generator.
+   */
+  category: number | string | ArticleCategoryDoc;
   publishedAt: string;
-  /** Hand-added with the field -- see note at top of file. */
-  championship?: (string | null) | Championship;
+  /** Hand-added with the field -- see note at top of file. Numeric id for the reason on `category`. */
+  championship?: (number | string | null) | Championship;
   /** Hand-added with the field -- see note at top of file. */
   isChampionshipOverview?: boolean | null;
   readTimeMinutes: number;

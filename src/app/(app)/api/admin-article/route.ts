@@ -4,6 +4,7 @@ import { getPayload } from "payload";
 import configPromise from "@/payload.config";
 import { ARTICLE_CHAMPIONSHIP_TAGS, ARTICLE_SOURCES, findArticleSource } from "@/content/articles";
 import { markdownToLexical, readingTimeMinutes } from "@/lib/articles/markdown-to-lexical";
+import type { Article as PayloadArticle } from "@/payload-types";
 
 /**
  * Publishes a championship write-up from src/content/articles into the Articles collection.
@@ -31,6 +32,21 @@ import { markdownToLexical, readingTimeMinutes } from "@/lib/articles/markdown-t
  * copy, and never touches its image -- so a picture added in the admin survives a re-publish.
  */
 
+/**
+ * An id in the form a write actually needs.
+ *
+ * Payload's generated types in this project declare every id as `string`, but it runs on Postgres
+ * where ids are integers -- /api/articles/20 returns `"championship": 28`, not `"28"`. The
+ * difference only bites on a write: Payload validates a relationship with isValidID(value,
+ * "number"), which rejects a string outright. Draft saves skip validation altogether, so this
+ * route wrote stringified ids for weeks without complaint and failed on the first &live=true.
+ *
+ * Number() rather than a cast, so this is correct whichever of the two the caller actually holds.
+ */
+function relationshipId(id: string | number): number {
+  return Number(id);
+}
+
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
@@ -54,7 +70,11 @@ export async function GET(request: NextRequest) {
   if (tags) {
     const apply = request.nextUrl.searchParams.get("confirm") === "TAG";
     const championshipByYear = new Map(
-      (await payload.find({ collection: "championships", limit: 500, depth: 0 })).docs.map((doc) => [doc.year, String(doc.id)]),
+      // The raw id, not String(id). Payload validates a relationship with isValidID(value, type),
+      // and on Postgres that type is "number" -- a stringified id fails it. Draft saves skip
+      // validation entirely, which is why writing strings went unnoticed until the first
+      // &live=true save.
+      (await payload.find({ collection: "championships", limit: 500, depth: 0 })).docs.map((doc) => [doc.year, relationshipId(doc.id)]),
     );
 
     const results = [];
@@ -79,7 +99,7 @@ export async function GET(request: NextRequest) {
         article.championship == null
           ? undefined
           : String(typeof article.championship === "object" ? article.championship.id : article.championship);
-      if (current === championshipId) {
+      if (current === String(championshipId)) {
         results.push({ slug: tag.slug, status: `already tagged to ${tag.championshipYear}` });
         continue;
       }
@@ -149,7 +169,7 @@ export async function GET(request: NextRequest) {
   // Articles has carried a `championship` relationship since 30 October 2026, and this route never
   // set it -- so every article on the site had it empty and nothing was joined to anything.
   // Resolved by year rather than hardcoded id, since ids are whatever the database handed out.
-  let championship: string | undefined;
+  let championship: number | undefined;
   if (source.championshipYear) {
     const match = await payload.find({
       collection: "championships",
@@ -157,8 +177,10 @@ export async function GET(request: NextRequest) {
       limit: 1,
       depth: 0,
     });
-    championship = match.docs[0] ? String(match.docs[0].id) : undefined;
-    if (!championship) {
+    // Raw id, for the reason given on the tagging map above: a stringified one fails Payload's
+    // relationship validation on any save that isn't a draft.
+    championship = match.docs[0] ? relationshipId(match.docs[0].id) : undefined;
+    if (championship == null) {
       return NextResponse.json(
         { error: `No championship found for year ${source.championshipYear} -- refusing to publish an unlinked write-up` },
         { status: 409 },
@@ -172,7 +194,7 @@ export async function GET(request: NextRequest) {
   // editable there now, and the one someone picked is a better answer than the one written into
   // a source file months earlier. Resolving it unconditionally also made every source in this
   // file unpublishable the moment "Championship News" was deleted, since all nine still name it.
-  let categoryId: string | undefined;
+  let categoryId: number | undefined;
   if (!existing) {
     const categoryMatch = await payload.find({
       collection: "article-categories",
@@ -180,8 +202,8 @@ export async function GET(request: NextRequest) {
       limit: 1,
       depth: 0,
     });
-    categoryId = categoryMatch.docs[0] ? String(categoryMatch.docs[0].id) : undefined;
-    if (!categoryId) {
+    categoryId = categoryMatch.docs[0] ? relationshipId(categoryMatch.docs[0].id) : undefined;
+    if (categoryId == null) {
       return NextResponse.json(
         { error: `No article category named "${source.category}". Add it under Article Categories first, or correct the source.` },
         { status: 409 },
@@ -193,7 +215,7 @@ export async function GET(request: NextRequest) {
     title: source.title,
     slug: source.slug,
     dek: source.dek,
-    ...(categoryId ? { category: categoryId } : {}),
+    ...(categoryId == null ? {} : { category: categoryId }),
     publishedAt: source.publishedAt,
     readTimeMinutes: readingTimeMinutes(source.markdown),
     heroLabel: source.heroLabel,
@@ -222,7 +244,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    let doc;
+    // Annotated because payload.update has two overloads -- by id and by where -- and without
+    // this TypeScript widens the result to include the bulk shape, which has no `id`.
+    let doc: PayloadArticle;
     if (existing) {
       // The image and the category are both left out of `data`, so neither a picture attached in
       // the admin nor a category chosen there is wiped by a re-publish of the words.
@@ -236,7 +260,7 @@ export async function GET(request: NextRequest) {
       // Unreachable -- the resolution above already returns 409 when the name matches no row.
       // Written out rather than asserted because category is required on a create, and this is
       // what lets the compiler see that a new article always has one.
-      if (!categoryId) {
+      if (categoryId == null) {
         return NextResponse.json(
           { error: `No article category named "${source.category}". Add it under Article Categories first, or correct the source.` },
           { status: 409 },
