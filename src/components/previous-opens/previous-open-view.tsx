@@ -99,6 +99,12 @@ export function PreviousOpenView({
   relatedArticles?: Article[];
 }) {
   const story = overviewStory(championship, autoFacts);
+
+  // One of the tagged pieces may be flagged as this championship's Overview. It is taken out of
+  // the rail as well as rendered in the body: offering "Related: the thing you are reading" beside
+  // itself is worse than offering nothing.
+  const overviewArticle = relatedArticles.find((article) => article.isChampionshipOverview);
+  const railArticles = relatedArticles.filter((article) => article !== overviewArticle);
   // The replay page needs a scored card AND a Championship tee time for each player -- without the
   // tee sheet there's no way to place a hole in time. A CompetitionEntry carries both, so this is
   // the same condition getChampionshipReplay applies, answered from data already on the page rather
@@ -148,11 +154,31 @@ export function PreviousOpenView({
             <div className="flex flex-col gap-6">
               {championship.overviewStory ? (
                 // Written in the admin, and when it is there it is the whole story -- the
-                // generated sentences would only say the same things again underneath it.
+                // generated sentences would only say the same things again underneath it. It also
+                // outranks a flagged article, being the more specific instruction of the two:
+                // someone wrote this for this championship and nothing else.
                 <RichTextBlock
                   data={championship.overviewStory}
                   className="font-sans text-[21px] font-light leading-[37.38px] text-[#2a2a2a]"
                 />
+              ) : overviewArticle ? (
+                // The write-up itself, standing as the overview. Its dek takes the standfirst
+                // treatment the first generated sentence would have had, so the tab still opens
+                // with one line saying what happened before the detail starts.
+                <>
+                  <p className="font-sans text-[26px] leading-[35.88px] text-[#2a2a2a]">{overviewArticle.dek}</p>
+                  {championship.overviewVideoUrl ? <OverviewVideo url={championship.overviewVideoUrl} /> : null}
+                  <RichTextBlock
+                    data={overviewArticle.body}
+                    className="font-sans text-[21px] font-light leading-[37.38px] text-[#2a2a2a]"
+                  />
+                  <Link
+                    href={`/latest/${overviewArticle.slug}`}
+                    className="w-fit font-menu text-[12px] font-bold uppercase tracking-[1.6px] text-primary hover:underline"
+                  >
+                    Read as an article →
+                  </Link>
+                </>
               ) : story.length > 0 ? (
                 story.map((paragraph, i) => (
                   <Fragment key={i}>
@@ -197,11 +223,11 @@ export function PreviousOpenView({
                 championship nobody has tagged yet shows the links alone rather than an empty
                 "Related". */}
             <aside className="flex flex-col gap-6 border-t border-border pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
-              {relatedArticles.length > 0 ? (
+              {railArticles.length > 0 ? (
                 <div className="flex flex-col gap-3">
                   <p className="font-menu text-[14px] font-bold uppercase tracking-[1.6px] text-muted-foreground">Related</p>
                   <ul className="flex flex-col divide-y divide-border border-y border-border">
-                    {relatedArticles.map((article) => (
+                    {railArticles.map((article) => (
                       <li key={article.slug}>
                         <Link href={`/latest/${article.slug}`} className="group flex flex-col gap-1 py-3">
                           <span className="font-menu text-[12px] font-bold uppercase tracking-[1.6px] text-accent">{article.category}</span>

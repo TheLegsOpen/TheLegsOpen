@@ -297,6 +297,8 @@ export interface Article {
   publishedAt: string;
   /** Hand-added with the field -- see note at top of file. */
   championship?: (string | null) | Championship;
+  /** Hand-added with the field -- see note at top of file. */
+  isChampionshipOverview?: boolean | null;
   readTimeMinutes: number;
   heroLabel: string;
   image?: (string | Media) | null;

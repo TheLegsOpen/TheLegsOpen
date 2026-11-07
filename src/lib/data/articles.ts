@@ -20,6 +20,7 @@ function mapArticle(doc: PayloadArticle): Article {
     readTimeMinutes: doc.readTimeMinutes,
     heroLabel: doc.heroLabel,
     imageUrl: mediaUrl(doc.image),
+    isChampionshipOverview: doc.isChampionshipOverview ?? undefined,
     body: doc.body,
   };
 }
@@ -99,7 +100,14 @@ export async function getAllArticleSlugs(): Promise<string[]> {
  * Swallows its errors like the rest of this file: a pooler timeout should cost the page its rail,
  * not the whole championship.
  */
-export async function getArticlesForChampionship(championshipId: string, limit = 4): Promise<Article[]> {
+/*
+ * Six rather than four, because one of these may be the piece flagged as the championship's
+ * Overview and the caller pulls it out of this same list rather than paying for a second query.
+ * Sorted newest first, so with a tight limit an older flagged write-up could fall off the end and
+ * the Overview would quietly revert to its generated summary. Two headroom covers every
+ * championship on the site and most of what anyone is likely to tag to one.
+ */
+export async function getArticlesForChampionship(championshipId: string, limit = 6): Promise<Article[]> {
   try {
     const payload = await getPayload({ config: configPromise });
     const result = await payload.find({

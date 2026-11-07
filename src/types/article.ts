@@ -14,6 +14,8 @@ export interface Article {
   readTimeMinutes: number;
   heroLabel: string;
   imageUrl?: string;
+  /** Renders in place of the generated summary on its championship's Overview tab. */
+  isChampionshipOverview?: boolean;
   /** Raw Lexical document -- rendered with @payloadcms/richtext-lexical/react's RichText component so real formatting (lists, links, bold, line breaks) survives, instead of being flattened to plain-text paragraphs. */
   body: unknown;
 }

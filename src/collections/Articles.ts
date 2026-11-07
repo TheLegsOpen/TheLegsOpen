@@ -52,6 +52,21 @@ export const Articles: CollectionConfig = {
         description: "Optional. Tag this to a championship to have it appear in that year's Overview rail.",
       },
     },
+    {
+      // Lets a championship's Overview tab be the write-up itself rather than a second telling of
+      // it. Without this a report has to be written twice -- once as an article, once into the
+      // championship's own overviewStory -- and the two drift apart the moment either is edited.
+      name: "isChampionshipOverview",
+      label: "Use as this championship's Overview",
+      type: "checkbox",
+      admin: {
+        position: "sidebar",
+        // Meaningless until the piece is tagged, so it stays out of the way until then.
+        condition: (data) => Boolean(data?.championship),
+        description:
+          "Renders this whole article on the championship's Overview tab in place of the generated summary, and drops it from the Related list beside it so it is not offered twice. A championship's own overviewStory, if anyone has written one, still wins over this.",
+      },
+    },
     { name: "readTimeMinutes", type: "number", required: true, defaultValue: 4 },
     { name: "heroLabel", type: "text", required: true, admin: { description: "Caption used when no image is uploaded, and as alt text when one is." } },
     {
