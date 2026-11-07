@@ -115,7 +115,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <a href="#main-content" className="skip-link">
             Skip to main content
           </a>
-          <Header logoUrl={theme.logoUrl} venueLinks={venueLinks} />
+          <Header logoUrl={theme.logoUrl} venueLinks={venueLinks} patrons={sponsors.patrons} />
           {/* Sits in the layout rather than the homepage so it runs on every page, under the
               header, the way The Open's live band does. Renders nothing when there is no ticker
               content, so pages outside a championship are unaffected. */}

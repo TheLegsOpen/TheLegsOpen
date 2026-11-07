@@ -1,7 +1,7 @@
 import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
-import { slugify, mediaUrl } from "@/lib/utils";
+import { slugify, mediaUrl, ordinal } from "@/lib/utils";
 import { activeChampionshipIndex, inPlayWhere, isStillToCome } from "@/lib/data/championship-timing";
 import type { ChampionshipWinner } from "@/types/championship";
 import type { Championship as PayloadChampionship, Venue as PayloadVenue, Player as PayloadPlayer } from "@/payload-types";
@@ -180,10 +180,12 @@ export async function getMenuVenueLinks(): Promise<{ label: string; href: string
     const now = new Date();
 
     const rows = result.docs
-      .map((doc) => {
+      .map((doc, index) => {
         const venue = (typeof doc.venue === "object" ? doc.venue : undefined) as PayloadVenue | undefined;
         if (!venue?.name) return undefined;
-        return { doc, venue, effectiveDate: doc.date ? new Date(doc.date) : new Date(`${doc.year}-12-31`) };
+        // Position in the year-sorted list, which is this championship's real ordinal -- the same
+        // count getActiveChampionshipSummary uses, rather than a number kept by hand anywhere.
+        return { doc, venue, ordinal: index + 1, effectiveDate: doc.date ? new Date(doc.date) : new Date(`${doc.year}-12-31`) };
       })
       .filter((row): row is NonNullable<typeof row> => row !== undefined)
       .filter(({ doc }) => isStillToCome(doc, now))
@@ -191,11 +193,13 @@ export async function getMenuVenueLinks(): Promise<{ label: string; href: string
 
     // A venue can host more than once; show it at its earliest upcoming appearance only.
     const seen = new Set<string>();
-    return rows.flatMap(({ venue }) => {
+    return rows.flatMap(({ venue, ordinal: position }) => {
       const slug = venue.slug ?? slugify(venue.name);
       if (seen.has(slug)) return [];
       seen.add(slug);
-      return [{ label: venue.name, href: `/venues/${slug}` }];
+      // "15th St Andrews - Craigtoun", the way The Open lists "155th St Andrews" in its menu --
+      // the championship, not just the course it is played on.
+      return [{ label: `${ordinal(position)} ${venue.name}`, href: `/venues/${slug}` }];
     });
   } catch {
     return [];

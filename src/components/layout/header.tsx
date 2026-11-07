@@ -15,8 +15,18 @@ import { SITE } from "@/constants/site";
 import { useScrollDirection } from "@/hooks/use-scroll-direction";
 import { cn } from "@/lib/utils";
 import type { NavLink } from "@/types/nav";
+import type { SponsorEntry } from "@/lib/data/sponsors";
 
-export function Header({ logoUrl, venueLinks }: { logoUrl?: string; venueLinks?: NavLink[] }) {
+export function Header({
+  logoUrl,
+  venueLinks,
+  patrons = [],
+}: {
+  logoUrl?: string;
+  venueLinks?: NavLink[];
+  /** Forwarded to the slide-out panel, which carries an Our Patrons block as The Open's does. */
+  patrons?: SponsorEntry[];
+}) {
   const { isScrolled } = useScrollDirection();
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -118,7 +128,12 @@ export function Header({ logoUrl, venueLinks }: { logoUrl?: string; venueLinks?:
             >
               <SheetTitle className="text-primary-foreground">Menu</SheetTitle>
               <div className="mt-2">
-                <NavPanel onNavigate={() => setMobileOpen(false)} venueLinks={venueLinks} />
+                <NavPanel
+                  onNavigate={() => setMobileOpen(false)}
+                  venueLinks={venueLinks}
+                  logoUrl={logoUrl}
+                  patrons={patrons}
+                />
               </div>
             </SheetContent>
           </Sheet>
