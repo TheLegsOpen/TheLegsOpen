@@ -3,18 +3,17 @@
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
-import { ArticleCard } from "@/components/news/article-card";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+
+import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { SectionHeading } from "@/components/shared/section-heading";
 import { Container } from "@/components/shared/container";
-import { SectionGrid } from "@/components/shared/section-grid";
 import { cn } from "@/lib/utils";
 import type { Article } from "@/types/article";
 
-/** Stories per dot. Laid out as two halves over three thirds -- see NewsPage. */
+/** Stories per dot: one row of five -- see NewsPage. */
 const PER_PAGE = 5;
-
-/** The two cards on the top row sit in the 673px halves columns rather than the 442px thirds. */
-const HALVES_SIZES = "(min-width: 1430px) 673px, (min-width: 1024px) 48vw, (min-width: 640px) 50vw, 100vw";
 
 /**
  * The homepage's News and Features band, paged by dots in the way theopen.com pages theirs: a
@@ -89,24 +88,50 @@ export function NewsGrid({ articles }: { articles: Article[] }) {
   );
 }
 
-/** Two stories in the halves columns, then up to three in the thirds -- the same 673/442 widths every other band uses. */
+/** theopen.com's 227px square image -- a fifth of the 1366 container less gutters and card padding. */
+const CARD_IMAGE_SIZES = "(min-width: 1430px) 227px, (min-width: 1024px) 17vw, (min-width: 640px) 45vw, 100vw";
+
+/**
+ * One row of five, copied from theopen.com's homepage "News and Features" carousel measured at
+ * 1920: 257px navy cards on 20px gutters across the 1366 container, 15px inside each, 20px between
+ * a square image and the text. The text is centred: the title in Founders Grotesk Light at 24px in
+ * #D9D9D9, the summary at 16px in white at 80%, then a yellow Full Article button with an arrow,
+ * pushed to the card's foot so the buttons line up across the row whatever the text length.
+ *
+ * Their titles are a word or two ("Carnoustie"); ours are whole headlines, so the title is held to
+ * three lines and the summary to three, keeping the cards a sane height. Narrower screens drop to
+ * three, two and one across.
+ */
 function NewsPage({ articles }: { articles: Article[] }) {
-  const top = articles.slice(0, 2);
-  const bottom = articles.slice(2);
   return (
-    <div className="flex flex-col gap-12">
-      <SectionGrid layout="halves" className="gap-y-12 sm:grid-cols-2">
-        {top.map((article) => (
-          <ArticleCard key={article.slug} article={article} tone="dark" sizes={HALVES_SIZES} />
-        ))}
-      </SectionGrid>
-      {bottom.length > 0 ? (
-        <SectionGrid layout="thirds" className="gap-y-12 sm:grid-cols-2">
-          {bottom.map((article) => (
-            <ArticleCard key={article.slug} article={article} tone="dark" />
-          ))}
-        </SectionGrid>
-      ) : null}
-    </div>
+    <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+      {articles.map((article) => (
+        <li key={article.slug} className="flex">
+          <Link
+            href={`/latest/${article.slug}`}
+            className="group flex w-full flex-col gap-5 bg-primary p-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          >
+            <div className="overflow-hidden">
+              <PlaceholderArt
+                label={article.heroLabel}
+                imageUrl={article.imageUrl}
+                tone="navy"
+                ratio="1/1"
+                sizes={CARD_IMAGE_SIZES}
+                className="rounded-none transition-transform duration-300 ease-standard group-hover:scale-[1.03]"
+              />
+            </div>
+            <div className="flex flex-1 flex-col items-center gap-[15px] text-center">
+              <h3 className="line-clamp-3 font-sans text-[24px] font-light capitalize leading-[28.8px] text-[#D9D9D9]">{article.title}</h3>
+              {article.dek ? <p className="line-clamp-3 font-sans text-[16px] font-light leading-[19px] text-white/80">{article.dek}</p> : null}
+              <span className="mt-auto inline-flex items-center gap-2.5 border border-accent bg-accent px-5 py-3 font-sans text-[17px] font-bold uppercase leading-[20.4px] tracking-[0.3px] text-primary transition-colors group-hover:bg-white group-hover:border-white">
+                Full article
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
+            </div>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
