@@ -186,9 +186,8 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           via COLUMN. Inside it: a 430px navy band, stats vertically centred on the left (375px
           max, 125px items behind a gold rule), the portrait in a 540x528 frame standing 55px below
           the band's foot, the jug 450px square 40px from the top, and the Champion Golfer block on
-          the right edge. The name block then rides up 50px over the band on a transparent-to-white
-          gradient, which is what fades the portrait and the navy into the page instead of cutting
-          them off. Positions are percentages of the 1366 box (598/1366 and 1076/1366, i.e. 528 and 1006 into
+          the right edge. The white name block then rides 56px up over the band -- see below.
+          Positions are percentages of the 1366 box (598/1366 and 1076/1366, i.e. 528 and 1006 into
           the 1226 column plus its 70px indent) so they land exactly at 1920 and
           close up proportionally at 1280. Below xl the stacked layout further down is used. ---- */}
       <section className="relative hidden w-full overflow-hidden bg-primary text-primary-foreground xl:block">
@@ -215,10 +214,13 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
               {/* `relative` on both blocks so they paint above the absolutely positioned portrait,
                   as theirs do (their photo sits at z-index -20 behind the text). */}
-              <dl className="relative flex max-w-[375px] flex-wrap gap-y-5">
+              {/* 400 rather than their 375: they show three stats, we show five, and "Championship"
+                  is a single word wider than their 87px label -- at 375 that pushed every row down to
+                  two. 400 keeps three then two. */}
+              <dl className="relative flex max-w-[400px] flex-wrap gap-y-5">
                 {stats.map((stat) => (
                   <div key={stat.label} className="flex min-h-[80px] min-w-[125px] flex-col border-l-2 border-accent pl-3 pr-[25px]">
-                    <dt className="mb-[10px] max-w-[87px] font-menu text-[14px] uppercase leading-[16px] tracking-[0.6px]">{stat.label}</dt>
+                    <dt className="mb-[10px] font-menu text-[14px] uppercase leading-[16px] tracking-[0.6px]">{stat.label}</dt>
                     <dd className="mt-auto whitespace-nowrap font-menu text-[36px] uppercase leading-9 tracking-[1px]">{stat.value}</dd>
                   </div>
                 ))}
@@ -240,7 +242,12 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           </Container>
         </div>
 
-        <div className="relative -mt-[50px] bg-gradient-to-b from-white/0 from-20% to-white">
+        {/* What their page actually shows: the navy stops in a hard edge 374px down -- 56px short
+            of the 430 the stats are centred in -- with white below it, and the first name starts 6px
+            under that edge. (Their markup carries a transparent-to-white gradient here too, but white
+            pseudo-elements behind the name cover it, so it never shows.) Painting white from the
+            edge is also what crops the portrait's foot, as theirs is cropped. */}
+        <div className="relative -mt-[56px] bg-white pt-[6px]">
           <Container>
             <div className={COLUMN}>
               <p className="font-menu text-[36px] leading-[41.4px] tracking-[1.8px] text-primary">{firstName}</p>
