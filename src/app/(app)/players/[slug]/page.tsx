@@ -220,7 +220,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
               <dl className="relative flex max-w-[400px] flex-wrap gap-y-5">
                 {stats.map((stat) => (
                   <div key={stat.label} className="flex min-h-[80px] min-w-[125px] flex-col border-l-2 border-accent pl-3 pr-[25px]">
-                    <dt className="mb-[10px] font-menu text-[14px] uppercase leading-[16px] tracking-[0.6px]">{stat.label}</dt>
+                    {/* Labels wrap as theirs do ("Legs Open / Debut"); 110 rather than their 87 only
+                        so "Championship", one word, fits on its line. */}
+                    <dt className="mb-[10px] max-w-[110px] font-menu text-[14px] uppercase leading-[16px] tracking-[0.6px]">{stat.label}</dt>
                     <dd className="mt-auto whitespace-nowrap font-menu text-[36px] uppercase leading-9 tracking-[1px]">{stat.value}</dd>
                   </div>
                 ))}
@@ -247,22 +249,20 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             under that edge. (Their markup carries a transparent-to-white gradient here too, but white
             pseudo-elements behind the name cover it, so it never shows.) Painting white from the
             edge is also what crops the portrait's foot, as theirs is cropped. */}
-        <div className="relative -mt-[56px] bg-white pt-[6px]">
+        {/* One white block for the name and the country together: as two, the 41.4px line height
+            left a sub-pixel seam between them that let the section's navy show through as a line. */}
+        <div className="relative -mt-[56px] bg-white pb-[30px] pt-[6px]">
           <Container>
             <div className={COLUMN}>
               <p className="font-menu text-[36px] leading-[41.4px] tracking-[1.8px] text-primary">{firstName}</p>
               {/* An h1 here and in the stacked name block below: only one is ever displayed (the
                   other is display:none), so the page always has exactly one heading in use. */}
               <h1 className="font-menu text-[80px] font-bold uppercase leading-[92px] tracking-[1.6px] text-primary">{surname}</h1>
+              <p className="mt-[25px] flex items-center gap-2 font-menu text-[14px] leading-5 tracking-[0.2px] text-[#43524E]">
+                <CountryFlag code={player.countryCode} className="h-[22px] !w-[30px]" />
+                {player.country}
+              </p>
             </div>
-          </Container>
-        </div>
-        <div className="relative bg-white pb-[30px] pt-[25px]">
-          <Container>
-            <p className={cn(COLUMN, "flex items-center gap-2 font-menu text-[14px] leading-5 tracking-[0.2px] text-[#43524E]")}>
-              <CountryFlag code={player.countryCode} className="h-[22px] !w-[30px]" />
-              {player.country}
-            </p>
           </Container>
         </div>
       </section>
