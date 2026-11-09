@@ -30,6 +30,14 @@ import { getArticles } from "@/lib/data/articles";
 import { getSiteTheme } from "@/lib/data/site-theme";
 import { formatToPar } from "@/lib/leaderboard";
 import type { Article } from "@/types/article";
+import type { PlayerGalleryPhoto } from "@/types/player";
+import { cn } from "@/lib/utils";
+
+/** theopen.com's section__title: 14px Cardinal Photo, bold, uppercase over 1.6px, in #43524E. */
+const SECTION_TITLE = "mb-5 font-menu text-[14px] font-bold uppercase leading-[16px] tracking-[1.6px] text-[#43524E]";
+
+/** theopen.com's body copy: Founders Grotesk Light, 16px over 24px, #2a2a2a. */
+const BODY_TEXT = "font-sans text-[16px] font-light leading-6 text-[#2a2a2a]";
 
 interface PlayerPageProps {
   params: Promise<{ slug: string }>;
@@ -133,6 +141,17 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
       ? featuredArticleSlugs.map((articleSlug) => allArticles.find((a) => a.slug === articleSlug)).filter((a): a is Article => Boolean(a))
       : allArticles.slice(0, 3);
 
+  // "<Name> at The Legs Open" shows the player's own gallery. A player with no gallery uploaded yet
+  // borrows the photos from the articles tagged to them in the admin -- those are written about
+  // them, so their pictures are of them. Never the untagged latest-articles fallback above, which
+  // could be about anyone. Nothing to show either way and the band isn't rendered at all.
+  const galleryPhotos: PlayerGalleryPhoto[] =
+    (player.gallery ?? []).length > 0
+      ? (player.gallery ?? [])
+      : featuredArticleSlugs.length > 0
+        ? featuredArticles.filter((a) => a.imageUrl).map((a) => ({ imageUrl: a.imageUrl, caption: a.title }))
+        : [];
+
   const stats: { label: string; value: string | number }[] = [
     { label: "Age", value: player.ageAtChampionship ?? "—" },
     ...(player.turnedPro ? [{ label: "Turned Pro", value: player.turnedPro }] : []),
@@ -157,41 +176,47 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         {/* Fixed height only from lg up (430px) -- below that the grid stacks to a single column, and a fixed height would clip the stacked content. No breadcrumbs/eyebrow here by request, so this is just the stat/portrait/badge row, vertically centered in the banner. */}
         {/* No z-index here -- it would isolate the portrait's mix-blend-mode into its own stacking context, cutting it off from the section's own bg-primary it needs to blend against. Plain DOM order already paints this on top, so z-10 is unnecessary. */}
         {/* Desktop-only: anchored to the whole hero (not the badge column) so it reads as a full-height decorative element alongside the portrait, matching the earlier desktop treatment. Below lg there's no room for this, so the badge column gets its own smaller corner version instead. */}
+        {/* The trophy is scaled with the portrait (both up from 240x300 to 352x440), keeping the
+            proportions they had to each other before the hero grew to theopen.com's height. */}
         {winYears.length > 0 && theme.championTrophyGraphicUrl ? (
-          <div className="pointer-events-none absolute bottom-0 right-0 hidden h-[300px] w-[240px] lg:block" aria-hidden="true">
-            <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill sizes="240px" />
+          <div className="pointer-events-none absolute bottom-0 right-0 hidden h-[440px] w-[352px] lg:block" aria-hidden="true">
+            <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill sizes="352px" />
           </div>
         ) : null}
-        <Container className="relative flex h-auto items-end py-10 lg:h-[430px] lg:py-0">
-          <div className="grid w-full items-end gap-8 lg:grid-cols-[minmax(0,220px)_1fr_minmax(0,220px)]">
-            <div className="flex flex-col gap-4 lg:order-1">
+        {/* Laid out the way theopen.com's player hero is: the stats in a row on the left, each a
+            14px uppercase Cardinal Photo label over a 36px value behind a gold rule, vertically
+            centred; the cut-out portrait large and standing on the bottom edge; the Champion Golfer
+            block centred on the right. Measured off /players/padraig-harrington at 1440. */}
+        <Container className="relative flex h-auto items-end py-10 lg:h-[500px] lg:py-0">
+          <div className="grid w-full gap-8 lg:h-full lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-center lg:gap-10">
+            <dl className="flex flex-wrap items-end gap-x-8 gap-y-6 lg:order-1">
               {stats.map((stat) => (
-                <div key={stat.label} className="border-l-2 border-accent pl-4">
-                  <p className="text-xs uppercase tracking-wide text-primary-foreground/60">{stat.label}</p>
-                  <p className="font-display text-xl font-bold sm:text-2xl">{stat.value}</p>
+                <div key={stat.label} className="flex flex-col gap-3 border-l-2 border-accent pl-3">
+                  <dt className="max-w-[120px] font-menu text-[14px] uppercase leading-[16px] tracking-[0.6px]">{stat.label}</dt>
+                  <dd className="font-menu text-[28px] uppercase leading-none tracking-[1px] sm:text-[36px]">{stat.value}</dd>
                 </div>
               ))}
-            </div>
+            </dl>
 
-            <div className="order-first flex justify-center lg:order-2 lg:self-end">
+            <div className="order-first flex justify-center lg:order-2 lg:h-full lg:items-end">
               {/* Below lg, sized as a fraction of the column's own width (capped) rather than a
                   flat pixel value -- a flat 180px looks fine on a narrow phone but reads as a tiny
                   island adrift in empty space on a wide one (e.g. a 480px-wide "Ultra"-class
                   phone), since the box never grows to match the extra room. */}
-              <div className="relative aspect-[3/4] w-[55%] max-w-[260px] sm:max-w-[300px] lg:aspect-auto lg:h-[300px] lg:w-[240px] lg:max-w-none">
+              <div className="relative aspect-[3/4] w-[55%] max-w-[260px] sm:max-w-[300px] lg:aspect-auto lg:h-[440px] lg:w-[352px] lg:max-w-none">
                 <PlaceholderArt
                   label={`${player.name} portrait`}
                   imageUrl={player.photoUrl}
                   tone="slate"
                   blendBlack
                   fill
-                  sizes="(min-width: 1024px) 240px, (min-width: 640px) 300px, 55vw"
+                  sizes="(min-width: 1024px) 352px, (min-width: 640px) 300px, 55vw"
                 />
               </div>
             </div>
 
             {winYears.length > 0 ? (
-              <div className="relative flex flex-col gap-2 border-l-2 border-accent pl-4 lg:order-3 lg:self-end">
+              <div className="relative flex flex-col gap-3 border-l-2 border-accent pl-3 lg:order-3 lg:justify-self-end lg:pr-24">
                 {/* Mobile/tablet only -- scoped to this column since there's no room for the full-hero desktop version below lg. Matches theopen.com's player pages, where the trophy stays visible (just smaller, tucked behind the champion text) on mobile too, instead of disappearing entirely. */}
                 {theme.championTrophyGraphicUrl ? (
                   <div
@@ -222,11 +247,11 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                   ) : (
                     <Trophy className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
                   )}
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">Champion Golfer of the Year</p>
+                  <p className="max-w-[150px] font-menu text-[14px] uppercase leading-[16px] tracking-[0.6px]">Champion Golfer of the Year</p>
                 </div>
-                <div className="relative flex flex-col leading-tight">
+                <div className="relative flex flex-col">
                   {winYears.map((year) => (
-                    <span key={year} className="font-display text-xl font-bold sm:text-2xl">
+                    <span key={year} className="font-menu text-[28px] uppercase leading-none tracking-[1px] sm:text-[36px]">
                       {year}
                     </span>
                   ))}
@@ -237,27 +262,50 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         </Container>
       </section>
 
-      <section className="border-b border-border">
-        <Container className="flex flex-col gap-2 py-8">
-          <p className="font-display text-2xl">{firstName}</p>
-          <h1 className="-mt-3 font-display font-bold text-display-xl">{surname.toUpperCase()}</h1>
-          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <CountryFlag code={player.countryCode} className="h-3 w-4" />
+      {/* theopen.com's name block: the first name at 36px regular over the surname at 80px bold,
+          both Cardinal Photo, then the country at 14px in their #43524E. White, as the rest of
+          their page is, rather than our grey page background. */}
+      <section className="bg-white">
+        <Container className="flex flex-col pb-6 pt-8 lg:pt-10">
+          <p className="font-menu text-[28px] leading-[1.15] tracking-[1.8px] text-primary lg:text-[36px]">{firstName}</p>
+          <h1 className="font-menu text-[48px] font-bold uppercase leading-[1.15] tracking-[1.6px] text-primary sm:text-[64px] lg:text-[80px]">
+            {surname}
+          </h1>
+          <p className="mt-6 flex items-center gap-2 font-menu text-[14px] leading-5 tracking-[0.2px] text-[#43524E]">
+            <CountryFlag code={player.countryCode} className="h-[22px] w-10" />
             {player.country}
           </p>
         </Container>
       </section>
 
-      <Container className="py-10 sm:py-14">
-        <Tabs defaultValue="overview">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="bio">Bio</TabsTrigger>
-            <TabsTrigger value="results">Results</TabsTrigger>
-            <TabsTrigger value="stats">Stats</TabsTrigger>
-          </TabsList>
+      <Tabs defaultValue="overview" className="bg-white">
+        {/* The same sub-page nav as Previous Opens (src/components/previous-opens/previous-open-view.tsx),
+            which is theopen.com's: a white strip the full width of the window closed by a 1px
+            #B9BEC0 rule, uppercase 15px Cardinal Photo labels, the active one #2269AB over a 3px
+            underline of the same blue. */}
+        <div className="w-full border-b border-[#B9BEC0] bg-white">
+          <Container>
+            <TabsList className="h-[60px] gap-[30px] rounded-none bg-transparent p-0">
+              {[
+                { value: "overview", label: "Overview" },
+                { value: "bio", label: "Bio" },
+                { value: "results", label: "Results" },
+                { value: "stats", label: "Stats" },
+              ].map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="h-full rounded-none border-b-[3px] border-transparent px-0 pb-5 pt-[23px] font-menu text-[15px] font-bold uppercase leading-none tracking-[1.5px] text-[#43524E] shadow-none data-[state=active]:border-[#2269AB] data-[state=active]:bg-transparent data-[state=active]:text-[#2269AB] data-[state=active]:shadow-none"
+                >
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Container>
+        </div>
 
-          <TabsContent value="overview" className="pt-8">
+        <Container className="py-10 sm:py-14">
+          <TabsContent value="overview" className="mt-0">
             {/* Tee times go in the sidebar. Each row is two short values with justify-between, so
                 across the full 1361px container it read as a scattering of text rather than a list
                 -- at 453px it closes up. The championship stats keep the main column. Either slot
@@ -266,37 +314,35 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             <SectionGrid layout="main-side" className="gap-y-10">
               {entry ? (
                 <div>
-                  <p className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                    This championship
-                  </p>
-                  <dl className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+                  <p className={SECTION_TITLE}>This championship</p>
+                  <dl className="grid grid-cols-2 gap-5 sm:grid-cols-4">
                     {[
                       { label: "Position", value: `${entry.tied ? "T" : ""}${entry.position}` },
                       { label: "To Par", value: entry.toPar !== undefined ? formatToPar(entry.toPar) : "—" },
                       { label: "Score", value: entry.score ?? "—" },
                       { label: "Thru", value: entry.thru },
                     ].map((stat) => (
-                      <div key={stat.label} className="flex flex-col gap-1 border border-border p-4">
-                        <dt className="text-xs uppercase tracking-wide text-muted-foreground">{stat.label}</dt>
-                        <dd className="font-display text-2xl font-bold">{stat.value}</dd>
+                      <div key={stat.label} className="flex flex-col gap-3 border-l-2 border-accent pl-3">
+                        <dt className="font-menu text-[14px] uppercase leading-[16px] tracking-[0.6px] text-[#43524E]">{stat.label}</dt>
+                        <dd className="font-menu text-[36px] uppercase leading-none tracking-[1px] text-primary">{stat.value}</dd>
                       </div>
                     ))}
                   </dl>
                 </div>
               ) : (
-                <p className="text-muted-foreground">{player.name} is not currently in the field for this championship.</p>
+                <p className={BODY_TEXT}>{player.name} is not currently in the field for this championship.</p>
               )}
-  
+
               {teeTimes.length > 0 ? (
                 <div>
-                  <p className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Tee times</p>
-                  <ul className="flex flex-col divide-y divide-border border-y border-border">
+                  <p className={SECTION_TITLE}>Tee times</p>
+                  <ul className="flex flex-col divide-y divide-[#B9BEC0] border-y border-[#B9BEC0]">
                     {teeTimes.map((t, index) => (
-                      <li key={index} className="flex items-center justify-between px-1 py-3 text-sm">
+                      <li key={index} className="flex items-center justify-between px-1 py-3 font-sans text-[16px] text-[#2a2a2a]">
                         <span className="font-medium">
                           {t.round} Round · {t.date}
                         </span>
-                        <span className="tabular-nums text-muted-foreground">
+                        <span className="tabular-nums text-[#43524E]">
                           {t.time} · {t.tee} tee
                         </span>
                       </li>
@@ -307,41 +353,42 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             </SectionGrid>
           </TabsContent>
 
-          <TabsContent value="bio" className="pt-8">
-            {/* The gallery is a 16/9 carousel that fills its container, so at full width a single
-                photo rendered about 1361x766 and swamped the bio it was there to illustrate. In the
-                sidebar it sits beside the text at a sane size. PlayerGallery returns null when
-                there are no photos, in which case the bio takes the main track alone. */}
-            <SectionGrid layout="main-side" className="gap-y-10">
-              <RichTextBlock data={player.bio} className="max-w-2xl text-muted-foreground" />
-              <PlayerGallery playerName={firstName} photos={player.gallery ?? []} />
-            </SectionGrid>
+          <TabsContent value="bio" className="mt-0">
+            {/* theopen.com's prose: Founders Grotesk Light at 16px over 24px in #2a2a2a, held to a
+                716px measure. The photos that used to sit beside this now have their own band
+                below the tabs, as theirs do. */}
+            <RichTextBlock data={player.bio} className={cn(BODY_TEXT, "max-w-[716px]")} />
           </TabsContent>
 
-          <TabsContent value="results" className="pt-8">
+          <TabsContent value="results" className="mt-0">
             <ResultsTab results={results} />
           </TabsContent>
 
-          <TabsContent value="stats" className="pt-8">
+          <TabsContent value="stats" className="mt-0">
             <StatsTab playerId={player.id} careerCategories={careerCategories} years={statsYears} />
           </TabsContent>
-        </Tabs>
-      </Container>
+        </Container>
+      </Tabs>
+
+      <PlayerGallery title={`${player.name} at The Legs Open`} playerName={firstName} photos={galleryPhotos} />
 
       {featuredArticles.length > 0 ? (
-        <section className="border-t border-border bg-secondary/40">
-          <Container className="flex flex-col gap-8 py-16 sm:py-24">
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="font-display font-bold text-2xl">More on {firstName}</h2>
-              <Link href="/latest" className="text-sm font-bold uppercase tracking-wide text-primary hover:underline">
-                See more
-              </Link>
-            </div>
-            <SectionGrid layout="thirds" className="sm:grid-cols-3">
+        <section className="border-t border-[#B9BEC0] bg-[#F7F7F7]">
+          <Container className="flex flex-col items-center pb-16 sm:pb-20">
+            {/* theopen.com's "More on The 155th Open": a small centred uppercase title with 55px
+                above and below it, the cards, then a centred blue See More button. */}
+            <h2 className={cn(SECTION_TITLE, "mb-0 py-[55px] text-center")}>More on {firstName}</h2>
+            <SectionGrid layout="thirds" className="w-full sm:grid-cols-3">
               {featuredArticles.map((article) => (
                 <ArticleCard key={article.slug} article={article} />
               ))}
             </SectionGrid>
+            <Link
+              href="/latest"
+              className="mt-12 inline-flex items-center border border-[#2269AB] bg-[#2269AB] px-5 py-3 font-sans text-[17px] font-bold uppercase leading-[20px] tracking-[0.3px] text-white transition-colors hover:border-[#1b5689] hover:bg-[#1b5689] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2269AB] focus-visible:ring-offset-2"
+            >
+              See more
+            </Link>
           </Container>
         </section>
       ) : null}
