@@ -28,14 +28,14 @@ function FinishTile({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-start gap-1.5">
       <span className={cn(TILE_CLASS, "min-w-[3rem]", NEUTRAL_TILE_CLASS)}>{value}</span>
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-xs uppercase tracking-wide text-surface-dark-foreground/60">{label}</p>
     </div>
   );
 }
 
 function PosCell({ result }: { result: PlayerCompetitionResult | undefined }) {
-  if (!result) return <td className="px-3 py-3 text-center text-muted-foreground">—</td>;
-  if (result.noReturn) return <td className="px-3 py-3 text-center font-bold text-destructive">NR</td>;
+  if (!result) return <td className="px-3 py-3 text-center text-surface-dark-foreground/40">—</td>;
+  if (result.noReturn) return <td className="px-3 py-3 text-center font-bold text-[#FF8A80]">NR</td>;
   return (
     <td className="px-3 py-3 text-center font-bold tabular-nums">
       {result.tied ? "T" : ""}
@@ -112,11 +112,15 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
   }
 
   if (results.length === 0) {
-    return <p className="text-muted-foreground">No previous appearances at the Legs Open on record.</p>;
+    return (
+      <div className="bg-surface-dark p-6 text-surface-dark-foreground/70">
+        <p>No previous appearances at the Legs Open on record.</p>
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 bg-surface-dark p-6 text-surface-dark-foreground">
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex flex-wrap gap-2">
           <button
@@ -124,7 +128,7 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
             onClick={selectTournament}
             className={cn(
               "rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-wide transition-colors",
-              mode === "tournament" ? "border-accent bg-accent text-accent-foreground" : "border-border text-muted-foreground hover:border-accent hover:text-accent",
+              mode === "tournament" ? "border-accent bg-accent text-accent-foreground" : "border-surface-dark-foreground/30 text-surface-dark-foreground hover:border-accent hover:text-accent",
             )}
           >
             Tournament
@@ -137,7 +141,7 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
               "rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-wide transition-colors",
               mode === "course"
                 ? "border-accent bg-accent text-accent-foreground"
-                : "border-border text-muted-foreground hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border disabled:hover:text-muted-foreground",
+                : "border-surface-dark-foreground/30 text-surface-dark-foreground hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-surface-dark-foreground/30 disabled:hover:text-surface-dark-foreground",
             )}
           >
             Course
@@ -145,7 +149,7 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
         </div>
 
         {mode === "course" ? (
-          <label className="relative inline-flex w-fit items-center gap-2 rounded-full border border-border px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
+          <label className="relative inline-flex w-fit items-center gap-2 rounded-full border border-surface-dark-foreground/30 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-surface-dark-foreground">
             <span className="sr-only">Select course</span>
             <select
               value={selectedVenueSlug}
@@ -153,7 +157,7 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
                 setSelectedVenueSlug(e.target.value);
                 setExpandedYear(null);
               }}
-              className="cursor-pointer appearance-none bg-transparent pr-5 focus:outline-none"
+              className="cursor-pointer appearance-none bg-transparent pr-5 text-surface-dark-foreground focus:outline-none [&>option]:text-foreground"
             >
               {venues.map((v) => (
                 <option key={v.venueSlug} value={v.venueSlug}>
@@ -167,8 +171,8 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
       </div>
 
       <div>
-        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Finishes</p>
-        <div className="flex flex-wrap gap-6 border border-border p-4">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-surface-dark-foreground/60">Finishes</p>
+        <div className="flex flex-wrap gap-6 border border-surface-dark-foreground/15 p-4">
           <FinishTile value={finishes.wins} label="Wins" />
           <FinishTile value={finishes.second} label="2nd" />
           <FinishTile value={finishes.third} label="3rd" />
@@ -180,33 +184,33 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
       </div>
 
       <div>
-        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Results &amp; Scorecard</p>
-        <div className="no-scrollbar overflow-x-auto border border-border">
+        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-surface-dark-foreground/60">Results &amp; Scorecard</p>
+        <div className="no-scrollbar overflow-x-auto border border-surface-dark-foreground/15">
           <table className="w-full min-w-[720px] border-collapse text-sm">
             <thead>
-              <tr className="border-b border-border bg-secondary text-center text-xs uppercase tracking-wide text-muted-foreground">
-                <th rowSpan={2} className="border-r border-border px-4 py-3 text-left align-bottom">
+              <tr className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 text-center text-xs uppercase tracking-wide text-surface-dark-foreground/60">
+                <th rowSpan={2} className="border-r border-surface-dark-foreground/15 px-4 py-3 text-left align-bottom">
                   Date
                 </th>
-                <th rowSpan={2} className="border-r border-border px-4 py-3 text-left align-bottom">
+                <th rowSpan={2} className="border-r border-surface-dark-foreground/15 px-4 py-3 text-left align-bottom">
                   Venue
                 </th>
-                <th colSpan={3} className="border-r border-border px-3 py-2">
+                <th colSpan={3} className="border-r border-surface-dark-foreground/15 px-3 py-2">
                   Main Competition
                 </th>
-                <th colSpan={2} className="border-r border-border px-3 py-2">
+                <th colSpan={2} className="border-r border-surface-dark-foreground/15 px-3 py-2">
                   Stableford
                 </th>
                 <th colSpan={2} className="px-3 py-2">
                   Scratch
                 </th>
               </tr>
-              <tr className="border-b border-border bg-secondary text-center text-xs uppercase tracking-wide text-muted-foreground">
+              <tr className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 text-center text-xs uppercase tracking-wide text-surface-dark-foreground/60">
                 <th className="px-3 py-2">Pos</th>
                 <th className="px-3 py-2">Score</th>
-                <th className="border-r border-border px-3 py-2">To Par</th>
+                <th className="border-r border-surface-dark-foreground/15 px-3 py-2">To Par</th>
                 <th className="px-3 py-2">Pos</th>
-                <th className="border-r border-border px-3 py-2">Score</th>
+                <th className="border-r border-surface-dark-foreground/15 px-3 py-2">Score</th>
                 <th className="px-3 py-2">Pos</th>
                 <th className="px-3 py-2">Score</th>
               </tr>
@@ -217,8 +221,8 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
                   <tr
                     onClick={() => toggleRow(row)}
                     className={cn(
-                      "border-b border-border last:border-0",
-                      row.hasScorecards && "cursor-pointer hover:bg-secondary/60",
+                      "border-b border-surface-dark-foreground/15 last:border-0",
+                      row.hasScorecards && "cursor-pointer hover:bg-surface-dark-foreground/5",
                       row.finish === "Winner" && "bg-accent/10",
                     )}
                   >
@@ -240,15 +244,15 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
                     <ScoreCell result={row.scratch} />
                   </tr>
                   {expandedYear === row.year ? (
-                    <tr className="border-b border-border bg-secondary/30 last:border-0">
+                    <tr className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 last:border-0">
                       <td colSpan={9} className="p-4">
                         <div className="flex flex-col gap-3">
-                          <label className="relative inline-flex w-fit items-center gap-2 rounded-full border border-border px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-foreground">
+                          <label className="relative inline-flex w-fit items-center gap-2 rounded-full border border-surface-dark-foreground/30 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-surface-dark-foreground">
                             <span className="sr-only">Select competition</span>
                             <select
                               value={expandedCompetition}
                               onChange={(e) => setExpandedCompetition(e.target.value as Competition)}
-                              className="cursor-pointer appearance-none bg-transparent pr-5 focus:outline-none"
+                              className="cursor-pointer appearance-none bg-transparent pr-5 text-surface-dark-foreground focus:outline-none [&>option]:text-foreground"
                             >
                               {COMPETITION_OPTIONS.map((opt) => (
                                 <option key={opt.value} value={opt.value}>
@@ -264,11 +268,11 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
                             return entry ? (
                               <ScorecardGrid entry={entry} competition={expandedCompetition} />
                             ) : (
-                              <p className="text-sm text-muted-foreground">No {expandedCompetition} scorecard for this competition.</p>
+                              <p className="text-sm text-surface-dark-foreground/60">No {expandedCompetition} scorecard for this competition.</p>
                             );
                           })()}
 
-                          <Link href={`/previous-opens/${row.year}`} className="w-fit text-sm font-bold uppercase tracking-wide text-primary hover:underline">
+                          <Link href={`/previous-opens/${row.year}`} className="w-fit text-sm font-bold uppercase tracking-wide text-accent hover:underline">
                             View {row.year} Open
                           </Link>
                         </div>

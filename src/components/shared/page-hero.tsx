@@ -64,7 +64,12 @@ export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "
             ) : null}
             <h1 className={titleClassName ?? "font-display font-bold text-display-lg text-balance"}>{titleNode ?? title}</h1>
             {description ? (
-              <p className={cn("max-w-2xl text-base text-white/85 sm:text-lg", size === "compact" && "hidden sm:block")}>{description}</p>
+              // Compact heroes always hold room for two lines of description (2 x the 28px
+              // text-lg line). The block is bottom-aligned, so without this a description that
+              // happens to wrap lifts the title 28px above its siblings: Tee Times' runs to two
+              // lines where Leaderboard's and Statistics' fit on one, and its title sat visibly
+              // higher than theirs across the three tabs that share this banner.
+              <p className={cn("max-w-2xl text-base text-white/85 sm:text-lg", size === "compact" && "hidden sm:block sm:min-h-[3.5rem]")}>{description}</p>
             ) : null}
           </div>
         </Container>
