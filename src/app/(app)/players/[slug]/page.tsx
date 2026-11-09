@@ -220,9 +220,11 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
               <dl className="relative flex max-w-[400px] flex-wrap gap-y-5">
                 {stats.map((stat) => (
                   <div key={stat.label} className="flex min-h-[80px] min-w-[125px] flex-col border-l-2 border-accent pl-3 pr-[25px]">
-                    {/* Labels wrap as theirs do ("Legs Open / Debut"); 110 rather than their 87 only
-                        so "Championship", one word, fits on its line. */}
-                    <dt className="mb-[10px] max-w-[110px] font-menu text-[14px] uppercase leading-[16px] tracking-[0.6px]">{stat.label}</dt>
+                    {/* Labels wrap as theirs do ("Legs Open / Debut"). 90 rather than their 87: a
+                        wrapping label fills its max width, which sets the item's, so this is what
+                        keeps three to a row. "Championship" (114px, one word) runs 24px past it,
+                        inside the 25px right padding rather than into the next stat. */}
+                    <dt className="mb-[10px] max-w-[90px] font-menu text-[14px] uppercase leading-[16px] tracking-[0.6px]">{stat.label}</dt>
                     <dd className="mt-auto whitespace-nowrap font-menu text-[36px] uppercase leading-9 tracking-[1px]">{stat.value}</dd>
                   </div>
                 ))}
