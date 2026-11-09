@@ -27,7 +27,9 @@ import {
   getPuttingCategories,
 } from "@/lib/data/scoring-statistics";
 
-const PAGE_SIZE = 6;
+/** Three dots of five in the News and Features carousel -- see NewsGrid. Fetched in one query up
+ * front, so moving between dots never goes back to the database. */
+const NEWS_ARTICLE_COUNT = 15;
 
 /** Matches the ~10s live-score polling cadence measured on theopen.com/leaderboard. */
 const LIVE_POLL_INTERVAL_MS = 10_000;
@@ -64,7 +66,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const [
-    { items: initialArticles, hasMore: initialHasMore },
+    { items: newsArticles },
     currentChampion,
     mainRaw,
     stablefordRaw,
@@ -83,7 +85,7 @@ export default async function HomePage() {
     theme,
     inPlay,
   ] = await Promise.all([
-    getArticlesPage({ page: 1, pageSize: PAGE_SIZE }),
+    getArticlesPage({ page: 1, pageSize: NEWS_ARTICLE_COUNT }),
     getCurrentChampion(),
     getCompetitionLeaderboard("main"),
     getCompetitionLeaderboard("stableford"),
@@ -157,7 +159,7 @@ export default async function HomePage() {
         </Container>
       </section>
       <HomepageSections sections={sections} />
-      <NewsGrid initialArticles={initialArticles} initialHasMore={initialHasMore} />
+      <NewsGrid articles={newsArticles} />
     </>
   );
 }
