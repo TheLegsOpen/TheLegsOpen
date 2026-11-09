@@ -42,7 +42,10 @@ export function PlayerGallery({ title, playerName, photos }: { title: string; pl
   return (
     <section className="bg-white pb-16 sm:pb-20" aria-roledescription="carousel" aria-label={title}>
       <Container>
-        <h2 className="py-[55px] text-center font-menu text-[14px] font-bold uppercase leading-[16px] tracking-[1.6px] text-[#43524E]">{title}</h2>
+        {/* theopen.com's 1226 column (70px inside our 1366 container) from xl -- see COLUMN in
+            src/app/(app)/players/[slug]/page.tsx. 55px above the title, 50px from it to the photo. */}
+        <div className="xl:px-[70px]">
+        <h2 className="pb-[50px] pt-[55px] text-center font-menu text-[14px] font-bold uppercase leading-[16px] tracking-[1.6px] text-[#43524E]">{title}</h2>
 
         <div className="relative">
           <div className="overflow-hidden" ref={emblaRef}>
@@ -56,11 +59,12 @@ export function PlayerGallery({ title, playerName, photos }: { title: string; pl
                   aria-label={`${index + 1} of ${photos.length}`}
                 >
                   <PlaceholderArt
-                    sizes="(min-width: 1430px) 1366px, 100vw"
+                    sizes="(min-width: 1430px) 1226px, 100vw"
                     label={photo.caption ?? `${playerName} photo ${index + 1}`}
                     imageUrl={photo.imageUrl}
                     tone="navy"
-                    ratio="16/9"
+                    // 5:3 -- theirs renders 1226x732 in the 1226 column.
+                    ratio="5/3"
                   />
                 </div>
               ))}
@@ -96,6 +100,7 @@ export function PlayerGallery({ title, playerName, photos }: { title: string; pl
           <span className="flex shrink-0 items-center bg-[#43524E] px-[35px] font-sans text-[12px] font-bold tabular-nums leading-5 text-white">
             {pad(selectedIndex + 1)} / {pad(photos.length)}
           </span>
+        </div>
         </div>
       </Container>
     </section>

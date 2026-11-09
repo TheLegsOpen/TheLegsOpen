@@ -51,6 +51,12 @@ interface PlaceholderArtProps {
    * must stay lazy, so this is deliberately off by default and set at a handful of call sites.
    */
   priority?: boolean;
+  /**
+   * How a real photo fits its box. "cover" (the default) fills it and crops the overflow;
+   * "contain-bottom" shows the whole photo standing on the bottom edge -- for a cut-out player
+   * portrait placed in a frame of a different shape, where cropping would take the top of a head.
+   */
+  fit?: "cover" | "contain-bottom";
 }
 
 /**
@@ -71,6 +77,7 @@ export function PlaceholderArt({
   blendBlack = false,
   sizes = "100vw",
   priority = false,
+  fit = "cover",
 }: PlaceholderArtProps) {
   const seed = hashSeed(label);
   const [dark, mid, light] = TONES[tone];
@@ -87,7 +94,7 @@ export function PlaceholderArt({
       aria-label={label}
     >
       {imageUrl ? (
-        <Image src={imageUrl} alt={label} fill sizes={sizes} priority={priority} className={cn("object-cover", blend && "mix-blend-screen")} />
+        <Image src={imageUrl} alt={label} fill sizes={sizes} priority={priority} className={cn(fit === "contain-bottom" ? "object-contain object-bottom" : "object-cover", blend && "mix-blend-screen")} />
       ) : (
         <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
           <defs>

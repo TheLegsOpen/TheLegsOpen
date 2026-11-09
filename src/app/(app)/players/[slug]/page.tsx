@@ -36,6 +36,14 @@ import { cn } from "@/lib/utils";
 /** theopen.com's section__title: 14px Cardinal Photo, bold, uppercase over 1.6px, in #43524E. */
 const SECTION_TITLE = "mb-5 font-menu text-[14px] font-bold uppercase leading-[16px] tracking-[1.6px] text-[#43524E]";
 
+/**
+ * theopen.com's player page content column: 1226px, which is their 1366 container less 70px inside
+ * each edge -- 347px margins at 1920. Our Container already lands on 1366 (max-w-container 1430
+ * less lg:px-8), so the extra 70 is all this adds. From xl only; below that the full container
+ * width is used, as theopen.com's narrower layouts also drop the indent.
+ */
+const COLUMN = "xl:px-[70px]";
+
 /** theopen.com's body copy: Founders Grotesk Light, 16px over 24px, #2a2a2a. */
 const BODY_TEXT = "font-sans text-[16px] font-light leading-6 text-[#2a2a2a]";
 
@@ -172,7 +180,86 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
   return (
     <>
-      <section className="relative w-full overflow-hidden bg-primary text-primary-foreground">
+      {/* ---- Desktop hero (xl, 1280px+): theopen.com's player hero, measured off
+          /players/padraig-harrington. Their whole page sits in a 1226px column -- a 1366
+          container with 70px inside each edge, so 347px margins at 1920 -- and ours does the same
+          via COLUMN. Inside it: a 430px navy band, stats vertically centred on the left (375px
+          max, 125px items behind a gold rule), the portrait in a 540x528 frame standing 55px below
+          the band's foot, the jug 450px square 40px from the top, and the Champion Golfer block on
+          the right edge. The name block then rides up 50px over the band on a transparent-to-white
+          gradient, which is what fades the portrait and the navy into the page instead of cutting
+          them off. Positions are percentages of the 1366 box so they land exactly at 1920 and
+          close up proportionally at 1280. Below xl the stacked layout further down is used. ---- */}
+      <section className="relative hidden w-full overflow-hidden bg-primary text-primary-foreground xl:block">
+        <div className="relative h-[430px]">
+          <Container className="h-full">
+            <div className={cn(COLUMN, "relative flex h-full items-center justify-between")}>
+              {winYears.length > 0 && theme.championTrophyGraphicUrl ? (
+                <div className="pointer-events-none absolute left-[78.77%] top-10 h-[450px] w-[450px]" aria-hidden="true">
+                  <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="450px" />
+                </div>
+              ) : null}
+              <div className="pointer-events-none absolute -bottom-[55px] left-[38.65%] h-[528px] w-[540px]">
+                <PlaceholderArt
+                  label={`${player.name} portrait`}
+                  imageUrl={player.photoUrl}
+                  tone="slate"
+                  blendBlack
+                  fill
+                  fit="contain-bottom"
+                  sizes="540px"
+                  priority
+                />
+              </div>
+
+              {/* `relative` on both blocks so they paint above the absolutely positioned portrait,
+                  as theirs do (their photo sits at z-index -20 behind the text). */}
+              <dl className="relative flex max-w-[375px] flex-wrap gap-y-5">
+                {stats.map((stat) => (
+                  <div key={stat.label} className="flex min-h-[80px] min-w-[125px] flex-col border-l-2 border-accent pl-3 pr-[25px]">
+                    <dt className="mb-[10px] max-w-[87px] font-menu text-[14px] uppercase leading-[16px] tracking-[0.6px]">{stat.label}</dt>
+                    <dd className="mt-auto whitespace-nowrap font-menu text-[36px] uppercase leading-9 tracking-[1px]">{stat.value}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              {winYears.length > 0 ? (
+                <div className="relative mr-5 pr-[14px]">
+                  <div className="flex min-h-[80px] max-w-[180px] flex-col border-l-2 border-accent px-[18px]">
+                    <p className="mb-[10px] font-menu text-[14px] uppercase leading-[16px] tracking-[0.6px]">Champion Golfer of the Year</p>
+                    {winYears.map((year) => (
+                      <span key={year} className="font-menu text-[36px] uppercase leading-9 tracking-[1px]">
+                        {year}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </Container>
+        </div>
+
+        <div className="relative -mt-[50px] bg-gradient-to-b from-white/0 from-20% to-white">
+          <Container>
+            <div className={COLUMN}>
+              <p className="font-menu text-[36px] leading-[41.4px] tracking-[1.8px] text-primary">{firstName}</p>
+              {/* An h1 here and in the stacked name block below: only one is ever displayed (the
+                  other is display:none), so the page always has exactly one heading in use. */}
+              <h1 className="font-menu text-[80px] font-bold uppercase leading-[92px] tracking-[1.6px] text-primary">{surname}</h1>
+            </div>
+          </Container>
+        </div>
+        <div className="relative bg-white pb-[30px] pt-[25px]">
+          <Container>
+            <p className={cn(COLUMN, "flex items-center gap-2 font-menu text-[14px] leading-5 tracking-[0.2px] text-[#43524E]")}>
+              <CountryFlag code={player.countryCode} className="h-[22px] !w-[30px]" />
+              {player.country}
+            </p>
+          </Container>
+        </div>
+      </section>
+
+      <section className="relative w-full overflow-hidden bg-primary text-primary-foreground xl:hidden">
         {/* Fixed height only from lg up (430px) -- below that the grid stacks to a single column, and a fixed height would clip the stacked content. No breadcrumbs/eyebrow here by request, so this is just the stat/portrait/badge row, vertically centered in the banner. */}
         {/* No z-index here -- it would isolate the portrait's mix-blend-mode into its own stacking context, cutting it off from the section's own bg-primary it needs to blend against. Plain DOM order already paints this on top, so z-10 is unnecessary. */}
         {/* Desktop-only: anchored to the whole hero (not the badge column) so it reads as a full-height decorative element alongside the portrait, matching the earlier desktop treatment. Below lg there's no room for this, so the badge column gets its own smaller corner version instead. */}
@@ -265,7 +352,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
       {/* theopen.com's name block: the first name at 36px regular over the surname at 80px bold,
           both Cardinal Photo, then the country at 14px in their #43524E. White, as the rest of
           their page is, rather than our grey page background. */}
-      <section className="bg-white">
+      <section className="bg-white xl:hidden">
         <Container className="flex flex-col pb-6 pt-8 lg:pt-10">
           <p className="font-menu text-[28px] leading-[1.15] tracking-[1.8px] text-primary lg:text-[36px]">{firstName}</p>
           <h1 className="font-menu text-[48px] font-bold uppercase leading-[1.15] tracking-[1.6px] text-primary sm:text-[64px] lg:text-[80px]">
@@ -287,6 +374,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             underline of the same blue. */}
         <div className="w-full border-b border-[#B9BEC0] bg-white">
           <Container>
+          <div className={COLUMN}>
             <TabsList className="h-[60px] gap-[30px] rounded-none bg-transparent p-0">
               {[
                 { value: "overview", label: "Overview" },
@@ -303,10 +391,12 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                 </TabsTrigger>
               ))}
             </TabsList>
+          </div>
           </Container>
         </div>
 
-        <Container className="py-10 sm:py-14">
+        <Container className="py-10 sm:py-14 xl:pb-14 xl:pt-[41px]">
+        <div className={COLUMN}>
           <TabsContent value="overview" className="mt-0">
             {/* Tee times go in the sidebar. Each row is two short values with justify-between, so
                 across the full 1361px container it read as a scattering of text rather than a list
@@ -369,6 +459,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           <TabsContent value="stats" className="mt-0">
             <StatsTab playerId={player.id} careerCategories={careerCategories} years={statsYears} />
           </TabsContent>
+        </div>
         </Container>
       </Tabs>
 
@@ -376,7 +467,8 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
       {featuredArticles.length > 0 ? (
         <section className="border-t border-[#B9BEC0] bg-[#F7F7F7]">
-          <Container className="flex flex-col items-center pb-16 sm:pb-20">
+          <Container>
+          <div className={cn(COLUMN, "flex flex-col items-center pb-16 sm:pb-20")}>
             {/* theopen.com's "More on The 155th Open": a small centred uppercase title with 55px
                 above and below it, the cards, then a centred blue See More button. */}
             <h2 className={cn(SECTION_TITLE, "mb-0 py-[55px] text-center")}>More on {firstName}</h2>
@@ -391,6 +483,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             >
               See more
             </Link>
+          </div>
           </Container>
         </section>
       ) : null}
