@@ -188,7 +188,8 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           the band's foot, the jug 450px square 40px from the top, and the Champion Golfer block on
           the right edge. The name block then rides up 50px over the band on a transparent-to-white
           gradient, which is what fades the portrait and the navy into the page instead of cutting
-          them off. Positions are percentages of the 1366 box so they land exactly at 1920 and
+          them off. Positions are percentages of the 1366 box (598/1366 and 1076/1366, i.e. 528 and 1006 into
+          the 1226 column plus its 70px indent) so they land exactly at 1920 and
           close up proportionally at 1280. Below xl the stacked layout further down is used. ---- */}
       <section className="relative hidden w-full overflow-hidden bg-primary text-primary-foreground xl:block">
         <div className="relative h-[430px]">
@@ -199,7 +200,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                   <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="450px" />
                 </div>
               ) : null}
-              <div className="pointer-events-none absolute -bottom-[55px] left-[38.65%] h-[528px] w-[540px]">
+              <div className="pointer-events-none absolute -bottom-[55px] left-[43.78%] h-[528px] w-[540px]">
                 <PlaceholderArt
                   label={`${player.name} portrait`}
                   imageUrl={player.photoUrl}
