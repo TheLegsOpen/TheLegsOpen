@@ -4,7 +4,9 @@ import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import dns from "dns";
 import path from "path";
+import { attachDatabasePool } from "@vercel/functions";
 import { buildConfig } from "payload";
+import type { Pool } from "pg";
 import { fileURLToPath } from "url";
 import sharp from "sharp";
 
@@ -107,6 +109,22 @@ function transactionPoolerConnectionString(): string {
 }
 
 export default buildConfig({
+  /**
+   * Hands the pg pool to Vercel so it closes idle connections before an instance is suspended.
+   *
+   * 2026-11-09 outage: the home page lost its hero, weather and live blog -- each section's query
+   * failed with "(EMAXCONN) max client connections reached, limit: 200" from Supavisor and fell
+   * back to empty. idleTimeoutMillis (below) can't prevent this on its own: its timer only runs
+   * while the instance is awake, so a frozen instance keeps up to `max` connections open at the
+   * pooler indefinitely, and about 34 of them fill all 200 slots. Nine deploys in one afternoon each
+   * left their instances frozen and still holding connections. attachDatabasePool releases them at
+   * the point Vercel suspends the instance, which is the gap the idle timeout can't reach.
+   * Only on Vercel: locally there is no suspension to hook.
+   */
+  onInit: async (payload) => {
+    const pool = (payload.db as unknown as { pool?: Pool }).pool;
+    if (pool && process.env.VERCEL) attachDatabasePool(pool);
+  },
   admin: {
     user: Users.slug,
     importMap: {
