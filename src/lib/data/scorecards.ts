@@ -3,6 +3,7 @@ import { getPayload } from "payload";
 import configPromise from "@/payload.config";
 import { mapPlayer } from "@/lib/data/players";
 import { hasBeenPlayedWhere } from "@/lib/data/championship-timing";
+import { cachedQuery, LEADERBOARD_TAGS, slimPlayer } from "@/lib/data-cache";
 import { allocateStrokes, stablefordPoints } from "@/lib/scoring";
 import type { Player } from "@/types/player";
 import type {
@@ -375,10 +376,33 @@ function buildLeaderboardFromDocs(
  * that write until the outer transaction commits, one hook invocation late.
  */
 export async function getCompetitionLeaderboard(competition: Competition, req?: PayloadRequest): Promise<CompetitionEntry[]> {
+  // Inside a hook, read live within the transaction -- never from the cross-request cache.
+  if (req) return buildActiveLeaderboard(competition, req);
+  return getCachedActiveLeaderboard(competition).catch(() => []);
+}
+
+async function buildActiveLeaderboard(competition: Competition, req?: PayloadRequest): Promise<CompetitionEntry[]> {
   const payload = req?.payload ?? (await getPayload({ config: configPromise }));
   const { championship, holeInfos, docs, teeTimeByPlayer } = await loadLeaderboardInputs(payload, req);
   if (!championship) return [];
   return buildLeaderboardFromDocs(competition, holeInfos, docs, teeTimeByPlayer);
+}
+
+// See src/lib/data-cache.ts. Every save to a scorecard, player, championship, venue or tee sheet
+// expires this immediately, so live scoring stays live. Between saves, every page showing the
+// leaderboard shares one read instead of each render pulling every scorecard at depth 2.
+//
+// getActiveChampionship swallows a failed read as "no championship", which would look identical to
+// a real empty board. So an empty board is never cached: it throws here, and the caller above turns
+// it back into []. Re-reading an empty board is cheap; caching a pooler blip for an hour isn't.
+const getCachedActiveLeaderboard = cachedQuery("leaderboard:active", LEADERBOARD_TAGS, async (competition: Competition) => {
+  const entries = await buildActiveLeaderboard(competition);
+  if (entries.length === 0) throw new Error("Empty leaderboard is not cached");
+  return slimEntries(entries);
+});
+
+function slimEntries(entries: CompetitionEntry[]): CompetitionEntry[] {
+  return entries.map((entry) => ({ ...entry, player: slimPlayer(entry.player) }));
 }
 
 /** Same as `getCompetitionLeaderboard`, but for a specific (possibly past) championship rather
@@ -392,12 +416,39 @@ export async function getCompetitionLeaderboardForChampionshipId(
   competition: Competition,
   req?: PayloadRequest,
 ): Promise<CompetitionEntry[]> {
-  const payload = req?.payload ?? (await getPayload({ config: configPromise }));
-  const championship = await payload.findByID({ collection: "championships", id: championshipId, req }).catch(() => undefined);
-  if (!championship) return [];
+  if (req) {
+    const championship = await req.payload.findByID({ collection: "championships", id: championshipId, req }).catch(() => undefined);
+    if (!championship) return [];
+    return buildLeaderboardForChampionship(req.payload, championship, competition, req);
+  }
+  // A failed read throws inside the cached function, so it isn't cached as an empty board. It
+  // becomes the same empty result the uncached version always returned here, outside the cache.
+  return getCachedChampionshipLeaderboard(championshipId, competition).catch(() => []);
+}
+
+async function buildLeaderboardForChampionship(
+  payload: Payload,
+  championship: PayloadChampionship,
+  competition: Competition,
+  req?: PayloadRequest,
+): Promise<CompetitionEntry[]> {
   const { holeInfos, docs, teeTimeByPlayer } = await loadLeaderboardInputs(payload, req, championship);
   return buildLeaderboardFromDocs(competition, holeInfos, docs, teeTimeByPlayer);
 }
+
+// The single biggest egress saving on the site. A player profile asks for every past year's board
+// three times over (results, playoffs, career stats), and Records, Previous Opens and the venue
+// pages ask again. A concluded year's board only changes when someone edits it, so it's read once
+// and served from cache until a save expires it.
+const getCachedChampionshipLeaderboard = cachedQuery(
+  "leaderboard:by-championship",
+  LEADERBOARD_TAGS,
+  async (championshipId: string, competition: Competition) => {
+    const payload = await getPayload({ config: configPromise });
+    const championship = await payload.findByID({ collection: "championships", id: championshipId });
+    return slimEntries(await buildLeaderboardForChampionship(payload, championship, competition));
+  },
+);
 
 export interface ScorecardParticipation {
   championshipId: string;

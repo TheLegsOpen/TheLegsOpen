@@ -3,6 +3,7 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { getChampionshipHistory } from "@/lib/data/championships";
+import { cachedQuery, LEADERBOARD_TAGS, slimPlayer } from "@/lib/data-cache";
 import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
 import { isConcluded, formatToPar } from "@/lib/leaderboard";
 import { mapPlayer } from "@/lib/data/players";
@@ -44,7 +45,7 @@ interface CareerInputs {
 /**
  * Two batched queries covering every trusted year at once, rather than one query per year.
  *
- * Wrapped in React's cache() because the six exported getCareer*Categories functions below each
+ * Wrapped in React's cache() because the six computeCareer*Categories functions below each
  * call this, and a player profile page renders all six -- so without deduplication a single page
  * load ran this same pair of queries (one of them up to 2000 scorecards at depth 1) six times over.
  * That was most of the ~3.7s those pages were taking. cache() is request-scoped, so this stays a
@@ -221,11 +222,11 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
   ];
 }
 
-export async function getCareerNettScoringCategories(): Promise<StatCategory[]> {
+async function computeCareerNettScoringCategories(): Promise<StatCategory[]> {
   return getCareerScoringCategories("nett");
 }
 
-export async function getCareerScratchScoringCategories(): Promise<StatCategory[]> {
+async function computeCareerScratchScoringCategories(): Promise<StatCategory[]> {
   return getCareerScoringCategories("scratch");
 }
 
@@ -273,7 +274,7 @@ async function getCareerStreakCategoriesForMode(mode: ScoringMode): Promise<Stat
   ];
 }
 
-export async function getCareerStreakCategories(): Promise<StatCategory[]> {
+async function computeCareerStreakCategories(): Promise<StatCategory[]> {
   const [nett, scratch] = await Promise.all([getCareerStreakCategoriesForMode("nett"), getCareerStreakCategoriesForMode("scratch")]);
   return [...nett, ...scratch];
 }
@@ -367,7 +368,7 @@ function buildRateAndGainedRows(
   return { rateRows, strokesGainedRows };
 }
 
-export async function getCareerDrivingCategories(): Promise<StatCategory[]> {
+async function computeCareerDrivingCategories(): Promise<StatCategory[]> {
   const inputs = await loadCareerInputs();
   const entries = skillEntries(inputs);
   if (entries.length === 0) return [];
@@ -384,7 +385,7 @@ export async function getCareerDrivingCategories(): Promise<StatCategory[]> {
   ];
 }
 
-export async function getCareerApproachCategories(): Promise<StatCategory[]> {
+async function computeCareerApproachCategories(): Promise<StatCategory[]> {
   const inputs = await loadCareerInputs();
   const entries = skillEntries(inputs);
   if (entries.length === 0) return [];
@@ -398,7 +399,7 @@ export async function getCareerApproachCategories(): Promise<StatCategory[]> {
   ];
 }
 
-export async function getCareerPuttingCategories(): Promise<StatCategory[]> {
+async function computeCareerPuttingCategories(): Promise<StatCategory[]> {
   const inputs = await loadCareerInputs();
   const entries = skillEntries(inputs);
   if (entries.length === 0) return [];
@@ -454,4 +455,66 @@ export async function getCareerPuttingCategories(): Promise<StatCategory[]> {
     { key: "putts", title: "Number of Putts", columnLabel: "TOTAL", rows: puttsRows },
     { key: "putting-strokes-gained", title: "Putting Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
   ];
+}
+
+interface CareerCategories {
+  nett: StatCategory[];
+  scratch: StatCategory[];
+  streak: StatCategory[];
+  driving: StatCategory[];
+  approach: StatCategory[];
+  putting: StatCategory[];
+}
+
+function slimCategories(categories: StatCategory[]): StatCategory[] {
+  return categories.map((category) => ({ ...category, rows: category.rows.map((row) => ({ ...row, player: slimPlayer(row.player) })) }));
+}
+
+/**
+ * All six career tables are computed together and cached as one entry (see src/lib/data-cache.ts).
+ * They're identical on every player profile and only change when a scorecard, player, venue or
+ * championship is saved, yet each profile render used to recompute them from a 2000-scorecard read.
+ * One shared entry also means a cache miss runs loadCareerInputs once rather than six times.
+ */
+const getCachedCareerCategories = cachedQuery("career-categories", LEADERBOARD_TAGS, async (): Promise<CareerCategories> => {
+  const [nett, scratch, streak, driving, approach, putting] = await Promise.all([
+    computeCareerNettScoringCategories(),
+    computeCareerScratchScoringCategories(),
+    computeCareerStreakCategories(),
+    computeCareerDrivingCategories(),
+    computeCareerApproachCategories(),
+    computeCareerPuttingCategories(),
+  ]);
+  return {
+    nett: slimCategories(nett),
+    scratch: slimCategories(scratch),
+    streak: slimCategories(streak),
+    driving: slimCategories(driving),
+    approach: slimCategories(approach),
+    putting: slimCategories(putting),
+  };
+});
+
+export async function getCareerNettScoringCategories(): Promise<StatCategory[]> {
+  return (await getCachedCareerCategories()).nett;
+}
+
+export async function getCareerScratchScoringCategories(): Promise<StatCategory[]> {
+  return (await getCachedCareerCategories()).scratch;
+}
+
+export async function getCareerStreakCategories(): Promise<StatCategory[]> {
+  return (await getCachedCareerCategories()).streak;
+}
+
+export async function getCareerDrivingCategories(): Promise<StatCategory[]> {
+  return (await getCachedCareerCategories()).driving;
+}
+
+export async function getCareerApproachCategories(): Promise<StatCategory[]> {
+  return (await getCachedCareerCategories()).approach;
+}
+
+export async function getCareerPuttingCategories(): Promise<StatCategory[]> {
+  return (await getCachedCareerCategories()).putting;
 }

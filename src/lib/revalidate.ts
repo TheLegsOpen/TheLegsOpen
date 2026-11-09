@@ -1,4 +1,6 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+
+import { DATA_TAGS, type DataTag } from "@/lib/data-cache";
 
 type PathSpec = string | { path: string; type: "layout" };
 
@@ -12,6 +14,15 @@ function revalidate(paths: PathSpec[]) {
     if (typeof spec === "string") revalidatePath(spec);
     else revalidatePath(spec.path, spec.type);
   }
+}
+
+/**
+ * Expires the cross-request data cache (src/lib/data-cache.ts) for this collection. `expire: 0`
+ * rather than the default stale-while-revalidate: during live scoring the next request after a
+ * save must see that save, not the board from before it.
+ */
+function expireData(tag: DataTag) {
+  revalidateTag(tag, { expire: 0 });
 }
 
 /**
@@ -89,6 +100,7 @@ export function revalidateSponsorClock() {
 }
 
 export function revalidateChampionships() {
+  expireData(DATA_TAGS.championships);
   revalidate([
     "/field",
     "/previous-opens",
@@ -103,10 +115,12 @@ export function revalidateChampionships() {
 }
 
 export function revalidateVenues() {
+  expireData(DATA_TAGS.venues);
   revalidate(["/sitemap.xml", "/venues", { path: "/venues/[slug]", type: "layout" }]);
 }
 
 export function revalidatePlayers() {
+  expireData(DATA_TAGS.players);
   revalidate([
     "/field",
     { path: "/players/[slug]", type: "layout" },
@@ -121,6 +135,7 @@ export function revalidatePlayers() {
  * bust the careers/contact/media/legal/patrons pages on every single stroke entered.
  */
 export function revalidateScorecards() {
+  expireData(DATA_TAGS.scorecards);
   revalidate([
     "/leaderboard",
     "/live-blog",
@@ -137,6 +152,7 @@ export function revalidateScorecards() {
 }
 
 export function revalidateTeeTimeRounds() {
+  expireData(DATA_TAGS.teeTimes);
   revalidate([
     { path: "/players/[slug]", type: "layout" },
     { path: "/previous-opens/[year]", type: "layout" },

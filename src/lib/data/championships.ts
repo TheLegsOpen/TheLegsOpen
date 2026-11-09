@@ -3,6 +3,7 @@ import { getPayload } from "payload";
 import configPromise from "@/payload.config";
 import { slugify, mediaUrl, ordinal } from "@/lib/utils";
 import { activeChampionshipIndex, inPlayWhere, isStillToCome } from "@/lib/data/championship-timing";
+import { cachedQuery, DATA_TAGS } from "@/lib/data-cache";
 import type { ChampionshipWinner } from "@/types/championship";
 import type { Championship as PayloadChampionship, Venue as PayloadVenue, Player as PayloadPlayer } from "@/payload-types";
 
@@ -75,10 +76,21 @@ function mapChampionship(doc: PayloadChampionship): ChampionshipWinner {
   };
 }
 
+// Read several times per player profile, Records and Previous Opens render (results, career stats,
+// playoffs), and at Payload's default depth every championship drags in its venue and winning
+// player in full. Cached across requests -- see src/lib/data-cache.ts.
+const getCachedChampionshipHistory = cachedQuery(
+  "championship-history",
+  [DATA_TAGS.championships, DATA_TAGS.venues, DATA_TAGS.players],
+  async (): Promise<ChampionshipWinner[]> => {
+    const payload = await getPayload({ config: configPromise });
+    const result = await payload.find({ collection: "championships", limit: 100, sort: "-year" });
+    return result.docs.map(mapChampionship);
+  },
+);
+
 export async function getChampionshipHistory(): Promise<ChampionshipWinner[]> {
-  const payload = await getPayload({ config: configPromise });
-  const result = await payload.find({ collection: "championships", limit: 100, sort: "-year" });
-  return result.docs.map(mapChampionship);
+  return getCachedChampionshipHistory();
 }
 
 export async function getChampionshipByYear(year: number): Promise<ChampionshipWinner | undefined> {
