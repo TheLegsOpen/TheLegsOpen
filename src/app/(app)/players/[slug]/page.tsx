@@ -272,7 +272,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             {surname}
           </h1>
           <p className="mt-6 flex items-center gap-2 font-menu text-[14px] leading-5 tracking-[0.2px] text-[#43524E]">
-            <CountryFlag code={player.countryCode} className="h-[22px] w-10" />
+            {/* !w: flag-icons' own `.fi` width (1.333em) loads after Tailwind and would otherwise
+                win, leaving a 19px-wide flag stretched to 22px tall. 30x22 keeps the flags' 4:3. */}
+            <CountryFlag code={player.countryCode} className="h-[22px] !w-[30px]" />
             {player.country}
           </p>
         </Container>
