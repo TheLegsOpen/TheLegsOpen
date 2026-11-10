@@ -1,4 +1,7 @@
+import { markdown as dundonald2014 } from "./2014-dundonald";
+import { markdown as lanark2015 } from "./2015-lanark";
 import { markdown as southerness2016 } from "./2016-southerness";
+import { markdown as dalmahoy2017 } from "./2017-dalmahoy";
 import { markdown as gullane2018 } from "./2018-gullane";
 import { markdown as ladybank2019 } from "./2019-ladybank";
 import { markdown as castle2020 } from "./2020-st-andrews-castle";
@@ -7,6 +10,7 @@ import { markdown as lochLomond2022 } from "./2022-loch-lomond";
 import { markdown as panmure2023 } from "./2023-panmure";
 import { markdown as downfield2024 } from "./2024-downfield";
 import { markdown as balmedie2025 } from "./2025-balmedie";
+import { markdown as castleStuart2026 } from "./2026-castle-stuart";
 
 /**
  * Championship write-ups authored as Markdown and published through /api/admin-article.
@@ -47,6 +51,30 @@ export interface ArticleSource {
 
 export const ARTICLE_SOURCES: ArticleSource[] = [
   {
+    // Written in the admin; brought into source on 2026-11-10 to be rewritten. Title, dek, hero
+    // label and date are the live ones, copied unchanged. Pre-rewrite copy: content-backups/.
+    slug: "pow-holds-firm-at-dundonald-to-claim-second-legs-open",
+    title: "Pow Holds Firm At Dundonald To Claim Legs Open Championship",
+    dek: "Clelland's closing birdie not enough as Main champion prevails by two after weather-hit build-up",
+    category: "Championship News",
+    publishedAt: "2014-09-14T12:00:00.000Z",
+    heroLabel: "John Pow Lifts The Claret Jug",
+    championshipYear: 2014,
+    markdown: dundonald2014,
+  },
+  {
+    // Written in the admin; brought into source on 2026-11-10 to be rewritten. Title, dek, hero
+    // label and date are the live ones, copied unchanged. Pre-rewrite copy: content-backups/.
+    slug: "clee-leads-from-the-turn-to-land-legs-open-crown-at-lanark",
+    title: "Clee Leads From The Turn To Land Legs Open Crown At Lanark",
+    dek: "David Clee held the outright lead from the turn at a demanding Lanark to see off Robert Hamilton by two shots — though Hamilton took home both the Stableford and Scratch titles on the same afternoon.",
+    category: "Championship News",
+    publishedAt: "2015-09-06T12:00:00.000Z",
+    heroLabel: "David Clee closes out victory at Lanark",
+    championshipYear: 2015,
+    markdown: lanark2015,
+  },
+  {
     // Slug matches the article already on the site, so publishing this replaces its body rather
     // than leaving 2016 with two write-ups -- the same arrangement as 2018 below. The title, dek
     // and hero label are the ones written by hand in the admin, kept so a re-publish changes only
@@ -63,6 +91,18 @@ export const ARTICLE_SOURCES: ArticleSource[] = [
     heroLabel: "Clee Hold The Famous Claret Jug",
     championshipYear: 2016,
     markdown: southerness2016,
+  },
+  {
+    // Written in the admin; brought into source on 2026-11-10 to be rewritten. Title, dek, hero
+    // label and date are the live ones, copied unchanged. Pre-rewrite copy: content-backups/.
+    slug: "an-eight-at-the-last-and-half-an-hour-in-the-clubhouse-cruickshanks-loses-the-2017-legs-open-twice-on-the-same-hole",
+    title: "An eight at the last, and half an hour in the clubhouse: Cruickshanks loses the 2017 Legs Open twice on the same hole",
+    dek: "Colin Howieson Wins On Legs Open Debut",
+    category: "Championship News",
+    publishedAt: "2017-07-30T12:00:00.000Z",
+    heroLabel: "Colin Howieson Wins Claret Jug",
+    championshipYear: 2017,
+    markdown: dalmahoy2017,
   },
   {
     // Slug deliberately matches the draft already in the admin, so publishing this updates that
@@ -146,6 +186,18 @@ export const ARTICLE_SOURCES: ArticleSource[] = [
     heroLabel: "Andrew Duncan at Balmedie, September 2025",
     championshipYear: 2025,
     markdown: balmedie2025,
+  },
+  {
+    // Written in the admin; brought into source on 2026-11-10 to be rewritten. Title, dek, hero
+    // label and date are the live ones, copied unchanged. Pre-rewrite copy: content-backups/.
+    slug: "leisegang-survives-the-worst-possible-start-to-win-on-debut",
+    title: "Leisegang survives the worst possible start to win on debut",
+    dek: "Five over par after two holes. Not the way anyone plans to win a championship, still less on their first appearance in one.",
+    category: "Championship News",
+    publishedAt: "2026-09-12T12:00:00.000Z",
+    heroLabel: "Leisegang Celebrates With The Win",
+    championshipYear: 2026,
+    markdown: castleStuart2026,
   },
 ];
 
