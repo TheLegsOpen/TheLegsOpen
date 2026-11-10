@@ -9,15 +9,21 @@ const PREVIEWS: { href: string; page: string; items: string[] }[] = [
     href: "/preview/venues/dalmahoy",
     page: "Venue (Dalmahoy)",
     items: [
-      "13 Hero line: years hosted, location, button",
-      "14 The Course and Getting There cards",
+      "13 Hero line: years hosted, location, button to the most recent Legs Open here",
+      "The Course card under Upcoming Venues, linking to the course page (Getting There removed)",
+      "Overview | Course Statistics tabs moved above News & Features",
       "15 News & Features band",
       "16 Year-by-year history slider (already matches theopen.com, no change)",
-      "25 Hole-by-hole course guide",
       "29 Photo gallery (appears once championship photos are added)",
     ],
   },
-  { href: "/preview/venues/st-andrews-craigtoun", page: "Venue (Craigtoun, upcoming)", items: ["13 Upcoming-venue hero line with date", "25 Course guide before it has been played"] },
+  {
+    href: "/preview/venues/dalmahoy/course",
+    page: "Course page (Dalmahoy)",
+    items: ["25 Hole-by-hole guide: pick a hole to see its strokesaver image and numbers (placeholders until hole images can be uploaded)"],
+  },
+  { href: "/preview/venues/st-andrews-craigtoun", page: "Venue (Craigtoun, upcoming)", items: ["13 Upcoming-venue hero line with date"] },
+  { href: "/preview/venues/st-andrews-craigtoun/course", page: "Course page (Craigtoun)", items: ["25 Course guide before it has been played"] },
   { href: "/preview/head-to-head", page: "Head-to-head (new)", items: ["26 Compare two players' Legs Open careers"] },
 ];
 
