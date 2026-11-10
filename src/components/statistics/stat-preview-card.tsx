@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Star } from "lucide-react";
 
 import { CountryFlag } from "@/components/shared/country-flag";
 import { cn, ordinal, splitSurnameFirst, surnameFirst } from "@/lib/utils";
@@ -78,13 +78,20 @@ export function StatPreviewCard({
   category,
   onSelectPlayer,
   championshipYear,
+  highlightId,
+  favoriteIds = [],
 }: {
   category: StatCategory;
   onSelectPlayer: (playerId: string) => void;
   /** Pass when showing a specific past championship (e.g. Previous Opens) so "Full rankings" links to that year's detail page instead of whichever championship is currently active. */
   championshipYear?: number;
+  /** PREVIEW (12): the player picked in the Player filter -- ringed, and added below the top three if outside them. */
+  highlightId?: string;
+  /** PREVIEW (28): My players, starred in the rows. */
+  favoriteIds?: string[];
 }) {
   const top = category.rows.slice(0, PREVIEW_COUNT);
+  const extra = highlightId && !top.some((r) => r.player.id === highlightId) ? category.rows.find((r) => r.player.id === highlightId) : undefined;
 
   return (
     <div className="flex flex-col gap-px overflow-hidden border border-surface-dark-foreground/15">
@@ -108,12 +115,16 @@ export function StatPreviewCard({
           <p className="text-sm text-primary-foreground/60">No holes of this par played yet.</p>
         </div>
       ) : (
-        top.map((row, index) => index === 0 ? (
+        [...top, ...(extra ? [extra] : [])].map((row, index) => index === 0 ? (
           <LeaderRow key={row.player.id} row={row} category={category} onSelectPlayer={onSelectPlayer} />
         ) : (
           <div
             key={row.player.id}
-            className="flex items-center justify-between gap-4 border-b border-surface-dark-foreground/15 bg-accent/90 px-4 py-3 text-accent-foreground last:border-0"
+            className={cn(
+              "flex items-center justify-between gap-4 border-b border-surface-dark-foreground/15 bg-accent/90 px-4 py-3 text-accent-foreground last:border-0",
+              row.player.id === highlightId && "ring-2 ring-inset ring-primary",
+              row === extra && "border-t-4 border-t-primary",
+            )}
           >
             <div className="flex items-center gap-3 text-sm">
               <span className="w-8 tabular-nums">
@@ -121,7 +132,8 @@ export function StatPreviewCard({
                 {row.position}
               </span>
               <CountryFlag code={row.player.countryCode} className="h-3 w-4" />
-              <button type="button" onClick={() => onSelectPlayer(row.player.id)} className="font-medium hover:underline">
+              <button type="button" onClick={() => onSelectPlayer(row.player.id)} className="inline-flex items-center gap-1.5 font-medium hover:underline">
+                {favoriteIds.includes(row.player.id) ? <Star className="h-3 w-3 fill-primary text-primary" aria-label="My player" /> : null}
                 {surnameFirst(row.player.name)}
               </button>
             </div>

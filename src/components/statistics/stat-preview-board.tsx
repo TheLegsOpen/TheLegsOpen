@@ -31,6 +31,10 @@ interface StatPreviewBoardProps {
   scratchEntries: CompetitionEntry[];
   /** Pass when showing a specific past championship (e.g. Previous Opens) -- see StatPreviewCard. */
   championshipYear?: number;
+  /** PREVIEW (11): two cards per row on desktop. */
+  twoColumn?: boolean;
+  /** PREVIEW (12, 28): a Player dropdown beside the category one, and My players starred. */
+  playerFilter?: boolean;
 }
 
 const SECTION_CATEGORIES: Record<CategorySection, keyof StatPreviewBoardProps> = {
@@ -57,7 +61,10 @@ export function StatPreviewBoard(props: StatPreviewBoardProps) {
     approachCategories,
     puttingCategories,
     championshipYear,
+    twoColumn = false,
+    playerFilter = false,
   } = props;
+  const [highlightId, setHighlightId] = useState<string>("");
   const [section, setSection] = useState<StatSection>("nett");
   const categories =
     section === "course" || section === "playoffs" ? [] : (props[SECTION_CATEGORIES[section]] as StatCategory[]);
@@ -71,7 +78,25 @@ export function StatPreviewBoard(props: StatPreviewBoardProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-3">
+        {playerFilter ? (
+          <label className="relative inline-flex items-center gap-2 rounded-full border border-surface-dark-foreground/30 px-4 py-2 text-sm font-bold uppercase tracking-wide text-surface-dark-foreground transition-colors hover:border-accent">
+            <span className="sr-only">Highlight a player</span>
+            <select value={highlightId} onChange={(e) => setHighlightId(e.target.value)} className="cursor-pointer appearance-none bg-transparent pr-5 focus:outline-none">
+              <option value="" className="text-black">
+                ALL PLAYERS
+              </option>
+              {[...mainEntries]
+                .sort((a, b) => a.player.name.localeCompare(b.player.name))
+                .map((e) => (
+                  <option key={e.player.id} value={e.player.id} className="text-black">
+                    {e.player.name.toUpperCase()}
+                  </option>
+                ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-4 h-4 w-4" />
+          </label>
+        ) : null}
         <label className="relative inline-flex items-center gap-2 rounded-full border border-surface-dark-foreground/30 px-4 py-2 text-sm font-bold uppercase tracking-wide text-surface-dark-foreground transition-colors hover:border-accent">
           <span className="sr-only">Select statistics category</span>
           <select
@@ -118,9 +143,16 @@ export function StatPreviewBoard(props: StatPreviewBoardProps) {
       ) : section === "playoffs" ? (
         <PlayoffsBoard results={playoffs} onSelectPlayer={setSelectedPlayerId} />
       ) : (
-        <div className="flex flex-col gap-8">
+        <div className={twoColumn ? "grid grid-cols-1 gap-6 xl:grid-cols-2" : "flex flex-col gap-8"}>
           {categories.map((category) => (
-            <StatPreviewCard key={category.key} category={category} onSelectPlayer={setSelectedPlayerId} championshipYear={championshipYear} />
+            <StatPreviewCard
+              key={category.key}
+              category={category}
+              onSelectPlayer={setSelectedPlayerId}
+              championshipYear={championshipYear}
+              highlightId={playerFilter ? highlightId || undefined : undefined}
+              favoriteIds={playerFilter ? favorites : []}
+            />
           ))}
         </div>
       )}
