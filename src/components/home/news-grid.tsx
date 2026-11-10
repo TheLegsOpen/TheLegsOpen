@@ -124,9 +124,12 @@ function NewsPage({ articles }: { articles: Article[] }) {
             <div className="flex flex-1 flex-col items-center gap-[15px] text-center">
               <h3 className="line-clamp-3 font-sans text-[24px] font-light capitalize leading-[28.8px] text-[#D9D9D9]">{article.title}</h3>
               {article.dek ? <p className="line-clamp-3 font-sans text-[16px] font-light leading-[19px] text-white/80">{article.dek}</p> : null}
-              <span className="mt-auto inline-flex items-center gap-2.5 border border-accent bg-accent px-5 py-3 font-sans text-[17px] font-bold uppercase leading-[20.4px] tracking-[0.3px] text-primary transition-colors group-hover:bg-white group-hover:border-white">
+              {/* The same button as every other yellow box on the home page (ArticleCard's "Read
+                  more", the hero's "Read the story"): Founders Grotesk Light at 17px in #06051e.
+                  It was the Bold cut with taller padding, which made it the odd one out. */}
+              <span className="mt-auto inline-flex w-fit items-center gap-1.5 bg-accent px-4 py-2 font-sans text-[17px] font-light uppercase leading-[20.4px] tracking-[0.3px] text-[#06051e] transition-colors group-hover:bg-white">
                 Full article
-                <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </span>
             </div>
           </Link>
