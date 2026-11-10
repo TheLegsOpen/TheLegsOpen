@@ -20,6 +20,7 @@ const TEE_FILTERS = ["All", "1st", "10th"] as const;
 
 export function TeeTimesView({
   rounds: TEE_TIMES,
+  emptyMessage = "Tee times will be published nearer the championship.",
   featuredArticle,
   clockConfig,
   mainEntries,
@@ -33,6 +34,8 @@ export function TeeTimesView({
   puttingCategories,
 }: {
   rounds: TeeTimeRound[];
+  /** Shown in place of the tee sheet when no round is published (all archived between championships). */
+  emptyMessage?: string;
   featuredArticle: Article;
   clockConfig: SponsorClock;
   mainEntries: CompetitionEntry[];
@@ -62,6 +65,11 @@ export function TeeTimesView({
     <>
       <div className="bg-surface-dark text-surface-dark-foreground">
         <Container className="grid grid-cols-1 gap-x-5 gap-y-10 py-12 sm:py-16 lg:grid-cols-main-side lg:items-start">
+          {TEE_TIMES.length === 0 ? (
+            <div className="flex min-h-[240px] items-center justify-center border border-surface-dark-foreground/15 px-8 py-16 text-center">
+              <p className="max-w-md font-menu text-[20px] leading-7 text-surface-dark-foreground/80">{emptyMessage}</p>
+            </div>
+          ) : (
           <div>
             <div className={cn("mb-8 flex flex-wrap items-center gap-4", showTeeFilter ? "justify-between" : "justify-end")}>
               {showTeeFilter && (
@@ -134,6 +142,7 @@ export function TeeTimesView({
             })}
             </Accordion>
           </div>
+          )}
 
           <ChampionshipSidebar featuredArticle={featuredArticle} clockConfig={clockConfig} tone="dark" />
         </Container>

@@ -17,6 +17,8 @@ import {
   getPuttingCategories,
 } from "@/lib/data/scoring-statistics";
 import { getSeoSettings } from "@/lib/data/seo-settings";
+import { getFieldChampionshipSummary } from "@/lib/data/championships";
+import { ordinal } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSeoSettings();
@@ -45,6 +47,7 @@ export default async function TeeTimesPage() {
     drivingCategories,
     approachCategories,
     puttingCategories,
+    nextChampionship,
   ] = await Promise.all([
     getTeeTimes(),
     getArticles(),
@@ -59,7 +62,15 @@ export default async function TeeTimesPage() {
     getDrivingCategories(),
     getApproachCategories(),
     getPuttingCategories(),
+    getFieldChampionshipSummary(),
   ]);
+
+  // Every tee sheet gets archived once its championship is over, which used to leave this page as
+  // an empty column with a lone "Reverse order" button. Name the championship coming next instead,
+  // using the Field page's rule (it looks ahead from 1 October).
+  const emptyMessage = nextChampionship
+    ? `Tee times for the ${ordinal(nextChampionship.ordinal)} Legs Open at ${nextChampionship.venueName} will be published nearer the championship.`
+    : "Tee times will be published nearer the championship.";
 
   return (
     <>
@@ -75,6 +86,7 @@ export default async function TeeTimesPage() {
       <ChampionshipWeekSwitcher />
       <TeeTimesView
         rounds={rounds}
+        emptyMessage={emptyMessage}
         featuredArticle={articles[0]}
         clockConfig={clockConfig}
         mainEntries={mainEntries}
