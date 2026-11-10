@@ -45,7 +45,7 @@ export function RecordsBoardNext({ records, players }: { records: RecordsData; p
     { title: "Youngest champion", rows: records.youngestChampion.slice(0, 3).map((r) => ({ name: r.name, value: ageLabel(r.age), detail: String(r.year) })) },
     { title: "Oldest competitor", rows: records.oldestCompetitor.slice(0, 3).map((r) => ({ name: r.name, value: ageLabel(r.age) })) },
     { title: "Youngest competitor", rows: records.youngestCompetitor.slice(0, 3).map((r) => ({ name: r.name, value: ageLabel(r.age) })) },
-    { title: "Most used venues", rows: records.courseHostCounts.slice(0, 3).map((r) => ({ name: r.venueName, value: String(r.count), detail: r.years.join(", ") })) },
+    { title: "Most used venues", rows: (records.courseHostCounts[0]?.count ?? 0) < 2 ? [] : records.courseHostCounts.slice(0, 3).map((r) => ({ name: r.venueName, value: String(r.count), detail: r.years.join(", ") })) },
   ].filter((c) => c.rows.length > 0);
 
   return (
