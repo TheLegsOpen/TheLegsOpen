@@ -214,15 +214,23 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
               {/* `relative` on both blocks so they paint above the absolutely positioned portrait,
                   as theirs do (their photo sits at z-index -20 behind the text). */}
-              {/* 400 rather than their 375: they show three stats, we show five, and "Championship"
-                  is a single word wider than their 87px label -- at 375 that pushed every row down to
-                  two. 400 keeps three then two. */}
-              <dl className="relative flex max-w-[400px] flex-wrap gap-y-5">
+              {/* A fixed three-column grid, so every player gets the same shape: three stats, then
+                  the rest, with Best Legs Open Finish -- the only value long enough to need it --
+                  always spanning two columns. This was a wrapping row held to 400px, which left the
+                  layout to each player's numbers: David Clee's "1 - 2015, 2016" fitted beside
+                  Previous Opens, Mark Alston's wider "T3 - 2013, 2021" missed by 4px and dropped to a
+                  row of its own. They show three stats; we show five, hence two rows. */}
+              <dl className="relative grid grid-cols-[repeat(3,max-content)] gap-y-5">
                 {stats.map((stat) => (
-                  <div key={stat.label} className="flex min-h-[80px] min-w-[125px] flex-col border-l-2 border-accent pl-3 pr-[25px]">
-                    {/* Labels wrap as theirs do ("Legs Open / Debut"). 90 rather than their 87: a
-                        wrapping label fills its max width, which sets the item's, so this is what
-                        keeps three to a row. "Championship" (114px, one word) runs 24px past it,
+                  <div
+                    key={stat.label}
+                    className={cn(
+                      "flex min-h-[80px] min-w-[125px] flex-col border-l-2 border-accent pl-3 pr-[25px]",
+                      stat.label === "Best Legs Open Finish" && "col-span-2",
+                    )}
+                  >
+                    {/* Labels wrap as theirs do ("Legs Open / Debut"), held to 90px (theirs 87) so
+                        the columns stay narrow. "Championship" (114px, one word) runs 24px past it,
                         inside the 25px right padding rather than into the next stat. */}
                     <dt className="mb-[10px] max-w-[90px] font-menu text-[14px] uppercase leading-[16px] tracking-[0.6px]">{stat.label}</dt>
                     <dd className="mt-auto whitespace-nowrap font-menu text-[36px] uppercase leading-9 tracking-[1px]">{stat.value}</dd>
