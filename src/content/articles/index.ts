@@ -119,7 +119,7 @@ export const ARTICLE_SOURCES: ArticleSource[] = [
   },
   {
     slug: "thomas-wins-the-panmure-playoff-howieson-takes-the-stableford",
-    title: "Thomas wins at Panmure on the countback, Howieson takes the Stableford",
+    title: "Thomas wins the Panmure playoff, Howieson takes the Stableford",
     dek: "Twenty-eight started and fourteen returned a card. Two of them finished on the same nett score by completely different routes, and a short hole only three men could par did most of the damage.",
     category: "Championship News",
     publishedAt: "2023-09-10T12:00:00.000Z",

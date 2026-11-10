@@ -1,6 +1,6 @@
 export const markdown = `
 Twenty-eight men started the 2023 Legs Open at Panmure and fourteen returned a card. Two of
-them finished level on nett 71. One took the title on the countback, the other took the
+them finished level on nett 71. One won the title in the playoff, the other took the
 Stableford, and that just about sums up a day that would not separate anyone at the first time
 of asking.
 
@@ -17,17 +17,17 @@ looked to have ended his afternoon. He came home in 41. The sevens, at the sixth
 twelfth, were the two worst holes either man played, and he still matched the lower
 handicapper shot for shot.
 
-The countback went to Thomas. Over the first, second, seventeenth and eighteenth he was two
-under and Howieson one over. It is only the third time in eleven championships that a tie for
-the title has had to be broken, and the second time Howieson has been involved. He won the 2017
-title at Dalmahoy on a countback against Bruce Cruickshanks, and lost this one six years later.
+The playoff, played over the first, second, seventeenth and eighteenth, went to Thomas, two
+under for those four holes to Howieson's one over. It was only the third playoff in eleven
+championships, and the second involving Howieson. He had won the 2017 title at Dalmahoy in one,
+against Bruce Cruickshanks, and lost this one six years later.
 
 ## A Stableford that was not quite a consolation
 
 Both men finished on 35 Stableford points. The rule keeps the Main champion out of that
 competition, so the Stableford went to Colin Howieson.
 
-He had tied for the championship and lost it on the countback, and the points at least gave him
+He had tied for the championship and lost it in the playoff, and the points at least gave him
 something back from the same card. Stevie Anderson was third on 32 and Tom Sinton fourth on 31.
 
 ## Sinton takes the Scratch
