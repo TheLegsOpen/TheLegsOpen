@@ -17,6 +17,7 @@ import {
   getPuttingCategories,
 } from "@/lib/data/scoring-statistics";
 import { getPlayoffs, applyPlayoffToEntries, getEligibleStablefordChampion } from "@/lib/data/playoffs";
+import { getSiteTheme } from "@/lib/data/site-theme";
 import { getSeoSettings } from "@/lib/data/seo-settings";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -46,6 +47,7 @@ export default async function LeaderboardPage() {
     puttingCategories,
     playoffs,
     inPlay,
+    theme,
   ] = await Promise.all([
     getCompetitionLeaderboard("main"),
     getCompetitionLeaderboard("stableford"),
@@ -61,6 +63,7 @@ export default async function LeaderboardPage() {
     getPuttingCategories(),
     getPlayoffs(),
     isChampionshipInPlay(),
+    getSiteTheme(),
   ]);
 
   const main = applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main"));
@@ -94,6 +97,7 @@ export default async function LeaderboardPage() {
         puttingCategories={puttingCategories}
         stablefordTitleHolderId={stablefordTitleHolderId}
         autoRefresh={inPlay}
+        trophyUrl={theme.championTrophyGraphicUrl}
       />
     </>
   );

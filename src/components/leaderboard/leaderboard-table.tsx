@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Star } from "lucide-react";
+import { Clock, Star, ChevronUp, ChevronDown } from "lucide-react";
 
 import { cn, splitSurnameFirst } from "@/lib/utils";
 import { formatToPar, isConcluded } from "@/lib/leaderboard";
 import { CountryFlag } from "@/components/shared/country-flag";
+import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
 import type { RankedEntry } from "@/lib/data/playoffs";
 
@@ -28,6 +29,10 @@ interface LeaderboardTableProps {
    * removed from contention (that group's own internal order was never tiebreak-resolved, since
    * getPlayoffs only ever resolves ties for the raw #1 spot). */
   titleHolderId?: string;
+  /** Places moved since the previous refresh, by player id -- see usePositionMovement. */
+  movement?: Map<string, number>;
+  /** The site's trophy graphic, shown in the champion's feature row once the competition is over. */
+  trophyUrl?: string;
 }
 
 /** Aggregate (round-total) Par pill — 3-tier, since a multi-hole total doesn't have a meaningful "eagle" case. */
@@ -87,6 +92,68 @@ export function AnimatedValue({ value }: { value: string | number }) {
   );
 }
 
+/**
+ * The champion's row once a competition is over, after theopen.com's: their cut-out photo (on a
+ * navy panel, since our portraits are shot on black and only blend away against a dark ground)
+ * with the trophy, first name over a big surname, and a strip of eighteen squares, one per hole.
+ *
+ * Only on a concluded competition, by request: mid-round the leader can change on any hole, and a
+ * feature card would make whoever is in front look like the winner.
+ */
+function ChampionFeature({
+  entry,
+  competition,
+  onSelectPlayer,
+  trophyUrl,
+}: {
+  entry: RankedEntry;
+  competition: Competition;
+  onSelectPlayer: (playerId: string) => void;
+  trophyUrl?: string;
+}) {
+  const { surname, firstName } = splitSurnameFirst(entry.player.name);
+  return (
+    <div className="flex items-end gap-4 py-1">
+      <div className="relative hidden h-[120px] w-[110px] shrink-0 overflow-hidden bg-primary sm:block" aria-hidden="true">
+        {trophyUrl ? (
+          <div className="absolute -right-3 bottom-0 h-[90px] w-[70px] opacity-80">
+            <PlaceholderArt label="" imageUrl={trophyUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="70px" />
+          </div>
+        ) : null}
+        {entry.player.photoUrl ? (
+          <PlaceholderArt label="" imageUrl={entry.player.photoUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="110px" />
+        ) : null}
+      </div>
+      <div className="min-w-0">
+        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">{CHAMPION_LABEL[competition]}</span>
+        <button type="button" onClick={() => onSelectPlayer(entry.player.id)} className="block text-left hover:underline">
+          <span className="block font-menu text-[15px] leading-tight">{firstName}</span>
+          <span className="flex items-center gap-2 font-menu text-[28px] font-bold uppercase leading-none sm:text-[34px]">
+            {surname}
+            <CountryFlag code={entry.player.countryCode} className="h-4 w-5 shrink-0" />
+          </span>
+        </button>
+        <div className="mt-2 flex gap-[3px]" aria-label="Hole by hole">
+          {entry.holes.map((hole) => (
+            <span
+              key={hole.holeNumber}
+              title={`Hole ${hole.holeNumber}: ${hole.value ?? "—"}`}
+              className={cn(
+                "h-2 w-3",
+                hole.noReturn || hole.value === undefined
+                  ? "bg-[#B0B0B0]"
+                  : competition === "stableford"
+                    ? "bg-primary/40"
+                    : holeScorePillClass(hole.relative).split(" ")[0],
+              )}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LeaderboardRow({
   entry,
   isFav,
@@ -96,6 +163,8 @@ function LeaderboardRow({
   concluded,
   isTitleHolder,
   isExcludedChampion,
+  moved,
+  trophyUrl,
 }: {
   entry: RankedEntry;
   isFav: boolean;
@@ -108,6 +177,8 @@ function LeaderboardRow({
    * involved -- a genuine tie instead gets `entry.playoffNote` from the site's real countback
    * logic). Explains why the top score here doesn't carry the "Golfer of the Year" honour. */
   isExcludedChampion: boolean;
+  moved?: number;
+  trophyUrl?: string;
 }) {
   const [isMoving, setIsMoving] = useState(false);
   const { surname, firstName } = splitSurnameFirst(entry.player.name);
@@ -140,14 +211,21 @@ function LeaderboardRow({
         <span className={cn(isLeader && "text-lg font-black text-primary")}>
           <AnimatedValue value={`${entry.tied ? "T" : ""}${entry.position}`} />
         </span>
+        {moved ? (
+          <span
+            className={cn("ml-1 inline-flex items-center text-[10px] font-bold leading-none", moved > 0 ? "text-[#0E6B2E]" : "text-[#B3261E]")}
+            title={`${moved > 0 ? "Up" : "Down"} ${Math.abs(moved)} since the last update`}
+          >
+            {moved > 0 ? <ChevronUp className="h-3 w-3" aria-hidden="true" /> : <ChevronDown className="h-3 w-3" aria-hidden="true" />}
+            {Math.abs(moved)}
+          </span>
+        ) : null}
       </td>
       <td className="px-2 py-3">
         {isLeader ? (
-          <span className="mb-0.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">
-            {CHAMPION_LABEL[competition]}
-          </span>
+          <ChampionFeature entry={entry} competition={competition} onSelectPlayer={onSelectPlayer} trophyUrl={trophyUrl} />
         ) : null}
-        <div className="flex items-center gap-2">
+        <div className={cn("flex items-center gap-2", isLeader && "hidden")}>
           <button type="button" onClick={() => onSelectPlayer(entry.player.id)} className="truncate hover:underline">
             <span className={cn("font-bold", isLeader && "text-base")}>{surname}</span>
             <span className="font-normal">, {firstName}</span>
@@ -234,7 +312,7 @@ function LeaderboardRow({
   );
 }
 
-export function LeaderboardTable({ entries, competition, favorites, onToggleFavorite, favoritesOnly, onSelectPlayer, excludeFromTitle, titleHolderId: titleHolderIdOverride }: LeaderboardTableProps) {
+export function LeaderboardTable({ entries, competition, favorites, onToggleFavorite, favoritesOnly, onSelectPlayer, excludeFromTitle, titleHolderId: titleHolderIdOverride, movement, trophyUrl }: LeaderboardTableProps) {
   const visible = favoritesOnly ? entries.filter((entry) => favorites.includes(entry.player.id)) : entries;
   const concluded = isConcluded(entries);
   // entries is already position-sorted, so the first entry that isn't the excluded Main champion
@@ -296,6 +374,8 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
               concluded={concluded}
               isTitleHolder={entry.player.id === titleHolderId}
               isExcludedChampion={Boolean(excludeFromTitle) && entry.player.id === excludeFromTitle && entry.player.id !== titleHolderId}
+              moved={movement?.get(entry.player.id)}
+              trophyUrl={trophyUrl}
             />
           ))}
         </tbody>

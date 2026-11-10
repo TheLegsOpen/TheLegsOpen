@@ -12,6 +12,7 @@ import { HoleByHoleTable } from "@/components/leaderboard/hole-by-hole-table";
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useAutoRefresh } from "@/hooks/use-auto-refresh";
+import { usePositionMovement } from "@/hooks/use-position-movement";
 import { isConcluded } from "@/lib/leaderboard";
 import { cn } from "@/lib/utils";
 import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
@@ -45,6 +46,8 @@ interface LeaderboardViewProps {
    * rather than silently polling forever.
    */
   autoRefresh?: boolean;
+  /** The site's trophy graphic, for the champion's feature row. */
+  trophyUrl?: string;
 }
 
 /** Matches the ~10s live-score polling cadence measured on theopen.com/leaderboard. */
@@ -72,6 +75,7 @@ export function LeaderboardView({
   puttingCategories,
   stablefordTitleHolderId,
   autoRefresh = false,
+  trophyUrl,
 }: LeaderboardViewProps) {
   const { favorites, toggleFavorite, hydrated } = useFavorites();
   const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -88,6 +92,9 @@ export function LeaderboardView({
   }
 
   useAutoRefresh(autoRefresh ? AUTO_REFRESH_INTERVAL_MS : null);
+  const mainMovement = usePositionMovement(main);
+  const stablefordMovement = usePositionMovement(stableford);
+  const scratchMovement = usePositionMovement(scratch);
 
   const mainEntries = useMemo(() => filterEntries(main, query), [main, query]);
   const stablefordEntries = useMemo(() => filterEntries(stableford, query), [stableford, query]);
@@ -220,6 +227,8 @@ export function LeaderboardView({
                   <LeaderboardTable
                     entries={mainEntries}
                     competition="main"
+                    movement={mainMovement}
+                    trophyUrl={trophyUrl}
                     favorites={hydrated ? favorites : []}
                     onToggleFavorite={toggleFavorite}
                     favoritesOnly={favoritesOnly}
@@ -234,6 +243,8 @@ export function LeaderboardView({
                   <LeaderboardTable
                     entries={stablefordEntries}
                     competition="stableford"
+                    movement={stablefordMovement}
+                    trophyUrl={trophyUrl}
                     favorites={hydrated ? favorites : []}
                     onToggleFavorite={toggleFavorite}
                     favoritesOnly={favoritesOnly}
@@ -250,6 +261,8 @@ export function LeaderboardView({
                   <LeaderboardTable
                     entries={scratchEntries}
                     competition="scratch"
+                    movement={scratchMovement}
+                    trophyUrl={trophyUrl}
                     favorites={hydrated ? favorites : []}
                     onToggleFavorite={toggleFavorite}
                     favoritesOnly={favoritesOnly}
