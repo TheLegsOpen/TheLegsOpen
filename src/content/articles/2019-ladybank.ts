@@ -1,80 +1,81 @@
 export const markdown = `
-Bryan Forbes made an eight at the hardest hole on the course and won the championship by two.
+Bryan Forbes took eight at the hardest hole on the course and still won the championship by
+two.
 
-Those two facts belong in the same sentence, because the second is only remarkable in the
-light of the first. The ninth at Ladybank, stroke index one, played to **5.92 against a par of
-four** — the most punishing hole of the day by some distance. Eight of the ten men who finished
-it took six or worse. Forbes took eight, walked to the tenth five over par for his round, and
-then played the back nine better than anyone else in the field.
+The first half of that sentence is what makes the second worth writing. The ninth at
+Ladybank, stroke index one, played to 5.92 against a par of four, far and away the toughest
+hole of the day. Eight of the ten men who finished it took six or worse. Forbes took eight,
+walked to the tenth tee five over for his round, and then played the back nine better than
+anybody in the field.
 
-## The best nine holes of the day
+## The best nine holes at Ladybank
 
-Forbes came home in **38** on a back nine measuring 35. Nobody else got within two of it. He
-had also gone out in 41, which was the best outward half in the championship, so he owned both
-halves of the day outright — the only man to do so.
+Forbes came home in 38 on a back nine of 35, and nobody else got within two shots of that.
+He had already gone out in 41, the best outward half of the day, so both nines belonged to
+him, and no one else could say that about either.
 
-His gross 79 won the Scratch by five clear strokes. Off nine, that made him nett 70, one under
-the par of 71, and he was the only player in the championship to finish under par on any
-measure at all. Andrew Duncan, off twelve, was second on nett 72. Owen Watters third on 73.
-After that the card falls away quickly: fourth place was nett 79.
+His gross 79 won the Scratch by five. Off nine, that made him nett 70, one under the par of
+71, and he was the only player in the championship to finish under par by any measure.
+Andrew Duncan, off twelve, was second on nett 72 and Owen Watters third on 73. After that
+the leaderboard falls away sharply, with fourth place on nett 79.
 
-Three birdies, at the second, the third and the thirteenth, were the most made by anyone.
-Nobody in the field made an eagle.
+His three birdies, at the second, the third and the thirteenth, were the most by anyone, and
+there were no eagles in the field.
 
-## What the eight cost, and what it didn't
+## Why the eight did not cost him
 
-Through eight holes Forbes stood one over par. The eight at the ninth put him to five, and on
-most days against most fields that is a championship handed to somebody else.
+Through eight holes Forbes was one over. The eight at the ninth took him to five over, which
+on most days, against most fields, would have handed the title to someone else.
 
-It wasn't, for two reasons. The first is that the ninth did the same thing to nearly everybody —
-only one man made par there all day, and the hole took almost two shots per head out of the
-field. The second is that Forbes had the only round in the championship with no second
-collapse in it. One hole cost him four shots. No other hole cost him more than one.
+Two things saved him. The ninth did much the same to almost everybody. Only one man made par
+there all day, and the hole took nearly two shots a head out of the field. And Forbes was the
+only player whose round contained no second collapse. One hole cost him four shots. No other
+cost him more than one.
 
-That is the whole championship in a line. Ladybank did not ask anyone to play well. It asked
-them to play badly only once.
+That, in short, is how Ladybank was won. The course did not demand that anyone play well. It
+asked them to play badly only once.
 
-## The course, and the three who could not finish it
+## A stern test, and three who did not finish
 
-The field averaged **92.4**, which is **21.4 over par** — precisely the figure Gullane produced
-in the rain twelve months earlier, and a reminder that a dry August does not necessarily make
-for gentler scoring than a wet one.
+The field averaged 92.4, or 21.4 over par. That is precisely what Gullane produced in the
+rain a year earlier, a reminder that a dry August is no guarantee of kinder scoring than a
+wet one.
 
-Thirteen men started. Ten returned a card. Mark Alston, George Burns and Stephen Magowan did
-not, Magowan having been runner-up as recently as the year before.
+Thirteen started and ten returned a card. Mark Alston, George Burns and Stephen Magowan did
+not, Magowan only twelve months after finishing runner-up.
 
-The seventh, a par five of stroke index three, was the second hardest at **6.85**, with two
-players taking nine or worse on it. The fourteenth, index two, played to 5.60. Between those
-three holes — the seventh, the ninth and the fourteenth — the course took a little over five
-shots per round out of a field that had only so many to give.
+The seventh, a par five of stroke index three, was the second-hardest hole at 6.85, and two
+players took nine or worse there. The fourteenth, index two, played to 5.60. Between them the
+seventh, ninth and fourteenth took a little over five shots a round from a field that had
+few to spare.
 
-Relief was thin and came in two places. The thirteenth, a par five, was the one genuinely
-friendly hole on the course: it yielded **four birdies**, more than every other hole put
-together, and played to just a third of a shot over par. The seventeenth and the eighth were
-the only others to hold under a shot over.
+What relief there was came in two places. The par-five thirteenth was the one genuinely
+generous hole on the card, yielding four birdies, more than every other hole put together,
+and playing just a third of a shot over par. The seventeenth and the eighth were the only
+other holes to play less than a shot over.
 
 ## Duncan takes the Stableford
 
-Forbes topped the Stableford points as well, on **38**, which by the letter of the scoring
-would have given him a third title in an afternoon. The society's rule settles it as it always
-does: the Main champion does not also take the Stableford.
+Forbes had the most Stableford points too, 38, which on the scoring alone would have given
+him a third title in one afternoon. The society's rule settled it as it always does: the
+Main champion does not also take the Stableford.
 
-So the Stableford goes to **Andrew Duncan on 35**, and it is worth saying that he had already
-earned it on his own terms — second in the Main, second in the Scratch, and nobody within
-three of Forbes but him.
+So the Stableford went to Andrew Duncan on 35, and he had earned it on his own terms. He was
+second in the Main and second in the Scratch, and no one else finished within three points of
+Forbes.
 
-Owen Watters and Stephen Magowan were next on 34, Magowan's coming without a card: a
-no-return ends a round for the Main and the Scratch, which need a gross total, but the
-Stableford scores the holes a player completes and is not affected by it.
+Owen Watters and Stephen Magowan were next on 34, Magowan without a card. A no-return ends a
+round for the Main and the Scratch, which need a gross total, but the Stableford counts the
+holes a player completes and is unaffected.
 
 Kevin Park, off twenty-six, was fourth in the Main on nett 79 and fourth in the Stableford on
-28, a decent return on a course that gave the higher handicaps very little to work with.
+28, a respectable return on a course that gave the higher handicaps very little.
 
-## The margins
+## The margin
 
-Two strokes nett, between a man who shot 79 and a man who shot 84. Five strokes of gross golf,
-reduced to two by three strokes of handicap.
+Two shots nett separated a man who shot 79 from a man who shot 84. Five shots of gross golf,
+whittled down to two by three shots of handicap.
 
-And somewhere in the middle of it, an eight at the ninth that should have ended the thing and
-didn't.
+And in the middle of it all, an eight at the ninth that ought to have ended things, and
+somehow did not.
 `;

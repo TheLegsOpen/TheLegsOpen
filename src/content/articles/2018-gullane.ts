@@ -1,119 +1,115 @@
 export const markdown = `
-Seven of the thirteen who started the sixth Legs Open returned no card. Four of them
-played all eighteen holes.
+**Gullane No. 2 — Sunday 12 August 2018**
 
-That is the championship, and it is not really a story about golf. The rain that fell on
-Gullane did not so much beat the field as dissolve the means of recording what they did.
-Paper scorecards came apart in pockets. The digital scoring went down. And the last group
-out — Colum Watters, Owen Watters, John Lyle and Paul Wright — walked the whole course
-with no way of returning a single hole.
+Thirteen men started the sixth Legs Open and seven of them returned no card. Four of those
+seven played every one of the eighteen holes.
 
-## The group that had nowhere to write it down
+This was never really a story about golf. The rain at Gullane did not so much beat the
+field as wash away any record of what it did. Paper cards disintegrated in pockets, the
+digital scoring went down, and the final group, Colum Watters, Owen Watters, John Lyle and
+Paul Wright, went round the entire course with no means of returning a single hole.
 
-They went out at 11.40, last of four. By the time they reached the first green the cards
-were already going, and whatever they made there could not be written down. Nor could
-anything after it.
+## Eighteen holes and nothing to show for it
 
-The digital scoring, which existed precisely for a day like this, failed too. So the four
-of them played on in the rain with no paper and no phone, in a championship that could no
-longer see them. Eighteen holes, four players, seventy-two holes of golf between them,
-and not one stroke of it enters the record.
+They went off at 11.40, the last of four groups. By the first green their cards were
+already falling apart, and nothing they made there or afterwards could be written down.
 
-They are no returns rather than no shows, and the distinction matters. They played. There
-was simply no surviving evidence of it by the time they walked off the eighteenth.
+The digital scoring, which existed for exactly this kind of day, gave up as well. So the
+four of them played on in the rain with no paper and no phone, in a championship that could
+no longer see them. Seventy-two holes of golf between them, and not one stroke of it made
+the record.
 
-## Magowan, three under and gone
+They go down as no returns, but they were not no-shows, and the difference matters. They
+played. There was simply nothing left to prove it by the time they walked off the
+eighteenth.
 
-The weather did not, in the end, wreck the scoring for those who could still write. The
-field played the course to **21.4 shots over par** — very slightly better than Dalmahoy in
-the dry the year before, and a different sport entirely from the 42.3 the gale produced at
-Southerness in 2016. Gullane in a downpour was survivable. It was the paperwork that
-drowned.
+## Magowan's early charge
 
-Stephen Magowan certainly survived it early. Off twelve, he made a **three at the second**
-— a gross birdie with a stroke, so a nett eagle — and stood two under after two holes. A
-nett par run to the sixth took him to **three under**, a mark only one round in the
-championship's record has bettered: Alastair Campbell, five under through fourteen at
-Carnwath in 2013. Magowan had reached three under once before himself, at Dalmahoy twelve
-months earlier. He is the only man to have got there twice.
+For those who could still keep score, the weather turned out to be survivable. The field
+played Gullane to 21.4 shots over par, fractionally better than Dalmahoy managed in the dry
+the year before, and nothing like the 42.3 the gale extracted at Southerness in 2016. The
+golf coped with the downpour. The paperwork did not.
 
-It did not hold. A six at the seventh cost two, the eighth another, and by the turn he was
-back to level. A seven at the thirteenth finished the charge properly. He signed for 87,
-nett 75, four over — second.
+Stephen Magowan coped better than most, at least to begin with. Off twelve, he made three
+at the second, a birdie that with his stroke was a nett eagle, and was two under after two.
+Nett pars took him to the sixth at three under. Only one round in the championship's
+history has gone lower, Alastair Campbell's five under through fourteen at Carnwath in 2013.
+Magowan had reached three under once before, at Dalmahoy a year earlier, and remains the
+only man to have got there twice.
 
-## Alston leads, and then the sixteenth
+It did not last. A six at the seventh cost him two, the eighth cost another, and he turned
+at level. A seven at the thirteenth ended the charge for good. He signed for 87, nett 75,
+four over, and second place.
 
-The most unlikely name to sit at the top of this championship spent most of the afternoon
-there.
+## Alston's afternoon in front
 
-Mark Alston, off twenty-four, was level par nett after the first, level after four, and
-grinding along around one or two over for the whole middle of his round. He made a
-**three at the third**, birdied nothing else all day, and simply refused to go backwards.
-At **14.20, one over through thirteen, he led the sixth Legs Open outright.**
+The least likely leader of the day spent most of it at the top.
 
-Then he took seven at the fourteenth and eleven at the sixteenth.
+Mark Alston, off twenty-four, was level par nett after one hole and again after four, and
+spent the middle of his round hovering a shot or two over. He made three at the third, the
+only birdie he would make all day, and simply would not go backwards. At 14.20, one over
+through thirteen, he led the sixth Legs Open on his own.
 
-The sixteenth is a par five and stroke index four, and in those conditions it played to an
-average of 7.14 — over two shots above its par, the second hardest hole on the course
-after the brutal stroke-index-one fourth (6.22 on a par four). Alston's eleven there was
-worth four shots on its own. He walked off it seven over, having been one over three holes
-earlier, and finished fifth.
+Then came a seven at the fourteenth and an eleven at the sixteenth.
 
-## Burns wins it with a nett birdie at the last
+The sixteenth is a par five and stroke index four, and in that weather it averaged 7.14,
+more than two over. Only the stroke-index-one fourth, a par four that played to 6.22, was
+harder. Alston's eleven cost him four shots on its own. He left the green seven over,
+having been one over three holes earlier, and finished fifth.
 
-David Burns, also off twenty-four, did none of the leading and all of the winning.
+## Burns finishes the job
 
-His round contains a **nine at the sixth** and an **eight at the sixteenth** — the same
-hole that had just taken Alston apart — and he was three over standing on the seventeenth
-tee, one behind where he'd been an hour earlier. What he had that nobody else did was a
-finish.
+David Burns, also off twenty-four, never led until it mattered.
 
-He made three at the fifteenth for a nett two. He parred the seventeenth. And at the last
-he made four, took his stroke, and signed for a nett birdie: **nett 73, two over, the
-championship by two shots.**
+His card has a nine at the sixth on it, and an eight at the sixteenth, the same hole that
+had just undone Alston. Standing on the seventeenth tee he was three over, a shot worse
+than an hour before. What he had, and nobody else did, was a finish.
 
-Nobody who finished ahead of him at any point in the afternoon was still ahead of him at
+He had made three at the fifteenth for a nett two. He parred the seventeenth. At the last
+he made four, took his stroke and signed for a nett birdie: nett 73, two over, and the
+championship by two shots.
+
+Nobody who had been ahead of him at any stage of the afternoon was still ahead of him at
 the end.
 
-## Four birdies in the whole championship
+## Barely a birdie to be had
 
-Gullane gave up almost nothing. Across every card returned there were exactly four
-sub-par scores and no eagles:
+Gullane gave almost nothing away. Across every card returned there were four scores under
+par and not a single eagle:
 
 - Magowan's three at the second
 - Alston's three at the third
 - George Burns' three at the seventh
 - Craig McMahon's two at the short fifth
 
-McMahon's is the one to dwell on: he picked up at the third, so his card was already dead
-when he holed that putt at the fifth. He played the remaining fifteen holes anyway and
-returned a 22-point Stableford card that counted for something even though his round
+McMahon's is the one to linger over. He had already picked up at the third, so his card
+was dead by the time that putt dropped at the fifth. He played the remaining fifteen holes
+anyway and came in with 22 Stableford points, which counted for something even if his round
 could not.
 
-Robert Hamilton's day ended differently again. He was round the front nine in 45, five
-over nett, and then picked up at every single hole on the back — nine consecutive no
-returns. Colin Howieson lost his card at the seventh, the tenth and the sixteenth but
-played on and finished with 21 points.
+Robert Hamilton's day went another way again. He was out in 45, five over nett, then
+picked up at every hole on the back nine, nine in a row. Colin Howieson lost his card at the
+seventh, the tenth and the sixteenth but kept going and finished with 21 points.
 
 ## The titles
 
 **Main:** David Burns, nett 73, +2, by two from Magowan.
 
-**Scratch:** George Burns, whose 86 was the lowest gross returned.
+**Scratch:** George Burns, whose 86 was the lowest gross of the day.
 
-**Stableford:** Burns topped the points as well on 34, but the Main champion cannot take
-the Stableford, so the title passes to **Stephen Magowan on 32** — the man he beat by two
-in the Main.
+**Stableford:** Burns had the most points too, 34, but the Main champion cannot also take
+the Stableford, so it went to Stephen Magowan on 32, the man he had beaten by two in the
+Main.
 
 **Final standings, Main (nett):** D. Burns +2 · Magowan +4 · G. Burns +5 · Clee +6 ·
 Alston +7 · Cruickshanks +12. Seven no returns.
 
-Six cards from thirteen starters is the worst return rate in the championship's history —
-worse even than the gale at Southerness, where five of eleven failed to finish. But the
-comparison flatters Gullane, because Southerness beat its field with golf. This one beat
-it with stationery.
+Six cards from thirteen starters is a dreadful return. Only Southerness two years earlier,
+where six of eleven failed to finish, lost a bigger share of its field. But the comparison
+flatters Gullane. Southerness beat its players with golf. This one beat them with
+stationery.
 
-Somewhere in the record there is a four-ball who played eighteen holes at Gullane No. 2 in
-a monsoon and whose scores exist nowhere at all. Whatever they shot, they shot it in
-conditions that took the championship's ability to watch them away entirely.
+Somewhere in the history of this championship there is a four-ball who played eighteen
+holes at Gullane No. 2 in a monsoon, and whose scores exist nowhere. Whatever they shot,
+they shot it in conditions that took away the championship's ability to see them at all.
 `;

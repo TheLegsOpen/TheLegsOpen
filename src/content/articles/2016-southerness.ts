@@ -1,134 +1,125 @@
 export const markdown = `
-The fourth Legs Open was played in a wind that would have justified calling the whole
-thing off, and in all honesty nearly did. It went ahead. Eleven men started. Five
-returned a card.
+There was a case for calling the fourth Legs Open off before a ball was struck. The wind
+at Southerness was strong enough that, frankly, it very nearly was. In the end eleven men
+went out, and five came back with a card.
 
-That is the championship in three sentences, and everything else is commentary on it.
-David Clee won his second title in a row, by five shots, with a gross 101 — a score that
-in any ordinary week would not go near a trophy and on this afternoon was the lowest
-anybody managed. He did not win it by playing beautifully. He won it by still being
-there at the end.
+David Clee won it, his second title in succession, by five shots with a gross 101. In any
+normal week that number would not trouble a trophy engraver. On this afternoon nobody went
+lower. Clee did not win by playing beautifully. He won by still being upright at the
+finish.
 
-## Level after thirteen
+## All square with five to play
 
-Clee and Grahame Ingram came to the fourteenth tee dead level.
+Clee and Grahame Ingram arrived at the fourteenth tee dead level, both thirteen over nett
+through thirteen holes. Clee had been in the first group out, at ten o'clock, and Ingram in
+the last, at twenty past. Four times that afternoon the two had been level on the card
+without ever setting eyes on one another.
 
-Both had ground their way to thirteen over par nett through thirteen holes — Clee from
-the first group out at ten o'clock, Ingram from the last at twenty past — and with five
-to play the championship was a match between two men who had been level on the card four
-separate times that afternoon without ever standing on the same tee.
+Then Ingram made twelve.
 
-Ingram made twelve.
+The fourteenth is a 418-yard par four, stroke index eight, and into that wind it was
+nobody's friend. The seven players who completed it averaged 8.57, four and a half over
+par, and four more never finished it at all. Clee made five, which with his stroke was a
+nett par. Seven shots changed hands on a single hole, and with that the championship was
+as good as settled.
 
-The fourteenth is a 418-yard par four, stroke index eight, and into that wind it did not
-single him out. Of the seven players who completed it, the hole averaged 8.57 — four and
-a half over par. Four more did not complete it at all. Clee played it in five, took his
-stroke, and made a nett par. Seven shots changed hands on one hole, and the fourth Legs
-Open was effectively over.
+## The one man who survived the first
 
-## The only man who could play the first
+Clee had done the hardest thing of the day four hours earlier, on the opening hole.
 
-Clee had already done the hardest thing of the day, four hours earlier.
+The first, 372 yards and a par four, played to 7.73 for the field, nearly four over. Of the
+eleven who played it, ten took six or more and seven took an eight or a nine. Clee made
+five, took his stroke and walked off level par nett. Nobody else in the field got through
+the first without losing ground, and that one score goes a long way to explaining the
+winning margin.
 
-The opening hole averaged 7.73 for the field — nearly four over par on a 372-yard four.
-Eleven men played it; ten of them took six or more, and seven of them took eight or
-nine. Clee made five, took his stroke, and walked to the second tee at level par nett.
-He was the only player in the championship who did not lose ground on the first hole,
-and given the way the rest of the day went, that single score is as close as anything
-gets to explaining the winning margin.
+It did not stay neat for long. Sevens at the second and third put him four over, and an
+eight at the sixth undid a brief recovery. He was out in 52, nine over nett, and home in
+49 for his 101.
 
-It did not stay tidy. A seven at the second and another at the third put him four over,
-and an eight at the sixth undid a recovery that had briefly got him back. He turned in
-52 — nine over nett — and came home in 49 for his 101.
+Forty-nine for nine holes is nothing to write home about in the ordinary run of things.
+Here it was the best inward half by anyone still holding a card. Robert Hamilton matched
+it. Nobody beat it.
 
-Forty-nine is not a good inward half by any ordinary standard. On this afternoon it was
-the lowest anyone still holding a card came home in, equalled by Robert Hamilton and
-beaten by nobody.
+## Leaders who did not last
 
-## The men who were winning, and then weren't
+For much of the front nine the leaderboard belonged to other people.
 
-For most of the front nine the leaderboard did not belong to Clee at all.
-
-Andy Lewis, off nine, was four over nett through three and level with him at the top. He
+Andy Lewis, off nine, was four over nett through three and sharing the lead with Clee. He
 picked up at the fifth and again at the sixth, and was out of the Main before the turn.
 
-Colum Watters, off twenty-four, then led outright: six over through six holes, a shot
-clear of Clee. He made a four at the ninth and a three at the tenth. In between he
-picked up at the seventh and the eighth, and that was that.
+Colum Watters, off twenty-four, then led on his own at six over through six, a shot clear.
+He picked up at the seventh and the eighth, made a four at the ninth and a three at the
+tenth, and was gone.
 
-Toby Stanton lasted longest of the challengers. Also off twenty-four, he was twelve over
-at the turn — three behind — and still only three adrift standing on the fourteenth tee.
-He walked off it without a score, and off the eighteenth the same way.
+Toby Stanton, also off twenty-four, hung on longest. Twelve over at the turn and three
+behind, he was still only three adrift on the fourteenth tee. He walked off that green
+without a score, and off the eighteenth the same way.
 
-Three separate players held or shared the lead at some point on that front nine and not
-one of them returned a card. The fourteenth ended Ingram's challenge and Stanton's card
-on the same hole.
+Three men led or shared the lead on that front nine, and not one of them returned a card.
+The fourteenth finished Ingram's challenge and Stanton's card at a stroke.
 
-## Attrition, and a withdrawal
+## A field cut to pieces
 
-Five players picked up: Colum Watters, Andy Lewis, Iain MacLeod, Toby Stanton and
-Stephen Magowan. In a wind like that, in a field of eleven, that is not carelessness —
-it is a golf course that had stopped being playable in any ordinary sense.
+Five players picked up: Watters, Lewis, Iain MacLeod, Stanton and Stephen Magowan. In a
+field of eleven, in that wind, that says less about the golfers than about a course that
+had long since stopped being playable in any ordinary sense.
 
-Alastair Campbell's day ended differently, and should be recorded differently. The man
-who won the inaugural championship in 2013 opened with a nine, played the 132-yard
-fourth, and withdrew injured. Two holes. He is not a no-return: he did not decline to
-finish, he was unable to.
+Alastair Campbell's afternoon ended differently, and deserves to be recorded as such. The
+man who won the inaugural championship in 2013 opened with a nine, played the 132-yard
+fourth and withdrew injured after two holes. He did not choose to stop. He could not go on.
 
-Magowan's card is the strangest of them. He picked up four times, twice on each nine,
-and still finished with sixteen Stableford points — including the single best score of
-the championship, of which more below.
+Magowan's card was the oddest of the lot. He picked up four times, twice on each nine, and
+still finished with sixteen Stableford points, including one of the shots of the day,
+which we will come to.
 
-The course did not relent coming home. The sixteenth, 414 yards and stroke index four,
-averaged eight over the seven cards that survived it; two players took twelve there. The
-twelfth averaged 7.30, the third 7.22. Six of the eighteen holes played to more than
-three over par for the field.
+There was no let-up on the way in. The sixteenth, 414 yards and stroke index four,
+averaged eight over across the seven cards that got that far, and two players took twelve
+there. The twelfth averaged 7.30 and the third 7.22. Six of the eighteen holes played more
+than three over par for the field.
 
-## The four good ones
+## Four shots under par, all day
 
-In the 155 holes the field actually completed, exactly four scores were returned under
-par. All four are worth naming.
+Across the 155 holes the field actually completed, exactly four scores came in under par,
+and each deserves a mention.
 
 Scott Ingram, who had taken twelve at the sixteenth and eleven at the fourteenth and was
-by then playing for nothing but the walk in, made **three at the 480-yard eighteenth** —
-an eagle, and the only one of the championship.
+by then playing for nothing but the walk in, holed out in three at the 480-yard
+eighteenth. It was the only eagle of the championship.
 
-Robert Hamilton and David Clee both birdied the same hole, fours at the last. Clee's,
-with his stroke, was a nett three — two under par on the final hole of the championship,
-by a man who had already won it.
+Robert Hamilton and David Clee both birdied the last with fours. With his stroke, Clee's
+was a nett three, two under on the final hole of a championship he had already won.
 
-And Stephen Magowan made **three at the thirteenth**: 436 yards, stroke index two, the
-hardest hole on the card. It was the only sub-par score anyone returned on a par four
-all day, and it came on a card that would not count.
+And Magowan made three at the thirteenth, 436 yards and stroke index two, the hardest hole
+on the card. Nobody else broke par on a par four all day, and it came on a card that would
+not count.
 
-Nobody broke par on a par three.
+Nobody broke par on a par three at all.
 
-## The double, and the title that moved
+## Two titles, and one that moved on
 
-Clee's 101 was the lowest gross returned, so the Scratch title went to him as well — the
-Main and the Scratch in the same afternoon.
+Clee's 101 was the lowest gross of the day, so he took the Scratch as well as the Main.
 
-The Stableford finished level: Clee and Grahame Ingram both on twenty-two points. Under
-the rule that the Main champion does not also take the Stableford, the title went to
-Ingram, who therefore finished second in one competition and first in another on
-identical figures to the man who beat him. Mark Alston was third on twenty.
+The Stableford finished level, Clee and Grahame Ingram both on twenty-two points. Under the
+rule that the Main champion cannot also take the Stableford, it went to Ingram, who ended
+the day second in one competition and first in another on exactly the same figures as the
+man who beat him. Mark Alston was third on twenty.
 
-Alston deserves a line of his own. He signed for 128 — a thirteen at the fourteenth, a
-twelve at the eleventh, a ten at the sixth — and off twenty-four that was nett 104 and
-fourth place. On an afternoon when half the field stopped writing numbers down, he wrote
-down every one of his.
+Alston's afternoon is worth a word of its own. He signed for 128, with a thirteen at the
+fourteenth, a twelve at the eleventh and a ten at the sixth, and off twenty-four that came
+to nett 104 and fourth place. On a day when half the field stopped writing numbers down,
+he wrote down every one.
 
 ## Back to back
 
 **Final standings, Main (nett):** Clee +17 · G. Ingram +22 · Hamilton +30 · Alston +35 ·
 S. Ingram +43. Five no returns, one withdrawal.
 
-David Clee had won in 2015. Winning again at Southerness made him the first man to
-retain the Legs Open — a distinction that stood alone until Andrew Duncan matched it in
-2025.
+Clee had won in 2015, and retaining the title at Southerness made him the first man to win
+the Legs Open in consecutive years. He had that distinction to himself until Andrew Duncan
+matched it in 2025.
 
-He won it by five. The fourteenth was worth seven. And the rest of it — eleven starters,
-five finishers, four scores under par in 155 holes, one man carried off after two — was
-a golf course and a gale agreeing that the fourth Legs Open should probably have waited
-for another day.
+He won by five, and the fourteenth alone was worth seven. Eleven starters, five finishers,
+four scores under par in 155 holes and one man helped off after two. If ever a Legs Open
+should have waited for a kinder day, it was this one.
 `;

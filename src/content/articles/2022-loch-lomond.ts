@@ -1,77 +1,78 @@
 export const markdown = `
-Lloyd Swan won the 2022 Legs Open with nine pars, nine dropped shots and not a single birdie.
+Lloyd Swan won the 2022 Legs Open with nine pars, nine dropped shots and not a birdie to his
+name.
 
-Level par nett, two clear of a four-man tie behind him, on the best scoring day the
-championship had seen. Loch Lomond gave the field its gentlest examination in ten years and
-was still won by the most conservative round on the course.
+It was level par nett, two clear of a four-way tie, on the best scoring day the championship
+had seen. Loch Lomond set the field its gentlest examination in ten years, and the most
+cautious round on the course still won it.
 
-## Nine holes of par golf, and no more than one bad hole at a time
+## No birdies, and only one real mistake
 
-Swan went out in **39** against an outward 36 and came home in **43**. Nine pars, eight
-bogeys, one double at the tenth. Off ten that made gross 82, nett 72, level with the par of
-the course.
+Swan went out in 39 against a par of 36 and came home in 43. Nine pars, eight bogeys and a
+double at the tenth. Off ten, that came to a gross 82 and nett 72, level with the par of the
+course.
 
-What is striking is the absence of anything else. No birdies in eighteen holes, and only one
-hole worse than a bogey. On a day when the field was averaging **88.0 — sixteen over par**,
-much the lowest figure in the championship's history to that point — the winning formula was
-not scoring but refusing to leak.
+What stands out is everything that is not there. No birdies all day, and only one hole worse
+than a bogey. The field averaged 88.0, sixteen over par and by a distance the lowest figure in
+the championship's history to that point, and on a day like that the winning formula was not
+making birdies but refusing to give shots away.
 
 He is the second champion in three years to win without a birdie, after Kevin Park at the
-Castle Course. Both won by playing the card rather than the course.
+Castle Course. Both of them played the card rather than the course.
 
 ## Four men on 74
 
-Behind Swan the championship jammed. **Tom Sinton, Neal Eadie, Andrew Duncan and Doug Scott
-all finished on nett 74**, from gross rounds of 81, 77, 86 and 74 respectively and handicaps
-of seven, three, twelve and scratch. Fraser Donaldson was a further two back on 76.
+Behind Swan the leaderboard jammed up. Tom Sinton, Neal Eadie, Andrew Duncan and Doug Scott all
+finished on nett 74, from gross rounds of 81, 77, 86 and 74, off seven, three, twelve and
+scratch. Fraser Donaldson was another two back on 76.
 
-Doug Scott's **74 off scratch** took the Scratch title and was the lowest gross round of the
-day by three. He went out in 37, the best outward half in the field, and came home in 37 to
-match it — the only man to play both nines in the same figure, and two over par for a round
-on a course nobody else could handle in fewer than 77.
+Scott's 74 off scratch won the Scratch and was the best gross round of the day by three. He
+went out in 37, the best front nine in the field, and came back in 37 as well. Nobody else
+played both nines in the same score, and his two-over 74 came on a course nobody else could get
+round in fewer than 77.
 
-Neal Eadie's inward 36 was the best nine holes anyone played all day, and his three birdies
-were the most by any player. It left him tied for second rather than first, which is the kind
-of afternoon that turns up in this championship more often than it should.
+Eadie's inward 36 was the best nine holes anybody played all day, and his three birdies were
+the most by any player. They left him tied for second rather than first, which is the sort of
+afternoon this championship hands out more often than it should.
 
 ## The Stableford goes to Eadie
 
-Swan topped the points on 36 as well, and the society's rule removed him from the Stableford
-as it always does. That left **four players tied on 34** — Sinton, Eadie, Duncan and Scott,
-the same four tied in the Main — and the title went to **Neal Eadie**.
+Swan had the most points as well, 36, and as ever the rule took the Main champion out of the
+Stableford. That left four players tied on 34, Sinton, Eadie, Duncan and Scott, the same four
+who had tied in the Main, and the title went to Neal Eadie.
 
-It is a fair outcome on the evidence of his card. Three birdies and an inward 36 on a day when
-only five men in the field reached 34 points is the most golf anyone played at Loch Lomond,
-whatever the strokeplay said.
+On the evidence of his card, that was fair. Three birdies and an inward 36 on a day when only
+five men reached 34 points was the best golf anybody played at Loch Lomond, whatever the
+strokeplay said.
 
-## The second, and the thirteenth
+## The second and the thirteenth
 
-Two holes did most of the damage. The second, a par four of stroke index five, played to
-**5.70** and put **thirteen of the sixteen men who finished it** into double bogey or worse.
-Nobody birdied it.
+Two holes did most of the damage. The second, a par four of stroke index five, played to 5.70
+and sent thirteen of the sixteen men who finished it to double bogey or worse. Nobody birdied
+it.
 
-The thirteenth, a par five, played to 6.52 with three players taking nine or worse. The
-eleventh, a short hole of stroke index eighteen, played a shot and a half over its par of
-three, which is the sort of inversion that tells you more about the wind than the card does.
+The par-five thirteenth played to 6.52, with three players taking nine or worse. The eleventh,
+a par three of stroke index eighteen, played a shot and a half over its par, a reminder that
+the stroke index does not always know how a hole will play on the day.
 
-Relief came on the other short holes. The eighth was the easiest hole on the course at 3.45
-and gave up **two of the day's twos**, one of them to Tom Sinton, who then birdied the ninth
-as well — the best back-to-back stretch anyone managed. The seventeenth held at 3.55 with
-twelve pars.
+The other short holes were where the field found some respite. The eighth was the easiest hole
+on the course at 3.45 and produced two of the day's twos, one of them to Tom Sinton, who then
+birdied the ninth as well, the best two-hole stretch anybody managed. The seventeenth played to
+3.55, with twelve pars.
 
-The sixteenth, a par five, was the most generous scoring hole with four birdies.
+The par-five sixteenth was the best birdie chance on the course, with four of them.
 
-## Twenty-three out, sixteen home
+## Twenty-three out, sixteen back
 
 Seven men returned no card: Mark Alston, Colin Howieson, Toby Stanton, Stevie Anderson, Martin
 McErlean, and both Owen and Colum Watters.
 
-Twenty-three starters was the largest field the championship had assembled, and sixteen cards
-was also a record. There were no eagles.
+The twenty-three starters made up the biggest field the championship had yet assembled, and
+the sixteen cards returned were also a record. There were no eagles.
 
 ## Level par
 
-Swan's nett 72 is, in the plainest terms, a round that matched the golf course exactly. He
-beat it nowhere and lost to it nine times, and on the one day in ten years when the Legs Open
-was gettable, that was enough by two.
+Swan's nett 72 matched the golf course exactly. He beat it on no hole and lost to it on nine,
+and on the one day in ten years when the Legs Open was there for the taking, that was enough by
+two.
 `;

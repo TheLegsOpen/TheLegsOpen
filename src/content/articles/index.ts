@@ -119,7 +119,7 @@ export const ARTICLE_SOURCES: ArticleSource[] = [
   },
   {
     slug: "thomas-wins-the-panmure-playoff-howieson-takes-the-stableford",
-    title: "Thomas wins the Panmure playoff, Howieson takes the Stableford",
+    title: "Thomas wins at Panmure on the countback, Howieson takes the Stableford",
     dek: "Twenty-eight started and fourteen returned a card. Two of them finished on the same nett score by completely different routes, and a short hole only three men could par did most of the damage.",
     category: "Championship News",
     publishedAt: "2023-09-10T12:00:00.000Z",
@@ -139,7 +139,7 @@ export const ARTICLE_SOURCES: ArticleSource[] = [
   },
   {
     slug: "duncan-defends-at-balmedie-with-the-best-nine-holes-in-the-championships-history",
-    title: "Duncan defends at Balmedie with the best nine holes in the championship's history",
+    title: "Duncan defends at Balmedie with a level-par back nine",
     dek: "An inward 36 in level par, the lowest round of the day by five, and only the second successful defence the Legs Open has seen.",
     category: "Championship News",
     publishedAt: "2025-09-13T12:00:00.000Z",
