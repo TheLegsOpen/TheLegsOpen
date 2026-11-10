@@ -32,7 +32,7 @@ interface LeaderboardTableProps {
   /** Places moved since the previous refresh, by player id -- see usePositionMovement. */
   movement?: Map<string, number>;
   /** The site's trophy graphic, shown in the champion's feature row once the competition is over. */
-  trophyUrl?: string;
+  championPhotoUrl?: string;
 }
 
 /** Aggregate (round-total) Par pill — 3-tier, since a multi-hole total doesn't have a meaningful "eagle" case. */
@@ -93,9 +93,10 @@ export function AnimatedValue({ value }: { value: string | number }) {
 }
 
 /**
- * The champion's row once a competition is over, after theopen.com's: their cut-out photo (on a
- * navy panel, since our portraits are shot on black and only blend away against a dark ground)
- * with the trophy, first name over a big surname, and a strip of eighteen squares, one per hole.
+ * The champion's row once a competition is over, after theopen.com's: the championship's Champion
+ * Photo (Main only -- the leaderboard passes none to Stableford and Scratch, and none when the
+ * photo is not set, so the panel simply has no picture), first name over a big surname, and a
+ * strip of eighteen squares, one per hole.
  *
  * Only on a concluded competition, by request: mid-round the leader can change on any hole, and a
  * feature card would make whoever is in front look like the winner.
@@ -104,25 +105,20 @@ function ChampionFeature({
   entry,
   competition,
   onSelectPlayer,
-  trophyUrl,
+  championPhotoUrl,
 }: {
   entry: RankedEntry;
   competition: Competition;
   onSelectPlayer: (playerId: string) => void;
-  trophyUrl?: string;
+  championPhotoUrl?: string;
 }) {
   const { surname, firstName } = splitSurnameFirst(entry.player.name);
   return (
     <div className="flex items-end gap-4 py-1">
-      {entry.player.photoUrl ? (
-      <div className="relative hidden h-[120px] w-[110px] shrink-0 overflow-hidden bg-primary sm:block" aria-hidden="true">
-        {trophyUrl ? (
-          <div className="absolute -right-3 bottom-0 h-[90px] w-[70px] opacity-80">
-            <PlaceholderArt label="" imageUrl={trophyUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="70px" />
-          </div>
-        ) : null}
-        <PlaceholderArt label="" imageUrl={portraitUrl(entry.player.photoUrl)} tone="navy" blendBlack fill fit="contain-bottom" sizes="110px" />
-      </div>
+      {championPhotoUrl ? (
+        <div className="relative hidden h-[120px] w-[110px] shrink-0 overflow-hidden bg-primary sm:block" aria-hidden="true">
+          <PlaceholderArt label="" imageUrl={championPhotoUrl} tone="navy" blendBlack fill sizes="110px" />
+        </div>
       ) : null}
       <div className="min-w-0">
         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">{CHAMPION_LABEL[competition]}</span>
@@ -133,6 +129,9 @@ function ChampionFeature({
             <CountryFlag code={entry.player.countryCode} className="h-4 w-5 shrink-0" />
           </span>
         </button>
+        {/* Not on Stableford: points have no over/under-par colour, so every square came out the
+            same and the strip said nothing. */}
+        {competition !== "stableford" ? (
         <div className="mt-2 flex gap-[3px]" aria-label="Hole by hole">
           {entry.holes.map((hole) => (
             <span
@@ -140,15 +139,12 @@ function ChampionFeature({
               title={`Hole ${hole.holeNumber}: ${hole.value ?? "—"}`}
               className={cn(
                 "h-2 w-3",
-                hole.noReturn || hole.value === undefined
-                  ? "bg-[#B0B0B0]"
-                  : competition === "stableford"
-                    ? "bg-primary/40"
-                    : holeScorePillClass(hole.relative).split(" ")[0],
+                hole.noReturn || hole.value === undefined ? "bg-[#B0B0B0]" : holeScorePillClass(hole.relative).split(" ")[0],
               )}
             />
           ))}
         </div>
+        ) : null}
       </div>
     </div>
   );
@@ -164,7 +160,7 @@ function LeaderboardRow({
   isTitleHolder,
   isExcludedChampion,
   moved,
-  trophyUrl,
+  championPhotoUrl,
 }: {
   entry: RankedEntry;
   isFav: boolean;
@@ -178,7 +174,7 @@ function LeaderboardRow({
    * logic). Explains why the top score here doesn't carry the "Golfer of the Year" honour. */
   isExcludedChampion: boolean;
   moved?: number;
-  trophyUrl?: string;
+  championPhotoUrl?: string;
 }) {
   const [isMoving, setIsMoving] = useState(false);
   const { surname, firstName } = splitSurnameFirst(entry.player.name);
@@ -223,7 +219,7 @@ function LeaderboardRow({
       </td>
       <td className="px-2 py-3">
         {isLeader ? (
-          <ChampionFeature entry={entry} competition={competition} onSelectPlayer={onSelectPlayer} trophyUrl={trophyUrl} />
+          <ChampionFeature entry={entry} competition={competition} onSelectPlayer={onSelectPlayer} championPhotoUrl={championPhotoUrl} />
         ) : null}
         <div className={cn("flex items-center gap-2", isLeader && "hidden")}>
           <button type="button" onClick={() => onSelectPlayer(entry.player.id)} className="truncate hover:underline">
@@ -312,7 +308,7 @@ function LeaderboardRow({
   );
 }
 
-export function LeaderboardTable({ entries, competition, favorites, onToggleFavorite, favoritesOnly, onSelectPlayer, excludeFromTitle, titleHolderId: titleHolderIdOverride, movement, trophyUrl }: LeaderboardTableProps) {
+export function LeaderboardTable({ entries, competition, favorites, onToggleFavorite, favoritesOnly, onSelectPlayer, excludeFromTitle, titleHolderId: titleHolderIdOverride, movement, championPhotoUrl }: LeaderboardTableProps) {
   const visible = favoritesOnly ? entries.filter((entry) => favorites.includes(entry.player.id)) : entries;
   const concluded = isConcluded(entries);
   // entries is already position-sorted, so the first entry that isn't the excluded Main champion
@@ -375,7 +371,7 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
               isTitleHolder={entry.player.id === titleHolderId}
               isExcludedChampion={Boolean(excludeFromTitle) && entry.player.id === excludeFromTitle && entry.player.id !== titleHolderId}
               moved={movement?.get(entry.player.id)}
-              trophyUrl={trophyUrl}
+              championPhotoUrl={championPhotoUrl}
             />
           ))}
         </tbody>

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/shared/page-hero";
 import { ChampionshipWeekSwitcher } from "@/components/shared/championship-week-switcher";
 import { LeaderboardView } from "@/components/leaderboard/leaderboard-view";
-import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
+import { getActiveChampionshipId, getCompetitionLeaderboard } from "@/lib/data/scorecards";
 import { isChampionshipInPlay } from "@/lib/data/championships";
 import { getArticles } from "@/lib/data/articles";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
@@ -17,7 +17,7 @@ import {
   getPuttingCategories,
 } from "@/lib/data/scoring-statistics";
 import { getPlayoffs, applyPlayoffToEntries, getEligibleStablefordChampion } from "@/lib/data/playoffs";
-import { getSiteTheme } from "@/lib/data/site-theme";
+import { getChampionshipHistory } from "@/lib/data/championships";
 import { getSeoSettings } from "@/lib/data/seo-settings";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -47,7 +47,8 @@ export default async function LeaderboardPage() {
     puttingCategories,
     playoffs,
     inPlay,
-    theme,
+    activeChampionshipId,
+    championshipHistory,
   ] = await Promise.all([
     getCompetitionLeaderboard("main"),
     getCompetitionLeaderboard("stableford"),
@@ -63,12 +64,15 @@ export default async function LeaderboardPage() {
     getPuttingCategories(),
     getPlayoffs(),
     isChampionshipInPlay(),
-    getSiteTheme(),
+    getActiveChampionshipId(),
+    getChampionshipHistory(),
   ]);
 
   const main = applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main"));
   const stableford = applyPlayoffToEntries(stablefordRaw, playoffs.find((p) => p.competition === "stableford"));
   const scratch = applyPlayoffToEntries(scratchRaw, playoffs.find((p) => p.competition === "scratch"));
+  // The winner panel uses the championship's own Champion Photo; no photo set, no picture.
+  const championPhotoUrl = championshipHistory.find((c) => String(c.id) === String(activeChampionshipId))?.winnerPhotoUrl;
   const stablefordTitleHolderId = getEligibleStablefordChampion(main, stableford)?.player.id;
 
   return (
@@ -97,7 +101,7 @@ export default async function LeaderboardPage() {
         puttingCategories={puttingCategories}
         stablefordTitleHolderId={stablefordTitleHolderId}
         autoRefresh={inPlay}
-        trophyUrl={theme.championTrophyGraphicUrl}
+        championPhotoUrl={championPhotoUrl}
       />
     </>
   );

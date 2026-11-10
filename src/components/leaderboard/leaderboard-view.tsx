@@ -50,7 +50,8 @@ interface LeaderboardViewProps {
    */
   autoRefresh?: boolean;
   /** The site's trophy graphic, for the champion's feature row. */
-  trophyUrl?: string;
+  /** The championship's Champion Photo, shown with the Main winner only. */
+  championPhotoUrl?: string;
   /** Extra rail modules -- see ChampionshipSidebar. */
   weather?: VenueWeather | null;
   liveBlog?: LiveBlogEntry[];
@@ -81,7 +82,7 @@ export function LeaderboardView({
   puttingCategories,
   stablefordTitleHolderId,
   autoRefresh = false,
-  trophyUrl,
+  championPhotoUrl,
   weather,
   liveBlog,
 }: LeaderboardViewProps) {
@@ -253,7 +254,7 @@ export function LeaderboardView({
                     entries={mainEntries}
                     competition="main"
                     movement={mainMovement}
-                    trophyUrl={trophyUrl}
+                    championPhotoUrl={championPhotoUrl}
                     favorites={hydrated ? favorites : []}
                     onToggleFavorite={toggleFavorite}
                     favoritesOnly={favoritesOnly}
@@ -269,7 +270,6 @@ export function LeaderboardView({
                     entries={stablefordEntries}
                     competition="stableford"
                     movement={stablefordMovement}
-                    trophyUrl={trophyUrl}
                     favorites={hydrated ? favorites : []}
                     onToggleFavorite={toggleFavorite}
                     favoritesOnly={favoritesOnly}
@@ -287,7 +287,6 @@ export function LeaderboardView({
                     entries={scratchEntries}
                     competition="scratch"
                     movement={scratchMovement}
-                    trophyUrl={trophyUrl}
                     favorites={hydrated ? favorites : []}
                     onToggleFavorite={toggleFavorite}
                     favoritesOnly={favoritesOnly}
