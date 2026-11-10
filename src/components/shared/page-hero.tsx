@@ -16,7 +16,7 @@ interface PageHeroProps {
   /** "photo" gives landing-style pages the same full-bleed image treatment as the homepage hero. */
   variant?: "light" | "photo";
   /** "large" (default) matches the homepage's cinematic hero. "compact" suits data-utility pages people check repeatedly (leaderboard, tee times, statistics) so the actual content sits higher on the page -- matches theopen.com/AIG Women's Open's own leaderboard header proportions. Ignored when `heightPx` is set. */
-  size?: "large" | "compact";
+  size?: "large" | "compact" | "slim";
   /** Fixed height in pixels, overriding the vh-based `size` presets -- for a page that needs an exact height rather than one scaled to the viewport. */
   heightPx?: number;
   imageLabel?: string;
@@ -35,15 +35,23 @@ interface PageHeroProps {
    * passed here becomes the default and this prop goes.
    */
   titleClassName?: string;
+  /**
+   * Rendered on the photo beneath the title -- the championship-week switcher on Leaderboard, Tee
+   * Times and Statistics, which theopen.com sets on the banner itself rather than in a strip below.
+   */
+  overlay?: React.ReactNode;
 }
 
-export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "light", size = "large", heightPx, imageLabel, imageUrl, titleNode, titleClassName }: PageHeroProps) {
+export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "light", size = "large", heightPx, imageLabel, imageUrl, titleNode, titleClassName, overlay }: PageHeroProps) {
+  const slim = size === "slim";
   if (variant === "photo") {
     return (
       <section
         className={cn(
           "relative w-full overflow-hidden",
-          !heightPx && (size === "compact" ? "h-[22vh] min-h-[160px] sm:h-[30vh] sm:min-h-[220px]" : "h-[60vh] min-h-[420px]"),
+          // slim: theopen.com's championship-week banner, about 230px of photo with the switcher on it,
+          // so the table starts inside the first screen rather than a fold down.
+          !heightPx && (slim ? "h-[200px] sm:h-[230px]" : size === "compact" ? "h-[22vh] min-h-[160px] sm:h-[30vh] sm:min-h-[220px]" : "h-[60vh] min-h-[420px]"),
         )}
         style={heightPx ? { height: heightPx } : undefined}
       >
@@ -52,7 +60,7 @@ export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "
         <PlaceholderArt label={imageLabel ?? title} imageUrl={imageUrl} tone="navy" fill sizes="100vw" priority />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.8)_45%,rgba(0,0,0,0.25)_75%,rgba(0,0,0,0.05)_100%)]" />
 
-        <Container className={cn("relative z-10 flex h-full flex-col justify-end text-white", size === "compact" ? "gap-2 pb-4 sm:gap-5 sm:pb-14" : "gap-5 pb-10 sm:pb-14")}>
+        <Container className={cn("relative z-10 flex h-full flex-col justify-end text-white", slim ? "gap-3 pb-5 sm:gap-4 sm:pb-6" : size === "compact" ? "gap-2 pb-4 sm:gap-5 sm:pb-14" : "gap-5 pb-10 sm:pb-14")}>
           {breadcrumbs?.length ? (
             <div className="[&_a]:text-white/70 [&_a:hover]:text-accent [&_span]:text-white">
               <Breadcrumbs items={breadcrumbs} />
@@ -62,16 +70,26 @@ export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "
             {eyebrow ? (
               <span className="text-xs font-semibold uppercase tracking-[0.14em] text-accent">{eyebrow}</span>
             ) : null}
-            <h1 className={titleClassName ?? "font-display font-bold text-display-lg text-balance"}>{titleNode ?? title}</h1>
+            <h1 className={titleClassName ?? (slim ? "font-display text-[32px] font-bold leading-tight sm:text-[40px]" : "font-display font-bold text-display-lg text-balance")}>{titleNode ?? title}</h1>
             {description ? (
               // Compact heroes always hold room for two lines of description (2 x the 28px
               // text-lg line). The block is bottom-aligned, so without this a description that
               // happens to wrap lifts the title 28px above its siblings: Tee Times' runs to two
               // lines where Leaderboard's and Statistics' fit on one, and its title sat visibly
               // higher than theirs across the three tabs that share this banner.
-              <p className={cn("max-w-2xl text-base text-white/85 sm:text-lg", size === "compact" && "hidden sm:block sm:min-h-[3.5rem]")}>{description}</p>
+              <p
+                className={cn(
+                  "max-w-2xl text-base text-white/85 sm:text-lg",
+                  size === "compact" && "hidden sm:block sm:min-h-[3.5rem]",
+                  // One line, trimmed: every slim banner then lines up the same, whatever its length.
+                  slim && "hidden max-w-3xl truncate sm:block",
+                )}
+              >
+                {description}
+              </p>
             ) : null}
           </div>
+          {overlay}
         </Container>
       </section>
     );

@@ -92,14 +92,14 @@ export default async function StatDetailPage({ params, searchParams }: StatDetai
     <>
       <PageHero
         variant="photo"
-        size="compact"
+        size="slim"
         imageLabel="Practice range at Seabrook Old Course"
         imageUrl={banners.statisticsUrl}
         eyebrow={banners.statisticsEyebrow}
         title={banners.statisticsTitle}
         description={banners.statisticsDescription}
+        overlay={<ChampionshipWeekSwitcher onPhoto />}
       />
-      <ChampionshipWeekSwitcher />
 
       <div className="bg-surface-dark text-surface-dark-foreground">
         <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_320px] lg:items-start">

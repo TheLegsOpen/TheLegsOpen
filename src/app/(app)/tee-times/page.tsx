@@ -76,14 +76,14 @@ export default async function TeeTimesPage() {
     <>
       <PageHero
         variant="photo"
-        size="compact"
+        size="slim"
         imageLabel="Practice range at first light"
         imageUrl={banners.teeTimesUrl}
         eyebrow={banners.teeTimesEyebrow}
         title={banners.teeTimesTitle}
         description={banners.teeTimesDescription}
+        overlay={<ChampionshipWeekSwitcher onPhoto />}
       />
-      <ChampionshipWeekSwitcher />
       <TeeTimesView
         rounds={rounds}
         emptyMessage={emptyMessage}

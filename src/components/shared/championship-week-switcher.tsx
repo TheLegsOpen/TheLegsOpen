@@ -12,13 +12,15 @@ const TABS = [
   { label: "Statistics", href: "/statistics" },
 ];
 
-export function ChampionshipWeekSwitcher() {
+/**
+ * `onPhoto` drops the navy strip and container: the switcher is then placed on the page banner
+ * itself (PageHero `overlay`), as theopen.com does on its leaderboard, tee times and statistics.
+ */
+export function ChampionshipWeekSwitcher({ onPhoto = false }: { onPhoto?: boolean } = {}) {
   const pathname = usePathname();
 
-  return (
-    <div className="bg-primary py-3">
-      <Container>
-        <div role="tablist" aria-label="Championship week" className="inline-flex gap-1 rounded-full border border-primary-foreground/15 bg-primary-foreground/10 p-1">
+  const tabs = (
+        <div role="tablist" aria-label="Championship week" className={cn("inline-flex w-fit gap-1 rounded-full border border-primary-foreground/15 p-1", onPhoto ? "bg-primary/70 backdrop-blur-sm" : "bg-primary-foreground/10")}>
           {TABS.map((tab) => {
             const active = pathname === tab.href;
             return (
@@ -37,7 +39,12 @@ export function ChampionshipWeekSwitcher() {
             );
           })}
         </div>
-      </Container>
+  );
+
+  if (onPhoto) return tabs;
+  return (
+    <div className="bg-primary py-3">
+      <Container>{tabs}</Container>
     </div>
   );
 }

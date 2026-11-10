@@ -72,14 +72,14 @@ export default async function LeaderboardPage() {
     <>
       <PageHero
         variant="photo"
-        size="compact"
+        size="slim"
         imageLabel="Callum Reith celebrates on the 18th green"
         imageUrl={banners.leaderboardUrl}
         eyebrow={banners.leaderboardEyebrow}
         title={banners.leaderboardTitle}
         description={banners.leaderboardDescription}
+        overlay={<ChampionshipWeekSwitcher onPhoto />}
       />
-      <ChampionshipWeekSwitcher />
       <LeaderboardView
         main={main}
         stableford={stableford}
