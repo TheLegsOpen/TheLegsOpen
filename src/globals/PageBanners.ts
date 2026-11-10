@@ -2,12 +2,17 @@ import type { GlobalConfig } from "payload";
 
 import { revalidatePageBanners } from "@/lib/revalidate";
 
-const RECOMMENDED =
-  "Falls back to a placeholder when not set. Recommended: wide landscape, at least 1920×1080px — it fills a full-width banner roughly 60% of the viewport height, with page text overlaid on the bottom-left, so keep the main subject centred or to the right.";
-
-/** Leaderboard, Tee Times, Statistics and Field are data-utility pages people check repeatedly, so their banner is shorter (~30vh) to get the actual content on screen faster -- matches theopen.com/AIG Women's Open's own leaderboard header proportions. */
-const RECOMMENDED_COMPACT =
-  "Falls back to a placeholder when not set. Recommended: wide landscape, at least 1920×640px — this banner is shorter than other pages (roughly 30% of the viewport height, so the leaderboard/schedule is visible without scrolling), with page text overlaid on the bottom-left, so keep the main subject centred or to the right.";
+/**
+ * Every page banner is now a short full-width strip (PageHero's "slim" and "compact" sizes, and
+ * the Venues page's fixed height), so the same advice fits them all: a wide photo whose subject
+ * sits in a band across the middle, because wide screens crop the top and bottom and phones crop
+ * the sides. Each constant adds its own page's height.
+ */
+const BANNER =
+  "Optional — a placeholder shows until one is set. Upload a wide landscape photo, at least 1920×640px (larger is fine). It fills the full width of the screen as a short strip, so the top and bottom are cropped on wide screens and the sides on phones: keep the subject in a band across the middle. The page title sits over the bottom-left.";
+const RECOMMENDED = `${BANNER} About 300px tall on a laptop.`;
+const RECOMMENDED_COMPACT = `${BANNER} About 300px tall on a laptop.`;
+const RECOMMENDED_SLIM = `${BANNER} The slimmest banner on the site, about 230px tall, with the championship-week switcher along its bottom edge.`;
 
 export const PageBanners: GlobalConfig = {
   slug: "page-banners",
@@ -26,7 +31,7 @@ export const PageBanners: GlobalConfig = {
       type: "collapsible",
       label: "Leaderboard",
       fields: [
-        { name: "leaderboard", type: "upload", relationTo: "media", label: "Banner Image", admin: { description: RECOMMENDED_COMPACT } },
+        { name: "leaderboard", type: "upload", relationTo: "media", label: "Banner Image", admin: { description: RECOMMENDED_SLIM } },
         { name: "leaderboardEyebrow", type: "text", label: "Eyebrow", admin: { description: "Small caption above the title, e.g. \"Championship Week\"." } },
         { name: "leaderboardTitle", type: "text", label: "Title" },
         { name: "leaderboardDescription", type: "textarea", label: "Description" },
@@ -36,7 +41,7 @@ export const PageBanners: GlobalConfig = {
       type: "collapsible",
       label: "Tee Times",
       fields: [
-        { name: "teeTimes", type: "upload", relationTo: "media", label: "Banner Image", admin: { description: RECOMMENDED_COMPACT } },
+        { name: "teeTimes", type: "upload", relationTo: "media", label: "Banner Image", admin: { description: RECOMMENDED_SLIM } },
         { name: "teeTimesEyebrow", type: "text", label: "Eyebrow" },
         { name: "teeTimesTitle", type: "text", label: "Title" },
         { name: "teeTimesDescription", type: "textarea", label: "Description" },
@@ -70,7 +75,7 @@ export const PageBanners: GlobalConfig = {
       type: "collapsible",
       label: "Statistics",
       fields: [
-        { name: "statistics", type: "upload", relationTo: "media", label: "Banner Image", admin: { description: RECOMMENDED_COMPACT } },
+        { name: "statistics", type: "upload", relationTo: "media", label: "Banner Image", admin: { description: RECOMMENDED_SLIM } },
         { name: "statisticsEyebrow", type: "text", label: "Eyebrow" },
         { name: "statisticsTitle", type: "text", label: "Title" },
         { name: "statisticsDescription", type: "textarea", label: "Description" },
@@ -115,7 +120,7 @@ export const PageBanners: GlobalConfig = {
           type: "upload",
           relationTo: "media",
           label: "Banner Image",
-          admin: { description: `${RECOMMENDED} Used behind the stat row and portrait at the top of every player's profile page.` },
+          admin: { description: "Not currently shown on the site — player pages use a plain navy banner. Kept so a photo can be brought back later without losing this setting." },
         },
         { name: "playerProfileEyebrow", type: "text", label: "Eyebrow" },
       ],

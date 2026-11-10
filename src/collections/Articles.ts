@@ -99,7 +99,7 @@ export const Articles: CollectionConfig = {
       relationTo: "media",
       admin: {
         description:
-          "Shown on article cards and at the top of the article. Falls back to a placeholder when not set. Recommended: landscape, at least 1600×900px — it's cropped to both a 4:3 card and a 21:9 banner, so keep the subject centred.",
+          "Landscape, at least 1600×900px, with the subject in the centre. Shown 16:9 at the top of the article, 4:3 on news cards, square in the homepage News & Features row and as a small thumbnail under Related, so the edges get cropped in places. A placeholder shows until one is set.",
       },
     },
     { name: "body", type: "richText", required: true },

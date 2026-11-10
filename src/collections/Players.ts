@@ -233,7 +233,7 @@ export const Players: CollectionConfig = {
       relationTo: "media",
       admin: {
         description:
-          "Shown on the roster grid and profile page. Falls back to a placeholder when not set. Recommended: at least 1200×1200px — it's cropped to both a 3:4 portrait card and a 4:3 profile image, so keep the subject centred.",
+          "A cut-out of the player, waist up or head and shoulders, on a plain black background (or a transparent PNG), at least 1200px tall. The site trims the black away automatically so every player lines up at the same size, and blends what is left into the navy panels. Used on the Field, the player's profile, leaderboard rows and pop-ups, tee-time cards and Head-to-head. Avoid busy backgrounds: anything that is not black shows as a box behind the player.",
       },
     },
     { name: "bio", type: "richText" },

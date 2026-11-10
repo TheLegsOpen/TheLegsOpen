@@ -89,12 +89,12 @@ export const Championships: CollectionConfig = {
     },
     {
       name: "winnerPhoto",
-      label: "Champion Photo (venue page override)",
+      label: "Champion Photo",
       type: "upload",
       relationTo: "media",
       admin: {
         description:
-          "Optional. Shown for this champion on the venue's \"Champion Golfers at [venue]\" section instead of their usual player profile photo, and used by the venue strip below unless that has a photo of its own. Leave blank to fall back to the profile photo.",
+          "Optional. The champion with the trophy, ideally landscape, at least 1920×1080px, with the champion in the centre. Used as the banner on this year's Previous Opens page; in the winner panel on the Main leaderboard (nothing shows there when this is blank); on the champion's card in \"Champion Golfers at [venue]\" (a tall 400×600 crop from the centre); and in the venue strip below unless that has a photo of its own. The venue page falls back to the player's profile photo when this is blank.",
       },
     },
     {
@@ -106,7 +106,7 @@ export const Championships: CollectionConfig = {
       labels: { singular: "Photo", plural: "Photos" },
       maxRows: 24,
       admin: {
-        description: "Optional. Powers the \"Best of the [year] Legs Open\" photo band under this championship's Overview on Previous Opens. Hidden until you add a photo.",
+        description: "Optional. Powers the \"Best of the [year] Legs Open\" photo band under this championship's Overview on Previous Opens, and joins the venue page's photo slider. Landscape, at least 1600×960px. Hidden until you add a photo.",
       },
       fields: [
         { name: "image", type: "upload", relationTo: "media", required: true },
@@ -120,7 +120,7 @@ export const Championships: CollectionConfig = {
       relationTo: "media",
       admin: {
         description:
-          "Optional. The photograph on this championship's card in the \"The Legs Open at [venue]\" strip. Leave blank and the strip uses the Champion Photo above, so the two sections only differ once you want them to. Useful where the moment belongs in the strip and the portrait belongs in Champion Golfers -- a shot of the closing hole, the presentation, the weather.",
+          "Optional. The photograph on this championship's card in the \"The Legs Open at [venue]\" strip, shown as a tall 224×340 crop from the centre, so any shape works if the subject is in the middle (at least 600×900px). Leave blank and the strip uses the Champion Photo above, so the two sections only differ once you want them to. Useful where the moment belongs in the strip and the portrait belongs in Champion Golfers -- a shot of the closing hole, the presentation, the weather.",
       },
     },
     {

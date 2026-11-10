@@ -129,7 +129,7 @@ export const Venues: CollectionConfig = {
       relationTo: "media",
       admin: {
         description:
-          "Shown on the venues grid and at the top of the venue page. Falls back to a placeholder when not set. Recommended: landscape, at least 1200×900px (4:3).",
+          "A wide landscape photo of the course, at least 2400×1350px. Used as the full-width banner at the top of the venue page (about 520px tall, so the top and bottom are cropped: keep the subject in a band across the middle), on the course page and on Upcoming Venues cards. A placeholder shows until one is set.",
       },
     },
     {
@@ -138,7 +138,7 @@ export const Venues: CollectionConfig = {
       type: "array",
       labels: { singular: "Photo", plural: "Photos" },
       maxRows: 12,
-      admin: { description: "Powers the \"Pictures at [venue]\" slider on this venue's page. Add as many or as few as you like." },
+      admin: { description: "Photos of the course for the \"[venue] at The Legs Open\" slider on the venue page, shown alongside every championship's photos from here. Landscape, at least 1600×960px; the slider crops to 5:3." },
       fields: [
         { name: "image", type: "upload", relationTo: "media", required: true },
         { name: "caption", type: "text" },
@@ -245,7 +245,7 @@ export const Venues: CollectionConfig = {
           maxRows: 18,
           admin: {
             description:
-              "Optional. The strokesaver image and a few words on each hole, shown on this venue's course page when the hole is picked. Rows can go in any order -- set the hole number on each, and fill in the image, the description or both. The Course card on the venue page only appears once at least one hole has an image.",
+              "Optional. The strokesaver image and a few words on each hole, shown on this venue's course page when the hole is picked. Rows can go in any order -- set the hole number on each, and fill in the image, the description or both. Images: a tall hole map, ideally a transparent PNG or WebP, at least 1000px tall; it sits on a cream panel shaped 3:5, so a tall, narrow map fills it best. Name the files by venue (e.g. \"Castle Hole 4.webp\") so they don't clash in the media library. The Course card on the venue page only appears once at least one hole has an image.",
           },
           fields: [
             {
