@@ -25,7 +25,6 @@ const PREVIEWS: { href: string; page: string; items: string[] }[] = [
     items: ["22 Two columns with a Related rail", "23 Slimmer header with share icons", "24 More from… row and tag"],
   },
   { href: "/preview/head-to-head", page: "Head-to-head (new)", items: ["26 Compare two players' Legs Open careers"] },
-  { href: "/preview/records", page: "Records", items: ["30 Records in the Statistics leader-card style"] },
 ];
 
 export default function PreviewIndex() {
