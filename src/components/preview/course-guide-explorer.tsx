@@ -99,6 +99,13 @@ export function CourseGuideExplorer({ guide, venueName }: { guide: CourseGuide; 
                 </div>
               ))}
             </dl>
+            {hole.average !== undefined ? (
+              <p className="text-white/80">
+                The field has averaged {signed(hole.average - hole.par)} here
+                {hole.holeNumber === hardest ? ", the hardest hole on the course in Legs Open play" : ""}
+                {hole.holeNumber === easiest ? ", the easiest hole on the course in Legs Open play" : ""}.
+              </p>
+            ) : null}
             {hole.description ? (
               <div className="flex max-w-[60ch] flex-col gap-4 font-sans text-[18px] font-light leading-[28px] text-white/90">
                 {hole.description.split(/\n\s*\n/).map((paragraph, i) => (
@@ -110,13 +117,6 @@ export function CourseGuideExplorer({ guide, venueName }: { guide: CourseGuide; 
                 A few words on how this hole plays appear here once written in the admin (Venues → Hole Guide).
               </p>
             )}
-            {hole.average !== undefined ? (
-              <p className="text-white/80">
-                The field has averaged {signed(hole.average - hole.par)} here
-                {hole.holeNumber === hardest ? ", the hardest hole on the course in Legs Open play" : ""}
-                {hole.holeNumber === easiest ? ", the easiest hole on the course in Legs Open play" : ""}.
-              </p>
-            ) : null}
           </div>
           <div className="flex items-center gap-3">
             <button type="button" onClick={() => step(-1)} className="inline-flex items-center gap-2 border border-white/30 px-4 py-2 text-sm font-bold uppercase hover:border-accent hover:text-accent">
