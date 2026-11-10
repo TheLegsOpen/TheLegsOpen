@@ -57,11 +57,10 @@ function firstParagraph(doc: unknown): string | undefined {
 }
 
 /**
- * The player profile, shared by /players/[slug] and its /preview/players/[slug] layout preview.
- * With `preview` on, the Overview tab opens with a standfirst (change 21); without it the page is
- * exactly the live one.
+ * The player profile at /players/[slug]. The Overview tab opens with a standfirst: the first
+ * paragraph of the bio.
  */
-export async function PlayerDetail({ slug, preview = false }: { slug: string; preview?: boolean }) {
+export async function PlayerDetail({ slug }: { slug: string }) {
   const player = await getPlayerBySlug(slug);
   if (!player) notFound();
 
@@ -408,7 +407,7 @@ export async function PlayerDetail({ slug, preview = false }: { slug: string; pr
         <Container className="py-10 sm:py-14 xl:pb-14 xl:pt-[41px]">
         <div className={COLUMN}>
           <TabsContent value="overview" className="mt-0">
-            {preview && standfirst ? (
+            {standfirst ? (
               <p className="mb-10 max-w-[748px] font-sans text-[26px] leading-[35.88px] text-[#2a2a2a]">{standfirst}</p>
             ) : null}
             {/* Tee times go in the sidebar. Each row is two short values with justify-between, so

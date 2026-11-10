@@ -18,7 +18,6 @@ const PREVIEWS: { href: string; page: string; items: string[] }[] = [
     ],
   },
   { href: "/preview/venues/st-andrews-craigtoun", page: "Venue (Craigtoun, upcoming)", items: ["13 Upcoming-venue hero line with date", "25 Course guide before it has been played"] },
-  { href: "/preview/players/stevie-anderson", page: "Player", items: ["21 Overview opens with a standfirst from the bio"] },
   { href: "/preview/head-to-head", page: "Head-to-head (new)", items: ["26 Compare two players' Legs Open careers"] },
 ];
 
