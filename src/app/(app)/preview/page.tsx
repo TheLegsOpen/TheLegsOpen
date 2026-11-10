@@ -11,8 +11,8 @@ const PREVIEWS: { href: string; page: string; items: string[] }[] = [
     items: [
       "13 Hero line: years hosted, location, button to the most recent Legs Open here",
       "The Course card under Upcoming Venues, linking to the course page (Getting There removed)",
-      "Overview | Course Statistics tabs moved above News & Features",
-      "15 News & Features band",
+      "One selected article after the intro (the venue's first Featured Article, else the latest from its last championship)",
+      "Overview and Course Statistics tabs removed (hole scoring is on each Previous Opens page)",
       "16 Year-by-year history slider (already matches theopen.com, no change)",
       "29 Photo gallery (appears once championship photos are added)",
     ],

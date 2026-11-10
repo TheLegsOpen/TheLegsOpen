@@ -19,12 +19,12 @@ import { isActiveChampionshipVenue } from "@/lib/data/scorecards";
 import { getToughestHoles } from "@/lib/data/scoring-statistics";
 import { cn, portraitUrl } from "@/lib/utils";
 
-import { VenueCourseCard, VenueHeroLine, VenueNewsAndGallery } from "@/components/preview/venue-preview";
+import { VenueCourseCard, VenueFeaturedArticle, VenueGalleryAll, VenueHeroLine } from "@/components/preview/venue-preview";
 
 /**
  * The venue page, shared by /venues/[slug] and its /preview/venues/[slug] layout preview. With
- * `preview` on it adds the proposed changes (13, The Course card, 15, 29, tabs above the news);
- * without it the page is
+ * `preview` on it shows the proposed layout: hero line (13), The Course card, one featured article
+ * and the combined gallery (29), with no Overview / Course Statistics tabs; without it the page is
  * exactly the live one.
  */
 export async function VenueDetail({ slug, preview = false }: { slug: string; preview?: boolean }) {
@@ -201,6 +201,8 @@ export async function VenueDetail({ slug, preview = false }: { slug: string; pre
         </Container>
       </section>
 
+      {preview ? <VenueFeaturedArticle venue={venue} championships={championshipsChronological} articles={allArticles} /> : null}
+
       {/* The Open's film band: a dark full-bleed strip with the video on one side and a short
           piece of writing on the other, 1068 against 838 at 1920. Only renders with a link on the
           venue, so a course without one simply does not have this section.
@@ -222,8 +224,10 @@ export async function VenueDetail({ slug, preview = false }: { slug: string; pre
         </section>
       ) : null}
 
+      {!preview || championshipsChronological.length === 0 ? (
       <Container className="flex flex-col gap-16 py-10 sm:py-14">
 
+        {!preview ? (
         <Tabs defaultValue="overview">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -263,10 +267,11 @@ export async function VenueDetail({ slug, preview = false }: { slug: string; pre
             )}
           </TabsContent>
         </Tabs>
+        ) : null}
 
         {!preview && venue.gallery && venue.gallery.length > 0 ? <VenueGallery venueName={venue.name} photos={venue.gallery} /> : null}
 
-        {featuredArticles.length > 0 ? (
+        {!preview && featuredArticles.length > 0 ? (
           <div className="flex flex-col gap-6">
             <h2 className="font-display font-bold text-2xl">Featured Articles</h2>
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
@@ -285,8 +290,9 @@ export async function VenueDetail({ slug, preview = false }: { slug: string; pre
           <p className="text-sm text-muted-foreground">{venue.name} has not yet hosted a recorded championship in our archive.</p>
         ) : null}
       </Container>
+      ) : null}
 
-      {preview ? <VenueNewsAndGallery venue={venue} championships={championshipsChronological} /> : null}
+      {preview ? <VenueGalleryAll venue={venue} championships={championshipsChronological} /> : null}
 
       {/* Both of these carry their own full-bleed band now, so they sit outside the Container --
           the same reason the film band above does. */}

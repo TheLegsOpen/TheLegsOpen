@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
 import { CountryFlag } from "@/components/shared/country-flag";
-import { ArticleCard } from "@/components/news/article-card";
+import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { PlayerGallery } from "@/components/players/player-gallery";
 import { getArticlesForChampionship } from "@/lib/data/articles";
 import { loadCourseGuide } from "@/lib/data/course-guide";
@@ -80,30 +80,53 @@ export async function VenueCourseCard({ venue, championships }: { venue: Venue; 
   );
 }
 
-/** PREVIEW (15, 29): News & Features from the championships played here, then every photo from here. */
-export async function VenueNewsAndGallery({ venue, championships }: { venue: Venue; championships: ChampionshipWinner[] }) {
-  const tagged = (await Promise.all(championships.map((c) => getArticlesForChampionship(c.id, 6).catch(() => [] as Article[])))).flat();
-  const articles = [...new Map(tagged.map((a) => [a.slug, a])).values()].slice(0, 3);
+/**
+ * PREVIEW: one selected article straight after the intro band, as theopen.com's venue pages carry
+ * -- the photo on one side, the championship, TITLE / dek and Read More on the other. The first of
+ * the venue's own Featured Articles if any are picked in the admin; otherwise the latest piece
+ * tagged to the most recent championship here.
+ */
+export async function VenueFeaturedArticle({ venue, championships, articles }: { venue: Venue; championships: ChampionshipWinner[]; articles: Article[] }) {
+  let article = (venue.featuredArticleSlugs ?? []).map((slug) => articles.find((a) => a.slug === slug)).find((a): a is Article => Boolean(a));
+  if (!article) {
+    const latest = [...championships].filter((c) => c.completed).sort((a, b) => b.year - a.year)[0];
+    if (latest) article = (await getArticlesForChampionship(latest.id, 1).catch(() => [] as Article[]))[0];
+  }
+  if (!article) return null;
+
+  return (
+    <section className="bg-white">
+      <Container className="py-12">
+        <Link href={`/latest/${article.slug}`} className="group grid grid-cols-1 bg-[#F7F7F7] md:grid-cols-2">
+          <span className="relative block aspect-[16/10] overflow-hidden">
+            <PlaceholderArt label={article.heroLabel} imageUrl={article.imageUrl} tone="navy" fill sizes="(min-width: 1430px) 613px, (min-width: 768px) 50vw, 100vw" className="transition-transform duration-300 ease-standard group-hover:scale-[1.03]" />
+          </span>
+          <span className="flex flex-col justify-center gap-5 p-8 lg:p-12">
+            <span className="font-menu text-[12px] uppercase tracking-[2.4px] text-[#43524E]">{article.category}</span>
+            <span className="font-menu text-[28px] leading-[1.2] text-[#2a2a2a] lg:text-[32px]">
+              <span className="font-bold uppercase tracking-[1px]">{article.title}</span>
+              {article.dek ? (
+                <>
+                  <span className="mx-2 text-accent">/</span>
+                  <span className="font-normal">{article.dek}</span>
+                </>
+              ) : null}
+            </span>
+            <span className={cn(BUTTON, "group-hover:bg-primary group-hover:text-white")}>
+              Read more <ArrowRight className="h-4 w-4" />
+            </span>
+          </span>
+        </Link>
+      </Container>
+    </section>
+  );
+}
+
+/** PREVIEW (29): every photo from here -- the venue's own and each championship's. */
+export function VenueGalleryAll({ venue, championships }: { venue: Venue; championships: ChampionshipWinner[] }) {
   const photos = [
     ...(venue.gallery ?? []),
     ...championships.flatMap((c) => (c.gallery ?? []).map((p) => ({ ...p, caption: p.caption ?? `${c.year} Legs Open` }))),
   ];
-
-  return (
-    <>
-      {articles.length > 0 ? (
-        <section className="bg-white">
-          <Container className="flex flex-col gap-6 py-12">
-            <h2 className={cn(SECTION_TITLE, "text-center")}>News and features from {venue.name}</h2>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-              {articles.map((article) => (
-                <ArticleCard key={article.slug} article={article} />
-              ))}
-            </div>
-          </Container>
-        </section>
-      ) : null}
-      {photos.length > 0 ? <PlayerGallery title={`${venue.name} at The Legs Open`} playerName={venue.name} photos={photos} /> : null}
-    </>
-  );
+  return photos.length > 0 ? <PlayerGallery title={`${venue.name} at The Legs Open`} playerName={venue.name} photos={photos} /> : null;
 }
