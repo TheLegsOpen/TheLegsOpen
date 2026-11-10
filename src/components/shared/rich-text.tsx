@@ -12,11 +12,35 @@ import { cn } from "@/lib/utils";
  * survives to the live page. Shared by every richText field on the site (article bodies, player
  * bios, legal pages, homepage rich-text sections) rather than each having its own flattening logic.
  */
-export function RichTextBlock({ data, className }: { data: unknown; className?: string }) {
+interface LexicalNode {
+  type?: string;
+  text?: string;
+  children?: LexicalNode[];
+}
+
+/** A paragraph with nothing in it but spaces and line breaks -- what pressing Enter twice leaves. */
+function isBlankParagraph(node: LexicalNode): boolean {
+  if (node.type !== "paragraph") return false;
+  return (node.children ?? []).every((child) => child.type === "linebreak" || (child.type === "text" && !(child.text ?? "").trim()));
+}
+
+/**
+ * Drops blank paragraphs from the top level of a Lexical document, for display only -- the stored
+ * text is untouched. In the admin editor an empty line between paragraphs is a whole extra
+ * paragraph, and on the page each one added a full gap on top of the normal paragraph spacing
+ * (the Craigtoun announcement had several).
+ */
+function withoutBlankParagraphs(data: unknown): unknown {
+  const root = (data as { root?: LexicalNode } | null)?.root;
+  if (!root?.children) return data;
+  return { ...(data as object), root: { ...root, children: root.children.filter((node) => !isBlankParagraph(node)) } };
+}
+
+export function RichTextBlock({ data, className, dropBlankParagraphs = false }: { data: unknown; className?: string; dropBlankParagraphs?: boolean }) {
   return (
     <RichText
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data={data as any}
+      data={(dropBlankParagraphs ? withoutBlankParagraphs(data) : data) as any}
       className={cn(
         "flex flex-col gap-5 text-base leading-relaxed text-foreground",
         "[&_p]:leading-relaxed",

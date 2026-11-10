@@ -84,7 +84,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           priority
         />
 
-        <RichTextBlock data={article.body} className="mx-auto max-w-2xl" />
+        <RichTextBlock data={article.body} className="mx-auto max-w-2xl" dropBlankParagraphs />
       </Container>
 
       {related.length > 0 ? (
