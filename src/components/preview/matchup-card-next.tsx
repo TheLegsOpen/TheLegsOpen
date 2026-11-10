@@ -3,7 +3,7 @@ import { ChevronRight, Star } from "lucide-react";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
-import { cn, splitSurnameFirst } from "@/lib/utils";
+import { cn, portraitUrl, splitSurnameFirst } from "@/lib/utils";
 import { scorePillClass, TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { TeeTimeEntry } from "@/types/championship";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
@@ -53,7 +53,7 @@ export function MatchupCardNext({
               )}
             >
               <div className="absolute bottom-0 right-0 h-[150px] w-[120px]" aria-hidden="true">
-                <PlaceholderArt label="" imageUrl={player.photoUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="120px" />
+                <PlaceholderArt label="" imageUrl={portraitUrl(player.photoUrl)} tone="navy" blendBlack fill fit="contain-bottom" sizes="120px" />
               </div>
               <div className="relative">
                 <button type="button" onClick={() => onSelectPlayer(player.id)} className="text-left text-surface-dark-foreground hover:text-accent">

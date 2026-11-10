@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { formatToPar } from "@/lib/leaderboard";
-import { cn, playerSlug, splitSurnameFirst } from "@/lib/utils";
+import { cn, playerSlug, portraitUrl, splitSurnameFirst } from "@/lib/utils";
 import type { RecordsData } from "@/lib/data/records";
 import type { Player } from "@/types/player";
 
@@ -63,7 +63,7 @@ export function RecordsBoardNext({ records, players }: { records: RecordsData; p
                 <div key={row.name + index} className="flex items-center gap-4 border-b border-surface-dark-foreground/15 bg-primary px-4 py-4 text-primary-foreground">
                   {player?.photoUrl ? (
                     <span className="relative hidden h-[84px] w-[70px] shrink-0 overflow-hidden sm:block" aria-hidden="true">
-                      <PlaceholderArt label="" imageUrl={player.photoUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="70px" />
+                      <PlaceholderArt label="" imageUrl={portraitUrl(player.photoUrl)} tone="navy" blendBlack fill fit="contain-bottom" sizes="70px" />
                     </span>
                   ) : null}
                   <div className="min-w-0 flex-1">

@@ -30,7 +30,7 @@ import { getSiteTheme } from "@/lib/data/site-theme";
 import { formatToPar } from "@/lib/leaderboard";
 import type { Article } from "@/types/article";
 import type { PlayerGalleryPhoto } from "@/types/player";
-import { cn } from "@/lib/utils";
+import { cn, portraitUrl } from "@/lib/utils";
 
 /** theopen.com's section__title: 14px Cardinal Photo, bold, uppercase over 1.6px, in #43524E. */
 const SECTION_TITLE = "mb-5 font-menu text-[14px] font-bold uppercase leading-[16px] tracking-[1.6px] text-[#43524E]";
@@ -194,7 +194,7 @@ export async function PlayerDetail({ slug, preview = false }: { slug: string; pr
               <div className="pointer-events-none absolute -bottom-[55px] left-[43.78%] h-[528px] w-[540px]">
                 <PlaceholderArt
                   label={`${player.name} portrait`}
-                  imageUrl={player.photoUrl}
+                  imageUrl={portraitUrl(player.photoUrl)}
                   tone="slate"
                   blendBlack
                   fill
@@ -303,7 +303,7 @@ export async function PlayerDetail({ slug, preview = false }: { slug: string; pr
               <div className="relative aspect-[3/4] w-[55%] max-w-[260px] sm:max-w-[300px] lg:aspect-auto lg:h-[440px] lg:w-[352px] lg:max-w-none">
                 <PlaceholderArt
                   label={`${player.name} portrait`}
-                  imageUrl={player.photoUrl}
+                  imageUrl={portraitUrl(player.photoUrl)}
                   tone="slate"
                   blendBlack
                   fill

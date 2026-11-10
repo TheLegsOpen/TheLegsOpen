@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Star, ChevronUp, ChevronDown } from "lucide-react";
 
-import { cn, splitSurnameFirst } from "@/lib/utils";
+import { cn, portraitUrl, splitSurnameFirst } from "@/lib/utils";
 import { formatToPar, isConcluded } from "@/lib/leaderboard";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
@@ -121,7 +121,7 @@ function ChampionFeature({
             <PlaceholderArt label="" imageUrl={trophyUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="70px" />
           </div>
         ) : null}
-        <PlaceholderArt label="" imageUrl={entry.player.photoUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="110px" />
+        <PlaceholderArt label="" imageUrl={portraitUrl(entry.player.photoUrl)} tone="navy" blendBlack fill fit="contain-bottom" sizes="110px" />
       </div>
       ) : null}
       <div className="min-w-0">

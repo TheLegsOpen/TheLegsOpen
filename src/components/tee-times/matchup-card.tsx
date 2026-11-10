@@ -4,7 +4,7 @@ import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
 import { formatHandicap } from "@/lib/scoring";
-import { cn, splitSurnameFirst } from "@/lib/utils";
+import { cn, portraitUrl, splitSurnameFirst } from "@/lib/utils";
 import { scorePillClass, TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { TeeTimeEntry } from "@/types/championship";
 import type { Player } from "@/types/player";
@@ -86,7 +86,7 @@ function PlayerChip({
       </div>
       <PlaceholderArt
         label={`${player.name} portrait`}
-        imageUrl={player.photoUrl}
+        imageUrl={portraitUrl(player.photoUrl)}
         tone="slate"
         ratio="1/1"
         className="h-20 w-20 shrink-0 rounded-full sm:h-24 sm:w-24"

@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { formatToPar } from "@/lib/leaderboard";
-import { cn, playerSlug, splitSurnameFirst } from "@/lib/utils";
+import { cn, playerSlug, portraitUrl, splitSurnameFirst } from "@/lib/utils";
 import { scorePillClass } from "@/components/leaderboard/leaderboard-table";
 import { PlayerStatPanel } from "@/components/leaderboard/player-stat-panel";
 import { ScorecardGrid } from "@/components/players/scorecard-grid";
@@ -113,7 +113,7 @@ export function PlayerPopup({
 
             <PlaceholderArt
               label={`${player.name} portrait`}
-              imageUrl={player.photoUrl}
+              imageUrl={portraitUrl(player.photoUrl)}
               tone="navy"
               blendBlack
               ratio="3/4"

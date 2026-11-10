@@ -17,7 +17,7 @@ import { getPlayers } from "@/lib/data/players";
 import { getArticles } from "@/lib/data/articles";
 import { isActiveChampionshipVenue } from "@/lib/data/scorecards";
 import { getToughestHoles } from "@/lib/data/scoring-statistics";
-import { cn } from "@/lib/utils";
+import { cn, portraitUrl } from "@/lib/utils";
 
 import { VenuePreviewSections, VenueHeroLine } from "@/components/preview/venue-preview";
 
@@ -96,7 +96,7 @@ export async function VenueDetail({ slug, preview = false }: { slug: string; pre
         key,
         name: c.winnerName,
         slug: c.winnerPlayerSlug,
-        photoUrl: c.winnerPhotoUrl ?? playerByName.get(c.winnerName)?.photoUrl,
+        photoUrl: c.winnerPhotoUrl ?? portraitUrl(playerByName.get(c.winnerName)?.photoUrl),
         years: [c.year],
       });
     }
@@ -303,7 +303,7 @@ export async function VenueDetail({ slug, preview = false }: { slug: string; pre
             // The strip photo sits outside the winnerName check deliberately. A championship with
             // no champion recorded yet can still have a photograph of the course.
             photoUrl:
-              c.venueStripPhotoUrl ?? (c.winnerName ? c.winnerPhotoUrl ?? playerByName.get(c.winnerName)?.photoUrl : undefined),
+              c.venueStripPhotoUrl ?? (c.winnerName ? c.winnerPhotoUrl ?? portraitUrl(playerByName.get(c.winnerName)?.photoUrl) : undefined),
           }))}
         />
       ) : null}
