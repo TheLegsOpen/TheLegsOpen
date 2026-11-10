@@ -31,9 +31,9 @@ interface StatPreviewBoardProps {
   scratchEntries: CompetitionEntry[];
   /** Pass when showing a specific past championship (e.g. Previous Opens) -- see StatPreviewCard. */
   championshipYear?: number;
-  /** PREVIEW (11): two cards per row on desktop. */
+  /** Two cards per row on desktop (the Statistics page). */
   twoColumn?: boolean;
-  /** PREVIEW (12, 28): a Player dropdown beside the category one, and My players starred. */
+  /** A Player dropdown beside the category one, and My players starred. */
   playerFilter?: boolean;
 }
 

@@ -85,12 +85,14 @@ export function StatPreviewCard({
   onSelectPlayer: (playerId: string) => void;
   /** Pass when showing a specific past championship (e.g. Previous Opens) so "Full rankings" links to that year's detail page instead of whichever championship is currently active. */
   championshipYear?: number;
-  /** PREVIEW (12): the player picked in the Player filter -- ringed, and added below the top three if outside them. */
+  /** The player picked in the Player filter -- ringed, and added below the top three if outside them. */
   highlightId?: string;
-  /** PREVIEW (28): My players, starred in the rows. */
+  /** My players, starred in the rows. */
   favoriteIds?: string[];
 }) {
   const top = category.rows.slice(0, PREVIEW_COUNT);
+  // A tie for first has no single leader to feature, so every row stays slim and equal.
+  const featureLeader = top.length > 0 && !(top[0].tied && (top[0].position ?? 1) === 1);
   const extra = highlightId && !top.some((r) => r.player.id === highlightId) ? category.rows.find((r) => r.player.id === highlightId) : undefined;
 
   return (
@@ -115,7 +117,7 @@ export function StatPreviewCard({
           <p className="text-sm text-primary-foreground/60">No holes of this par played yet.</p>
         </div>
       ) : (
-        [...top, ...(extra ? [extra] : [])].map((row, index) => index === 0 ? (
+        [...top, ...(extra ? [extra] : [])].map((row, index) => index === 0 && featureLeader ? (
           <LeaderRow key={row.player.id} row={row} category={category} onSelectPlayer={onSelectPlayer} />
         ) : (
           <div
