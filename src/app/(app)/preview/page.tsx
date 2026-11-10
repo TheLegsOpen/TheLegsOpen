@@ -25,7 +25,7 @@ const PREVIEWS: { href: string; page: string; items: string[] }[] = [
       "13 Hero line: years hosted, location, button",
       "14 The Course and Getting There cards",
       "15 News & Features band",
-      "16 Year-by-year history slider",
+      "16 Year-by-year history slider (already matches theopen.com, no change)",
       "25 Hole-by-hole course guide",
       "29 Photo gallery (appears once championship photos are added)",
     ],
