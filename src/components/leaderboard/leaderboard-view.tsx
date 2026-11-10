@@ -6,7 +6,7 @@ import { Flag, Info, Search, Star, X } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Container } from "@/components/shared/container";
-import { ChampionshipSidebar } from "@/components/shared/championship-sidebar";
+import { ChampionshipSidebar, type UpcomingTeeTime } from "@/components/shared/championship-sidebar";
 import { LeaderboardTable } from "@/components/leaderboard/leaderboard-table";
 import { HoleByHoleTable } from "@/components/leaderboard/hole-by-hole-table";
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
@@ -19,6 +19,9 @@ import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
 import type { Article } from "@/types/article";
 import type { SponsorClock } from "@/lib/data/sponsor-clock";
 import type { StatCategory } from "@/lib/statistics";
+import type { VenueWeather } from "@/lib/data/weather";
+import type { LiveBlogEntry } from "@/lib/data/live-blog";
+import { parseTeeTimeMinutes } from "@/lib/data/tee-time-order";
 
 interface LeaderboardViewProps {
   main: CompetitionEntry[];
@@ -48,6 +51,9 @@ interface LeaderboardViewProps {
   autoRefresh?: boolean;
   /** The site's trophy graphic, for the champion's feature row. */
   trophyUrl?: string;
+  /** Extra rail modules -- see ChampionshipSidebar. */
+  weather?: VenueWeather | null;
+  liveBlog?: LiveBlogEntry[];
 }
 
 /** Matches the ~10s live-score polling cadence measured on theopen.com/leaderboard. */
@@ -76,6 +82,8 @@ export function LeaderboardView({
   stablefordTitleHolderId,
   autoRefresh = false,
   trophyUrl,
+  weather,
+  liveBlog,
 }: LeaderboardViewProps) {
   const { favorites, toggleFavorite, hydrated } = useFavorites();
   const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -93,6 +101,23 @@ export function LeaderboardView({
 
   useAutoRefresh(autoRefresh ? AUTO_REFRESH_INTERVAL_MS : null);
   const mainMovement = usePositionMovement(main);
+
+  // Who is still to tee off, by tee time, from the leaderboard itself -- every entry already carries
+  // its tee time and whether it has started, so the rail needs no tee sheet of its own. Empty once
+  // the last group is out, or out of season, and then the block hides.
+  const upcomingTeeTimes = useMemo<UpcomingTeeTime[]>(() => {
+    const byTime = new Map<string, string[]>();
+    for (const entry of main) {
+      if (entry.started || !entry.teeTime || entry.didNotStart) continue;
+      const list = byTime.get(entry.teeTime) ?? [];
+      list.push(entry.player.name);
+      byTime.set(entry.teeTime, list);
+    }
+    return [...byTime.entries()]
+      .sort(([a], [b]) => parseTeeTimeMinutes(a) - parseTeeTimeMinutes(b))
+      .slice(0, 3)
+      .map(([time, players]) => ({ time, players }));
+  }, [main]);
   const stablefordMovement = usePositionMovement(stableford);
   const scratchMovement = usePositionMovement(scratch);
 
@@ -271,7 +296,17 @@ export function LeaderboardView({
                 )}
               </TabsContent>
             </div>
-            {!holeByHole && <ChampionshipSidebar featuredArticle={featuredArticle} clockConfig={clockConfig} tone="dark" />}
+            {!holeByHole && (
+              <ChampionshipSidebar
+                featuredArticle={featuredArticle}
+                clockConfig={clockConfig}
+                tone="dark"
+                weather={weather}
+                upcomingTeeTimes={upcomingTeeTimes}
+                liveBlog={liveBlog}
+                sticky
+              />
+            )}
           </div>
         </Container>
       </div>
