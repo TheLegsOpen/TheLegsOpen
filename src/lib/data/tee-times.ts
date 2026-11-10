@@ -14,6 +14,7 @@ function mapTeeTimeRounds(docs: PayloadTeeTimeRound[]): TeeTimeRound[] {
   return docs.map((doc) => ({
     round: doc.round,
     date: doc.date ? formatWeekdayDate(doc.date) : "",
+    isoDate: doc.date ?? undefined,
     groups: (doc.groups ?? []).map((group) => ({
       time: group.time,
       tee: group.tee,

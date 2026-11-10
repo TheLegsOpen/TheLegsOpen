@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowUpDown } from "lucide-react";
 
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Container } from "@/components/shared/container";
 import { ChampionshipSidebar } from "@/components/shared/championship-sidebar";
 import { MatchupCard } from "@/components/tee-times/matchup-card";
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { useFavorites } from "@/hooks/use-favorites";
 import { cn } from "@/lib/utils";
+import { parseTeeTimeMinutes } from "@/lib/data/tee-time-order";
 import type { TeeTimeRound } from "@/types/championship";
 import type { Article } from "@/types/article";
 import type { SponsorClock } from "@/lib/data/sponsor-clock";
@@ -17,6 +17,29 @@ import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { StatCategory } from "@/lib/statistics";
 
 const TEE_FILTERS = ["All", "1st", "10th"] as const;
+
+/** Today in the UK, as YYYY-MM-DD -- championships are played there, whoever is reading. */
+function ukToday(now: Date): string {
+  return now.toLocaleDateString("en-CA", { timeZone: "Europe/London" });
+}
+
+/** Minutes past midnight right now in the UK. */
+function ukMinutes(now: Date): number {
+  const [h, m] = now.toLocaleTimeString("en-GB", { timeZone: "Europe/London", hour: "2-digit", minute: "2-digit" }).split(":").map(Number);
+  return h * 60 + m;
+}
+
+/**
+ * The round to open on: whichever is being played today, else the Championship round, else the
+ * first. Replaces the accordion, which opened on whatever happened to be listed first.
+ */
+function defaultRoundIndex(rounds: TeeTimeRound[], now: Date): number {
+  const today = ukToday(now);
+  const todays = rounds.findIndex((r) => r.isoDate && ukToday(new Date(r.isoDate)) === today);
+  if (todays !== -1) return todays;
+  const championship = rounds.findIndex((r) => r.round === "Championship");
+  return championship !== -1 ? championship : 0;
+}
 
 export function TeeTimesView({
   rounds: TEE_TIMES,
@@ -51,6 +74,20 @@ export function TeeTimesView({
   const [teeFilter, setTeeFilter] = useState<(typeof TEE_FILTERS)[number]>("All");
   const [reversed, setReversed] = useState(false);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [roundIndex, setRoundIndex] = useState(() => defaultRoundIndex(TEE_TIMES, new Date()));
+  // "Next out" depends on the clock, so it is worked out after hydration (never on the server,
+  // whose time would disagree with the reader's page by however long the page was cached) and
+  // re-checked every minute.
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    const tick = () => setNow(new Date());
+    const first = setTimeout(tick, 0);
+    const timer = setInterval(tick, 60_000);
+    return () => {
+      clearTimeout(first);
+      clearInterval(timer);
+    };
+  }, []);
   const { favorites, hydrated, toggleFavorite } = useFavorites();
 
   const selectedMain = mainEntries.find((e) => e.player.id === selectedPlayerId);
@@ -105,26 +142,52 @@ export function TeeTimesView({
               </button>
             </div>
 
-            <Accordion type="single" collapsible defaultValue="round-0" className="flex flex-col">
-            {TEE_TIMES.map((round, roundIndex) => {
+            {(() => {
+              const round = TEE_TIMES[Math.min(roundIndex, TEE_TIMES.length - 1)];
               const groups = round.groups.filter((group) => teeFilter === "All" || group.tee === teeFilter);
               const ordered = reversed ? [...groups].reverse() : groups;
+              // On the round's own day only: the first group whose tee time is still to come.
+              const isToday = Boolean(now && round.isoDate && ukToday(new Date(round.isoDate)) === ukToday(now));
+              const nextOutIndex = isToday && now ? ordered.findIndex((g) => parseTeeTimeMinutes(g.time) >= ukMinutes(now)) : -1;
               return (
-                <AccordionItem key={roundIndex} value={`round-${roundIndex}`} className="border-b border-surface-dark-foreground/15">
-                  <AccordionTrigger className="hover:text-accent">
+                <div className="flex flex-col gap-5">
+                  <div className="flex flex-wrap items-baseline gap-x-4 gap-y-3">
+                    {TEE_TIMES.length > 1 ? (
+                      <div role="tablist" aria-label="Round" className="inline-flex gap-1 rounded-full border border-surface-dark-foreground/15 bg-surface-dark-foreground/10 p-1">
+                        {TEE_TIMES.map((r, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            role="tab"
+                            aria-selected={index === roundIndex}
+                            onClick={() => setRoundIndex(index)}
+                            className={cn(
+                              "rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wide transition-colors",
+                              index === roundIndex ? "bg-accent text-accent-foreground" : "text-surface-dark-foreground/70 hover:text-surface-dark-foreground",
+                            )}
+                          >
+                            {r.round}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                     <span>
                       <span className="text-sm font-semibold uppercase tracking-wide text-surface-dark-foreground/60">{round.round} Round</span>
                       <span className="ml-2 font-display text-xl font-bold">{round.date}</span>
                     </span>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    {ordered.length === 0 ? (
-                      <p className="py-4 text-sm text-surface-dark-foreground/60">No groups off the {teeFilter} for this round.</p>
-                    ) : (
-                      <div className="flex flex-col gap-3">
-                        {ordered.map((group, index) => (
+                  </div>
+                  {ordered.length === 0 ? (
+                    <p className="py-4 text-sm text-surface-dark-foreground/60">No groups off the {teeFilter} for this round.</p>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      {ordered.map((group, index) => (
+                        <div key={index} className="flex flex-col gap-2">
+                          {index === nextOutIndex ? (
+                            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-accent">
+                              Next out <span aria-hidden="true">↓</span>
+                            </p>
+                          ) : null}
                           <MatchupCard
-                            key={index}
                             gameNumber={reversed ? ordered.length - index : index + 1}
                             group={group}
                             favorites={hydrated ? favorites : []}
@@ -133,18 +196,17 @@ export function TeeTimesView({
                             roundType={round.round}
                             onSelectPlayer={setSelectedPlayerId}
                           />
-                        ))}
-                      </div>
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               );
-            })}
-            </Accordion>
+            })()}
           </div>
           )}
 
-          <ChampionshipSidebar featuredArticle={featuredArticle} clockConfig={clockConfig} tone="dark" />
+          <ChampionshipSidebar featuredArticle={featuredArticle} clockConfig={clockConfig} tone="dark" topTen={mainEntries.slice(0, 10)} sticky />
         </Container>
       </div>
 

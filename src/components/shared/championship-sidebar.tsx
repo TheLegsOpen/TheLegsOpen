@@ -8,6 +8,9 @@ import type { Article } from "@/types/article";
 import type { SponsorClock } from "@/lib/data/sponsor-clock";
 import type { VenueWeather } from "@/lib/data/weather";
 import type { LiveBlogEntry } from "@/lib/data/live-blog";
+import type { CompetitionEntry } from "@/lib/data/scorecards";
+import { formatToPar } from "@/lib/leaderboard";
+import { splitSurnameFirst } from "@/lib/utils";
 
 /** A tee time still to come, with the players due off at it. */
 export interface UpcomingTeeTime {
@@ -27,6 +30,8 @@ interface ChampionshipSidebarProps {
   weather?: VenueWeather | null;
   upcomingTeeTimes?: UpcomingTeeTime[];
   liveBlog?: LiveBlogEntry[];
+  /** The Main leaderboard's top ten, for the Tee Times rail. */
+  topTen?: CompetitionEntry[];
   /** Keep the rail in view while the table beside it scrolls (desktop only). */
   sticky?: boolean;
 }
@@ -43,7 +48,7 @@ function postedTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
 }
 
-export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "light", weather, upcomingTeeTimes, liveBlog, sticky = false }: ChampionshipSidebarProps) {
+export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "light", weather, upcomingTeeTimes, liveBlog, topTen, sticky = false }: ChampionshipSidebarProps) {
   const isDark = tone === "dark";
   const border = isDark ? "border-surface-dark-foreground/15" : "border-border";
   return (
@@ -51,6 +56,32 @@ export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "ligh
       <SponsorTimeWidget config={clockConfig} />
 
       {weather ? <WeatherWidget weather={weather} /> : null}
+
+      {topTen && topTen.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          <RailHeading isDark={isDark}>Top 10</RailHeading>
+          <ol className="flex flex-col">
+            {topTen.map((entry) => {
+              const { surname, firstName } = splitSurnameFirst(entry.player.name);
+              return (
+                <li key={entry.player.id} className="flex items-center gap-3 border-b border-black/10 bg-accent/90 px-3 py-2 text-sm text-accent-foreground last:border-0">
+                  <span className="w-8 shrink-0 tabular-nums">{`${entry.tied ? "T" : ""}${entry.position}`}</span>
+                  <span className="min-w-0 flex-1 truncate">
+                    <span className="font-bold uppercase">{surname}</span>, {firstName.charAt(0)}
+                  </span>
+                  <span className="w-10 text-right font-bold tabular-nums">
+                    {entry.noReturn ? "NR" : entry.toPar === undefined ? "—" : formatToPar(entry.toPar)}
+                  </span>
+                  <span className="w-6 text-right text-xs tabular-nums">{entry.thru}</span>
+                </li>
+              );
+            })}
+          </ol>
+          <Link href="/leaderboard" className="text-xs font-bold uppercase tracking-wide text-accent hover:underline">
+            Full leaderboard →
+          </Link>
+        </div>
+      ) : null}
 
       {upcomingTeeTimes && upcomingTeeTimes.length > 0 ? (
         <div className="flex flex-col gap-3">

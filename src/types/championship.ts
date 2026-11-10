@@ -52,5 +52,7 @@ export interface TeeTimeRound {
   round: "Practice" | "Championship";
   /** Formatted for display, e.g. "Sunday 19th July 2026". */
   date: string;
+  /** The stored date, for working out whether the round is today. */
+  isoDate?: string;
   groups: TeeTimeEntry[];
 }
