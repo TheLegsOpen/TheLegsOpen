@@ -5,7 +5,6 @@ import { Container } from "@/components/shared/container";
 export const dynamic = "force-dynamic";
 
 const PREVIEWS: { href: string; page: string; items: string[] }[] = [
-  { href: "/preview/tee-times", page: "Tee Times", items: ["8 Player cards per group (shows the 2026 tee sheet so there is something to see)", "28 My players highlighted"] },
   { href: "/preview/statistics", page: "Statistics", items: ["11 Two cards per row", "12 Category and Player filters", "28 My players highlighted"] },
   {
     href: "/preview/venues/dalmahoy",

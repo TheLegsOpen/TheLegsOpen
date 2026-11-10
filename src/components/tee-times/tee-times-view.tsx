@@ -6,7 +6,6 @@ import { ArrowUpDown } from "lucide-react";
 import { Container } from "@/components/shared/container";
 import { ChampionshipSidebar } from "@/components/shared/championship-sidebar";
 import { MatchupCard } from "@/components/tee-times/matchup-card";
-import { MatchupCardNext } from "@/components/preview/matchup-card-next";
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { useFavorites } from "@/hooks/use-favorites";
 import { cn } from "@/lib/utils";
@@ -45,7 +44,6 @@ function defaultRoundIndex(rounds: TeeTimeRound[], now: Date): number {
 export function TeeTimesView({
   rounds: TEE_TIMES,
   emptyMessage = "Tee times will be published nearer the championship.",
-  cardVariant = "list",
   featuredArticle,
   clockConfig,
   mainEntries,
@@ -61,8 +59,6 @@ export function TeeTimesView({
   rounds: TeeTimeRound[];
   /** Shown in place of the tee sheet when no round is published (all archived between championships). */
   emptyMessage?: string;
-  /** "cards" is the /preview/tee-times layout (change 8); the live page stays on "list". */
-  cardVariant?: "list" | "cards";
   featuredArticle: Article;
   clockConfig: SponsorClock;
   mainEntries: CompetitionEntry[];
@@ -191,26 +187,15 @@ export function TeeTimesView({
                               Next out <span aria-hidden="true">↓</span>
                             </p>
                           ) : null}
-                          {cardVariant === "cards" ? (
-                            <MatchupCardNext
-                              gameNumber={reversed ? ordered.length - index : index + 1}
-                              group={group}
-                              favorites={hydrated ? favorites : []}
-                              mainEntries={mainEntries}
-                              onSelectPlayer={setSelectedPlayerId}
-                              onToggleFavorite={toggleFavorite}
-                            />
-                          ) : (
                           <MatchupCard
                             gameNumber={reversed ? ordered.length - index : index + 1}
                             group={group}
                             favorites={hydrated ? favorites : []}
                             mainEntries={mainEntries}
-                            tone="dark"
                             roundType={round.round}
                             onSelectPlayer={setSelectedPlayerId}
+                            onToggleFavorite={toggleFavorite}
                           />
-                          )}
                         </div>
                       ))}
                     </div>
@@ -221,7 +206,7 @@ export function TeeTimesView({
           </div>
           )}
 
-          <ChampionshipSidebar featuredArticle={featuredArticle} clockConfig={clockConfig} tone="dark" topTen={mainEntries.slice(0, 10)} sticky />
+          <ChampionshipSidebar featuredArticle={featuredArticle} clockConfig={clockConfig} tone="dark" sticky />
         </Container>
       </div>
 

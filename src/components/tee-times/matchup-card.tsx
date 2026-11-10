@@ -1,4 +1,4 @@
-import { Flag, Star } from "lucide-react";
+import { ChevronRight, Star } from "lucide-react";
 
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { CountryFlag } from "@/components/shared/country-flag";
@@ -7,168 +7,98 @@ import { formatHandicap } from "@/lib/scoring";
 import { cn, portraitUrl, splitSurnameFirst } from "@/lib/utils";
 import { scorePillClass, TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { TeeTimeEntry } from "@/types/championship";
-import type { Player } from "@/types/player";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 
+function groupFinished(group: TeeTimeEntry, mainEntries: CompetitionEntry[]): boolean {
+  const entries = group.players.map((p) => mainEntries.find((e) => e.player.id === p.id)).filter((e) => e?.started);
+  return entries.length > 0 && entries.every((e) => e!.thru === "F");
+}
+
 /**
- * A tee-time group plays together, so its status is read off whichever member has progressed
- * furthest: not yet teed off (show the tee time), mid-round (show the furthest hole reached),
- * or every member finished (show "Finished round").
+ * theopen.com's tee-time group -- each player a tile with first name over SURNAME,
+ * the flag, their score once they have teed off, and a large cut-out photo standing in the corner;
+ * "Game N" and the tee time down the right-hand side. My players (starred) are ringed in yellow,
+ * and the star on each tile adds or removes them.
  */
-function groupStatus(
-  players: Player[],
-  mainEntries: CompetitionEntry[],
-): { kind: "upcoming" } | { kind: "finished" } | { kind: "in-progress"; thru: number } {
-  const entries = players.map((player) => mainEntries.find((entry) => entry.player.id === player.id)).filter((entry) => entry?.started);
-
-  if (entries.length === 0) return { kind: "upcoming" };
-  if (entries.every((entry) => entry!.thru === "F")) return { kind: "finished" };
-
-  const thru = Math.max(...entries.map((entry) => (entry!.thru === "F" ? 18 : Number(entry!.thru) || 0)));
-  return { kind: "in-progress", thru };
-}
-
-function PlayerChip({
-  player,
-  isFavorite,
-  isDark,
-  entry,
-  roundType,
-  onSelectPlayer,
-}: {
-  player: Player;
-  isFavorite: boolean;
-  isDark: boolean;
-  entry: CompetitionEntry | undefined;
-  roundType: "Practice" | "Championship";
-  onSelectPlayer: (playerId: string) => void;
-}) {
-  const { firstName, surname } = splitSurnameFirst(player.name);
-  // Mirrors the fallback used when scoring a practice card (see Scorecards.ts) so the number shown
-  // beside a player is always the one their score is actually calculated from.
-  const handicap = roundType === "Practice" ? (player.practiceHandicap ?? player.championshipHandicap) : player.championshipHandicap;
-
-  return (
-    <div className="flex flex-1 items-center justify-between gap-4">
-      <div className="flex flex-col items-start gap-2">
-        <button
-          type="button"
-          onClick={() => onSelectPlayer(player.id)}
-          className="flex flex-col items-start text-left leading-tight hover:text-accent"
-        >
-          <span className="flex items-center gap-1.5 font-display text-sm">
-            {isFavorite ? <Star className="h-3 w-3 shrink-0 fill-accent text-accent" aria-hidden="true" /> : null}
-            {firstName}
-          </span>
-          <span className="font-display text-lg font-bold uppercase tracking-wide hover:underline">
-            {surname}
-            {handicap !== undefined ? <span className="ml-1 text-sm font-normal normal-case tracking-normal">({formatHandicap(handicap)})</span> : null}
-          </span>
-        </button>
-        <p
-          className={cn(
-            "flex items-center gap-1.5 text-xs uppercase tracking-wide",
-            isDark ? "text-surface-dark-foreground/60" : "text-muted-foreground",
-          )}
-        >
-          <CountryFlag code={player.countryCode} className="h-2.5 w-3.5" />
-          {player.country}
-        </p>
-        {entry?.started ? (
-          entry.noReturn || entry.toPar === undefined ? (
-            <span className={cn(TILE_CLASS, "w-fit", "bg-[#B0B0B0] text-[#08325A]")} title="No return — picked up on a hole">
-              NR
-            </span>
-          ) : (
-            <span className={cn(TILE_CLASS, "w-fit", scorePillClass(entry.toPar))}>{formatToPar(entry.toPar)}</span>
-          )
-        ) : null}
-      </div>
-      <PlaceholderArt
-        label={`${player.name} portrait`}
-        imageUrl={portraitUrl(player.photoUrl)}
-        tone="slate"
-        ratio="1/1"
-        className="h-20 w-20 shrink-0 rounded-full sm:h-24 sm:w-24"
-        sizes="(min-width: 640px) 96px, 80px"
-      />
-    </div>
-  );
-}
-
 export function MatchupCard({
   group,
   gameNumber,
-  favorites = [],
-  mainEntries = [],
-  tone = "light",
+  favorites,
+  mainEntries,
   roundType = "Championship",
   onSelectPlayer,
+  onToggleFavorite,
 }: {
   group: TeeTimeEntry;
   gameNumber: number;
-  favorites?: string[];
-  mainEntries?: CompetitionEntry[];
-  tone?: "light" | "dark";
+  favorites: string[];
+  mainEntries: CompetitionEntry[];
   roundType?: "Practice" | "Championship";
   onSelectPlayer: (playerId: string) => void;
+  onToggleFavorite: (playerId: string) => void;
 }) {
-  const isDark = tone === "dark";
-  const hasFavorite = group.players.some((player) => favorites.includes(player.id));
-  const status = groupStatus(group.players, mainEntries);
-
+  const finished = groupFinished(group, mainEntries);
   return (
-    <div className={cn("flex flex-col border", hasFavorite ? "border-accent" : isDark ? "border-surface-dark-foreground/15" : "border-border")}>
-      <div
-        className={cn(
-          "flex items-center justify-between px-4 py-1.5 text-[11px] font-bold uppercase tracking-wide",
-          isDark ? "bg-primary text-surface-dark-foreground/60" : "bg-card text-muted-foreground",
-        )}
-      >
-        {status.kind === "finished" ? (
-          <span className="inline-flex items-center border border-current px-2 py-0.5 tracking-wider">Finished round</span>
-        ) : status.kind === "in-progress" ? (
-          <span className="inline-flex items-center gap-1.5 border-t-[3px] border-black/15 bg-white px-2 py-1 text-xs text-primary">
-            <Flag className="h-3 w-3" />
-            {status.thru}
-          </span>
-        ) : (
-          <span>
-            {group.time} · {group.tee} Tee
-          </span>
-        )}
-        <span>Game {gameNumber}</span>
+    <div className="flex border-b border-surface-dark-foreground/15 bg-primary">
+      <div className="grid flex-1 grid-cols-1 sm:grid-cols-2">
+        {group.players.map((player, index) => {
+          const { firstName, surname } = splitSurnameFirst(player.name);
+          const entry = mainEntries.find((e) => e.player.id === player.id);
+          const fav = favorites.includes(player.id);
+          // Mirrors the fallback used when scoring a practice card (see Scorecards.ts) so the number
+          // shown is always the one their score is actually calculated from.
+          const handicap = roundType === "Practice" ? (player.practiceHandicap ?? player.championshipHandicap) : player.championshipHandicap;
+          return (
+            <div
+              key={player.id}
+              className={cn(
+                "relative flex min-h-[170px] flex-col justify-between overflow-hidden p-4",
+                index % 2 === 1 && "sm:border-l sm:border-surface-dark-foreground/15",
+                index >= 2 && "border-t border-surface-dark-foreground/15",
+                fav && "ring-2 ring-inset ring-accent",
+              )}
+            >
+              <div className="absolute bottom-0 right-0 h-[150px] w-[120px]" aria-hidden="true">
+                <PlaceholderArt label="" imageUrl={portraitUrl(player.photoUrl)} tone="navy" blendBlack fill fit="contain-bottom" sizes="120px" />
+              </div>
+              <div className="relative">
+                <button type="button" onClick={() => onSelectPlayer(player.id)} className="text-left text-surface-dark-foreground hover:text-accent">
+                  <span className="block font-menu text-[15px] leading-tight">{firstName}</span>
+                  <span className="flex items-center gap-1 font-menu text-[20px] font-bold uppercase leading-tight">
+                    {surname}
+                    {handicap !== undefined ? <span className="text-sm font-normal normal-case">({formatHandicap(handicap)})</span> : null}
+                    <ChevronRight className="h-4 w-4 text-accent" aria-hidden="true" />
+                  </span>
+                </button>
+                <CountryFlag code={player.countryCode} className="mt-1 h-3.5 w-5" />
+              </div>
+              <div className="relative flex items-center gap-3">
+                {entry?.started ? (
+                  <span className={cn(TILE_CLASS, entry.noReturn || entry.toPar === undefined ? "bg-[#B0B0B0] text-[#08325A]" : scorePillClass(entry.toPar))}>
+                    {entry.noReturn || entry.toPar === undefined ? "NR" : formatToPar(entry.toPar)}
+                  </span>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => onToggleFavorite(player.id)}
+                  aria-pressed={fav}
+                  aria-label={`${fav ? "Remove" : "Add"} ${player.name} ${fav ? "from" : "to"} My players`}
+                  className="text-surface-dark-foreground/70 hover:text-accent"
+                >
+                  <Star className={cn("h-4 w-4", fav && "fill-accent text-accent")} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
-      {/* A four-ball laid out as a flex row did not fit. Each player is an avatar plus a name, and
-          flex-1 will not shrink an item below its content, so in an 847px column the row wanted
-          1050 and the fourth player was simply cut off the end -- not wrapped, not shrunk, gone.
-          Two across instead, which gives each player around 410px in the same column and holds up
-          in the narrower ones this card also appears in. The divider follows the grid: a left
-          border on the second of each pair rather than a divide-x along a row. */}
-      <div
-        className={cn(
-          "grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-5",
-          isDark ? "bg-primary" : "bg-card",
-        )}
-      >
-        {group.players.map((player, index) => (
-          <div
-            key={player.id}
-            className={cn(
-              "min-w-0",
-              index % 2 === 1 && (isDark ? "sm:border-l sm:border-surface-dark-foreground/15 sm:pl-6" : "sm:border-l sm:border-border sm:pl-6"),
-            )}
-          >
-            <PlayerChip
-              player={player}
-              isFavorite={favorites.includes(player.id)}
-              isDark={isDark}
-              entry={mainEntries.find((e) => e.player.id === player.id)}
-              roundType={roundType}
-              onSelectPlayer={onSelectPlayer}
-            />
-          </div>
-        ))}
+      <div className="flex w-[120px] shrink-0 flex-col justify-between border-l border-surface-dark-foreground/15 p-4 text-right">
+        <span className="font-menu text-[14px] font-bold uppercase tracking-[1.6px] text-surface-dark-foreground">Game {gameNumber}</span>
+        <span className="flex flex-col gap-1 text-xs uppercase tracking-wide text-surface-dark-foreground/60">
+          <span className="font-menu text-[18px] tabular-nums text-surface-dark-foreground">{group.time}</span>
+          {group.tee} tee
+          {finished ? <span className="mt-1 border border-current px-1.5 py-0.5 text-[10px]">Finished</span> : null}
+        </span>
       </div>
     </div>
   );
