@@ -2,7 +2,7 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { slugify, mediaUrl, ordinal } from "@/lib/utils";
-import { activeChampionshipIndex, inPlayWhere, isStillToCome } from "@/lib/data/championship-timing";
+import { activeChampionshipIndex, fieldChampionshipIndex, inPlayWhere, isStillToCome } from "@/lib/data/championship-timing";
 import { cachedQuery, DATA_TAGS } from "@/lib/data-cache";
 import type { ChampionshipWinner } from "@/types/championship";
 import type { Championship as PayloadChampionship, Venue as PayloadVenue, Player as PayloadPlayer } from "@/payload-types";
@@ -144,11 +144,22 @@ export async function getUpcomingChampionships(limit = 3): Promise<UpcomingChamp
  * each other, which is what kept the two copies of the rule from being noticed as they drifted.
  */
 export async function getActiveChampionshipSummary(): Promise<ActiveChampionshipSummary | undefined> {
+  return championshipSummary(activeChampionshipIndex);
+}
+
+/** The championship the Field page is for -- the next one from 1 October, see fieldChampionshipIndex. */
+export async function getFieldChampionshipSummary(): Promise<ActiveChampionshipSummary | undefined> {
+  return championshipSummary(fieldChampionshipIndex);
+}
+
+async function championshipSummary(
+  pick: (docs: PayloadChampionship[]) => number,
+): Promise<ActiveChampionshipSummary | undefined> {
   const payload = await getPayload({ config: configPromise });
   const allChampionships = await payload.find({ collection: "championships", limit: 500, depth: 0, sort: "year" });
   if (allChampionships.docs.length === 0) return undefined;
 
-  const index = activeChampionshipIndex(allChampionships.docs);
+  const index = pick(allChampionships.docs);
   const doc = allChampionships.docs[index];
 
   const venueResult = await payload.find({

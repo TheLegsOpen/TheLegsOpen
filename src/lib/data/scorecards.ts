@@ -72,7 +72,8 @@ export interface CompetitionEntry {
 // championship" as a legitimate, handled state rather than an error.
 export async function getActiveChampionship(payload: Payload, req?: PayloadRequest): Promise<PayloadChampionship | undefined> {
   try {
-    const active = await payload.find({ collection: "championships", where: { isActive: { equals: true } }, limit: 1, req });
+    // sort -year: with two ticked, the later one wins -- see activeChampionshipIndex.
+    const active = await payload.find({ collection: "championships", where: { isActive: { equals: true } }, sort: "-year", limit: 1, req });
     if (active.docs[0]) return active.docs[0];
 
     // The most recently played one, as a where clause rather than by loading the collection and

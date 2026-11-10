@@ -4,6 +4,7 @@ import type { ChampionshipTiming } from "@/lib/data/championship-timing";
 import {
   LIVE_WINDOW_DAYS,
   activeChampionshipIndex,
+  fieldChampionshipIndex,
   championshipDay,
   hasBeenPlayed,
   inPlayCutoffs,
@@ -222,5 +223,42 @@ describe("the live-scoring window", () => {
     const days = (Date.parse(untilIso) - Date.parse(fromIso)) / 86_400_000;
     expect(days).toBe(2 * LIVE_WINDOW_DAYS + 1);
     expect(days).toBe(3);
+  });
+});
+
+describe("activeChampionshipIndex with two ticked", () => {
+  it("prefers the later year, so a leftover tick on 2026 cannot hold the site back", () => {
+    const both = ROTA.map((c) => (c.year === 2027 ? { ...c, isActive: true } : c));
+    expect(both[activeChampionshipIndex(both, NOW)].year).toBe(2027);
+  });
+});
+
+describe("fieldChampionshipIndex", () => {
+  const year = (now: string) => ROTA[fieldChampionshipIndex(ROTA, new Date(now))].year;
+
+  it("looks ahead to 2027 from 1 October 2026, while the leaderboard stays on the ticked 2026", () => {
+    expect(year("2026-11-04T10:00:00.000Z")).toBe(2027);
+    expect(ROTA[activeChampionshipIndex(ROTA, NOW)].year).toBe(2026);
+  });
+
+  it("stays on the championship just played until the end of September", () => {
+    expect(year("2026-09-30T12:00:00.000Z")).toBe(2026);
+    expect(year("2026-10-01T00:30:00.000Z")).toBe(2027);
+  });
+
+  it("keeps 2027 through its own championship week, then holds it until the next 1 October", () => {
+    expect(year("2027-09-11T18:00:00.000Z")).toBe(2027);
+    expect(year("2027-09-20T12:00:00.000Z")).toBe(2027);
+    // No 2028 in the database yet, so after 1 October 2027 there is nothing further to look to.
+    expect(year("2027-10-05T12:00:00.000Z")).toBe(2027);
+  });
+
+  it("moves on to 2028 from 1 October 2027 once 2028 exists", () => {
+    const withNext = [...ROTA, { year: 2028, date: "2028-09-09T12:00:00.000Z" }];
+    expect(withNext[fieldChampionshipIndex(withNext, new Date("2027-10-01T09:00:00.000Z"))].year).toBe(2028);
+  });
+
+  it("returns -1 for an empty list", () => {
+    expect(fieldChampionshipIndex([], NOW)).toBe(-1);
   });
 });

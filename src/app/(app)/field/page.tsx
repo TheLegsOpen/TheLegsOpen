@@ -4,7 +4,7 @@ import { PageHero } from "@/components/shared/page-hero";
 import { FieldView } from "@/components/field/field-view";
 import { getFieldPlayers } from "@/lib/data/players";
 import { getAllScorecardParticipation } from "@/lib/data/scorecards";
-import { getChampionshipHistory, getActiveChampionshipSummary } from "@/lib/data/championships";
+import { getChampionshipHistory, getFieldChampionshipSummary } from "@/lib/data/championships";
 import { getPageBanners } from "@/lib/data/page-banners";
 import { getSiteTheme } from "@/lib/data/site-theme";
 import { ordinal } from "@/lib/utils";
@@ -20,8 +20,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function FieldPage() {
-  const [activeChampionship, players, championshipHistory, banners, theme, participation] = await Promise.all([
-    getActiveChampionshipSummary(),
+  const [fieldChampionship, players, championshipHistory, banners, theme, participation] = await Promise.all([
+    getFieldChampionshipSummary(),
     getFieldPlayers(),
     getChampionshipHistory(),
     getPageBanners(),
@@ -38,7 +38,7 @@ export default async function FieldPage() {
    * appearances the same way). The hand-kept figure still counts, for anyone with pre-digital
    * appearances. Earlier championships only: a debutant at this year's event still has its card.
    */
-  const fieldYear = activeChampionship?.year ?? Number.POSITIVE_INFINITY;
+  const fieldYear = fieldChampionship?.year ?? Number.POSITIVE_INFINITY;
   const yearByChampionshipId = new Map(championshipHistory.map((c) => [c.id, c.year]));
   const appearedBefore = new Set(
     participation
@@ -65,9 +65,9 @@ export default async function FieldPage() {
    * eyebrow and title, but this line is generated here.
    */
   const description = (() => {
-    if (!activeChampionship) return "The full field of players competing at The Legs Open.";
-    const event = `The ${ordinal(activeChampionship.ordinal)} Legs Open at ${activeChampionship.venueName}`;
-    const timing = { year: activeChampionship.year, date: activeChampionship.effectiveDate };
+    if (!fieldChampionship) return "The full field of players competing at The Legs Open.";
+    const event = `The ${ordinal(fieldChampionship.ordinal)} Legs Open at ${fieldChampionship.venueName}`;
+    const timing = { year: fieldChampionship.year, date: fieldChampionship.effectiveDate };
     if (isWithinLiveWindow(timing)) return `The following players are in the field at ${event}.`;
     return hasBeenPlayed(timing) ? `The field that contested ${event}.` : `The field for ${event}.`;
   })();

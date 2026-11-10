@@ -95,14 +95,55 @@ export function activeChampionshipIndex<T extends ChampionshipTiming & { isActiv
 ): number {
   if (docs.length === 0) return -1;
 
-  const flagged = docs.findIndex((doc) => doc.isActive);
-  if (flagged !== -1) return flagged;
+  // The latest flagged, not the first: tick 2027 and forget to untick 2026, and the site should
+  // still move on to 2027 rather than hold on to the year that is over.
+  for (let index = docs.length - 1; index >= 0; index -= 1) {
+    if (docs[index].isActive) return index;
+  }
 
   for (let index = docs.length - 1; index >= 0; index -= 1) {
     if (hasBeenPlayed(docs[index], now)) return index;
   }
 
   return 0;
+}
+
+/** Month (0-based) and day the Field page turns to the next championship: 1 October. */
+export const FIELD_LOOKAHEAD_FROM = { month: 9, day: 1 } as const;
+
+/**
+ * The index of the championship the Field page is for, from a list sorted by year ascending.
+ *
+ * Unlike the leaderboard and live blog -- which follow "Currently Being Scored", set by hand when
+ * a championship is near -- the Field page looks ahead on the calendar. From 1 October of the year
+ * the last championship was played in, it shows the next one still to come; before that, the one
+ * just played. So from 1 October 2026 it is the Craigtoun 2027 field, all the way through 2027's
+ * championship week, until 1 October 2027 turns it on to 2028.
+ *
+ * With no next championship entered yet it stays on the one just played; with nothing played yet
+ * it is the next one. It never follows "Currently Being Scored".
+ */
+export function fieldChampionshipIndex<T extends ChampionshipTiming & { isActive?: boolean | null }>(
+  docs: T[],
+  now: Date = new Date(),
+): number {
+  if (docs.length === 0) return -1;
+
+  let lastPlayed = -1;
+  for (let index = docs.length - 1; index >= 0; index -= 1) {
+    if (hasBeenPlayed(docs[index], now)) {
+      lastPlayed = index;
+      break;
+    }
+  }
+  const next = docs.findIndex((doc) => isStillToCome(doc, now));
+  // Nothing further entered yet: stay on the one just played (not on whatever is still ticked).
+  if (next === -1) return lastPlayed !== -1 ? lastPlayed : activeChampionshipIndex(docs, now);
+  // Nothing played yet: the next one is the only field there is.
+  if (lastPlayed === -1) return next;
+
+  const lookAheadFrom = new Date(championshipDay(docs[lastPlayed]).getFullYear(), FIELD_LOOKAHEAD_FROM.month, FIELD_LOOKAHEAD_FROM.day);
+  return startOfToday(now).getTime() >= lookAheadFrom.getTime() ? next : lastPlayed;
 }
 
 /**
