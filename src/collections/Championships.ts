@@ -98,6 +98,22 @@ export const Championships: CollectionConfig = {
       },
     },
     {
+      // Needs the championships_gallery table, created by hand in Supabase before this shipped --
+      // there are no migrations here and the adapter only pushes schema in development.
+      name: "gallery",
+      label: "Photo Gallery",
+      type: "array",
+      labels: { singular: "Photo", plural: "Photos" },
+      maxRows: 24,
+      admin: {
+        description: "Optional. Powers the \"Best of the [year] Legs Open\" photo band under this championship's Overview on Previous Opens. Hidden until you add a photo.",
+      },
+      fields: [
+        { name: "image", type: "upload", relationTo: "media", required: true },
+        { name: "caption", type: "text" },
+      ],
+    },
+    {
       name: "venueStripPhoto",
       label: "Photo (venue page strip)",
       type: "upload",

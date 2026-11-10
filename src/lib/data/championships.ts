@@ -55,6 +55,7 @@ function mapChampionship(doc: PayloadChampionship): ChampionshipWinner {
     overviewVideoUrl: doc.overviewVideoUrl ?? undefined,
     venueStripCaption: doc.venueStripCaption ?? undefined,
     venueStripPhotoUrl: mediaUrl(doc.venueStripPhoto),
+    gallery: (doc.gallery ?? []).map((photo) => ({ imageUrl: mediaUrl(photo.image), caption: photo.caption ?? undefined })).filter((photo) => photo.imageUrl),
     winnerPlayerSlug: winnerPlayer?.slug ?? undefined,
     winnerPlayerId: winnerPlayer?.id ? String(winnerPlayer.id) : undefined,
     winnerPlayerDateOfBirth: winnerPlayer?.dateOfBirth ?? undefined,

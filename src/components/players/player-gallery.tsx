@@ -17,7 +17,22 @@ import type { PlayerGalleryPhoto } from "@/types/player";
  * It used to sit in the Bio tab's 455px sidebar. Theirs is its own band below the tabs, visible
  * whichever tab is open, and so is this.
  */
-export function PlayerGallery({ title, playerName, photos }: { title: string; playerName: string; photos: PlayerGalleryPhoto[] }) {
+function Wrapper({ contained, children }: { contained: boolean; children: React.ReactNode }) {
+  return contained ? <Container>{children}</Container> : <>{children}</>;
+}
+
+export function PlayerGallery({
+  title,
+  playerName,
+  photos,
+  contained = true,
+}: {
+  title: string;
+  playerName: string;
+  photos: PlayerGalleryPhoto[];
+  /** False when the page already provides the container (Previous Opens' Overview tab). */
+  contained?: boolean;
+}) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: photos.length > 1 });
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -40,8 +55,8 @@ export function PlayerGallery({ title, playerName, photos }: { title: string; pl
   const caption = photos[selectedIndex]?.caption;
 
   return (
-    <section className="bg-white pb-16 sm:pb-20" aria-roledescription="carousel" aria-label={title}>
-      <Container>
+    <section className={contained ? "bg-white pb-16 sm:pb-20" : "pb-6"} aria-roledescription="carousel" aria-label={title}>
+      <Wrapper contained={contained}>
         {/* theopen.com's 1226 column (70px inside our 1366 container) from xl -- see COLUMN in
             src/app/(app)/players/[slug]/page.tsx. 55px above the title, 50px from it to the photo. */}
         <div className="xl:px-[70px]">
@@ -102,7 +117,7 @@ export function PlayerGallery({ title, playerName, photos }: { title: string; pl
           </span>
         </div>
         </div>
-      </Container>
+      </Wrapper>
     </section>
   );
 }

@@ -6,6 +6,7 @@ import { PlayCircle } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
 import { RichTextBlock } from "@/components/shared/rich-text";
+import { PlayerGallery } from "@/components/players/player-gallery";
 import { OverviewVideo } from "@/components/previous-opens/overview-video";
 import { SectionGrid } from "@/components/shared/section-grid";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
@@ -287,6 +288,14 @@ export function PreviousOpenView({
             </aside>
           </SectionGrid>
           </div>
+          {/* theopen.com follows the overview with "Best of the 154th Open". Ours is the championship's
+              own photo gallery from the admin, and the band hides itself until it has a photo. */}
+          <PlayerGallery
+            title={`Best of the ${championship.year} Legs Open`}
+            playerName={`${championship.year} Legs Open`}
+            photos={championship.gallery ?? []}
+            contained={false}
+          />
         </TabsContent>
   
         <TabsContent value="results" className="mt-8">

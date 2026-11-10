@@ -333,6 +333,8 @@ export interface Championship {
   winnerPlayer?: (string | Player) | null;
   winnerPhoto?: (string | Media) | null;
   /** Hand-added with the field -- see note at top of file. */
+  gallery?: { image: string | Media; caption?: string | null; id?: string | null }[] | null;
+  /** Hand-added with the field -- see note at top of file. */
   venueStripPhoto?: (string | Media) | null;
   /** Hand-added with the field -- see note at top of file. */
   venueStripCaption?: string | null;

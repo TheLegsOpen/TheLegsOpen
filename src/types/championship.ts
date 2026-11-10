@@ -22,6 +22,8 @@ export interface ChampionshipWinner {
   venueStripCaption?: string;
   /** Strip-only photo override. Empty means the strip shows whatever Champion Golfers shows. */
   venueStripPhotoUrl?: string;
+  /** The "Best of the [year]" photo band on Previous Opens. Empty hides the band. */
+  gallery?: { imageUrl?: string; caption?: string }[];
   winnerPlayerSlug?: string;
   winnerPlayerId?: string;
   winnerPlayerDateOfBirth?: string;
