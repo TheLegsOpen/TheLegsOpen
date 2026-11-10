@@ -5,17 +5,6 @@ import { Container } from "@/components/shared/container";
 export const dynamic = "force-dynamic";
 
 const PREVIEWS: { href: string; page: string; items: string[] }[] = [
-  {
-    href: "/preview/field",
-    page: "Field",
-    items: [
-      "18 Six across, tiles edge to edge, name over the photo",
-      "19 Filters as tick-box chips you can combine, with Hide filters",
-      "20 Intro line with \"up to date as of\" date",
-      "27 Countdown banner to the next championship",
-      "28 My players: star players here, filter by them",
-    ],
-  },
   { href: "/preview/tee-times", page: "Tee Times", items: ["8 Player cards per group (shows the 2026 tee sheet so there is something to see)", "28 My players highlighted"] },
   { href: "/preview/statistics", page: "Statistics", items: ["11 Two cards per row", "12 Category and Player filters", "28 My players highlighted"] },
   {

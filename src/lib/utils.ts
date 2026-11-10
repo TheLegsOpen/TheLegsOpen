@@ -11,6 +11,15 @@ export function mediaUrl(value: string | number | Media | null | undefined): str
   return typeof value === "object" && value ? (value.url ?? undefined) : undefined;
 }
 
+/**
+ * A player cut-out trimmed to the golfer (see src/app/(app)/api/portrait/[file]/route.ts), so
+ * portraits of every shape line up in a grid. Anything not in the media library passes through.
+ */
+export function portraitUrl(url: string | undefined): string | undefined {
+  const match = url?.match(/^\/api\/media\/file\/([^/?#]+)$/);
+  return match ? `/api/portrait/${match[1]}` : url;
+}
+
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", {
     day: "numeric",
