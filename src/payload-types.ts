@@ -278,6 +278,13 @@ export interface Venue {
         id?: string | null;
       }[]
     | null;
+  holeImages?:
+    | {
+        hole: number;
+        image: number | Media;
+        id?: string | null;
+      }[]
+    | null;
   outPar?: number | null;
   outYards?: number | null;
   inPar?: number | null;

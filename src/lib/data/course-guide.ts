@@ -2,6 +2,7 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { getToughestHoles } from "@/lib/data/scoring-statistics";
+import { mediaUrl } from "@/lib/utils";
 import type { ChampionshipWinner } from "@/types/championship";
 
 export interface CourseGuideHole {
@@ -11,7 +12,7 @@ export interface CourseGuideHole {
   yards?: number;
   /** The field's average gross score, pooled over every Legs Open played here. */
   average?: number;
-  /** The strokesaver-style hole image, once there is somewhere to upload one. */
+  /** The strokesaver image from the venue's Hole Images, if one has been uploaded. */
   imageUrl?: string;
 }
 
@@ -22,6 +23,8 @@ export interface CourseGuide {
   totalPar: number;
   totalYards: number;
   playedCount: number;
+  /** How many holes have an image -- the venue page's Course card only shows when this is above 0. */
+  imageCount: number;
 }
 
 /**
@@ -31,8 +34,14 @@ export interface CourseGuide {
  */
 export async function loadCourseGuide(venueSlug: string, championships: ChampionshipWinner[]): Promise<CourseGuide> {
   const payload = await getPayload({ config: configPromise });
-  const raw = await payload.find({ collection: "venues", where: { slug: { equals: venueSlug } }, limit: 1, depth: 0 });
+  const raw = await payload.find({ collection: "venues", where: { slug: { equals: venueSlug } }, limit: 1, depth: 1 });
   const holesRaw = (raw.docs[0]?.holes ?? []) as { par: number; yards?: number | null; si?: number | null }[];
+  // Hole Images carries its own hole number on each row, so the rows can sit in any order.
+  const imageByHole = new Map<number, string>();
+  for (const row of raw.docs[0]?.holeImages ?? []) {
+    const url = mediaUrl(row.image);
+    if (url) imageByHole.set(row.hole, url);
+  }
 
   const played = championships.filter((c) => c.completed);
   const perChampionship = await Promise.all(played.map((c) => getToughestHoles("scratch", c.id).catch(() => [])));
@@ -44,6 +53,7 @@ export async function loadCourseGuide(venueSlug: string, championships: Champion
       si: h.si ?? undefined,
       yards: h.yards ?? undefined,
       average: averages.length ? averages.reduce((a, b) => a + b, 0) / averages.length : undefined,
+      imageUrl: imageByHole.get(i + 1),
     };
   });
 
@@ -56,5 +66,6 @@ export async function loadCourseGuide(venueSlug: string, championships: Champion
     totalPar: holes.reduce((s, h) => s + h.par, 0),
     totalYards: holes.reduce((s, h) => s + (h.yards ?? 0), 0),
     playedCount: played.length,
+    imageCount: holes.filter((h) => h.imageUrl).length,
   };
 }
