@@ -457,7 +457,17 @@ export interface ScorecardParticipation {
 }
 
 /** Every scorecard across every championship, reduced to "did this player actually play this year" — the real, automatic basis for appearance-count records (as opposed to the hand-maintained `Player.previousOpens` legacy counter). Practice-round scorecards (no championship) are excluded -- they're not a Legs Open appearance. */
-export async function getAllScorecardParticipation(): Promise<ScorecardParticipation[]> {
+export async function getAllScorecardParticipation(options?: { fresh?: boolean }): Promise<ScorecardParticipation[]> {
+  // `fresh` for callers inside a save hook: they run before the hook that expires the cache, and
+  // possibly outside a Next request at all, where unstable_cache has no store to read.
+  return options?.fresh ? loadScorecardParticipation() : getCachedScorecardParticipation();
+}
+
+// Every scorecard ever entered, read for Records and the Field page's Debutants filter -- cached
+// like the leaderboards (src/lib/data-cache.ts), since it only changes when a card is saved.
+const getCachedScorecardParticipation = cachedQuery("scorecard-participation", LEADERBOARD_TAGS, () => loadScorecardParticipation());
+
+async function loadScorecardParticipation(): Promise<ScorecardParticipation[]> {
   const payload = await getPayload({ config: configPromise });
   const result = await payload.find({ collection: "scorecards", where: { championship: { exists: true } }, limit: 2000, depth: 0 });
   return result.docs.map((doc) => ({

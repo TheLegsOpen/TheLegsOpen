@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/shared/page-hero";
 import { FieldView } from "@/components/field/field-view";
 import { getFieldPlayers } from "@/lib/data/players";
+import { getAllScorecardParticipation } from "@/lib/data/scorecards";
 import { getChampionshipHistory, getActiveChampionshipSummary } from "@/lib/data/championships";
 import { getPageBanners } from "@/lib/data/page-banners";
 import { getSiteTheme } from "@/lib/data/site-theme";
@@ -19,13 +20,32 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function FieldPage() {
-  const [activeChampionship, players, championshipHistory, banners, theme] = await Promise.all([
+  const [activeChampionship, players, championshipHistory, banners, theme, participation] = await Promise.all([
     getActiveChampionshipSummary(),
     getFieldPlayers(),
     getChampionshipHistory(),
     getPageBanners(),
     getSiteTheme(),
+    getAllScorecardParticipation(),
   ]);
+
+  /*
+   * A debutant has never started a round at any championship before the one this field is for.
+   *
+   * The filter used to test `previousOpens === 0`, but that field is only the hand-kept count from
+   * before scorecards were digitised -- it is 0 for every player in the field, so the filter let
+   * all thirty-six through. The scorecards are the real record (the player profile counts
+   * appearances the same way). The hand-kept figure still counts, for anyone with pre-digital
+   * appearances. Earlier championships only: a debutant at this year's event still has its card.
+   */
+  const fieldYear = activeChampionship?.year ?? Number.POSITIVE_INFINITY;
+  const yearByChampionshipId = new Map(championshipHistory.map((c) => [c.id, c.year]));
+  const appearedBefore = new Set(
+    participation
+      .filter((p) => p.started && (yearByChampionshipId.get(p.championshipId) ?? Number.POSITIVE_INFINITY) < fieldYear)
+      .map((p) => p.playerId),
+  );
+  const debutantIds = players.filter((p) => p.previousOpens === 0 && !appearedBefore.has(String(p.id))).map((p) => String(p.id));
   const sorted = [...players].sort((a, b) => {
     const aSurname = a.name.split(" ").slice(-1)[0];
     const bSurname = b.name.split(" ").slice(-1)[0];
@@ -63,7 +83,7 @@ export default async function FieldPage() {
         title={banners.fieldTitle}
         description={description}
       />
-      <FieldView players={sorted} championshipHistory={championshipHistory} championLogoUrl={theme.championBadgeUrl} />
+      <FieldView players={sorted} debutantIds={debutantIds} championshipHistory={championshipHistory} championLogoUrl={theme.championBadgeUrl} />
     </>
   );
 }

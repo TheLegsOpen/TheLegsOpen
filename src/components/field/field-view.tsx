@@ -21,11 +21,13 @@ const CHIPS: { id: Chip; label: string }[] = [
 
 interface FieldViewProps {
   players: Player[];
+  /** Players with no started round at any earlier championship -- worked out from the scorecards in src/app/(app)/field/page.tsx. */
+  debutantIds: string[];
   championshipHistory: ChampionshipWinner[];
   championLogoUrl?: string;
 }
 
-export function FieldView({ players, championshipHistory, championLogoUrl }: FieldViewProps) {
+export function FieldView({ players, debutantIds, championshipHistory, championLogoUrl }: FieldViewProps) {
   const [query, setQuery] = useState("");
   const [country, setCountry] = useState("All");
   const [chip, setChip] = useState<Chip>("all");
@@ -42,6 +44,7 @@ export function FieldView({ players, championshipHistory, championLogoUrl }: Fie
   }, [championshipHistory]);
 
   const championSlugs = useMemo(() => new Set(championYearsBySlug.keys()), [championYearsBySlug]);
+  const debutants = useMemo(() => new Set(debutantIds), [debutantIds]);
 
   const availableCountries = useMemo(() => {
     const codes = new Set(players.map((p) => p.countryCode));
@@ -53,7 +56,7 @@ export function FieldView({ players, championshipHistory, championLogoUrl }: Fie
     if (q && !player.name.toLowerCase().includes(q) && !player.country.toLowerCase().includes(q)) return false;
     if (country !== "All" && player.countryCode !== country) return false;
     if (chip === "champions" && !championSlugs.has(playerSlug(player))) return false;
-    if (chip === "debutants" && player.previousOpens !== 0) return false;
+    if (chip === "debutants" && !debutants.has(String(player.id))) return false;
     return true;
   });
 

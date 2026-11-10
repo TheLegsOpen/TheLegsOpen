@@ -213,7 +213,7 @@ export async function computeChampionshipAutoStats(payload: Payload, championshi
 
   const allChampionships = await payload.find({ collection: "championships", limit: 500, depth: 0 });
   const yearById = new Map(allChampionships.docs.map((c) => [String(c.id), c.year]));
-  const participation = await getAllScorecardParticipation();
+  const participation = await getAllScorecardParticipation({ fresh: true });
   const priorDigitalYears = new Set(
     participation
       .filter((p) => p.playerId === winner.id && p.started && (yearById.get(p.championshipId) ?? Infinity) < championship.year)
