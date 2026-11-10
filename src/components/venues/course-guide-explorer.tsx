@@ -71,13 +71,13 @@ export function CourseGuideExplorer({ guide, venueName }: { guide: CourseGuide; 
       </div>
 
       {/* The selected hole */}
-      <div className="grid grid-cols-1 gap-8 bg-primary text-white lg:grid-cols-[minmax(0,560fr)_minmax(0,666fr)]">
-        <div className="relative aspect-[3/4] w-full bg-[#0b0a2e]">
+      <div className="grid grid-cols-1 gap-8 bg-primary text-white lg:grid-cols-[minmax(0,460fr)_minmax(0,766fr)]">
+        <div className="relative aspect-[3/5] w-full bg-[#F1ECE6]">
           {hole.imageUrl ? (
-            <Image src={hole.imageUrl} alt={`${venueName}, hole ${hole.holeNumber}`} fill sizes="(min-width: 1024px) 560px, 100vw" className="object-contain" />
+            <Image src={hole.imageUrl} alt={`${venueName}, hole ${hole.holeNumber}`} fill sizes="(min-width: 1024px) 460px, 100vw" className="object-contain p-4" />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
-              <span className="font-menu text-[120px] font-bold leading-none text-white/10">{hole.holeNumber}</span>
+              <span className="font-menu text-[120px] font-bold leading-none text-primary/10">{hole.holeNumber}</span>
             </div>
           )}
         </div>
