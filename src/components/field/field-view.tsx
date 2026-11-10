@@ -175,7 +175,9 @@ export function FieldView({
                     blendBlack
                     fit="contain-bottom"
                     sizes="(min-width: 1024px) 16vw, (min-width: 768px) 25vw, 50vw"
-                    className="transition-transform duration-300 ease-standard group-hover:scale-[1.03]"
+                    // bg-primary: the hover zoom puts the photo in its own layer, and the screen
+                    // blend that turns its black background navy needs the navy inside that layer.
+                    className="bg-primary transition-transform duration-300 ease-standard group-hover:scale-[1.03]"
                   />
                   <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-primary via-primary/60 to-transparent" aria-hidden="true" />
                   <span className="absolute bottom-3 right-3 text-right text-white">
