@@ -114,16 +114,16 @@ function ChampionFeature({
   const { surname, firstName } = splitSurnameFirst(entry.player.name);
   return (
     <div className="flex items-end gap-4 py-1">
+      {entry.player.photoUrl ? (
       <div className="relative hidden h-[120px] w-[110px] shrink-0 overflow-hidden bg-primary sm:block" aria-hidden="true">
         {trophyUrl ? (
           <div className="absolute -right-3 bottom-0 h-[90px] w-[70px] opacity-80">
             <PlaceholderArt label="" imageUrl={trophyUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="70px" />
           </div>
         ) : null}
-        {entry.player.photoUrl ? (
-          <PlaceholderArt label="" imageUrl={entry.player.photoUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="110px" />
-        ) : null}
+        <PlaceholderArt label="" imageUrl={entry.player.photoUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="110px" />
       </div>
+      ) : null}
       <div className="min-w-0">
         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">{CHAMPION_LABEL[competition]}</span>
         <button type="button" onClick={() => onSelectPlayer(entry.player.id)} className="block text-left hover:underline">
