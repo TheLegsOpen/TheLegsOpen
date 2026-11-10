@@ -281,7 +281,8 @@ export interface Venue {
   holeImages?:
     | {
         hole: number;
-        image: number | Media;
+        image?: (number | null) | Media;
+        description?: string | null;
         id?: string | null;
       }[]
     | null;

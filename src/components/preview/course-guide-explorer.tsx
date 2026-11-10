@@ -99,6 +99,17 @@ export function CourseGuideExplorer({ guide, venueName }: { guide: CourseGuide; 
                 </div>
               ))}
             </dl>
+            {hole.description ? (
+              <div className="flex max-w-[60ch] flex-col gap-4 font-sans text-[18px] font-light leading-[28px] text-white/90">
+                {hole.description.split(/\n\s*\n/).map((paragraph, i) => (
+                  <p key={i}>{paragraph}</p>
+                ))}
+              </div>
+            ) : (
+              <p className="border border-dashed border-white/20 p-4 text-sm text-white/50">
+                A few words on how this hole plays appear here once written in the admin (Venues → Hole Guide).
+              </p>
+            )}
             {hole.average !== undefined ? (
               <p className="text-white/80">
                 The field has averaged {signed(hole.average - hole.par)} here

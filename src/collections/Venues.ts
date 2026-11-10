@@ -239,21 +239,26 @@ export const Venues: CollectionConfig = {
           // out of the holes array above because that one is drawn by a custom 18-column table,
           // which has no room for an upload in each cell.
           name: "holeImages",
-          label: "Hole Images",
+          label: "Hole Guide",
           type: "array",
-          labels: { singular: "Hole Image", plural: "Hole Images" },
+          labels: { singular: "Hole", plural: "Holes" },
           maxRows: 18,
           admin: {
             description:
-              "Optional. The strokesaver image for each hole, shown on this venue's course page when the hole is picked. Rows can go in any order -- set the hole number on each. The Course card on the venue page only appears once at least one is added.",
+              "Optional. The strokesaver image and a few words on each hole, shown on this venue's course page when the hole is picked. Rows can go in any order -- set the hole number on each, and fill in the image, the description or both. The Course card on the venue page only appears once at least one hole has an image.",
           },
           fields: [
             {
               type: "row",
               fields: [
                 { name: "hole", type: "number", required: true, min: 1, max: 18, admin: { width: "20%" } },
-                { name: "image", type: "upload", relationTo: "media", required: true, admin: { width: "80%" } },
+                { name: "image", type: "upload", relationTo: "media", admin: { width: "80%" } },
               ],
+            },
+            {
+              name: "description",
+              type: "textarea",
+              admin: { description: "How the hole plays. Leave a blank line between paragraphs." },
             },
           ],
         },

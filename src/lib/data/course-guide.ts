@@ -12,8 +12,10 @@ export interface CourseGuideHole {
   yards?: number;
   /** The field's average gross score, pooled over every Legs Open played here. */
   average?: number;
-  /** The strokesaver image from the venue's Hole Images, if one has been uploaded. */
+  /** The strokesaver image from the venue's Hole Guide, if one has been uploaded. */
   imageUrl?: string;
+  /** How the hole plays, from the Hole Guide -- paragraphs separated by blank lines. */
+  description?: string;
 }
 
 export interface CourseGuide {
@@ -36,11 +38,13 @@ export async function loadCourseGuide(venueSlug: string, championships: Champion
   const payload = await getPayload({ config: configPromise });
   const raw = await payload.find({ collection: "venues", where: { slug: { equals: venueSlug } }, limit: 1, depth: 1 });
   const holesRaw = (raw.docs[0]?.holes ?? []) as { par: number; yards?: number | null; si?: number | null }[];
-  // Hole Images carries its own hole number on each row, so the rows can sit in any order.
+  // The Hole Guide carries its own hole number on each row, so the rows can sit in any order.
   const imageByHole = new Map<number, string>();
+  const descriptionByHole = new Map<number, string>();
   for (const row of raw.docs[0]?.holeImages ?? []) {
     const url = mediaUrl(row.image);
     if (url) imageByHole.set(row.hole, url);
+    if (row.description?.trim()) descriptionByHole.set(row.hole, row.description.trim());
   }
 
   const played = championships.filter((c) => c.completed);
@@ -54,6 +58,7 @@ export async function loadCourseGuide(venueSlug: string, championships: Champion
       yards: h.yards ?? undefined,
       average: averages.length ? averages.reduce((a, b) => a + b, 0) / averages.length : undefined,
       imageUrl: imageByHole.get(i + 1),
+      description: descriptionByHole.get(i + 1),
     };
   });
 
