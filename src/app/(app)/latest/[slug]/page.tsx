@@ -6,7 +6,7 @@ import { Container } from "@/components/shared/container";
 import { RichTextBlock } from "@/components/shared/rich-text";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { ArticleCard } from "@/components/news/article-card";
-import { getArticleBySlug, getRelatedArticles } from "@/lib/data/articles";
+import { getArticleBySlug, getArticlesPage, getRelatedArticles } from "@/lib/data/articles";
 import { SITE } from "@/constants/site";
 
 interface ArticlePageProps {
@@ -43,9 +43,15 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
   const article = await getArticleBySlug(slug);
   if (!article) notFound();
-  const related = await getRelatedArticles(article, 6);
-  const rail = related.slice(0, 3);
-  const more = related.slice(3, 6).length === 3 ? related.slice(3, 6) : related.slice(0, 3);
+  // Categories are mostly one per championship, so many articles have no others in theirs. Same
+  // category first, then topped up with the latest news, so the rail and the More row are never
+  // left empty.
+  const [related, latest] = await Promise.all([getRelatedArticles(article, 6), getArticlesPage({ page: 1, pageSize: 8 })]);
+  const seen = new Set([article.slug, ...related.map((a) => a.slug)]);
+  const pool = [...related, ...latest.items.filter((a) => !seen.has(a.slug))];
+  const rail = pool.slice(0, 3);
+  const more = pool.slice(3, 6);
+  const moreTitle = more.length > 0 && more.every((a) => a.category === article.category) ? `More from ${article.category}` : "Latest news";
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -160,7 +166,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       {more.length > 0 ? (
         <section className="border-t border-[#B9BEC0] bg-[#F7F7F7]">
           <Container className="flex flex-col gap-8 py-12">
-            <h2 className="text-center font-menu text-[14px] font-bold uppercase tracking-[1.6px] text-[#43524E]">More from {article.category}</h2>
+            <h2 className="text-center font-menu text-[14px] font-bold uppercase tracking-[1.6px] text-[#43524E]">{moreTitle}</h2>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
               {more.map((a) => (
                 <ArticleCard key={a.slug} article={a} />
