@@ -6,7 +6,7 @@ import { getSiteTheme } from "@/lib/data/site-theme";
 import { ordinal } from "@/lib/utils";
 import { hasBeenPlayed, isWithinLiveWindow } from "@/lib/data/championship-timing";
 
-/** Everything the Field page renders, shared by /field and its /preview/field layout preview. */
+/** Everything the Field page renders, used by /field. */
 export async function loadFieldPage() {
   const [fieldChampionship, players, championshipHistory, banners, theme, participation] = await Promise.all([
     getFieldChampionshipSummary(),

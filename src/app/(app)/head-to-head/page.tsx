@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Container } from "@/components/shared/container";
@@ -9,6 +10,11 @@ import { cn, playerSlug, portraitUrl, splitSurnameFirst } from "@/lib/utils";
 import type { Player } from "@/types/player";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Head-to-head",
+  description: "Compare any two players' Legs Open careers side by side, and every year they both played.",
+};
 
 interface Career {
   appearances: number;
@@ -61,15 +67,20 @@ function PlayerHead({ player }: { player: Player }) {
 }
 
 /**
- * PREVIEW (26): head-to-head. Pick two players and see their Legs Open careers side by side, then
+ * Head-to-head. Pick two players and see their Legs Open careers side by side, then
  * every year they both played with who finished ahead. A plain GET form, so it works without
- * JavaScript and a comparison can be shared as a link (?a=…&b=…).
+ * JavaScript and a comparison can be shared as a link (?a=…&b=…). Player pages link here with
+ * that player already picked as the first, so only the opponent is left to choose.
  */
 export default async function HeadToHeadPreview({ searchParams }: { searchParams: Promise<{ a?: string; b?: string }> }) {
   const { a, b } = await searchParams;
   const players = (await getPlayers()).sort((x, y) => x.name.localeCompare(y.name));
-  const pa = players.find((p) => playerSlug(p) === a) ?? players.find((p) => p.name === "Mark Alston");
-  const pb = players.find((p) => playerSlug(p) === b) ?? players.find((p) => p.name === "Robert Hamilton");
+  // Neither picked: open on a ready-made pairing so the page is not empty. One picked (arriving
+  // from a player page): leave the other for the reader to choose.
+  const nonePicked = !a && !b;
+  const pa = players.find((p) => playerSlug(p) === a) ?? (nonePicked ? players.find((p) => p.name === "Mark Alston") : undefined);
+  const found = players.find((p) => playerSlug(p) === b);
+  const pb = found && found.id !== pa?.id ? found : nonePicked ? players.find((p) => p.name === "Robert Hamilton") : undefined;
 
   const [ra, rb] = pa && pb ? await Promise.all([getPlayerResults(pa), getPlayerResults(pb)]) : [[], []];
   const ca = pa ? summarise(pa, ra) : undefined;
@@ -122,7 +133,11 @@ export default async function HeadToHeadPreview({ searchParams }: { searchParams
               defaultValue={i === 0 ? (pa ? playerSlug(pa) : "") : pb ? playerSlug(pb) : ""}
               className="h-10 rounded-full border border-border bg-white px-4 text-sm"
               aria-label={i === 0 ? "First player" : "Second player"}
+              required
             >
+              <option value="" disabled>
+                Choose a player
+              </option>
               {players.map((p) => (
                 <option key={p.id} value={playerSlug(p)}>
                   {p.name}
@@ -195,7 +210,9 @@ export default async function HeadToHeadPreview({ searchParams }: { searchParams
               </table>
             </div>
           </>
-        ) : null}
+        ) : (
+          <p className="text-[#43524E]">Choose {pa || pb ? "a second player" : "two players"} and press Compare.</p>
+        )}
       </Container>
     </div>
   );

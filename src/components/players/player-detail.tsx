@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Trophy } from "lucide-react";
+import { ArrowRight, Trophy } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
 import { SectionGrid } from "@/components/shared/section-grid";
@@ -60,6 +60,9 @@ function firstParagraph(doc: unknown): string | undefined {
  * The player profile at /players/[slug]. The Overview tab opens with a standfirst: the first
  * paragraph of the bio.
  */
+const COMPARE_LINK =
+  "inline-flex w-fit items-center gap-2 border border-[#2269AB] px-4 py-2 font-sans text-[14px] font-bold uppercase tracking-[0.6px] text-[#2269AB] transition-colors hover:bg-[#2269AB] hover:text-white";
+
 export async function PlayerDetail({ slug }: { slug: string }) {
   const player = await getPlayerBySlug(slug);
   if (!player) notFound();
@@ -263,6 +266,9 @@ export async function PlayerDetail({ slug }: { slug: string }) {
                 <CountryFlag code={player.countryCode} className="h-[22px] !w-[30px]" />
                 {player.country}
               </p>
+              <Link href={`/head-to-head?a=${slug}`} className={cn(COMPARE_LINK, "mt-5")}>
+                Compare head-to-head <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           </Container>
         </div>
@@ -373,6 +379,9 @@ export async function PlayerDetail({ slug }: { slug: string }) {
             <CountryFlag code={player.countryCode} className="h-[22px] !w-[30px]" />
             {player.country}
           </p>
+          <Link href={`/head-to-head?a=${slug}`} className={cn(COMPARE_LINK, "mt-5")}>
+            Compare head-to-head <ArrowRight className="h-4 w-4" />
+          </Link>
         </Container>
       </section>
 
