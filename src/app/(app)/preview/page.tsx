@@ -5,25 +5,6 @@ import { Container } from "@/components/shared/container";
 export const dynamic = "force-dynamic";
 
 const PREVIEWS: { href: string; page: string; items: string[] }[] = [
-  {
-    href: "/preview/venues/dalmahoy",
-    page: "Venue (Dalmahoy)",
-    items: [
-      "13 Hero line: years hosted, location, button to the most recent Legs Open here",
-      "The Course card under Upcoming Venues, linking to the course page (Getting There removed)",
-      "One selected article after the intro (the venue's first Featured Article, else the latest from its last championship)",
-      "Overview and Course Statistics tabs removed (hole scoring is on each Previous Opens page)",
-      "16 Year-by-year history slider (already matches theopen.com, no change)",
-      "29 Photo gallery (appears once championship photos are added)",
-    ],
-  },
-  {
-    href: "/preview/venues/dalmahoy/course",
-    page: "Course page (Dalmahoy)",
-    items: ["25 Hole-by-hole guide: pick a hole to see its strokesaver image and numbers (placeholders until hole images can be uploaded)"],
-  },
-  { href: "/preview/venues/st-andrews-craigtoun", page: "Venue (Craigtoun, upcoming)", items: ["13 Upcoming-venue hero line with date"] },
-  { href: "/preview/venues/st-andrews-craigtoun/course", page: "Course page (Craigtoun)", items: ["25 Course guide before it has been played"] },
   { href: "/preview/head-to-head", page: "Head-to-head (new)", items: ["26 Compare two players' Legs Open careers"] },
 ];
 

@@ -14,7 +14,7 @@ function signed(n: number): string {
 }
 
 /**
- * PREVIEW: the course page's hole-by-hole guide, after standrews.com's course pages. The 18 tiles
+ * The course page's hole-by-hole guide, after standrews.com's course pages. The 18 tiles
  * are the hole picker -- pick one and its strokesaver image and numbers show underneath.
  */
 export function CourseGuideExplorer({ guide, venueName }: { guide: CourseGuide; venueName: string }) {
@@ -76,9 +76,8 @@ export function CourseGuideExplorer({ guide, venueName }: { guide: CourseGuide; 
           {hole.imageUrl ? (
             <Image src={hole.imageUrl} alt={`${venueName}, hole ${hole.holeNumber}`} fill sizes="(min-width: 1024px) 560px, 100vw" className="object-contain" />
           ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-white/20 p-8 text-center">
-              <span className="font-menu text-[64px] font-bold leading-none text-white/20">{hole.holeNumber}</span>
-              <span className="max-w-xs text-sm text-white/60">The strokesaver image for this hole appears here once it is uploaded in the admin.</span>
+            <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+              <span className="font-menu text-[120px] font-bold leading-none text-white/10">{hole.holeNumber}</span>
             </div>
           )}
         </div>
@@ -112,11 +111,7 @@ export function CourseGuideExplorer({ guide, venueName }: { guide: CourseGuide; 
                   <p key={i}>{paragraph}</p>
                 ))}
               </div>
-            ) : (
-              <p className="border border-dashed border-white/20 p-4 text-sm text-white/50">
-                A few words on how this hole plays appear here once written in the admin (Venues → Hole Guide).
-              </p>
-            )}
+            ) : null}
           </div>
           <div className="flex items-center gap-3">
             <button type="button" onClick={() => step(-1)} className="inline-flex items-center gap-2 border border-white/30 px-4 py-2 text-sm font-bold uppercase hover:border-accent hover:text-accent">

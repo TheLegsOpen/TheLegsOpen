@@ -6,7 +6,7 @@ import { CountryFlag } from "@/components/shared/country-flag";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { PlayerGallery } from "@/components/players/player-gallery";
 import { getArticlesForChampionship } from "@/lib/data/articles";
-import { loadCourseGuide } from "@/lib/data/course-guide";
+import type { CourseGuide } from "@/lib/data/course-guide";
 import { isStillToCome } from "@/lib/data/championship-timing";
 import { cn, ordinal } from "@/lib/utils";
 import type { Venue } from "@/types/venue";
@@ -21,7 +21,7 @@ function upcomingHere(championships: ChampionshipWinner[]): ChampionshipWinner |
 }
 
 /**
- * PREVIEW (13): the line under the venue name -- years hosted or the date to come, location, and a
+ * The line under the venue name -- years hosted or the date to come, location, and a
  * button. A course that has hosted more than once lists every year; the button goes to the most
  * recent one (every year has its own card in the championship strip further down the page).
  */
@@ -57,13 +57,11 @@ export function VenueHeroLine({ venue, championships }: { venue: Venue; champion
 }
 
 /**
- * PREVIEW: The Course, under Upcoming Venues in the band beneath the hero, linking to the venue's
- * own course page with the hole-by-hole guide. Live, it would only show once the course has hole
- * images uploaded; the preview always shows it so there is something to look at.
+ * The Course, under Upcoming Venues in the band beneath the hero, linking to the venue's course
+ * page with the hole-by-hole guide. The venue page only renders it once the course has at least
+ * one hole image.
  */
-export async function VenueCourseCard({ venue, championships }: { venue: Venue; championships: ChampionshipWinner[] }) {
-  const guide = await loadCourseGuide(venue.slug, championships);
-  if (guide.holes.length === 0) return null;
+export function VenueCourseCard({ venue, guide }: { venue: Venue; guide: CourseGuide }) {
   const { hardest, totalPar, totalYards } = guide;
   const yardage = totalYards ? ` · ${totalYards.toLocaleString("en-GB")} yards` : "";
   return (
@@ -73,7 +71,7 @@ export async function VenueCourseCard({ venue, championships }: { venue: Venue; 
         <p className="text-sm text-white/80">{venue.parYardage ?? `Par ${totalPar}${yardage}`}</p>
         {hardest ? <p className="text-sm text-white/80">Hardest hole in Legs Open play: the {ordinal(hardest)}</p> : null}
       </div>
-      <Link href={`/preview/venues/${venue.slug}/course`} className={BUTTON}>
+      <Link href={`/venues/${venue.slug}/course`} className={BUTTON}>
         Hole by hole <ArrowRight className="h-4 w-4" />
       </Link>
     </div>
@@ -81,7 +79,7 @@ export async function VenueCourseCard({ venue, championships }: { venue: Venue; 
 }
 
 /**
- * PREVIEW: one selected article straight after the intro band, as theopen.com's venue pages carry
+ * One selected article straight after the intro band, as theopen.com's venue pages carry
  * -- the photo on one side, the championship, TITLE / dek and Read More on the other. The first of
  * the venue's own Featured Articles if any are picked in the admin; otherwise the latest piece
  * tagged to the most recent championship here.
@@ -122,7 +120,7 @@ export async function VenueFeaturedArticle({ venue, championships, articles }: {
   );
 }
 
-/** PREVIEW (29): every photo from here -- the venue's own and each championship's. */
+/** Every photo from here -- the venue's own and each championship's. */
 export function VenueGalleryAll({ venue, championships }: { venue: Venue; championships: ChampionshipWinner[] }) {
   const photos = [
     ...(venue.gallery ?? []),

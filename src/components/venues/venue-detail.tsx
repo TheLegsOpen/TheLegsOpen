@@ -3,39 +3,30 @@ import Link from "next/link";
 
 import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
-import { StatBlock } from "@/components/venues/stat-block";
-import { VenueGallery } from "@/components/venues/venue-gallery";
 import { VenueChampions, type VenueChampion } from "@/components/venues/venue-champions";
 import { VenueChampionshipCarousel } from "@/components/venues/venue-championship-carousel";
-import { ArticleCard } from "@/components/news/article-card";
 import { OverviewVideo } from "@/components/previous-opens/overview-video";
-import { ToughestHolesBoard } from "@/components/statistics/toughest-holes-board";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getVenueBySlug } from "@/lib/data/venues";
 import { getChampionshipsByVenueSlug, getUpcomingChampionships } from "@/lib/data/championships";
 import { getPlayers } from "@/lib/data/players";
 import { getArticles } from "@/lib/data/articles";
-import { isActiveChampionshipVenue } from "@/lib/data/scorecards";
-import { getToughestHoles } from "@/lib/data/scoring-statistics";
+import { loadCourseGuide } from "@/lib/data/course-guide";
 import { cn, portraitUrl } from "@/lib/utils";
-
-import { VenueCourseCard, VenueFeaturedArticle, VenueGalleryAll, VenueHeroLine } from "@/components/preview/venue-preview";
+import { VenueCourseCard, VenueFeaturedArticle, VenueGalleryAll, VenueHeroLine } from "@/components/venues/venue-sections";
 
 /**
- * The venue page, shared by /venues/[slug] and its /preview/venues/[slug] layout preview. With
- * `preview` on it shows the proposed layout: hero line (13), The Course card, one featured article
- * and the combined gallery (29), with no Overview / Course Statistics tabs; without it the page is
- * exactly the live one.
+ * The venue page at /venues/[slug]: the hero with its hosting line, the course blurb beside
+ * Upcoming Venues and The Course, one featured article, the film band, every photo from here,
+ * the championship strip and the champions. Course scoring lives on each Previous Opens page.
  */
-export async function VenueDetail({ slug, preview = false }: { slug: string; preview?: boolean }) {
+export async function VenueDetail({ slug }: { slug: string }) {
   const venue = await getVenueBySlug(slug);
   if (!venue) notFound();
 
-  const [championshipsRaw, players, allArticles, isActiveVenue, upcomingChampionships] = await Promise.all([
+  const [championshipsRaw, players, allArticles, upcomingChampionships] = await Promise.all([
     getChampionshipsByVenueSlug(venue.slug),
     getPlayers(),
     getArticles(),
-    isActiveChampionshipVenue(venue.slug),
     getUpcomingChampionships(3),
   ]);
   const championshipsHere = [...championshipsRaw].sort((a, b) => b.year - a.year);
@@ -65,23 +56,12 @@ export async function VenueDetail({ slug, preview = false }: { slug: string; pre
           ];
   // A venue added before it has hosted anything has neither list, and reserving the second track
   // for it would leave exactly the 392 of empty tint this fallback exists to remove.
-  const bandHasSidebar = preview || upcomingChampionships.length > 0 || hostingFacts.length > 0;
+  // The Course card only once the course has at least one hole image -- the course page is a
+  // strokesaver guide, and without pictures it is just the scorecard.
+  const courseGuide = await loadCourseGuide(venue.slug, championshipsChronological);
+  const showCourseCard = courseGuide.imageCount > 0;
+  const bandHasSidebar = showCourseCard || upcomingChampionships.length > 0 || hostingFacts.length > 0;
 
-  // Course scoring used to appear only while the venue was hosting, which meant a course the
-  // society has played a dozen times showed nothing the rest of the year. A venue is far more
-  // often between championships than hosting one, so it falls back to the last championship
-  // actually played here -- the most recent completed one, since a championship scheduled but not
-  // yet played has no scores to report. getToughestHoles with no id reads the active championship,
-  // which is what the live case still wants.
-  const lastPlayedHere = championshipsHere.find((c) => c.completed);
-  const scoringYear = isActiveVenue ? undefined : lastPlayedHere?.year;
-  const [toughestHolesNett, toughestHolesScratch] =
-    isActiveVenue || lastPlayedHere
-      ? await Promise.all([
-          getToughestHoles("nett", isActiveVenue ? undefined : lastPlayedHere!.id),
-          getToughestHoles("scratch", isActiveVenue ? undefined : lastPlayedHere!.id),
-        ])
-      : [[], []];
 
   const playerByName = new Map(players.map((player) => [player.name, player]));
   const championsByKey = new Map<string, VenueChampion>();
@@ -104,11 +84,6 @@ export async function VenueDetail({ slug, preview = false }: { slug: string; pre
   }
   const champions = Array.from(championsByKey.values()).sort((a, b) => Math.max(...b.years) - Math.max(...a.years));
 
-  const featuredArticleSlugs = venue.featuredArticleSlugs ?? [];
-  const featuredArticles =
-    featuredArticleSlugs.length > 0
-      ? featuredArticleSlugs.map((articleSlug) => allArticles.find((a) => a.slug === articleSlug)).filter((a) => Boolean(a))
-      : [];
 
   return (
     <>
@@ -130,7 +105,7 @@ export async function VenueDetail({ slug, preview = false }: { slug: string; pre
         title={venue.name}
         titleClassName="font-menu text-[58px] font-normal leading-[62.06px] tracking-[1.6px] text-white"
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Venues", href: "/venues" }, { label: venue.name }]}
-        overlay={preview ? <VenueHeroLine venue={venue} championships={championshipsChronological} /> : undefined}
+        overlay={<VenueHeroLine venue={venue} championships={championshipsChronological} />}
       />
 
       {/* The Open's band under a venue hero: the course's own blurb at 26px beside a short list
@@ -196,12 +171,12 @@ export async function VenueDetail({ slug, preview = false }: { slug: string; pre
               </ul>
             </div>
           ) : null}
-          {preview ? <VenueCourseCard venue={venue} championships={championshipsChronological} /> : null}
+          {showCourseCard ? <VenueCourseCard venue={venue} guide={courseGuide} /> : null}
           </div>
         </Container>
       </section>
 
-      {preview ? <VenueFeaturedArticle venue={venue} championships={championshipsChronological} articles={allArticles} /> : null}
+      <VenueFeaturedArticle venue={venue} championships={championshipsChronological} articles={allArticles} />
 
       {/* The Open's film band: a dark full-bleed strip with the video on one side and a short
           piece of writing on the other, 1068 against 838 at 1920. Only renders with a link on the
@@ -224,75 +199,13 @@ export async function VenueDetail({ slug, preview = false }: { slug: string; pre
         </section>
       ) : null}
 
-      {!preview || championshipsChronological.length === 0 ? (
-      <Container className="flex flex-col gap-16 py-10 sm:py-14">
-
-        {!preview ? (
-        <Tabs defaultValue="overview">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="course-card">Course Statistics</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="flex max-w-3xl flex-col gap-4 text-base leading-relaxed">
-            {venue.overview.map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
-          </TabsContent>
-
-          <TabsContent value="course-card" className="flex flex-col gap-8">
-            {venue.stats.length > 0 ? <StatBlock stats={venue.stats} /> : null}
-            {toughestHolesNett.length > 0 || toughestHolesScratch.length > 0 ? (
-              <div className="bg-surface-dark text-surface-dark-foreground">
-                <div className="flex flex-col gap-8 p-6">
-                  {scoringYear ? (
-                    <p className="text-sm text-surface-dark-foreground/60">
-                      How the field scored here at the {scoringYear} Legs Open, the last championship played at {venue.name}.
-                    </p>
-                  ) : null}
-                  <ToughestHolesBoard
-                    title={scoringYear ? `Course Scoring - Nett (${scoringYear})` : "Course Scoring - Nett"}
-                    rows={toughestHolesNett}
-                  />
-                  <ToughestHolesBoard
-                    title={scoringYear ? `Course Scoring - Scratch (${scoringYear})` : "Course Scoring - Scratch"}
-                    rows={toughestHolesScratch}
-                  />
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Hole-by-hole course scoring appears here once {venue.name} has hosted a championship.
-              </p>
-            )}
-          </TabsContent>
-        </Tabs>
-        ) : null}
-
-        {!preview && venue.gallery && venue.gallery.length > 0 ? <VenueGallery venueName={venue.name} photos={venue.gallery} /> : null}
-
-        {!preview && featuredArticles.length > 0 ? (
-          <div className="flex flex-col gap-6">
-            <h2 className="font-display font-bold text-2xl">Featured Articles</h2>
-            <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
-              {featuredArticles.map((article) => (
-                <ArticleCard key={article!.slug} article={article!} />
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        {/* "Championship Years at [venue]" used to sit here. It and the navy strip below were two
-            renderings of one list -- same championships, same photographs, same links, a few
-            hundred pixels apart -- so the page asked you to read the venue's history twice. The
-            strip is the one that survives. */}
-        {championshipsChronological.length === 0 ? (
+      {championshipsChronological.length === 0 ? (
+        <Container className="py-10 sm:py-14">
           <p className="text-sm text-muted-foreground">{venue.name} has not yet hosted a recorded championship in our archive.</p>
-        ) : null}
-      </Container>
+        </Container>
       ) : null}
 
-      {preview ? <VenueGalleryAll venue={venue} championships={championshipsChronological} /> : null}
+      <VenueGalleryAll venue={venue} championships={championshipsChronological} />
 
       {/* Both of these carry their own full-bleed band now, so they sit outside the Container --
           the same reason the film band above does. */}
