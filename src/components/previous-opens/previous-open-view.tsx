@@ -314,13 +314,16 @@ export function PreviousOpenView({
             </div>
           ) : (
             <Tabs defaultValue="leaderboard">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <TabsList>
-                  <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-                  <TabsTrigger value="tee-times">Tee Times</TabsTrigger>
-                  <TabsTrigger value="statistics">Statistics</TabsTrigger>
-                  <TabsTrigger value="course-statistics">Course Statistics</TabsTrigger>
-                  <TabsTrigger value="live-blog">Live Blog</TabsTrigger>
+              {/* Five labels are wider than a phone. On phones the list becomes a strip that swipes
+                  sideways inside itself, running to both screen edges, so the page never scrolls
+                  sideways and every option stays one swipe away. From sm up it is the usual pill. */}
+              <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                <TabsList className="no-scrollbar -mx-5 flex h-auto w-auto justify-start overflow-x-auto rounded-none border-y border-border px-5 py-1.5 sm:mx-0 sm:inline-flex sm:h-11 sm:w-auto sm:rounded-lg sm:border-0 sm:p-1">
+                  <TabsTrigger className="shrink-0" value="leaderboard">Leaderboard</TabsTrigger>
+                  <TabsTrigger className="shrink-0" value="tee-times">Tee Times</TabsTrigger>
+                  <TabsTrigger className="shrink-0" value="statistics">Statistics</TabsTrigger>
+                  <TabsTrigger className="shrink-0" value="course-statistics">Course Statistics</TabsTrigger>
+                  <TabsTrigger className="shrink-0" value="live-blog">Live Blog</TabsTrigger>
                 </TabsList>
                 {hasReplay ? (
                   <Link

@@ -66,7 +66,7 @@ export function LiveBlogWidget({
   const leaderToPar = mainEntries[0]?.toPar ?? 0;
 
   return (
-    <div className="flex h-full flex-col border border-surface-dark-foreground/15">
+    <div className="flex h-full flex-col border-y border-surface-dark-foreground/15 lg:border-x">
       <div className="bg-primary px-5 py-3">
         <h2 className="font-menu text-sm font-bold uppercase tracking-wide text-primary-foreground">Live Blog</h2>
       </div>

@@ -343,7 +343,7 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
   }
 
   return (
-    <div className="no-scrollbar overflow-x-auto border border-surface-dark-foreground/15 bg-primary">
+    <div className="no-scrollbar overflow-x-auto border-y border-surface-dark-foreground/15 bg-primary sm:border-x">
       <table className="w-full min-w-0 table-fixed border-collapse text-sm sm:min-w-[640px]">
         <colgroup>
           <col className="w-8 sm:w-10" />

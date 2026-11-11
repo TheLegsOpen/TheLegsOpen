@@ -37,7 +37,7 @@ export function HoleByHoleTable({ entries, onSelectPlayer, competition }: HoleBy
   const coursePars = entries[0].holes;
 
   return (
-    <div className="no-scrollbar overflow-x-auto border border-surface-dark-foreground/15 bg-primary">
+    <div className="no-scrollbar overflow-x-auto border-y border-surface-dark-foreground/15 sm:border-x bg-primary">
       <table className="w-full min-w-[1300px] table-fixed border-collapse text-sm">
         <colgroup>
           <col className="w-12" />

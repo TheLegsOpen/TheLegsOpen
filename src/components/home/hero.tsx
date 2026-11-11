@@ -41,7 +41,7 @@ export function Hero({ currentChampion: CURRENT_CHAMPION, clockConfig, weather }
             Open's hero, pushing the leaderboard down by that much. The alternative was deleting a
             forecast to save vertical space during a championship. */}
         <SectionGrid layout="main-side">
-          <div className="relative min-h-[380px] w-full overflow-hidden">
+          <div className="relative -mx-5 min-h-[380px] overflow-hidden md:-mx-[30px] lg:mx-0">
             <PlaceholderArt
               label={CURRENT_CHAMPION.imageLabel ?? `${CURRENT_CHAMPION.winnerName} celebrates at ${CURRENT_CHAMPION.venueName}`}
               imageUrl={CURRENT_CHAMPION.imageUrl}
@@ -91,14 +91,14 @@ export function Hero({ currentChampion: CURRENT_CHAMPION, clockConfig, weather }
             </div>
           </div>
   
-          <div className="flex flex-col gap-5">
-            <div className="overflow-hidden border border-surface-dark-foreground/15 lg:h-[140px] lg:shrink-0">
+          <div className="-mx-5 flex flex-col gap-5 md:-mx-[30px] lg:mx-0">
+            <div className="overflow-hidden border-y border-surface-dark-foreground/15 lg:h-[140px] lg:shrink-0 lg:border-x">
               <SponsorTimeWidget config={clockConfig} />
             </div>
             {weather ? (
               // No height: what this comes to is what the hero comes to. Pinning it is what
               // clipped the forecast.
-              <div className="overflow-hidden border border-surface-dark-foreground/15">
+              <div className="overflow-hidden border-y border-surface-dark-foreground/15 lg:border-x">
                 <WeatherWidget weather={weather} />
               </div>
             ) : null}

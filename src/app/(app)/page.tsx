@@ -141,6 +141,8 @@ export default async function HomePage() {
                 championWinnerBadgeUrl={theme.championWinnerBadgeUrl}
               />
             </div>
+            {/* Edge to edge below `lg`, like the leaderboard above it. */}
+            <div className="-mx-5 md:-mx-[30px] lg:mx-0">
             <LiveBlogWidget
               entries={liveBlogPage.entries}
               championshipId={liveBlogPage.championshipId}
@@ -155,6 +157,7 @@ export default async function HomePage() {
               puttingCategories={puttingCategories}
               logoUrl={theme.logoUrl}
             />
+            </div>
           </SectionGrid>
         </Container>
       </section>

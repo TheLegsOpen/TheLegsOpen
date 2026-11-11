@@ -62,7 +62,7 @@ export function InfoCardGroup({ section }: { section: InfoCardGroupSection }) {
           ) : null}
         </div>
 
-        <div className="overflow-hidden" ref={emblaRef}>
+        <div className="-mx-5 overflow-hidden px-5 sm:mx-0 sm:px-0" ref={emblaRef}>
           {/* Three to a view on the same 442-wide column as the grid bands: each card takes a third
               of what is left after the two 20px gutters. It was 31% at a 24px gap, which read as
               nearly-thirds and lined up with nothing. Staying a carousel is deliberate -- The Open

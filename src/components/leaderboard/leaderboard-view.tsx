@@ -246,7 +246,7 @@ export function LeaderboardView({
                 </div>
               </div>
 
-              <TabsContent value="main" className="mt-0">
+              <TabsContent value="main" className="-mx-5 mt-0 sm:mx-0">
                 {holeByHole ? (
                   <HoleByHoleTable entries={mainEntries} onSelectPlayer={(id) => selectPlayer(id, "main")} competition="main" />
                 ) : (
@@ -262,7 +262,7 @@ export function LeaderboardView({
                   />
                 )}
               </TabsContent>
-              <TabsContent value="stableford" className="mt-0">
+              <TabsContent value="stableford" className="-mx-5 mt-0 sm:mx-0">
                 {holeByHole ? (
                   <HoleByHoleTable entries={stablefordEntries} onSelectPlayer={(id) => selectPlayer(id, "stableford")} competition="stableford" />
                 ) : (
@@ -279,7 +279,7 @@ export function LeaderboardView({
                   />
                 )}
               </TabsContent>
-              <TabsContent value="scratch" className="mt-0">
+              <TabsContent value="scratch" className="-mx-5 mt-0 sm:mx-0">
                 {holeByHole ? (
                   <HoleByHoleTable entries={scratchEntries} onSelectPlayer={(id) => selectPlayer(id, "scratch")} competition="scratch" />
                 ) : (

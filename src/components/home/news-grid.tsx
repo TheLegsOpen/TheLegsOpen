@@ -104,7 +104,7 @@ const CARD_IMAGE_SIZES = "(min-width: 1430px) 227px, (min-width: 1024px) 17vw, (
  */
 function NewsPage({ articles }: { articles: Article[] }) {
   return (
-    <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+    <ul className="-mx-5 grid grid-cols-1 gap-5 sm:mx-0 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
       {articles.map((article) => (
         <li key={article.slug} className="flex">
           <Link
