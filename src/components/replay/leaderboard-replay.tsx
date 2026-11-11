@@ -270,6 +270,8 @@ export function LeaderboardReplay({ replay }: { replay: ChampionshipReplay }) {
           className="h-2 w-full cursor-pointer appearance-none rounded-full bg-surface-dark-foreground/20 accent-accent"
         />
 
+        {/* Edge to edge on phones, like the leaderboard everywhere else. */}
+        <div className="-mx-5 sm:mx-0">
         <LeaderboardTable
           entries={entries}
           competition={competition}
@@ -279,6 +281,7 @@ export function LeaderboardReplay({ replay }: { replay: ChampionshipReplay }) {
           onSelectPlayer={() => {}}
           excludeFromTitle={mainChampionId}
         />
+        </div>
 
         <p className="text-xs text-surface-dark-foreground/80">
           Use the ← and → arrow keys to step back and forward a minute at a time, or drag the timeline to jump.

@@ -179,11 +179,11 @@ export function TeeTimesView({
                   {ordered.length === 0 ? (
                     <p className="py-4 text-sm text-surface-dark-foreground/60">No groups off the {teeFilter} for this round.</p>
                   ) : (
-                    <div className="flex flex-col gap-3">
+                    <div className="-mx-5 flex flex-col gap-3 sm:mx-0">
                       {ordered.map((group, index) => (
                         <div key={index} className="flex flex-col gap-2">
                           {index === nextOutIndex ? (
-                            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-accent">
+                            <p className="flex items-center gap-2 px-5 text-xs font-bold uppercase tracking-[0.14em] text-accent sm:px-0">
                               Next out <span aria-hidden="true">↓</span>
                             </p>
                           ) : null}
