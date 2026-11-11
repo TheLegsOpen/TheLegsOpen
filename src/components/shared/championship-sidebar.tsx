@@ -48,14 +48,24 @@ function postedTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
 }
 
+/** Cancels the Container gutter (20 / 30px) below lg, where the rail stacks under the main column. */
+const BLEED = "-mx-5 md:-mx-[30px] lg:mx-0";
+
 export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "light", weather, upcomingTeeTimes, liveBlog, topTen, sticky = false }: ChampionshipSidebarProps) {
   const isDark = tone === "dark";
   const border = isDark ? "border-surface-dark-foreground/15" : "border-border";
   return (
     <aside className={cn("flex flex-col gap-6", sticky && "lg:sticky lg:top-24")}>
-      <SponsorTimeWidget config={clockConfig} />
+      {/* Edge to edge on phones and tablets, like the leaderboards beside it; back in the rail at lg. */}
+      <div className={BLEED}>
+        <SponsorTimeWidget config={clockConfig} />
+      </div>
 
-      {weather ? <WeatherWidget weather={weather} /> : null}
+      {weather ? (
+        <div className={BLEED}>
+          <WeatherWidget weather={weather} />
+        </div>
+      ) : null}
 
       {topTen && topTen.length > 0 ? (
         <div className="flex flex-col gap-3">
@@ -127,7 +137,7 @@ export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "ligh
       <div className="flex flex-col gap-3">
         <RailHeading isDark={isDark}>Latest News</RailHeading>
         {/* A 455px rail, not a third of the page -- see GRID_SIZES in ArticleCard. */}
-        <ArticleCard article={featuredArticle} tone={tone} sizes="(min-width: 1430px) 455px, (min-width: 1024px) 32vw, 100vw" />
+        <ArticleCard article={featuredArticle} tone={tone} sizes="(min-width: 1430px) 455px, (min-width: 1024px) 32vw, 100vw" imageClassName={cn(BLEED, "rounded-none lg:rounded-lg")} />
       </div>
     </aside>
   );

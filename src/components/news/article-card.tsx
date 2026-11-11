@@ -19,12 +19,15 @@ export function ArticleCard({
   priority = false,
   tone = "light",
   sizes = GRID_SIZES,
+  imageClassName,
 }: {
   article: Article;
   /** Forwarded to next/image. Only for a card that is the page's largest above-the-fold element. */
   priority?: boolean;
   tone?: "light" | "dark";
   sizes?: string;
+  /** Extra classes on the photo -- the sidebar uses it to run the photo edge to edge on phones. */
+  imageClassName?: string;
 }) {
   const isDark = tone === "dark";
   return (
@@ -36,7 +39,7 @@ export function ArticleCard({
         ratio="4/3"
         sizes={sizes}
         priority={priority}
-        className="transition-transform duration-300 ease-standard group-hover:scale-[1.02]"
+        className={cn("transition-transform duration-300 ease-standard group-hover:scale-[1.02]", imageClassName)}
       />
       <div className="flex flex-col gap-2">
         <Badge variant={isDark ? "accent" : "muted"} className="w-fit">

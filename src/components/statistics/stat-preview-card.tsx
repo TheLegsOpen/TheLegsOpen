@@ -41,7 +41,7 @@ function Ring({ percent }: { percent: number }) {
 }
 
 /**
- * The first-placed row, given theopen.com's treatment: on the dark card, a large ordinal and name
+ * A first-placed row (one per player when first is tied), given theopen.com's treatment: on the dark card, a large ordinal and name
  * with the flag, a ring chart for a percentage stat, and the value in a large yellow box. The
  * other two places keep the slim yellow rows beneath.
  */
@@ -91,8 +91,9 @@ export function StatPreviewCard({
   favoriteIds?: string[];
 }) {
   const top = category.rows.slice(0, PREVIEW_COUNT);
-  // A tie for first has no single leader to feature, so every row stays slim and equal.
-  const featureLeader = top.length > 0 && !(top[0].tied && (top[0].position ?? 1) === 1);
+  // Everyone placed first gets the feature row, so a tie for first shows as joint leaders, each
+  // with the large treatment ("T1st"), rather than one of them picked out by sort order.
+  const isLeader = (row: StatRow) => (row.position ?? 1) === 1;
   const extra = highlightId && !top.some((r) => r.player.id === highlightId) ? category.rows.find((r) => r.player.id === highlightId) : undefined;
 
   return (
@@ -117,7 +118,7 @@ export function StatPreviewCard({
           <p className="text-sm text-primary-foreground/60">No holes of this par played yet.</p>
         </div>
       ) : (
-        [...top, ...(extra ? [extra] : [])].map((row, index) => index === 0 && featureLeader ? (
+        [...top, ...(extra ? [extra] : [])].map((row) => isLeader(row) ? (
           <LeaderRow key={row.player.id} row={row} category={category} onSelectPlayer={onSelectPlayer} />
         ) : (
           <div

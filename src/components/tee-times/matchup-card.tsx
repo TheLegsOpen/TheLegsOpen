@@ -58,13 +58,15 @@ export function MatchupCard({
                 fav && "ring-2 ring-inset ring-accent",
               )}
             >
-              <div className="absolute bottom-0 right-0 h-[150px] w-[120px]" aria-hidden="true">
+              {/* Smaller on phones, and the name block keeps clear of it (pr below), so a long
+                  surname and its handicap wrap beside the photo instead of running across it. */}
+              <div className="absolute bottom-0 right-0 h-[120px] w-[96px] sm:h-[150px] sm:w-[120px]" aria-hidden="true">
                 <PlaceholderArt label="" imageUrl={portraitUrl(player.photoUrl)} tone="navy" blendBlack fill fit="contain-bottom" sizes="120px" />
               </div>
-              <div className="relative">
+              <div className="relative pr-[92px] sm:pr-[112px]">
                 <button type="button" onClick={() => onSelectPlayer(player.id)} className="text-left text-surface-dark-foreground hover:text-accent">
                   <span className="block font-menu text-[15px] leading-tight">{firstName}</span>
-                  <span className="flex items-center gap-1 font-menu text-[20px] font-bold uppercase leading-tight">
+                  <span className="flex flex-wrap items-center gap-x-1 break-words font-menu text-[20px] font-bold uppercase leading-tight">
                     {surname}
                     {handicap !== undefined ? <span className="text-sm font-normal normal-case">({formatHandicap(handicap)})</span> : null}
                     <ChevronRight className="h-4 w-4 text-accent" aria-hidden="true" />
@@ -92,7 +94,7 @@ export function MatchupCard({
           );
         })}
       </div>
-      <div className="flex w-[120px] shrink-0 flex-col justify-between border-l border-surface-dark-foreground/15 p-4 text-right">
+      <div className="flex w-[96px] shrink-0 flex-col justify-between border-l border-surface-dark-foreground/15 p-3 text-right sm:w-[120px] sm:p-4">
         <span className="font-menu text-[14px] font-bold uppercase tracking-[1.6px] text-surface-dark-foreground">Game {gameNumber}</span>
         <span className="flex flex-col gap-1 text-xs uppercase tracking-wide text-surface-dark-foreground/60">
           <span className="font-menu text-[18px] tabular-nums text-surface-dark-foreground">{group.time}</span>
