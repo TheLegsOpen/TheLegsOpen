@@ -6,6 +6,7 @@ import { CountryFlag } from "@/components/shared/country-flag";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { getPlayers, getPlayerResults, type PlayerYearResult } from "@/lib/data/players";
 import { formatToPar } from "@/lib/leaderboard";
+import { matchPlayResult } from "@/lib/match-play";
 import { cn, playerSlug, portraitUrl, splitSurnameFirst } from "@/lib/utils";
 import type { Player } from "@/types/player";
 
@@ -177,13 +178,15 @@ export default async function HeadToHeadPreview({ searchParams }: { searchParams
 
             <div className="flex flex-col gap-3">
               <h2 className="font-menu text-[14px] font-bold uppercase tracking-[1.6px] text-[#43524E]">Year by year</h2>
-              <table className="w-full border-collapse text-sm">
+              <div className="no-scrollbar -mx-5 overflow-x-auto px-5 md:mx-0 md:px-0">
+              <table className="w-full min-w-[520px] border-collapse text-sm">
                 <thead>
                   <tr className="bg-[#F7F7F7] text-xs uppercase tracking-wide text-[#43524E]">
                     <th className="px-3 py-2 text-left">Year</th>
                     <th className="px-3 py-2 text-left">Venue</th>
                     <th className="px-3 py-2 text-center">{pa.name}</th>
                     <th className="px-3 py-2 text-center">{pb.name}</th>
+                    <th className="px-3 py-2 text-right" title={`${pa.name} against ${pb.name}, hole by hole on nett scores`}>Match play</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -191,6 +194,8 @@ export default async function HeadToHeadPreview({ searchParams }: { searchParams
                     const x = ra.find((r) => r.year === y);
                     const z = rb.find((r) => r.year === y);
                     const who = ahead(y);
+                    // Only years both played with hole-by-hole cards; blank otherwise.
+                    const match = x && z ? matchPlayResult(x.main.holes, z.main.holes) : undefined;
                     return (
                       <tr key={y} className="border-b border-[#E3E6E8]">
                         <td className="px-3 py-2 tabular-nums">{y}</td>
@@ -203,11 +208,22 @@ export default async function HeadToHeadPreview({ searchParams }: { searchParams
                           {finishLabel(z)}
                           {z?.main.toPar !== undefined && !z.main.noReturn ? <span className="ml-1 text-xs text-[#43524E]">({formatToPar(z.main.toPar)})</span> : null}
                         </td>
+                        <td
+                          className={cn(
+                            "whitespace-nowrap px-3 py-2 text-right font-bold tabular-nums",
+                            match?.outcome === "won" && "text-[#2269AB]",
+                            match?.outcome === "lost" && "text-[#CB333B]",
+                            match?.outcome === "halved" && "text-[#43524E]",
+                          )}
+                        >
+                          {match?.label ?? <span className="font-normal text-[#B9BEC0]">—</span>}
+                        </td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
+              </div>
             </div>
           </>
         ) : (

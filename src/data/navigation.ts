@@ -36,6 +36,7 @@ export function buildNavPanel(venueLinks: NavLink[] = []): NavPanelGroup[] {
         { label: "All Venues", href: "/venues" },
         { label: "Field", href: "/field" },
         { label: "Previous Opens", href: "/previous-opens" },
+        { label: "Head-to-head", href: "/head-to-head" },
         ],
     },
   ];
