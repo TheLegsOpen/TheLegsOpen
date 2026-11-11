@@ -28,6 +28,12 @@ export interface ChampionshipWinner {
   winnerPlayerId?: string;
   winnerPlayerDateOfBirth?: string;
   winnerPhotoUrl?: string;
+  /** True when the Champion Photo is wide enough to fill a page banner (landscape, at least 1200px wide). */
+  winnerPhotoLandscape?: boolean;
+  /** The background-removed champion shown in the Main leaderboard's winner row. */
+  championCutoutUrl?: string;
+  /** The venue's own course photo, for banners when the Champion Photo will not fill one. */
+  venueImageUrl?: string;
   stablefordWinnerName?: string;
   stablefordWinnerCountry?: string;
   scratchWinnerName?: string;

@@ -9,6 +9,8 @@ interface Crumb {
 }
 
 interface PageHeroProps {
+  /** CSS object-position for the photo, e.g. "50% 30%" to keep a face in a wide banner. Centre by default. */
+  imagePosition?: string;
   eyebrow?: string;
   title: string;
   description?: string;
@@ -42,7 +44,7 @@ interface PageHeroProps {
   overlay?: React.ReactNode;
 }
 
-export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "light", size = "large", heightPx, imageLabel, imageUrl, titleNode, titleClassName, overlay }: PageHeroProps) {
+export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "light", size = "large", heightPx, imageLabel, imageUrl, imagePosition, titleNode, titleClassName, overlay }: PageHeroProps) {
   const slim = size === "slim";
   if (variant === "photo") {
     return (
@@ -57,7 +59,7 @@ export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "
       >
         {/* Full-bleed, so 100vw is the honest hint. priority because this is the largest
             above-the-fold element on every page that has a photo hero. */}
-        <PlaceholderArt label={imageLabel ?? title} imageUrl={imageUrl} tone="navy" fill sizes="100vw" priority />
+        <PlaceholderArt label={imageLabel ?? title} imageUrl={imageUrl} tone="navy" fill sizes="100vw" priority position={imagePosition} />
         <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.8)_45%,rgba(0,0,0,0.25)_75%,rgba(0,0,0,0.05)_100%)]" />
 
         <Container className={cn("relative z-10 flex h-full flex-col justify-end text-white", slim ? "gap-3 pb-5 sm:gap-4 sm:pb-6" : size === "compact" ? "gap-2 pb-4 sm:gap-5 sm:pb-14" : "gap-5 pb-10 sm:pb-14")}>

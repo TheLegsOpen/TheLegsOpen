@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Star, ChevronUp, ChevronDown } from "lucide-react";
@@ -32,7 +33,7 @@ interface LeaderboardTableProps {
   /** Places moved since the previous refresh, by player id -- see usePositionMovement. */
   movement?: Map<string, number>;
   /** The site's trophy graphic, shown in the champion's feature row once the competition is over. */
-  championPhotoUrl?: string;
+  championCutoutUrl?: string;
 }
 
 /** Aggregate (round-total) Par pill — 3-tier, since a multi-hole total doesn't have a meaningful "eagle" case. */
@@ -93,10 +94,14 @@ export function AnimatedValue({ value }: { value: string | number }) {
 }
 
 /**
- * The champion's row once a competition is over, after theopen.com's: the championship's Champion
- * Photo (Main only -- the leaderboard passes none to Stableford and Scratch, and none when the
- * photo is not set, so the panel simply has no picture), first name over a big surname, and a
+ * The champion's row once a competition is over, after theopen.com's: the champion standing in
+ * the row (280x305 on a laptop, theirs measured at 1440), first name over a big surname, and a
  * strip of eighteen squares, one per hole.
+ *
+ * Main only. The picture is the championship's Champion Cut-out -- background removed, so it stands
+ * straight on the yellow row as theirs does -- or, without one, the champion's own profile
+ * cut-out, which is shot on black and so sits in a navy box it can blend into. Stableford and
+ * Scratch carry no picture.
  *
  * Only on a concluded competition, by request: mid-round the leader can change on any hole, and a
  * feature card would make whoever is in front look like the winner.
@@ -105,28 +110,34 @@ function ChampionFeature({
   entry,
   competition,
   onSelectPlayer,
-  championPhotoUrl,
+  championCutoutUrl,
 }: {
   entry: RankedEntry;
   competition: Competition;
   onSelectPlayer: (playerId: string) => void;
-  championPhotoUrl?: string;
+  championCutoutUrl?: string;
 }) {
   const { surname, firstName } = splitSurnameFirst(entry.player.name);
+  const fallback = competition === "main" && !championCutoutUrl ? portraitUrl(entry.player.photoUrl) : undefined;
+  const frame = "relative h-[160px] w-[146px] shrink-0 sm:h-[305px] sm:w-[280px]";
   return (
-    <div className="flex items-end gap-4 py-1">
-      {championPhotoUrl ? (
-        <div className="relative hidden h-[120px] w-[110px] shrink-0 overflow-hidden bg-primary sm:block" aria-hidden="true">
-          <PlaceholderArt label="" imageUrl={championPhotoUrl} tone="navy" blendBlack fill sizes="110px" />
+    <div className="-my-3 flex items-end gap-4 sm:gap-6">
+      {competition === "main" && championCutoutUrl ? (
+        <div className={frame} aria-hidden="true">
+          <Image src={championCutoutUrl} alt="" fill sizes="(min-width: 640px) 280px, 146px" className="object-contain object-bottom" />
+        </div>
+      ) : fallback ? (
+        <div className={cn(frame, "overflow-hidden bg-primary")} aria-hidden="true">
+          <PlaceholderArt label="" imageUrl={fallback} tone="navy" blendBlack fill fit="contain-bottom" sizes="(min-width: 640px) 280px, 146px" />
         </div>
       ) : null}
-      <div className="min-w-0">
+      <div className="min-w-0 py-4">
         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">{CHAMPION_LABEL[competition]}</span>
         <button type="button" onClick={() => onSelectPlayer(entry.player.id)} className="block text-left hover:underline">
-          <span className="block font-menu text-[15px] leading-tight">{firstName}</span>
-          <span className="flex items-center gap-2 font-menu text-[28px] font-bold uppercase leading-none sm:text-[34px]">
+          <span className="block font-menu text-[18px] leading-tight sm:text-[24px]">{firstName}</span>
+          <span className="flex items-center gap-2 font-menu text-[30px] font-bold uppercase leading-none sm:text-[52px]">
             {surname}
-            <CountryFlag code={entry.player.countryCode} className="h-4 w-5 shrink-0" />
+            <CountryFlag code={entry.player.countryCode} className="h-4 w-5 shrink-0 sm:h-6 sm:w-8" />
           </span>
         </button>
         {/* Not on Stableford: points have no over/under-par colour, so every square came out the
@@ -160,7 +171,7 @@ function LeaderboardRow({
   isTitleHolder,
   isExcludedChampion,
   moved,
-  championPhotoUrl,
+  championCutoutUrl,
 }: {
   entry: RankedEntry;
   isFav: boolean;
@@ -174,7 +185,7 @@ function LeaderboardRow({
    * logic). Explains why the top score here doesn't carry the "Golfer of the Year" honour. */
   isExcludedChampion: boolean;
   moved?: number;
-  championPhotoUrl?: string;
+  championCutoutUrl?: string;
 }) {
   const [isMoving, setIsMoving] = useState(false);
   const { surname, firstName } = splitSurnameFirst(entry.player.name);
@@ -219,7 +230,7 @@ function LeaderboardRow({
       </td>
       <td className="px-2 py-3">
         {isLeader ? (
-          <ChampionFeature entry={entry} competition={competition} onSelectPlayer={onSelectPlayer} championPhotoUrl={championPhotoUrl} />
+          <ChampionFeature entry={entry} competition={competition} onSelectPlayer={onSelectPlayer} championCutoutUrl={championCutoutUrl} />
         ) : null}
         <div className={cn("flex items-center gap-2", isLeader && "hidden")}>
           <button type="button" onClick={() => onSelectPlayer(entry.player.id)} className="truncate hover:underline">
@@ -308,7 +319,7 @@ function LeaderboardRow({
   );
 }
 
-export function LeaderboardTable({ entries, competition, favorites, onToggleFavorite, favoritesOnly, onSelectPlayer, excludeFromTitle, titleHolderId: titleHolderIdOverride, movement, championPhotoUrl }: LeaderboardTableProps) {
+export function LeaderboardTable({ entries, competition, favorites, onToggleFavorite, favoritesOnly, onSelectPlayer, excludeFromTitle, titleHolderId: titleHolderIdOverride, movement, championCutoutUrl }: LeaderboardTableProps) {
   const visible = favoritesOnly ? entries.filter((entry) => favorites.includes(entry.player.id)) : entries;
   const concluded = isConcluded(entries);
   // entries is already position-sorted, so the first entry that isn't the excluded Main champion
@@ -371,7 +382,7 @@ export function LeaderboardTable({ entries, competition, favorites, onToggleFavo
               isTitleHolder={entry.player.id === titleHolderId}
               isExcludedChampion={Boolean(excludeFromTitle) && entry.player.id === excludeFromTitle && entry.player.id !== titleHolderId}
               moved={movement?.get(entry.player.id)}
-              championPhotoUrl={championPhotoUrl}
+              championCutoutUrl={championCutoutUrl}
             />
           ))}
         </tbody>

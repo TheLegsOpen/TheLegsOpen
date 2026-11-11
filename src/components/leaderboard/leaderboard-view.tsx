@@ -50,8 +50,8 @@ interface LeaderboardViewProps {
    */
   autoRefresh?: boolean;
   /** The site's trophy graphic, for the champion's feature row. */
-  /** The championship's Champion Photo, shown with the Main winner only. */
-  championPhotoUrl?: string;
+  /** The championship's Champion Cut-out, stood in the Main winner's row. */
+  championCutoutUrl?: string;
   /** Extra rail modules -- see ChampionshipSidebar. */
   weather?: VenueWeather | null;
   liveBlog?: LiveBlogEntry[];
@@ -82,7 +82,7 @@ export function LeaderboardView({
   puttingCategories,
   stablefordTitleHolderId,
   autoRefresh = false,
-  championPhotoUrl,
+  championCutoutUrl,
   weather,
   liveBlog,
 }: LeaderboardViewProps) {
@@ -254,7 +254,7 @@ export function LeaderboardView({
                     entries={mainEntries}
                     competition="main"
                     movement={mainMovement}
-                    championPhotoUrl={championPhotoUrl}
+                    championCutoutUrl={championCutoutUrl}
                     favorites={hydrated ? favorites : []}
                     onToggleFavorite={toggleFavorite}
                     favoritesOnly={favoritesOnly}

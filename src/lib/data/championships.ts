@@ -60,6 +60,12 @@ function mapChampionship(doc: PayloadChampionship): ChampionshipWinner {
     winnerPlayerId: winnerPlayer?.id ? String(winnerPlayer.id) : undefined,
     winnerPlayerDateOfBirth: winnerPlayer?.dateOfBirth ?? undefined,
     winnerPhotoUrl: mediaUrl(doc.winnerPhoto),
+    winnerPhotoLandscape:
+      typeof doc.winnerPhoto === "object" && doc.winnerPhoto?.width && doc.winnerPhoto?.height
+        ? doc.winnerPhoto.width >= 1200 && doc.winnerPhoto.width / doc.winnerPhoto.height >= 1.3
+        : false,
+    championCutoutUrl: mediaUrl(doc.championCutout),
+    venueImageUrl: mediaUrl(venue.image),
     stablefordWinnerName: doc.stablefordWinnerName ?? undefined,
     stablefordWinnerCountry: doc.stablefordWinnerCountry ?? undefined,
     scratchWinnerName: doc.scratchWinnerName ?? undefined,

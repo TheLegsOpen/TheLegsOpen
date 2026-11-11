@@ -130,7 +130,11 @@ export default async function PreviousOpenYearPage({ params }: YearPageProps) {
           and month, so that has gone from the hero -- easily restored if it is wanted. */}
       <PageHero
         variant="photo"
-        imageUrl={championship.winnerPhotoUrl}
+        // A wide banner needs a wide photo: a portrait or small Champion Photo blown up to fill
+        // it showed only the champion's chest (2025). Those fall back to the course photo; a
+        // landscape one is framed high so faces survive the crop.
+        imageUrl={championship.winnerPhotoLandscape ? championship.winnerPhotoUrl : (championship.venueImageUrl ?? championship.winnerPhotoUrl)}
+        imagePosition={championship.winnerPhotoLandscape ? "50% 30%" : undefined}
         imageLabel={championship.winnerName ? `${championship.winnerName} at ${championship.venueName}` : championship.venueName}
         title={championship.venueName}
         titleNode={

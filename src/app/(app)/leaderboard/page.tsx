@@ -71,8 +71,9 @@ export default async function LeaderboardPage() {
   const main = applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main"));
   const stableford = applyPlayoffToEntries(stablefordRaw, playoffs.find((p) => p.competition === "stableford"));
   const scratch = applyPlayoffToEntries(scratchRaw, playoffs.find((p) => p.competition === "scratch"));
-  // The winner panel uses the championship's own Champion Photo; no photo set, no picture.
-  const championPhotoUrl = championshipHistory.find((c) => String(c.id) === String(activeChampionshipId))?.winnerPhotoUrl;
+  // The winner row stands the championship's Champion Cut-out in it; without one it falls back
+  // to the champion's own profile cut-out (see ChampionFeature).
+  const championCutoutUrl = championshipHistory.find((c) => String(c.id) === String(activeChampionshipId))?.championCutoutUrl;
   const stablefordTitleHolderId = getEligibleStablefordChampion(main, stableford)?.player.id;
 
   return (
@@ -101,7 +102,7 @@ export default async function LeaderboardPage() {
         puttingCategories={puttingCategories}
         stablefordTitleHolderId={stablefordTitleHolderId}
         autoRefresh={inPlay}
-        championPhotoUrl={championPhotoUrl}
+        championCutoutUrl={championCutoutUrl}
       />
     </>
   );

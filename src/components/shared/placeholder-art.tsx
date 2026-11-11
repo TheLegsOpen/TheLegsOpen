@@ -57,6 +57,8 @@ interface PlaceholderArtProps {
    * portrait placed in a frame of a different shape, where cropping would take the top of a head.
    */
   fit?: "cover" | "contain-bottom";
+  /** CSS object-position for a covered photo, e.g. "50% 30%" to keep faces in a wide crop. */
+  position?: string;
 }
 
 /**
@@ -78,6 +80,7 @@ export function PlaceholderArt({
   sizes = "100vw",
   priority = false,
   fit = "cover",
+  position,
 }: PlaceholderArtProps) {
   const seed = hashSeed(label);
   const [dark, mid, light] = TONES[tone];
@@ -94,7 +97,7 @@ export function PlaceholderArt({
       aria-label={label}
     >
       {imageUrl ? (
-        <Image src={imageUrl} alt={label} fill sizes={sizes} priority={priority} className={cn(fit === "contain-bottom" ? "object-contain object-bottom" : "object-cover", blend && "mix-blend-screen")} />
+        <Image src={imageUrl} alt={label} fill sizes={sizes} priority={priority} className={cn(fit === "contain-bottom" ? "object-contain object-bottom" : "object-cover", blend && "mix-blend-screen")} style={position ? { objectPosition: position } : undefined} />
       ) : (
         <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
           <defs>

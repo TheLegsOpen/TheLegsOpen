@@ -328,7 +328,7 @@ export function PreviousOpenView({
   
               <TabsContent value="leaderboard" className="mt-6">
                 <LeaderboardView
-                  championPhotoUrl={championship.winnerPhotoUrl}
+                  championCutoutUrl={championship.championCutoutUrl}
                   main={results.main}
                   stableford={results.stableford}
                   scratch={results.scratch}

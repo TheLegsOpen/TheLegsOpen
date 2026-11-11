@@ -94,7 +94,20 @@ export const Championships: CollectionConfig = {
       relationTo: "media",
       admin: {
         description:
-          "Optional. The champion with the trophy, ideally landscape, at least 1920×1080px, with the champion in the centre. Used as the banner on this year's Previous Opens page; in the winner panel on the Main leaderboard (nothing shows there when this is blank); on the champion's card in \"Champion Golfers at [venue]\" (a tall 400×600 crop from the centre); and in the venue strip below unless that has a photo of its own. The venue page falls back to the player's profile photo when this is blank.",
+          "Optional. The champion with the trophy, ideally landscape, at least 1920×1080px, with the champion in the centre. Used as the banner on this year's Previous Opens page when it is landscape and at least 1200px wide (otherwise the banner uses the venue's course photo); in the winner panel on the Main leaderboard (nothing shows there when this is blank); on the champion's card in \"Champion Golfers at [venue]\" (a tall 400×600 crop from the centre); and in the venue strip below unless that has a photo of its own. The venue page falls back to the player's profile photo when this is blank.",
+      },
+    },
+    {
+      // Needs the champion_cutout_id column on championships, added by hand in Supabase before
+      // this shipped -- there are no migrations here and the adapter only pushes schema in
+      // development.
+      name: "championCutout",
+      label: "Champion Cut-out (leaderboard)",
+      type: "upload",
+      relationTo: "media",
+      admin: {
+        description:
+          "Optional. The champion with the trophy, background removed: a transparent PNG or WebP, at least 600×650px, cropped close with no empty space around them. Shown standing in the winner's row on the Main leaderboard (280×305 on a laptop), as theopen.com does. Left blank, the row uses the champion's player profile cut-out instead.",
       },
     },
     {
