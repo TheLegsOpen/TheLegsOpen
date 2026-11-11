@@ -18,7 +18,14 @@ interface PageHeroProps {
   /** "photo" gives landing-style pages the same full-bleed image treatment as the homepage hero. */
   variant?: "light" | "photo";
   /** "large" (default) matches the homepage's cinematic hero. "compact" suits data-utility pages people check repeatedly (leaderboard, tee times, statistics) so the actual content sits higher on the page -- matches theopen.com/AIG Women's Open's own leaderboard header proportions. Ignored when `heightPx` is set. */
-  size?: "large" | "compact" | "slim";
+  size?: "large" | "compact" | "slim" | "feature";
+  /**
+   * "bottom" (default) fades the photo to black from the foot up, behind the title. "diagonal" is
+   * theopen.com's Previous Opens hero: clear at the top right, deepening to navy at the bottom left
+   * (their 221deg gradient, transparent to 40%), so the photo reads left to right instead of having a
+   * dark horizon. Phones keep a light fade from the foot, since our title sits on the photo there.
+   */
+  shade?: "bottom" | "diagonal";
   /** Fixed height in pixels, overriding the vh-based `size` presets -- for a page that needs an exact height rather than one scaled to the viewport. */
   heightPx?: number;
   imageLabel?: string;
@@ -44,7 +51,7 @@ interface PageHeroProps {
   overlay?: React.ReactNode;
 }
 
-export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "light", size = "large", heightPx, imageLabel, imageUrl, imagePosition, titleNode, titleClassName, overlay }: PageHeroProps) {
+export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "light", size = "large", heightPx, imageLabel, imageUrl, imagePosition, titleNode, titleClassName, overlay, shade = "bottom" }: PageHeroProps) {
   const slim = size === "slim";
   if (variant === "photo") {
     return (
@@ -53,14 +60,18 @@ export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "
           "relative w-full overflow-hidden",
           // slim: theopen.com's championship-week banner, about 230px of photo with the switcher on it,
           // so the table starts inside the first screen rather than a fold down.
-          !heightPx && (slim ? "h-[200px] sm:h-[230px]" : size === "compact" ? "h-[22vh] min-h-[160px] sm:h-[30vh] sm:min-h-[220px]" : "h-[60vh] min-h-[420px]"),
+          !heightPx && (slim ? "h-[200px] sm:h-[230px]" : size === "compact" ? "h-[22vh] min-h-[160px] sm:h-[30vh] sm:min-h-[220px]" : size === "feature" ? "h-[300px] sm:h-[530px]" : "h-[60vh] min-h-[420px]"),
         )}
         style={heightPx ? { height: heightPx } : undefined}
       >
         {/* Full-bleed, so 100vw is the honest hint. priority because this is the largest
             above-the-fold element on every page that has a photo hero. */}
         <PlaceholderArt label={imageLabel ?? title} imageUrl={imageUrl} tone="navy" fill sizes="100vw" priority position={imagePosition} />
-        <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.8)_45%,rgba(0,0,0,0.25)_75%,rgba(0,0,0,0.05)_100%)]" />
+        {shade === "diagonal" ? (
+          <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(6,5,30,0.9)_0%,rgba(6,5,30,0.35)_45%,rgba(6,5,30,0)_75%)] sm:bg-[linear-gradient(221deg,rgba(6,5,30,0)_40%,#06051e_100%)]" />
+        ) : (
+          <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.8)_45%,rgba(0,0,0,0.25)_75%,rgba(0,0,0,0.05)_100%)]" />
+        )}
 
         <Container className={cn("relative z-10 flex h-full flex-col justify-end text-white", slim ? "gap-3 pb-5 sm:gap-4 sm:pb-6" : size === "compact" ? "gap-2 pb-4 sm:gap-5 sm:pb-14" : "gap-5 pb-10 sm:pb-14")}>
           {breadcrumbs?.length ? (
