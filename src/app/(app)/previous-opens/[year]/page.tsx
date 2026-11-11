@@ -5,6 +5,7 @@ import { PageHero } from "@/components/shared/page-hero";
 import { PreviousOpenView, type PreviousOpenResults } from "@/components/previous-opens/previous-open-view";
 import { getArticlesForChampionship } from "@/lib/data/articles";
 import { getChampionshipByYear } from "@/lib/data/championships";
+import { getVenueBySlug } from "@/lib/data/venues";
 import { computeAutoFacts } from "@/lib/data/records";
 import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
 import { getPlayoffs, applyPlayoffToEntries, getEligibleStablefordChampion } from "@/lib/data/playoffs";
@@ -115,10 +116,11 @@ export default async function PreviousOpenYearPage({ params }: YearPageProps) {
   const championship = await getChampionshipByYear(Number(year));
   if (!championship) notFound();
 
-  const [autoFacts, results, relatedArticles] = await Promise.all([
+  const [autoFacts, results, relatedArticles, venue] = await Promise.all([
     computeAutoFacts(championship),
     championship.completed ? loadResults(championship.id) : Promise.resolve(undefined),
     getArticlesForChampionship(championship.id),
+    getVenueBySlug(championship.venueSlug),
   ]);
 
   return (
@@ -136,7 +138,7 @@ export default async function PreviousOpenYearPage({ params }: YearPageProps) {
         // it showed only the champion's chest (2025). Those fall back to the course photo; a
         // landscape one is framed high so faces survive the crop.
         imageUrl={championship.winnerPhotoLandscape ? championship.winnerPhotoUrl : (championship.venueImageUrl ?? championship.winnerPhotoUrl)}
-        imagePosition={championship.winnerPhotoLandscape ? "50% 30%" : undefined}
+        imagePosition={championship.winnerPhotoLandscape ? (championship.winnerPhotoPosition ?? "50% 30%") : undefined}
         imageLabel={championship.winnerName ? `${championship.winnerName} at ${championship.venueName}` : championship.venueName}
         title={championship.venueName}
         titleNode={
@@ -156,7 +158,7 @@ export default async function PreviousOpenYearPage({ params }: YearPageProps) {
           Open, with only its list held to the container, so the view owns its own wrapping --
           a Container on the outside would cap the strip at 1366 and there is no way to break
           back out of it that is not a negative-margin trick. */}
-      <PreviousOpenView championship={championship} autoFacts={autoFacts} results={results} relatedArticles={relatedArticles} />
+      <PreviousOpenView championship={championship} autoFacts={autoFacts} results={results} relatedArticles={relatedArticles} venueStats={venue?.stats ?? []} />
     </>
   );
 }

@@ -14,6 +14,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LeaderboardView } from "@/components/leaderboard/leaderboard-view";
 import { TeeTimesView } from "@/components/tee-times/tee-times-view";
 import { StatPreviewBoard } from "@/components/statistics/stat-preview-board";
+import { ToughestHolesBoard } from "@/components/statistics/toughest-holes-board";
+import { StatBlock } from "@/components/venues/stat-block";
+import type { VenueStat } from "@/types/venue";
 import { LiveBlogFeed } from "@/components/live-blog/live-blog-feed";
 import { formatToPar } from "@/lib/leaderboard";
 import type { ChampionshipWinner } from "@/types/championship";
@@ -94,11 +97,14 @@ export function PreviousOpenView({
   autoFacts,
   results,
   relatedArticles = [],
+  venueStats = [],
 }: {
   championship: ChampionshipWinner;
   autoFacts: AutoFacts | undefined;
   results: PreviousOpenResults | undefined;
   relatedArticles?: Article[];
+  /** The course facts from the venue's admin entry, shown on the Course Statistics tab. */
+  venueStats?: VenueStat[];
 }) {
   const story = overviewStory(championship, autoFacts);
 
@@ -313,6 +319,7 @@ export function PreviousOpenView({
                   <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
                   <TabsTrigger value="tee-times">Tee Times</TabsTrigger>
                   <TabsTrigger value="statistics">Statistics</TabsTrigger>
+                  <TabsTrigger value="course-statistics">Course Statistics</TabsTrigger>
                   <TabsTrigger value="live-blog">Live Blog</TabsTrigger>
                 </TabsList>
                 {hasReplay ? (
@@ -326,7 +333,7 @@ export function PreviousOpenView({
                 ) : null}
               </div>
   
-              <TabsContent value="leaderboard" className="mt-6">
+              <TabsContent value="leaderboard" className="-mx-5 mt-6 md:mx-0">
                 <LeaderboardView
                   championCutoutUrl={championship.championCutoutUrl}
                   main={results.main}
@@ -344,7 +351,7 @@ export function PreviousOpenView({
                 />
               </TabsContent>
   
-              <TabsContent value="tee-times" className="mt-6">
+              <TabsContent value="tee-times" className="-mx-5 mt-6 md:mx-0">
                 <TeeTimesView
                   rounds={results.rounds}
                   featuredArticle={results.featuredArticle}
@@ -366,7 +373,7 @@ export function PreviousOpenView({
                   blog had none here, so the Results tab went dark, dark, light, light. Both take
                   bg-surface-dark, which is what their own standalone pages use, so a section looks
                   the same whether it is read here or on its own page. */}
-              <TabsContent value="statistics" className="mt-6 bg-surface-dark p-6 text-surface-dark-foreground sm:p-8">
+              <TabsContent value="statistics" className="-mx-5 mt-6 bg-surface-dark px-5 py-6 text-surface-dark-foreground md:mx-0 md:p-8">
                 <StatPreviewBoard
                   championshipYear={championship.year}
                   nettCategories={results.nettCategories}
@@ -384,7 +391,29 @@ export function PreviousOpenView({
                 />
               </TabsContent>
   
-              <TabsContent value="live-blog" className="mt-6 bg-surface-dark p-6 text-surface-dark-foreground sm:p-8">
+              {/* What the venue page's Course Statistics tab used to show, now per championship: the
+                  course facts from the venue's admin entry, then how this year's field scored on
+                  every hole, nett and scratch. */}
+              <TabsContent value="course-statistics" className="-mx-5 mt-6 flex flex-col gap-8 md:mx-0">
+                {venueStats.length > 0 ? (
+                  <div className="px-5 md:px-0">
+                    <StatBlock stats={venueStats} />
+                  </div>
+                ) : null}
+                {results.toughestHolesNett.length > 0 || results.toughestHolesScratch.length > 0 ? (
+                  <div className="flex flex-col gap-8 bg-surface-dark px-5 py-6 text-surface-dark-foreground md:p-8">
+                    <p className="text-sm text-surface-dark-foreground/60">
+                      How the field scored on every hole at {championship.venueName} in {championship.year}.
+                    </p>
+                    <ToughestHolesBoard title={`Course Scoring - Nett (${championship.year})`} rows={results.toughestHolesNett} />
+                    <ToughestHolesBoard title={`Course Scoring - Scratch (${championship.year})`} rows={results.toughestHolesScratch} />
+                  </div>
+                ) : (
+                  <p className="px-5 text-sm text-muted-foreground md:px-0">Hole-by-hole scoring has not been recorded for {championship.year}.</p>
+                )}
+              </TabsContent>
+
+              <TabsContent value="live-blog" className="-mx-5 mt-6 bg-surface-dark px-5 py-6 text-surface-dark-foreground md:mx-0 md:p-8">
                 <LiveBlogFeed
                   initialEntries={results.liveBlogPage.entries}
                   initialHasNextPage={results.liveBlogPage.hasNextPage}

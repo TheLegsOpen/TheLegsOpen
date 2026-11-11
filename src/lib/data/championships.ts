@@ -33,6 +33,17 @@ export interface UpcomingChampionship {
  * and `winnerPlayer` relationships are populated at the default query depth.
  */
 
+/**
+ * A photo's focal point, set in the admin's image editor, as a CSS object-position. Undefined when
+ * it has been left at the centre (Payload's default), so callers keep their own framing.
+ */
+function focalPosition(media: PayloadChampionship["winnerPhoto"]): string | undefined {
+  if (typeof media !== "object" || !media) return undefined;
+  const x = media.focalX ?? 50;
+  const y = media.focalY ?? 50;
+  return x === 50 && y === 50 ? undefined : `${x}% ${y}%`;
+}
+
 function mapChampionship(doc: PayloadChampionship): ChampionshipWinner {
   const venue = doc.venue as PayloadVenue;
   const winnerPlayer = typeof doc.winnerPlayer === "object" && doc.winnerPlayer ? (doc.winnerPlayer as PayloadPlayer) : undefined;
@@ -64,6 +75,7 @@ function mapChampionship(doc: PayloadChampionship): ChampionshipWinner {
       typeof doc.winnerPhoto === "object" && doc.winnerPhoto?.width && doc.winnerPhoto?.height
         ? doc.winnerPhoto.width >= 1200 && doc.winnerPhoto.width / doc.winnerPhoto.height >= 1.3
         : false,
+    winnerPhotoPosition: focalPosition(doc.winnerPhoto),
     championCutoutUrl: mediaUrl(doc.championCutout),
     venueImageUrl: mediaUrl(venue.image),
     stablefordWinnerName: doc.stablefordWinnerName ?? undefined,
