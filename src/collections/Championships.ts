@@ -94,7 +94,7 @@ export const Championships: CollectionConfig = {
       relationTo: "media",
       admin: {
         description:
-          "Optional. The champion with the trophy, ideally landscape, at least 1920×1080px, with the champion in the centre. Used as the banner on this year's Previous Opens page when it is landscape and at least 1200px wide (otherwise the banner uses the venue's course photo); set the image's focal point on the champion's face (open the image in Media, then Edit Image) and the banner keeps it in shot at every screen width; in the winner panel on the Main leaderboard (nothing shows there when this is blank); on the champion's card in \"Champion Golfers at [venue]\" (a tall 400×600 crop from the centre); and in the venue strip below unless that has a photo of its own. The venue page falls back to the player's profile photo when this is blank.",
+          "Optional. The champion with the trophy, ideally landscape, at least 1920×1080px, with the champion in the centre. Used as the banner on this year's Previous Opens page when it is landscape and at least 1200px wide (otherwise the banner uses the venue's course photo); set the image's Banner focus on the champion's face (open the image in Media and click their face) and the banner keeps it in shot at every screen width; in the winner panel on the Main leaderboard (nothing shows there when this is blank); on the champion's card in \"Champion Golfers at [venue]\" (a tall 400×600 crop from the centre); and in the venue strip below unless that has a photo of its own. The venue page falls back to the player's profile photo when this is blank.",
       },
     },
     {

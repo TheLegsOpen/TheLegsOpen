@@ -118,6 +118,10 @@ form can overwrite the change.
 
 ### Slot notes
 
+- **Banner focus:** after uploading a Champion Photo, set the image's focal point on the champion's
+  face (`PATCH /api/media/<id>` `{focalX, focalY}` in percent, or the Banner focus picker on the image's
+  page in Media). The Previous Opens banner frames on it, so faces stay in shot at every width.
+
 - **Champion cut-outs** need the background removed first. Run the local tool (installed in
   `C:UsersmarkaClaude Shopify	oolsg-remove`, runs on the laptop, nothing uploaded anywhere):
   ```bash

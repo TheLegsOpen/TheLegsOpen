@@ -24,6 +24,7 @@ import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0
 import { RecordNav as RecordNav_50335bcd1db5554e2daba9f0ae26ca57 } from '../../../components/admin/RecordNav'
 import { CourseImportField as CourseImportField_027e57f3e03ef2c516738b356679913d } from '../../../components/admin/CourseImportField'
 import { HolesTableField as HolesTableField_76e82c7a63974865a87d0601d94c6d0e } from '../../../components/admin/HolesTableField'
+import { FocalPointPicker as FocalPointPicker_8c1f3a2e9b7d4c6a5e0f1b2d3c4a5e6f } from '../../../components/admin/FocalPointPicker'
 import { ScorecardHolesField as ScorecardHolesField_3b9f0d5055863e51a870fb77cf5873b4 } from '../../../components/admin/ScorecardHolesField'
 import { BrandIcon as BrandIcon_d0588eb7948ddcaab14f9f6ea2cd1dd7 } from '../../../components/admin/BrandIcon'
 import { BrandLogo as BrandLogo_9bb8ea9971948830b3de812baaa56aec } from '../../../components/admin/BrandLogo'
@@ -58,6 +59,7 @@ export const importMap = {
   "/components/admin/RecordNav#RecordNav": RecordNav_50335bcd1db5554e2daba9f0ae26ca57,
   "/components/admin/CourseImportField#CourseImportField": CourseImportField_027e57f3e03ef2c516738b356679913d,
   "/components/admin/HolesTableField#HolesTableField": HolesTableField_76e82c7a63974865a87d0601d94c6d0e,
+  "/components/admin/FocalPointPicker#FocalPointPicker": FocalPointPicker_8c1f3a2e9b7d4c6a5e0f1b2d3c4a5e6f,
   "/components/admin/ScorecardHolesField#ScorecardHolesField": ScorecardHolesField_3b9f0d5055863e51a870fb77cf5873b4,
   "/components/admin/BrandIcon#BrandIcon": BrandIcon_d0588eb7948ddcaab14f9f6ea2cd1dd7,
   "/components/admin/BrandLogo#BrandLogo": BrandLogo_9bb8ea9971948830b3de812baaa56aec,
