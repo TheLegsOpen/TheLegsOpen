@@ -39,7 +39,7 @@ export function Header({
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 h-[60px] w-full bg-primary text-primary-foreground transition-shadow duration-300 ease-standard",
+        "sticky top-0 z-30 h-[52px] md:h-[60px] w-full bg-primary text-primary-foreground transition-shadow duration-300 ease-standard",
         isScrolled && "shadow-header",
       )}
     >
@@ -55,7 +55,7 @@ export function Header({
        * whenever the logo or the icons changed width; out of flow it is centred on the header
        * itself and stays put.
        */}
-      <div className="relative flex h-full items-center justify-between px-4 sm:px-6 lg:px-[70px]">
+      <div className="relative flex h-full items-center justify-between px-5 md:px-[30px] lg:px-[70px]">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-2 font-menu text-[17px] font-black uppercase leading-[16px] tracking-[1.6px] text-white no-underline"

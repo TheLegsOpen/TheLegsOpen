@@ -99,7 +99,7 @@ export async function VenueDetail({ slug }: { slug: string }) {
           in the breadcrumb trail when that is switched on. */}
       <PageHero
         variant="photo"
-        heightPx={520}
+        size="venue"
         imageLabel={venue.imageLabel}
         imageUrl={venue.imageUrl}
         title={venue.name}

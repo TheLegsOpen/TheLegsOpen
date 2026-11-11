@@ -93,7 +93,11 @@ const config: Config = {
         //
         // This is a cap, not a fixed margin: past 1920 the content stays 1366 and the margins
         // grow, which is how The Open behaves too.
-        container: "1430px",
+        //
+        // Now 1366 with theopen.com's own gutters inside it (see Container): 20px on phones, 30px
+        // on tablets and small laptops, 70px from 1280 up, so the content column is their 1226.
+        // Measured on theopen.com at 375, 768, 1090, 1366 and 1920.
+        container: "1366px",
       },
       // The Open splits every band with the same two proportions, at a 20px gutter: a main column
       // beside a sidebar, or three equal columns. Measured off theopen.com at 1920 -- 891 + 455

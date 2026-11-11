@@ -18,7 +18,7 @@ interface PageHeroProps {
   /** "photo" gives landing-style pages the same full-bleed image treatment as the homepage hero. */
   variant?: "light" | "photo";
   /** "large" (default) matches the homepage's cinematic hero. "compact" suits data-utility pages people check repeatedly (leaderboard, tee times, statistics) so the actual content sits higher on the page -- matches theopen.com/AIG Women's Open's own leaderboard header proportions. Ignored when `heightPx` is set. */
-  size?: "large" | "compact" | "slim" | "feature";
+  size?: "large" | "compact" | "slim" | "feature" | "venue";
   /**
    * "bottom" (default) fades the photo to black from the foot up, behind the title. "diagonal" is
    * theopen.com's Previous Opens hero: clear at the top right, deepening to navy at the bottom left
@@ -60,7 +60,7 @@ export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "
           "relative w-full overflow-hidden",
           // slim: theopen.com's championship-week banner, about 230px of photo with the switcher on it,
           // so the table starts inside the first screen rather than a fold down.
-          !heightPx && (slim ? "h-[200px] sm:h-[230px]" : size === "compact" ? "h-[22vh] min-h-[160px] sm:h-[30vh] sm:min-h-[220px]" : size === "feature" ? "h-[300px] sm:h-[530px]" : "h-[60vh] min-h-[420px]"),
+          !heightPx && (slim ? "h-[174px] sm:h-[230px]" : size === "compact" ? "h-[165px] md:h-[338px]" : size === "feature" ? "h-[260px] md:h-[410px] lg:h-[530px]" : size === "venue" ? "h-[280px] md:h-[340px] lg:h-[440px] xl:h-[520px]" : "h-[60vh] min-h-[420px]"),
         )}
         style={heightPx ? { height: heightPx } : undefined}
       >

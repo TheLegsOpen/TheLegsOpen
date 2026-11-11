@@ -7,7 +7,7 @@ export function Container({
 }: React.HTMLAttributes<HTMLDivElement> & { as?: "div" | "section" | "article" }) {
   return (
     <Tag
-      className={cn("mx-auto w-full max-w-container px-4 sm:px-6 lg:px-8", className)}
+      className={cn("mx-auto w-full max-w-container px-5 md:px-[30px] xl:px-[70px]", className)}
       {...props}
     />
   );

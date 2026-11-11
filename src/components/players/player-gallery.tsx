@@ -59,7 +59,7 @@ export function PlayerGallery({
       <Wrapper contained={contained}>
         {/* theopen.com's 1226 column (70px inside our 1366 container) from xl -- see COLUMN in
             src/app/(app)/players/[slug]/page.tsx. 55px above the title, 50px from it to the photo. */}
-        <div className="xl:px-[70px]">
+        <div>
         <h2 className="pb-[50px] pt-[55px] text-center font-menu text-[14px] font-bold uppercase leading-[16px] tracking-[1.6px] text-[#43524E]">{title}</h2>
 
         <div className="relative">

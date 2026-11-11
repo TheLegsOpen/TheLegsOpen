@@ -79,8 +79,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       </div>
 
       <Container className="py-8">
-        <div className="grid grid-cols-1 bg-[#F7F7F7] lg:grid-cols-[minmax(0,888fr)_minmax(0,478fr)]">
-          <article className="flex flex-col gap-8 px-5 py-8 lg:px-[70px] lg:py-10">
+        <div className="-mx-5 grid grid-cols-1 bg-[#F7F7F7] md:-mx-[30px] lg:mx-0 lg:grid-cols-[minmax(0,888fr)_minmax(0,478fr)]">
+          <article className="flex flex-col gap-8 px-5 py-8 md:px-[30px] lg:px-[40px] lg:py-10">
             <div className="flex items-start justify-between gap-6">
               <h1 className="font-menu text-[28px] leading-[1.2] text-[#2a2a2a] sm:text-[36px]">
                 <span className="font-bold uppercase tracking-[1px]">{article.title}</span>
@@ -134,7 +134,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </div>
           </article>
 
-          <aside className="px-5 pb-8 lg:py-10 lg:pr-5">
+          <aside className="px-5 pb-8 md:px-[30px] lg:py-10 lg:pl-0 lg:pr-5">
             <div className="flex flex-col gap-3 lg:sticky lg:top-24">
               <p className={SECTION_TITLE}>Related</p>
               {rail.length === 0 ? (

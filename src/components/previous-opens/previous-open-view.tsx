@@ -153,14 +153,14 @@ export function PreviousOpenView({
               sitting flush with no gutter between them, the gap made by padding inside each
               column instead -- 70px on the prose, 20px on the rail. Flush matters now that the
               panel is tinted: a 20px grid gap would draw a white stripe down the middle of it. */}
-          <div className="bg-[#F7F7F7]">
+          <div className="-mx-5 bg-[#F7F7F7] md:-mx-[30px] lg:mx-0">
           <SectionGrid layout="article" className="gap-0">
             {/* The Open sets this prose much larger than we did -- 21px at weight 300 over a
                 37.38px line, with the opening paragraph lifted to 26px at 400 as a standfirst.
                 Ours was 16px throughout. The first of our generated sentences is already the
                 summary line (who won, where, by how much), so it takes the standfirst treatment
                 and the rest follow as body. Colour is their #2a2a2a rather than our muted grey. */}
-            <div className="flex flex-col gap-6 px-5 py-8 lg:px-[70px] lg:py-10">
+            <div className="flex flex-col gap-6 px-5 py-8 md:px-[30px] lg:px-[40px] lg:py-10">
               {championship.overviewStory ? (
                 // Written in the admin, and when it is there it is the whole story -- the
                 // generated sentences would only say the same things again underneath it. It also

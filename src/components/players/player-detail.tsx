@@ -41,7 +41,7 @@ const SECTION_TITLE = "mb-5 font-menu text-[14px] font-bold uppercase leading-[1
  * less lg:px-8), so the extra 70 is all this adds. From xl only; below that the full container
  * width is used, as theopen.com's narrower layouts also drop the indent.
  */
-const COLUMN = "xl:px-[70px]";
+const COLUMN = "";
 
 /** theopen.com's body copy: Founders Grotesk Light, 16px over 24px, #2a2a2a. */
 const BODY_TEXT = "font-sans text-[16px] font-light leading-6 text-[#2a2a2a]";

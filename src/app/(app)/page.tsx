@@ -127,7 +127,7 @@ export default async function HomePage() {
             {/* Breaks out of the Container's own side padding below `lg` (matches
                 aigwomensopen.com's edge-to-edge mobile leaderboard) -- resets to normal once it's
                 sharing the row with the live blog widget at `lg` and up. */}
-            <div className="-mx-4 sm:-mx-6 lg:mx-0">
+            <div className="-mx-5 md:-mx-[30px] lg:mx-0">
               <LeaderboardWidget
                 entries={leaderboard}
                 stableford={stableford}
