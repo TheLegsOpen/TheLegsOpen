@@ -20,7 +20,10 @@ const OUT = path.resolve(process.cwd(), "photo-work");
 const SLOTS = {
   article: { w: 1600, h: 900, crops: [[16, 9, "Article header 16:9"], [4, 3, "News card 4:3"], [1, 1, "Home page square"], [16, 10, "Related thumbnail"]] },
   banner: { w: 2400, h: 800, crops: [[1366, 230, "Slim banner (Leaderboard etc.), laptop"], [1366, 300, "Banner (Field, Records etc.), laptop"], [375, 200, "Banner on a phone"]] },
-  champion: { w: 1920, h: 1080, crops: [[1366, 430, "Previous Opens banner, laptop"], [400, 600, "Champion Golfers card"], [224, 340, "Venue strip"], [110, 120, "Leaderboard winner panel"]] },
+  champion: { w: 1920, h: 1080, crops: [[1366, 430, "Previous Opens banner, laptop"], [400, 600, "Champion Golfers card"], [224, 340, "Venue strip"]] },
+  // A background-removed champion (from tools/bg-remove). Trimmed to the figure, optionally cut
+  // at the waist with --keep-top, and previewed standing in the 280x305 leaderboard box.
+  cutout: { fit: [1200, 1300], background: "#F2BE3A", trim: true, box: [280, 305], crops: [] },
   venue: { w: 2400, h: 1350, crops: [[1366, 520, "Venue page banner, laptop"], [1366, 300, "Course page banner"], [4, 3, "Upcoming Venues card"]] },
   gallery: { w: 1600, h: 960, crops: [[5, 3, "Gallery slider 5:3"]] },
   player: { fit: [1600, 2020], background: "#06051e", crops: [] },
@@ -80,7 +83,19 @@ async function master(src, name, opts) {
 
   let out;
   if (slot.fit) {
-    out = await sharp(base).resize({ width: slot.fit[0], height: slot.fit[1], fit: "inside", withoutEnlargement: true }).toBuffer();
+    let src = base;
+    if (slot.trim) {
+      // Harden the soft edge the model leaves (faint ghosts of the background), then trim to the figure.
+      const { data, info } = await sharp(src).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      for (let i = 3; i < data.length; i += 4) if (data[i] < 110) data[i] = 0;
+      src = (await sharp(await sharp(data, { raw: info }).png().toBuffer()).trim({ threshold: 1 }).toBuffer({ resolveWithObject: true })).data;
+      const keepTop = Number(opts["keep-top"] ?? 1);
+      if (keepTop < 1) {
+        const m = await sharp(src).metadata();
+        src = await sharp(src).extract({ left: 0, top: 0, width: m.width, height: Math.round(m.height * keepTop) }).toBuffer();
+      }
+    }
+    out = await sharp(src).resize({ width: slot.fit[0], height: slot.fit[1], fit: "inside", withoutEnlargement: true }).png().toBuffer();
   } else {
     const aspect = slot.w / slot.h;
     const cx = Number(opts.cx ?? 0.5) * meta.width;
@@ -105,6 +120,13 @@ async function master(src, name, opts) {
   const masterBuf = await sharp(out).flatten({ background: slot.background ?? "#ffffff" }).resize({ height: previewHeight }).png().toBuffer();
   const mm = await sharp(masterBuf).metadata();
   tiles.push({ buf: masterBuf, w: mm.width, h: mm.height, text: `Master ${M.width}x${M.height}` });
+  if (slot.box) {
+    // Stood in the leaderboard's winner box, on the row's yellow, bottom-aligned as the site shows it.
+    const [bw, bh] = slot.box;
+    const fig = await sharp(out).resize({ width: bw, height: bh, fit: "contain", position: "bottom", background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toBuffer();
+    const boxBuf = await sharp({ create: { width: bw, height: bh, channels: 3, background: slot.background } }).composite([{ input: fig }]).png().toBuffer();
+    tiles.push({ buf: boxBuf, w: bw, h: bh, text: `Leaderboard box ${bw}x${bh}` });
+  }
   for (const [w, h, text] of slot.crops) {
     const a = w / h;
     let cw = M.width;

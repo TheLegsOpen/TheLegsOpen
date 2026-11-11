@@ -1,6 +1,6 @@
 ---
 name: legs-open-photo
-description: Crop, convert and upload a photo to thelegsopen.com for a specific slot -- an article image, a page banner, a player cut-out, a champion photo, a venue image, a gallery photo or a Hole Guide map. Use when the user gives a photo (a file path or a folder) and says where it should go on the site, or types /legs-open-photo.
+description: Crop, convert and upload a photo to thelegsopen.com for a specific slot -- an article image, a page banner, a player cut-out, a champion photo, a leaderboard champion cut-out (background removed), a venue image, a gallery photo or a Hole Guide map. Use when the user gives a photo (a file path or a folder) and says where it should go on the site, or types /legs-open-photo.
 ---
 
 # Legs Open photo
@@ -110,12 +110,26 @@ form can overwrite the change.
 | Article image | `article` | 1600×900 | 16:9 at the top of the article, 4:3 on news cards, square in the home page's News & Features, small 16:10 thumbnail under Related | `PATCH /api/articles/<id>` `{image: mediaId, _status: "published"}`. Find the id with `/api/articles?where[slug][equals]=<slug>&draft=true` | the article, `/`, `/latest`, plus its venue page and `/previous-opens/<year>` if tagged to a championship |
 | Page banner | `banner` | 2400×800 | full-width strip, about 230px tall (Leaderboard, Tee Times, Statistics) or about 300px (Field, Records, Live Blog, Latest News, Venues). Top and bottom cropped on wide screens, sides on phones; page title over the bottom-left | `POST /api/globals/page-banners` `{<field>: mediaId}`. Fields: `leaderboard`, `teeTimes`, `statistics`, `field`, `records`, `liveBlog`, `latest`, `venues` (`playerProfile` exists but is not shown anywhere) | that page |
 | Player photo | `player` | the cut-out as supplied, max 2020px tall | trimmed to the golfer automatically and blended into navy: Field grid, profile page, leaderboard, tee-time cards, Head-to-head | `PATCH /api/players/<id>` `{photo: mediaId}` | `/players/<slug>`, `/field` |
-| Champion photo | `champion` | 1920×1080 | the banner on `/previous-opens/<year>` (large); the Main leaderboard winner panel (110×120); the venue's Champion Golfers card (400×600 from the centre); the venue strip fallback (224×340) | `PATCH /api/championships/<id>` `{winnerPhoto: mediaId}` | `/previous-opens/<year>`, `/venues/<slug>`, `/leaderboard` if it is the active year |
+| Champion photo | `champion` | 1920×1080, landscape | the banner on `/previous-opens/<year>`, framed at 50% 30% so faces survive (only used there when landscape and 1200px+ wide, otherwise the venue photo shows); the venue's Champion Golfers card (400×600 from the centre); the venue strip fallback (224×340) | `PATCH /api/championships/<id>` `{winnerPhoto: mediaId}` | `/previous-opens/<year>`, `/venues/<slug>`, `/leaderboard` if it is the active year |
+| Champion cut-out | `cutout` | the trimmed figure, max 1200×1300, waist up with `--keep-top 0.6` | stood on the yellow winner row of the Main leaderboard, 280×305 on a laptop (theopen.com's size). Without one the row uses the champion's profile cut-out | `PATCH /api/championships/<id>` `{championCutout: mediaId}` | `/leaderboard` if it is the active year, `/previous-opens/<year>` Results tab |
 | Venue image | `venue` | 2400×1350 | the 520px banner at the top of the venue page, the course page, Upcoming Venues cards | `PATCH /api/venues/<id>` `{image: mediaId}` | `/venues/<slug>`, `/venues/<slug>/course` |
 | Gallery photo | `gallery` | 1600×960 | a 5:3 slider. Championship gallery = "Best of the [year]" on Previous Opens and the venue slider; venue gallery = the venue slider; player gallery = the profile slider | array field `gallery` on `championships`, `venues` or `players`: `{gallery: [...existing, {image: mediaId, caption}]}` | the page that shows it |
 | Hole map | `hole` | max 1193×2020, kept whole | a cream 3:5 panel on `/venues/<slug>/course` | array field `holeImages` on `venues`: rows `{hole, image, description}` | `/venues/<slug>/course`, and the venue page shows The Course card once one hole has an image |
 
 ### Slot notes
+
+- **Champion cut-outs** need the background removed first. Run the local tool (installed in
+  `C:UsersmarkaClaude Shopify	oolsg-remove`, runs on the laptop, nothing uploaded anywhere):
+  ```bash
+  cd "/c/Users/marka/Claude Shopify/tools/bg-remove" && node remove.mjs "<photo>" out/<name>.png
+  ```
+  Then `crop.cjs master out/<name>.png "<name>" --slot cutout --keep-top 0.6` (0.6 cuts at the waist;
+  1 keeps the whole figure). **Zoom in on the head and edges before uploading.** The tool is very
+  good on clothes and trophies but keeps dark shapes that touch the hair, such as sign lettering
+  behind the head (it left an "O" from SCOTLAND on Andrew Duncan). Do not try to mask those out
+  in code; a straight or oval cut chops the hair. Save a PNG to `photo-work/` and ask the user to
+  erase the leftover in Photoshop (eraser or Select Subject), then upload their tidied file.
+  Photos against a plain background (sky, fairway) cut out cleanly.
 
 - **Player photos** must be a cut-out on plain black or a transparent PNG. Anything else shows as
   a box behind the player. If the user sends an ordinary photo, say so; background removal needs
