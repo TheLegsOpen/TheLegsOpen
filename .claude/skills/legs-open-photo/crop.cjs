@@ -33,7 +33,7 @@ const SLOTS = {
 function args(list) {
   const out = { _: [] };
   for (let i = 0; i < list.length; i++) {
-    if (list[i].startsWith("--")) out[list[i].slice(2)] = list[++i];
+    if (list[i].startsWith("--")) out[list[i].slice(2)] = list[i + 1] === undefined || list[i + 1].startsWith("--") ? "1" : list[++i];
     else out._.push(list[i]);
   }
   return out;
@@ -86,8 +86,9 @@ async function master(src, name, opts) {
     let src = base;
     if (slot.trim) {
       // Harden the soft edge the model leaves (faint ghosts of the background), then trim to the figure.
+      // --soft skips this for a cut-out already tidied by hand, so wispy hair keeps its soft edge.
       const { data, info } = await sharp(src).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-      for (let i = 3; i < data.length; i += 4) if (data[i] < 110) data[i] = 0;
+      if (opts.soft === undefined) for (let i = 3; i < data.length; i += 4) if (data[i] < 110) data[i] = 0;
       src = (await sharp(await sharp(data, { raw: info }).png().toBuffer()).trim({ threshold: 1 }).toBuffer({ resolveWithObject: true })).data;
       const keepTop = Number(opts["keep-top"] ?? 1);
       if (keepTop < 1) {

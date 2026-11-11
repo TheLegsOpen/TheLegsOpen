@@ -129,6 +129,9 @@ form can overwrite the change.
   behind the head (it left an "O" from SCOTLAND on Andrew Duncan). Do not try to mask those out
   in code; a straight or oval cut chops the hair. Save a PNG to `photo-work/` and ask the user to
   erase the leftover in Photoshop (eraser or Select Subject), then upload their tidied file.
+  Run their tidied file through `--slot cutout --keep-top 0.68 --soft`: `--soft` keeps their soft hair
+  edges (without it the helper hardens edges, which is only right for the raw tool output), and
+  0.68 keeps the whole trophy including its base in a waist-up figure (check the box preview).
   Photos against a plain background (sky, fairway) cut out cleanly.
 
 - **Player photos** must be a cut-out on plain black or a transparent PNG. Anything else shows as
