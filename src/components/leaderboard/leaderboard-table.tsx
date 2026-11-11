@@ -229,7 +229,9 @@ function LeaderboardRow({
         <div className={cn("flex items-center gap-2", isLeader && "hidden")}>
           <button type="button" onClick={() => onSelectPlayer(entry.player.id)} className="truncate hover:underline">
             <span className={cn("font-bold", isLeader && "text-base")}>{surname}</span>
-            <span className="font-normal">, {firstName}</span>
+            {/* Phones: an initial, so a long surname fits beside the score columns instead of truncating. */}
+            <span className="font-normal sm:hidden">, {firstName.charAt(0)}.</span>
+            <span className="hidden font-normal sm:inline">, {firstName}</span>
           </button>
           <CountryFlag code={entry.player.countryCode} className="h-3 w-4 shrink-0 align-middle" />
         </div>
