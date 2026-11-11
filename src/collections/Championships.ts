@@ -107,7 +107,7 @@ export const Championships: CollectionConfig = {
       relationTo: "media",
       admin: {
         description:
-          "Optional. The champion with the trophy, background removed: a transparent PNG or WebP, at least 600×650px, cropped close with no empty space around them. Shown standing in the winner's row on the Main leaderboard (280×305 on a laptop), as theopen.com does. Left blank, the row uses the champion's player profile cut-out instead.",
+          "Optional. The champion with the trophy, background removed: a transparent PNG or WebP, at least 600×650px, cropped close with no empty space around them. Shown standing in the winner's row on the Main leaderboard (280×305 on a laptop), as theopen.com does. Left blank, the row shows no picture, just the champion's name.",
       },
     },
     {

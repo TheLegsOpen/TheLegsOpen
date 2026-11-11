@@ -71,8 +71,8 @@ export default async function LeaderboardPage() {
   const main = applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main"));
   const stableford = applyPlayoffToEntries(stablefordRaw, playoffs.find((p) => p.competition === "stableford"));
   const scratch = applyPlayoffToEntries(scratchRaw, playoffs.find((p) => p.competition === "scratch"));
-  // The winner row stands the championship's Champion Cut-out in it; without one it falls back
-  // to the champion's own profile cut-out (see ChampionFeature).
+  // The winner row stands the championship's Champion Cut-out in it; without one the row has no
+  // picture (see ChampionFeature).
   const championCutoutUrl = championshipHistory.find((c) => String(c.id) === String(activeChampionshipId))?.championCutoutUrl;
   const stablefordTitleHolderId = getEligibleStablefordChampion(main, stableford)?.player.id;
 

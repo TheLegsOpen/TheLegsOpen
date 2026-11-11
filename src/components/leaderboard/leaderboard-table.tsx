@@ -99,9 +99,8 @@ export function AnimatedValue({ value }: { value: string | number }) {
  * strip of eighteen squares, one per hole.
  *
  * Main only. The picture is the championship's Champion Cut-out -- background removed, so it stands
- * straight on the yellow row as theirs does -- or, without one, the champion's own profile
- * cut-out, which is shot on black and so sits in a navy box it can blend into. Stableford and
- * Scratch carry no picture.
+ * straight on the yellow row as theirs does. No cut-out set in the admin, no picture: the row is
+ * just the name. Stableford and Scratch carry no picture.
  *
  * Only on a concluded competition, by request: mid-round the leader can change on any hole, and a
  * feature card would make whoever is in front look like the winner.
@@ -118,17 +117,12 @@ function ChampionFeature({
   championCutoutUrl?: string;
 }) {
   const { surname, firstName } = splitSurnameFirst(entry.player.name);
-  const fallback = competition === "main" && !championCutoutUrl ? portraitUrl(entry.player.photoUrl) : undefined;
   const frame = "relative h-[160px] w-[146px] shrink-0 sm:h-[305px] sm:w-[280px]";
   return (
     <div className="-my-3 flex items-end gap-4 sm:gap-6">
       {competition === "main" && championCutoutUrl ? (
         <div className={frame} aria-hidden="true">
           <Image src={championCutoutUrl} alt="" fill sizes="(min-width: 640px) 280px, 146px" className="object-contain object-bottom" />
-        </div>
-      ) : fallback ? (
-        <div className={cn(frame, "overflow-hidden bg-primary")} aria-hidden="true">
-          <PlaceholderArt label="" imageUrl={fallback} tone="navy" blendBlack fill fit="contain-bottom" sizes="(min-width: 640px) 280px, 146px" />
         </div>
       ) : null}
       <div className="min-w-0 py-4">
