@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
+import { cn } from "@/lib/utils";
+
 import { StatPreviewCard } from "@/components/statistics/stat-preview-card";
 import { ToughestHolesBoard } from "@/components/statistics/toughest-holes-board";
 import { PlayoffsBoard } from "@/components/statistics/playoffs-board";
@@ -135,15 +137,18 @@ export function StatPreviewBoard(props: StatPreviewBoardProps) {
         </label>
       </div>
 
+      {/* The boards run edge to edge on phones (the filters above keep the margin). */}
       {section === "course" ? (
-        <div className="flex flex-col gap-8">
+        <div className="-mx-5 flex flex-col gap-8 sm:mx-0">
           <ToughestHolesBoard title="Toughest Holes - Nett" rows={toughestHolesNett} />
           <ToughestHolesBoard title="Toughest Holes - Scratch" rows={toughestHolesScratch} />
         </div>
       ) : section === "playoffs" ? (
-        <PlayoffsBoard results={playoffs} onSelectPlayer={setSelectedPlayerId} />
+        <div className="-mx-5 sm:mx-0">
+          <PlayoffsBoard results={playoffs} onSelectPlayer={setSelectedPlayerId} />
+        </div>
       ) : (
-        <div className={twoColumn ? "grid grid-cols-1 gap-6 xl:grid-cols-2" : "flex flex-col gap-8"}>
+        <div className={cn("-mx-5 sm:mx-0", twoColumn ? "grid grid-cols-1 gap-6 xl:grid-cols-2" : "flex flex-col gap-8")}>
           {categories.map((category) => (
             <StatPreviewCard
               key={category.key}

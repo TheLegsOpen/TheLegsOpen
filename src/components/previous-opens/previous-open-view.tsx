@@ -408,8 +408,10 @@ export function PreviousOpenView({
                     <p className="text-sm text-surface-dark-foreground/60">
                       How the field scored on every hole at {championship.venueName} in {championship.year}.
                     </p>
-                    <ToughestHolesBoard title={`Course Scoring - Nett (${championship.year})`} rows={results.toughestHolesNett} />
-                    <ToughestHolesBoard title={`Course Scoring - Scratch (${championship.year})`} rows={results.toughestHolesScratch} />
+                    <div className="-mx-5 flex flex-col gap-8 md:mx-0">
+                      <ToughestHolesBoard title={`Course Scoring - Nett (${championship.year})`} rows={results.toughestHolesNett} />
+                      <ToughestHolesBoard title={`Course Scoring - Scratch (${championship.year})`} rows={results.toughestHolesScratch} />
+                    </div>
                   </div>
                 ) : (
                   <p className="px-5 text-sm text-muted-foreground md:px-0">Hole-by-hole scoring has not been recorded for {championship.year}.</p>

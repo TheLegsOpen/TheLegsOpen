@@ -97,7 +97,7 @@ export function StatPreviewCard({
   const extra = highlightId && !top.some((r) => r.player.id === highlightId) ? category.rows.find((r) => r.player.id === highlightId) : undefined;
 
   return (
-    <div className="flex flex-col gap-px overflow-hidden border border-surface-dark-foreground/15">
+    <div className="flex flex-col gap-px overflow-hidden border-y border-surface-dark-foreground/15 sm:border-x">
       <div className="flex items-center justify-between gap-4 bg-primary px-4 py-3">
         <h3 className="font-display text-lg font-bold uppercase tracking-wide text-primary-foreground">{category.title}</h3>
         <Link

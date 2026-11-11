@@ -49,7 +49,7 @@ function summaryRow(label: string, rows: HoleToughnessRow[]) {
 
 export function ToughestHolesBoard({ title, rows }: { title: string; rows: HoleToughnessRow[] }) {
   return (
-    <div className="flex flex-col border border-surface-dark-foreground/15">
+    <div className="flex flex-col border-y border-surface-dark-foreground/15 sm:border-x">
       <div className="bg-primary px-4 py-3">
         <h3 className="font-display text-lg font-bold uppercase tracking-wide text-primary-foreground">{title}</h3>
       </div>
