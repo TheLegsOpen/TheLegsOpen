@@ -42,6 +42,12 @@ function summarise(player: Player, results: PlayerYearResult[]): Career {
   };
 }
 
+/** 2.5 → "2½", 0.5 → "½", 3 → "3". */
+function halfScore(n: number): string {
+  const whole = Math.floor(n);
+  return n - whole === 0.5 ? `${whole || ""}½` : String(whole);
+}
+
 function finishLabel(r: PlayerYearResult | undefined): string {
   if (!r) return "—";
   if (r.main.withdrawn) return "WD";
@@ -99,8 +105,18 @@ export default async function HeadToHeadPreview({ searchParams }: { searchParams
     if (zOut) return "a";
     return x.position < z.position ? "a" : z.position < x.position ? "b" : "level";
   };
-  const tallyA = shared.filter((y) => ahead(y) === "a").length;
-  const tallyB = shared.filter((y) => ahead(y) === "b").length;
+  // A year they finished level counts a half to each, as a halved match does.
+  const halves = shared.filter((y) => ahead(y) === "level").length / 2;
+  const tallyA = shared.filter((y) => ahead(y) === "a").length + halves;
+  const tallyB = shared.filter((y) => ahead(y) === "b").length + halves;
+  // The same years as matches, on the nett cards: won 1, halved ½. Only years with hole-by-hole
+  // cards on both sides count, so it can total fewer years than the line above.
+  const matches = shared
+    .map((y) => matchPlayResult(ra.find((r) => r.year === y)?.main.holes, rb.find((r) => r.year === y)?.main.holes))
+    .filter((m) => m !== undefined);
+  const matchHalves = matches.filter((m) => m.outcome === "halved").length / 2;
+  const matchA = matches.filter((m) => m.outcome === "won").length + matchHalves;
+  const matchB = matches.filter((m) => m.outcome === "lost").length + matchHalves;
 
   const rows: { label: string; a?: string | number; b?: string | number; better?: "low" | "high" }[] = [
     { label: "Appearances", a: ca?.appearances, b: cb?.appearances, better: "high" },
@@ -156,8 +172,14 @@ export default async function HeadToHeadPreview({ searchParams }: { searchParams
             <div className="grid grid-cols-1 items-end gap-6 border-b border-[#B9BEC0] pb-6 md:grid-cols-[1fr_auto_1fr]">
               <PlayerHead player={pa} />
               <p className="text-center font-menu text-[36px] font-bold tabular-nums text-primary">
-                {tallyA} <span className="text-[#B9BEC0]">–</span> {tallyB}
+                {halfScore(tallyA)} <span className="text-[#B9BEC0]">–</span> {halfScore(tallyB)}
                 <span className="block text-[11px] font-normal uppercase tracking-[1.6px] text-[#43524E]">Finished ahead, years both played</span>
+                {matches.length > 0 ? (
+                  <span className="mt-2 block text-[18px] leading-tight">
+                    {halfScore(matchA)} <span className="text-[#B9BEC0]">–</span> {halfScore(matchB)}
+                    <span className="block text-[11px] font-normal uppercase tracking-[1.6px] text-[#43524E]">Match play, nett</span>
+                  </span>
+                ) : null}
               </p>
               <div className="md:justify-self-end">
                 <PlayerHead player={pb} />
