@@ -55,7 +55,7 @@ export function StatsTab({ playerId, careerCategories, years }: StatsTabProps) {
   const isLoading = mode === "year" && !active;
 
   return (
-    <div className="flex flex-col gap-6 bg-surface-dark p-6 text-surface-dark-foreground">
+    <div className="-mx-5 flex flex-col gap-6 bg-surface-dark px-5 py-6 text-surface-dark-foreground sm:mx-0 sm:p-6">
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex flex-wrap gap-2">
           <button

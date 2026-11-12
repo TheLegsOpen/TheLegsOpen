@@ -284,15 +284,15 @@ export async function PlayerDetail({ slug }: { slug: string }) {
       </section>
 
       {/* ---- Phone and small-tablet hero (below lg): theopen.com's mobile player hero, measured off
-          /players/padraig-harrington at 384px. One navy band about 380px tall: the cut-out large
-          and standing on the bottom edge right of centre, the stats stacked down the left over it,
-          and the Champion Golfer years bottom right. It replaces a stack
+          /players/padraig-harrington at 384px. One navy band 360px tall: the cut-out large and
+          standing on the bottom edge right of centre, the stats stacked from the top left, and the
+          Champion Golfer years bottom right. It replaces a stack
           (photo, then a two-column stat grid) that ran to 800px before the name appeared. ---- */}
       <section className="relative w-full overflow-hidden bg-primary text-primary-foreground lg:hidden">
-        <div className="relative h-[400px] sm:h-[480px]">
+        <div className="relative h-[360px] sm:h-[440px]">
           {/* No jug here, unlike theirs: our portraits are cut-outs on black blended into the navy,
               so anything placed behind one shows through the shirt like a watermark. */}
-          <div className="pointer-events-none absolute bottom-0 left-[22%] right-[-8%] top-5 sm:left-[28%] sm:right-0">
+          <div className="pointer-events-none absolute bottom-0 left-[16%] right-[-16%] top-2 sm:left-[26%] sm:right-[-4%]">
             <PlaceholderArt
               label={`${player.name} portrait`}
               imageUrl={portraitUrl(player.photoUrl)}
@@ -305,13 +305,13 @@ export async function PlayerDetail({ slug }: { slug: string }) {
             />
           </div>
           {/* Keeps the stats and the champion block legible where they cross the portrait. */}
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(6,5,30,0.85)_0%,rgba(6,5,30,0.35)_38%,rgba(6,5,30,0)_60%)]" aria-hidden="true" />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(6,5,30,0.7)_0%,rgba(6,5,30,0.2)_30%,rgba(6,5,30,0)_45%)]" aria-hidden="true" />
           <Container className="relative h-full">
-            <dl className="flex h-full flex-col justify-center gap-4 sm:gap-5">
+            <dl className="flex flex-col gap-3 pt-5 sm:gap-4 sm:pt-7">
               {mobileStats.map((stat) => (
                 <div key={stat.label} className="flex flex-col gap-1 border-l-2 border-accent pl-3">
                   <dt className="max-w-[96px] font-menu text-[12px] uppercase leading-[14px] tracking-[0.6px]">{stat.label}</dt>
-                  <dd className="font-menu text-[28px] uppercase leading-none tracking-[1px] sm:text-[34px]">{stat.value}</dd>
+                  <dd className="font-menu text-[26px] uppercase leading-none tracking-[1px] sm:text-[32px]">{stat.value}</dd>
                 </div>
               ))}
             </dl>
@@ -429,15 +429,15 @@ export async function PlayerDetail({ slug }: { slug: string }) {
           both Cardinal Photo, then the country at 14px in their #43524E. White, as the rest of
           their page is, rather than our grey page background. */}
       <section className="bg-white xl:hidden">
-        <Container className="flex flex-col pb-6 pt-8 lg:pt-10">
+        <Container className="flex flex-col pb-5 pt-4 sm:pb-6 sm:pt-8 lg:pt-10">
           <p className="font-menu text-[22px] leading-[1.15] tracking-[1.2px] text-primary sm:text-[28px] lg:text-[36px]">{firstName}</p>
           <h1 className="break-words font-menu text-[36px] font-bold uppercase leading-[1.1] tracking-[1.2px] text-primary sm:text-[56px] lg:text-[80px]">
             {surname}
           </h1>
-          <p className="mt-6 flex items-center gap-2 font-menu text-[14px] leading-5 tracking-[0.2px] text-[#43524E]">
+          <p className="mt-3 flex items-center gap-2 font-menu text-[13px] leading-5 tracking-[0.2px] text-[#43524E] sm:mt-6 sm:text-[14px]">
             {/* !w: flag-icons' own `.fi` width (1.333em) loads after Tailwind and would otherwise
                 win, leaving a 19px-wide flag stretched to 22px tall. 30x22 keeps the flags' 4:3. */}
-            <CountryFlag code={player.countryCode} className="h-[22px] !w-[30px]" />
+            <CountryFlag code={player.countryCode} className="h-[14px] !w-[19px] sm:h-[22px] sm:!w-[30px]" />
             {player.country}
           </p>
           <Link href={`/head-to-head?a=${slug}`} className={cn(COMPARE_LINK, "mt-5")}>

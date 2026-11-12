@@ -113,14 +113,14 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
 
   if (results.length === 0) {
     return (
-      <div className="bg-surface-dark p-6 text-surface-dark-foreground/70">
+      <div className="-mx-5 bg-surface-dark px-5 py-6 text-surface-dark-foreground/70 sm:mx-0 sm:p-6">
         <p>No previous appearances at the Legs Open on record.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-8 bg-surface-dark p-6 text-surface-dark-foreground">
+    <div className="-mx-5 flex flex-col gap-8 bg-surface-dark px-5 py-6 text-surface-dark-foreground sm:mx-0 sm:p-6">
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex flex-wrap gap-2">
           <button
@@ -185,7 +185,7 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
 
       <div>
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.14em] text-surface-dark-foreground/60">Results &amp; Scorecard</p>
-        <div className="no-scrollbar overflow-x-auto border border-surface-dark-foreground/15">
+        <div className="no-scrollbar -mx-5 overflow-x-auto border-y border-surface-dark-foreground/15 sm:mx-0 sm:border-x">
           <table className="w-full min-w-[720px] border-collapse text-sm">
             <thead>
               <tr className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 text-center text-xs uppercase tracking-wide text-surface-dark-foreground/60">
