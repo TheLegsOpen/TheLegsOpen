@@ -182,7 +182,7 @@ export function PreviousOpenView({
                 // with one line saying what happened before the detail starts.
                 <>
                   <p className="font-sans text-[26px] leading-[35.88px] text-[#2a2a2a]">{overviewArticle.dek}</p>
-                  {championship.overviewVideoUrl ? <OverviewVideo url={championship.overviewVideoUrl} /> : null}
+                  {championship.overviewVideoFileUrl || championship.overviewVideoUrl ? <OverviewVideo url={championship.overviewVideoUrl} fileUrl={championship.overviewVideoFileUrl} poster={championship.winnerPhotoUrl} /> : null}
                   <RichTextBlock
                     data={overviewArticle.body}
                     className="font-sans text-[21px] font-light leading-[37.38px] text-[#2a2a2a]"
@@ -208,7 +208,7 @@ export function PreviousOpenView({
                     </p>
                     {/* Under the standfirst, which is where The Open runs its player -- after the
                         line that says what happened, before the detail. */}
-                    {i === 0 && championship.overviewVideoUrl ? <OverviewVideo url={championship.overviewVideoUrl} /> : null}
+                    {i === 0 && (championship.overviewVideoFileUrl || championship.overviewVideoUrl) ? <OverviewVideo url={championship.overviewVideoUrl} fileUrl={championship.overviewVideoFileUrl} poster={championship.winnerPhotoUrl} /> : null}
                   </Fragment>
                 ))
               ) : (

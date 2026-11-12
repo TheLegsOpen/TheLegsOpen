@@ -45,8 +45,40 @@ export function toEmbedUrl(raw: string): string | null {
  * 16:9, so that is what this holds rather than their exact pixels, which were a function of their
  * column width rather than a choice.
  */
-export function OverviewVideo({ url, className }: { url: string; className?: string }) {
-  const embed = toEmbedUrl(url);
+export function OverviewVideo({
+  url,
+  fileUrl,
+  poster,
+  className,
+}: {
+  url?: string;
+  /** A video file hosted on the site. Wins over `url` when both are set. */
+  fileUrl?: string;
+  /** Still shown before play for a hosted file. */
+  poster?: string;
+  className?: string;
+}) {
+  if (fileUrl) {
+    // The browser's own player: no third-party branding, adverts or suggested videos afterwards.
+    // preload="metadata" fetches the length and first frame only, so the page stays light until
+    // someone presses play.
+    return (
+      <div className={cn("relative aspect-video w-full overflow-hidden bg-black", className)}>
+        <video
+          src={fileUrl}
+          poster={poster}
+          controls
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 h-full w-full object-contain"
+        >
+          <track kind="captions" />
+        </video>
+      </div>
+    );
+  }
+
+  const embed = url ? toEmbedUrl(url) : null;
   if (!embed) return null;
 
   return (

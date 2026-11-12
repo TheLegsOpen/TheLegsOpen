@@ -18,6 +18,8 @@ export interface ChampionshipWinner {
   overviewStory?: unknown;
   /** Optional YouTube or Vimeo link shown in the Overview tab. */
   overviewVideoUrl?: string;
+  /** Optional video file hosted on the site; plays in place of overviewVideoUrl when set. */
+  overviewVideoFileUrl?: string;
   /** Editorial caption written across this championship's photo in the venue page strip. Empty means the photo carries its year alone. */
   venueStripCaption?: string;
   /** Strip-only photo override. Empty means the strip shows whatever Champion Golfers shows. */

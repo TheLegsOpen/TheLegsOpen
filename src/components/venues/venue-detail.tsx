@@ -216,7 +216,7 @@ export async function VenueDetail({ slug }: { slug: string }) {
             year: c.year,
             winnerName: c.winnerName,
             caption: c.venueStripCaption,
-            hasVideo: Boolean(c.overviewVideoUrl),
+            hasVideo: Boolean(c.overviewVideoFileUrl || c.overviewVideoUrl),
             // Three deep, and only this section has the first rung: the strip's own photo, then
             // the Champion Photo that the Champion Golfers band below uses, then the player's
             // profile portrait. So the two sections show the same picture until someone gives the

@@ -64,6 +64,7 @@ function mapChampionship(doc: PayloadChampionship): ChampionshipWinner {
     margin: doc.margin ?? undefined,
     overviewStory: doc.overviewStory ?? undefined,
     overviewVideoUrl: doc.overviewVideoUrl ?? undefined,
+    overviewVideoFileUrl: mediaUrl(doc.overviewVideoFile),
     venueStripCaption: doc.venueStripCaption ?? undefined,
     venueStripPhotoUrl: mediaUrl(doc.venueStripPhoto),
     gallery: (doc.gallery ?? []).map((photo) => ({ imageUrl: mediaUrl(photo.image), caption: photo.caption ?? undefined })).filter((photo) => photo.imageUrl),

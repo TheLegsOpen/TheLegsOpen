@@ -279,6 +279,10 @@ export default buildConfig({
         media: true,
       },
       token: process.env.BLOB_READ_WRITE_TOKEN,
+      // The admin sends the file straight from the browser to Blob storage rather than through a
+      // Vercel function, whose request body is capped at 4.5MB -- which stopped any video (and the
+      // occasional large photo) being uploaded at all.
+      clientUploads: true,
     }),
   ],
 });

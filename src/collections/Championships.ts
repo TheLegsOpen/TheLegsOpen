@@ -173,6 +173,20 @@ export const Championships: CollectionConfig = {
       },
     },
     {
+      // Needs the overview_video_file_id column on championships, added by hand in Supabase before
+      // this shipped -- there are no migrations here and the adapter only pushes schema in
+      // development.
+      name: "overviewVideoFile",
+      label: "Overview Video (file)",
+      type: "upload",
+      relationTo: "media",
+      filterOptions: { mimeType: { contains: "video" } },
+      admin: {
+        description:
+          "Optional. A video file hosted on the site itself -- an MP4 at 1920×1080, ideally under 50MB (a 20-second clip is about 8MB). Plays in the same place as the link above, with the Champion Photo as its still before play, and takes priority over the link when both are set. Use the link instead for long videos: YouTube adjusts quality for slow connections and costs nothing to stream.",
+      },
+    },
+    {
       name: "overviewStory",
       type: "richText",
       admin: {
