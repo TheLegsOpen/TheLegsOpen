@@ -286,15 +286,12 @@ export async function PlayerDetail({ slug }: { slug: string }) {
       {/* ---- Phone and small-tablet hero (below lg): theopen.com's mobile player hero, measured off
           /players/padraig-harrington at 384px. One navy band about 380px tall: the cut-out large
           and standing on the bottom edge right of centre, the stats stacked down the left over it,
-          and the Champion Golfer years bottom right with the jug behind them. It replaces a stack
+          and the Champion Golfer years bottom right. It replaces a stack
           (photo, then a two-column stat grid) that ran to 800px before the name appeared. ---- */}
       <section className="relative w-full overflow-hidden bg-primary text-primary-foreground lg:hidden">
         <div className="relative h-[400px] sm:h-[480px]">
-          {winYears.length > 0 && theme.championTrophyGraphicUrl ? (
-            <div className="pointer-events-none absolute bottom-0 right-0 h-[230px] w-[190px] sm:h-[290px] sm:w-[240px]" aria-hidden="true">
-              <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="240px" />
-            </div>
-          ) : null}
+          {/* No jug here, unlike theirs: our portraits are cut-outs on black blended into the navy,
+              so anything placed behind one shows through the shirt like a watermark. */}
           <div className="pointer-events-none absolute bottom-0 left-[22%] right-[-8%] top-5 sm:left-[28%] sm:right-0">
             <PlaceholderArt
               label={`${player.name} portrait`}
