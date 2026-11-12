@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
+import { cn } from "@/lib/utils";
 import type { PlayerGalleryPhoto } from "@/types/player";
 
 /**
@@ -62,6 +63,9 @@ export function PlayerGallery({
         <div>
         <h2 className="pb-[50px] pt-[55px] text-center font-menu text-[14px] font-bold uppercase leading-[16px] tracking-[1.6px] text-[#43524E]">{title}</h2>
 
+        {/* On phones the player page's gallery runs edge to edge, as theopen.com's does; inside
+            another page's container (contained=false) it keeps that container's width. */}
+        <div className={contained ? "-mx-5 sm:mx-0" : undefined}>
         <div className="relative">
           <div className="overflow-hidden" ref={emblaRef}>
             <div className="flex">
@@ -109,12 +113,13 @@ export function PlayerGallery({
         </div>
 
         <div className="flex items-stretch border-b border-[#2a2a2a]">
-          <p className="flex-1 py-5 pr-6 font-sans text-[14px] font-bold leading-5 text-black" aria-live="polite">
+          <p className={cn("flex-1 py-5 pr-6 font-sans text-[14px] font-bold leading-5 text-black", contained && "pl-5 sm:pl-0")} aria-live="polite">
             {caption ?? " "}
           </p>
           <span className="flex shrink-0 items-center bg-[#43524E] px-[35px] font-sans text-[12px] font-bold tabular-nums leading-5 text-white">
             {pad(selectedIndex + 1)} / {pad(photos.length)}
           </span>
+        </div>
         </div>
         </div>
       </Wrapper>

@@ -165,6 +165,15 @@ export async function PlayerDetail({ slug }: { slug: string }) {
     ...(bestFinish ? [{ label: "Best Legs Open Finish", value: bestFinish }] : []),
   ];
 
+  // The phone hero has room for four short stats stacked down the left, as theopen.com's has three.
+  // Best finish moves to the bottom-right slot when there are no wins to show there.
+  const mobileStats: { label: string; value: string | number }[] = [
+    { label: "Age", value: player.ageAtChampionship ?? "—" },
+    ...(debutYear ? [{ label: "Legs Open Debut", value: debutYear }] : player.turnedPro ? [{ label: "Turned Pro", value: player.turnedPro }] : []),
+    { label: "Handicap", value: player.championshipHandicap === undefined ? "—" : formatHandicap(player.championshipHandicap) },
+    { label: "Previous Opens", value: player.previousOpens + results.length },
+  ];
+
   const [firstName, ...rest] = player.name.split(" ");
   const surname = rest.join(" ");
 
@@ -274,7 +283,62 @@ export async function PlayerDetail({ slug }: { slug: string }) {
         </div>
       </section>
 
-      <section className="relative w-full overflow-hidden bg-primary text-primary-foreground xl:hidden">
+      {/* ---- Phone and small-tablet hero (below lg): theopen.com's mobile player hero, measured off
+          /players/padraig-harrington at 384px. One navy band about 380px tall: the cut-out large
+          and standing on the bottom edge right of centre, the stats stacked down the left over it,
+          and the Champion Golfer years bottom right with the jug behind them. It replaces a stack
+          (photo, then a two-column stat grid) that ran to 800px before the name appeared. ---- */}
+      <section className="relative w-full overflow-hidden bg-primary text-primary-foreground lg:hidden">
+        <div className="relative h-[400px] sm:h-[480px]">
+          {winYears.length > 0 && theme.championTrophyGraphicUrl ? (
+            <div className="pointer-events-none absolute bottom-0 right-0 h-[230px] w-[190px] sm:h-[290px] sm:w-[240px]" aria-hidden="true">
+              <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="240px" />
+            </div>
+          ) : null}
+          <div className="pointer-events-none absolute bottom-0 left-[22%] right-[-8%] top-5 sm:left-[28%] sm:right-0">
+            <PlaceholderArt
+              label={`${player.name} portrait`}
+              imageUrl={portraitUrl(player.photoUrl)}
+              tone="slate"
+              blendBlack
+              fill
+              fit="contain-bottom"
+              sizes="(min-width: 640px) 72vw, 86vw"
+              priority
+            />
+          </div>
+          {/* Keeps the stats and the champion block legible where they cross the portrait. */}
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(6,5,30,0.85)_0%,rgba(6,5,30,0.35)_38%,rgba(6,5,30,0)_60%)]" aria-hidden="true" />
+          <Container className="relative h-full">
+            <dl className="flex h-full flex-col justify-center gap-4 sm:gap-5">
+              {mobileStats.map((stat) => (
+                <div key={stat.label} className="flex flex-col gap-1 border-l-2 border-accent pl-3">
+                  <dt className="max-w-[96px] font-menu text-[12px] uppercase leading-[14px] tracking-[0.6px]">{stat.label}</dt>
+                  <dd className="font-menu text-[28px] uppercase leading-none tracking-[1px] sm:text-[34px]">{stat.value}</dd>
+                </div>
+              ))}
+            </dl>
+            {winYears.length > 0 || bestFinish ? (
+              <div className="absolute bottom-6 right-5 flex max-w-[150px] flex-col items-end text-right sm:right-[30px]">
+                <p className="font-menu text-[12px] uppercase leading-[14px] tracking-[0.6px] [text-shadow:0_1px_6px_rgba(6,5,30,0.9)]">
+                  {winYears.length > 0 ? "Champion Golfer of the Year" : "Best Legs Open Finish"}
+                </p>
+                {winYears.length > 0 ? (
+                  winYears.map((year) => (
+                    <span key={year} className="font-menu text-[28px] leading-[1.05] tracking-[1px] [text-shadow:0_1px_8px_rgba(6,5,30,0.9)] sm:text-[34px]">
+                      {year}
+                    </span>
+                  ))
+                ) : (
+                  <span className="mt-1 font-menu text-[22px] leading-[1.1] tracking-[1px] [text-shadow:0_1px_8px_rgba(6,5,30,0.9)]">{bestFinish}</span>
+                )}
+              </div>
+            ) : null}
+          </Container>
+        </div>
+      </section>
+
+      <section className="relative hidden w-full overflow-hidden bg-primary text-primary-foreground lg:block xl:hidden">
         {/* Fixed height only from lg up (430px) -- below that the grid stacks to a single column, and a fixed height would clip the stacked content. No breadcrumbs/eyebrow here by request, so this is just the stat/portrait/badge row, vertically centered in the banner. */}
         {/* No z-index here -- it would isolate the portrait's mix-blend-mode into its own stacking context, cutting it off from the section's own bg-primary it needs to blend against. Plain DOM order already paints this on top, so z-10 is unnecessary. */}
         {/* Desktop-only: anchored to the whole hero (not the badge column) so it reads as a full-height decorative element alongside the portrait, matching the earlier desktop treatment. Below lg there's no room for this, so the badge column gets its own smaller corner version instead. */}
@@ -369,8 +433,8 @@ export async function PlayerDetail({ slug }: { slug: string }) {
           their page is, rather than our grey page background. */}
       <section className="bg-white xl:hidden">
         <Container className="flex flex-col pb-6 pt-8 lg:pt-10">
-          <p className="font-menu text-[28px] leading-[1.15] tracking-[1.8px] text-primary lg:text-[36px]">{firstName}</p>
-          <h1 className="font-menu text-[48px] font-bold uppercase leading-[1.15] tracking-[1.6px] text-primary sm:text-[64px] lg:text-[80px]">
+          <p className="font-menu text-[22px] leading-[1.15] tracking-[1.2px] text-primary sm:text-[28px] lg:text-[36px]">{firstName}</p>
+          <h1 className="break-words font-menu text-[36px] font-bold uppercase leading-[1.1] tracking-[1.2px] text-primary sm:text-[56px] lg:text-[80px]">
             {surname}
           </h1>
           <p className="mt-6 flex items-center gap-2 font-menu text-[14px] leading-5 tracking-[0.2px] text-[#43524E]">
@@ -493,7 +557,24 @@ export async function PlayerDetail({ slug }: { slug: string }) {
             {/* theopen.com's "More on The 155th Open": a small centred uppercase title with 55px
                 above and below it, the cards, then a centred blue See More button. */}
             <h2 className={cn(SECTION_TITLE, "mb-0 py-[55px] text-center")}>More on {firstName}</h2>
-            <SectionGrid layout="thirds" className="w-full sm:grid-cols-3">
+            {/* Phones: theopen.com's compact rows -- a 120px picture beside the category and title,
+                full width and ruled off -- rather than three full-size cards one above another. */}
+            <ul className="-mx-5 w-[calc(100%+40px)] divide-y divide-[#B9BEC0] border-y border-[#B9BEC0] sm:hidden">
+              {featuredArticles.map((article) => (
+                <li key={article.slug}>
+                  <Link href={`/latest/${article.slug}`} className="flex items-stretch gap-4 bg-white pr-5">
+                    <span className="relative w-[120px] shrink-0 self-stretch">
+                      <PlaceholderArt label={article.heroLabel} imageUrl={article.imageUrl} tone="navy" fill sizes="120px" className="rounded-none" />
+                    </span>
+                    <span className="flex min-h-[90px] flex-col justify-center gap-1 py-3">
+                      {article.category ? <span className="font-menu text-[11px] font-bold uppercase tracking-[1.2px] text-[#43524E]">{article.category}</span> : null}
+                      <span className="font-menu text-[17px] leading-[1.2] text-primary">{article.title}</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <SectionGrid layout="thirds" className="hidden w-full sm:grid sm:grid-cols-3">
               {featuredArticles.map((article) => (
                 <ArticleCard key={article.slug} article={article} />
               ))}
