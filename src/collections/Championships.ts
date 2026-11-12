@@ -169,7 +169,7 @@ export const Championships: CollectionConfig = {
       type: "text",
       admin: {
         description:
-          "Optional. A YouTube or Vimeo link. Appears under the opening paragraph of the Overview tab, where The Open puts its own player. Paste the normal watch link — it is converted to an embed.",
+          "Optional. A YouTube or Vimeo link, or the address of a video in Media (e.g. /api/media/file/clip.mp4). Appears under the opening paragraph of the Overview tab, where The Open puts its own player. YouTube watch links are converted to an embed. To host a file, the upload field below is simpler.",
       },
     },
     {

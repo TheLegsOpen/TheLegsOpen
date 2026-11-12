@@ -1,6 +1,27 @@
 import { describe, expect, it } from "vitest";
 
-import { toEmbedUrl } from "@/components/previous-opens/overview-video";
+import { hostedVideoUrl, toEmbedUrl } from "@/components/previous-opens/overview-video";
+
+describe("hostedVideoUrl", () => {
+  it.each([
+    ["/api/media/file/Leisegang%20winning%20putt%202026.mp4", "/api/media/file/Leisegang%20winning%20putt%202026.mp4"],
+    ["  /api/media/file/clip.mp4 ", "/api/media/file/clip.mp4"],
+    ["https://thelegsopen.com/api/media/file/clip.mp4", "/api/media/file/clip.mp4"],
+    ["https://www.thelegsopen.com/api/media/file/clip.mp4", "/api/media/file/clip.mp4"],
+    ["https://cdn.example.com/films/final-putt.MP4", "https://cdn.example.com/films/final-putt.MP4"],
+  ])("plays %s as a file", (input, expected) => {
+    expect(hostedVideoUrl(input)).toBe(expected);
+  });
+
+  it.each([
+    ["https://www.youtube.com/watch?v=dQw4w9WgXcQ"],
+    ["https://vimeo.com/123456789"],
+    ["http://example.com/video.mp4"],
+    ["not a url"],
+  ])("leaves %s to the embed path", (input) => {
+    expect(hostedVideoUrl(input)).toBeNull();
+  });
+});
 
 describe("toEmbedUrl", () => {
   // Editors paste what is in the address bar. Every shape of that has to work, because the

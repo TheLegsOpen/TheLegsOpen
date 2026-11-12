@@ -41,6 +41,27 @@ export function toEmbedUrl(raw: string): string | null {
 }
 
 /**
+ * A link to a video file rather than to a video site: one of our own Media files
+ * (`/api/media/file/...`, as Media shows it, or the same with the site's address in front), or any
+ * https address ending in a video extension. Returned ready for a <video> src; anything else is
+ * null, and toEmbedUrl gets its turn.
+ */
+export function hostedVideoUrl(raw: string): string | null {
+  const value = raw.trim();
+  if (value.startsWith("/api/media/file/")) return value;
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return null;
+  }
+  const host = url.hostname.replace(/^www\./, "");
+  if (host === "thelegsopen.com" && url.pathname.startsWith("/api/media/file/")) return url.pathname;
+  if (url.protocol === "https:" && /\.(mp4|webm|mov|m4v)$/i.test(url.pathname)) return url.toString();
+  return null;
+}
+
+/**
  * The Open runs a 748x425 player between the paragraphs of a championship write-up -- near enough
  * 16:9, so that is what this holds rather than their exact pixels, which were a function of their
  * column width rather than a choice.
@@ -58,14 +79,16 @@ export function OverviewVideo({
   poster?: string;
   className?: string;
 }) {
-  if (fileUrl) {
+  // A link field holding one of our own files plays the same way as the upload field.
+  const src = fileUrl ?? (url ? hostedVideoUrl(url) : null);
+  if (src) {
     // The browser's own player: no third-party branding, adverts or suggested videos afterwards.
     // preload="metadata" fetches the length and first frame only, so the page stays light until
     // someone presses play.
     return (
       <div className={cn("relative aspect-video w-full overflow-hidden bg-black", className)}>
         <video
-          src={fileUrl}
+          src={src}
           poster={poster}
           controls
           playsInline

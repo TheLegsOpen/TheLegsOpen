@@ -105,7 +105,7 @@ export const Venues: CollectionConfig = {
       type: "text",
       admin: {
         description:
-          "Optional. A YouTube or Vimeo link. Shows as a film band under the course blurb. Paste the normal watch link — it is converted to an embed.",
+          "Optional. A YouTube or Vimeo link, or the address of a video in Media (open the video in Media and copy the address under the preview, e.g. /api/media/file/clip.mp4). Shows as a film band under the course blurb. YouTube watch links are converted to an embed; our own files play in the browser's built-in player.",
       },
     },
     {

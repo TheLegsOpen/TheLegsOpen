@@ -189,7 +189,7 @@ export async function VenueDetail({ slug }: { slug: string }) {
       {venue.overviewVideoUrl ? (
         <section className="w-full bg-[#06051E]">
           <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1068fr)_minmax(0,838fr)]">
-            <OverviewVideo url={venue.overviewVideoUrl} className="bg-black" />
+            <OverviewVideo url={venue.overviewVideoUrl} poster={venue.imageUrl} className="bg-black" />
             {venue.overview.length > 0 ? (
               <div className="flex flex-col justify-center gap-4 px-6 py-10 sm:px-12 lg:px-16">
                 <p className="font-sans text-[20px] font-normal leading-[28.57px] text-white">{venue.overview[0]}</p>
