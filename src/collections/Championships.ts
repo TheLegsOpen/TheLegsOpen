@@ -137,6 +137,19 @@ export const Championships: CollectionConfig = {
       },
     },
     {
+      // Needs the champion_card_photo_id column on championships, added by hand in Supabase before
+      // this shipped -- there are no migrations here and the adapter only pushes schema in
+      // development.
+      name: "championCardPhoto",
+      label: "Photo (Champion Golfers card)",
+      type: "upload",
+      relationTo: "media",
+      admin: {
+        description:
+          "Optional. The portrait on this champion's card in \"Champion Golfers at [venue]\" (a tall 400×600 crop from the centre, so a portrait-shaped photo at least 800×1200px works best). One card per champion, on every venue they have won at: a player who has won more than once shows the photo from their most recent win that has one, so set it on that championship and every venue uses the same picture. Left blank everywhere, the card uses the Champion Photo from the win at that venue, then the player's profile photo.",
+      },
+    },
+    {
       name: "venueStripCaption",
       label: "Caption (venue page strip)",
       type: "text",

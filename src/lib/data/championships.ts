@@ -78,6 +78,7 @@ function mapChampionship(doc: PayloadChampionship): ChampionshipWinner {
         : false,
     winnerPhotoPosition: focalPosition(doc.winnerPhoto),
     championCutoutUrl: mediaUrl(doc.championCutout),
+    championCardPhotoUrl: mediaUrl(doc.championCardPhoto),
     venueImageUrl: mediaUrl(venue.image),
     stablefordWinnerName: doc.stablefordWinnerName ?? undefined,
     stablefordWinnerCountry: doc.stablefordWinnerCountry ?? undefined,

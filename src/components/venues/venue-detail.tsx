@@ -7,7 +7,8 @@ import { VenueChampions, type VenueChampion } from "@/components/venues/venue-ch
 import { VenueChampionshipCarousel } from "@/components/venues/venue-championship-carousel";
 import { OverviewVideo } from "@/components/previous-opens/overview-video";
 import { getVenueBySlug } from "@/lib/data/venues";
-import { getChampionshipsByVenueSlug, getUpcomingChampionships } from "@/lib/data/championships";
+import { getChampionshipHistory, getChampionshipsByVenueSlug, getUpcomingChampionships } from "@/lib/data/championships";
+import { getSiteTheme } from "@/lib/data/site-theme";
 import { getPlayers } from "@/lib/data/players";
 import { getArticles } from "@/lib/data/articles";
 import { loadCourseGuide } from "@/lib/data/course-guide";
@@ -64,23 +65,28 @@ export async function VenueDetail({ slug }: { slug: string }) {
 
 
   const playerByName = new Map(players.map((player) => [player.name, player]));
+  // One card per champion who has won here, listing every Legs Open they have won anywhere -- as
+  // theopen.com's Harrington card on the Carnoustie page reads 2007 and 2008, though 2008 was at
+  // Birkdale. The portrait is the Champion Golfers card photo from their most recent win that has
+  // one, so a repeat winner shows the same picture on every venue; failing that, the Champion
+  // Photo from their latest win here, then their profile portrait.
+  const allWins = (await getChampionshipHistory()).filter((c) => c.winnerName && c.year <= new Date().getFullYear());
+  const championKey = (c: { winnerPlayerSlug?: string; winnerName?: string }) => c.winnerPlayerSlug ?? c.winnerName ?? "";
   const championsByKey = new Map<string, VenueChampion>();
   for (const c of championshipsHere) {
     if (!c.winnerName) continue;
-    const key = c.winnerPlayerSlug ?? c.winnerName;
-    const existing = championsByKey.get(key);
-    if (existing) {
-      existing.years.push(c.year);
-      existing.years.sort((a, b) => a - b);
-    } else {
-      championsByKey.set(key, {
-        key,
-        name: c.winnerName,
-        slug: c.winnerPlayerSlug,
-        photoUrl: c.winnerPhotoUrl ?? portraitUrl(playerByName.get(c.winnerName)?.photoUrl),
-        years: [c.year],
-      });
-    }
+    const key = championKey(c);
+    if (championsByKey.has(key)) continue;
+    const theirWins = allWins.filter((w) => championKey(w) === key).sort((a, b) => b.year - a.year);
+    const player = playerByName.get(c.winnerName);
+    championsByKey.set(key, {
+      key,
+      name: c.winnerName,
+      slug: c.winnerPlayerSlug,
+      countryCode: player?.countryCode,
+      photoUrl: theirWins.find((w) => w.championCardPhotoUrl)?.championCardPhotoUrl ?? c.winnerPhotoUrl ?? portraitUrl(player?.photoUrl),
+      years: theirWins.map((w) => w.year).sort((a, b) => a - b),
+    });
   }
   const champions = Array.from(championsByKey.values()).sort((a, b) => Math.max(...b.years) - Math.max(...a.years));
 
@@ -231,7 +237,7 @@ export async function VenueDetail({ slug }: { slug: string }) {
         />
       ) : null}
 
-      <VenueChampions venueName={venue.name} champions={champions} />
+      <VenueChampions venueName={venue.name} champions={champions} logoUrl={(await getSiteTheme()).logoUrl} />
     </>
   );
 }

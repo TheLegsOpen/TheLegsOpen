@@ -36,6 +36,8 @@ export interface ChampionshipWinner {
   winnerPhotoPosition?: string;
   /** The background-removed champion shown in the Main leaderboard's winner row. */
   championCutoutUrl?: string;
+  /** The portrait for this champion's card in "Champion Golfers at [venue]"; the latest win with one wins. */
+  championCardPhotoUrl?: string;
   /** The venue's own course photo, for banners when the Champion Photo will not fill one. */
   venueImageUrl?: string;
   stablefordWinnerName?: string;
