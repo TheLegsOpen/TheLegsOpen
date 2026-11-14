@@ -174,15 +174,16 @@ export function PlayerStatPanel({
   const [tab, setTab] = useState<StatTabKey>("nett");
 
   // Driving, Approach and Putting need fairways, greens and putts entered hole by hole, which the
-  // Legs Open has never recorded. Their buttons only appear once at least four players have a
-  // figure in one, so they come back on their own if those stats are ever kept; until then they
-  // only led to empty boxes. Four rather than one because two 2022 cards carry a handful of stray
-  // "missed" ticks from backdating, which on their own would have kept Driving and Approach showing.
-  const MIN_PLAYERS = 4;
+  // Legs Open has never recorded. Their buttons only appear once someone has a non-zero figure in
+  // one, so they come back on their own if those stats are ever kept; until then they only led to
+  // boxes of noughts. Non-zero rather than "has rows": a hole with a score but no fairway or green
+  // ticked is counted as missed, so every player gets a 0/14 fairways row whether anything was
+  // recorded or not.
+  const hasFigures = (categories: StatCategory[]) => categories.some((c) => c.rows.some((r) => r.value !== 0));
   const recorded: Partial<Record<StatTabKey, boolean>> = {
-    driving: drivingCategories.some((c) => c.rows.length >= MIN_PLAYERS),
-    approach: approachCategories.some((c) => c.rows.length >= MIN_PLAYERS),
-    putting: puttingCategories.some((c) => c.rows.length >= MIN_PLAYERS),
+    driving: hasFigures(drivingCategories),
+    approach: hasFigures(approachCategories),
+    putting: hasFigures(puttingCategories),
   };
   const tabs = STAT_TABS.filter((t) => recorded[t.key] !== false);
 
