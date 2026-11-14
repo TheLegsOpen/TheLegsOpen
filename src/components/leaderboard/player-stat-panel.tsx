@@ -173,6 +173,17 @@ export function PlayerStatPanel({
 }) {
   const [tab, setTab] = useState<StatTabKey>("nett");
 
+  // Driving, Approach and Putting need fairways, greens and putts entered hole by hole, which the
+  // Legs Open has never recorded. Their buttons only appear once someone has a figure in one, so
+  // they come back on their own if those stats are ever kept; until then they only led to empty
+  // boxes.
+  const recorded: Partial<Record<StatTabKey, boolean>> = {
+    driving: drivingCategories.some((c) => c.rows.length > 0),
+    approach: approachCategories.some((c) => c.rows.length > 0),
+    putting: puttingCategories.some((c) => c.rows.length > 0),
+  };
+  const tabs = STAT_TABS.filter((t) => recorded[t.key] !== false);
+
   const hasAnyData = [nettCategories, scratchCategories, streakCategories, drivingCategories, approachCategories, puttingCategories].some(
     (categories) => categories.some((category) => category.rows.some((row) => row.player.id === playerId)),
   );
@@ -180,7 +191,7 @@ export function PlayerStatPanel({
   return (
     <div>
       <div className="mb-4 flex flex-wrap gap-2">
-        {STAT_TABS.map((t) => (
+        {tabs.map((t) => (
           <button
             key={t.key}
             type="button"
