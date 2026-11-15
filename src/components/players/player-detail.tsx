@@ -25,7 +25,7 @@ import {
   getCareerPuttingCategories,
 } from "@/lib/data/career-statistics";
 import { getTeeTimes } from "@/lib/data/tee-times";
-import { getArticles } from "@/lib/data/articles";
+import { getArticles, getArticlesForPlayer } from "@/lib/data/articles";
 import { getSiteTheme } from "@/lib/data/site-theme";
 import { formatToPar } from "@/lib/leaderboard";
 import type { Article } from "@/types/article";
@@ -67,11 +67,12 @@ export async function PlayerDetail({ slug }: { slug: string }) {
   const player = await getPlayerBySlug(slug);
   if (!player) notFound();
 
-  const [mainLeaderboard, teeTimeRounds, results, allArticles, theme, careerCategories] = await Promise.all([
+  const [mainLeaderboard, teeTimeRounds, results, allArticles, taggedArticles, theme, careerCategories] = await Promise.all([
     getCompetitionLeaderboard("main"),
     getTeeTimes(),
     getPlayerResults(player),
     getArticles(),
+    getArticlesForPlayer(player.id),
     getSiteTheme(),
     Promise.all([
       getCareerNettScoringCategories(),
@@ -134,10 +135,12 @@ export async function PlayerDetail({ slug }: { slug: string }) {
   );
 
   const featuredArticleSlugs = player.featuredArticleSlugs ?? [];
-  const featuredArticles: Article[] =
-    featuredArticleSlugs.length > 0
-      ? featuredArticleSlugs.map((articleSlug) => allArticles.find((a) => a.slug === articleSlug)).filter((a): a is Article => Boolean(a))
-      : allArticles.slice(0, 3);
+  // "More on": the ones picked by hand on the player first, then every article that has the player
+  // under its Players tag, newest first, without repeats, three in all. Only when there are none of
+  // either does it fall back to the latest articles on the site.
+  const handPicked = featuredArticleSlugs.map((articleSlug) => allArticles.find((a) => a.slug === articleSlug)).filter((a): a is Article => Boolean(a));
+  const aboutPlayer = [...handPicked, ...taggedArticles.filter((a) => !handPicked.some((h) => h.slug === a.slug))];
+  const featuredArticles: Article[] = aboutPlayer.length > 0 ? aboutPlayer.slice(0, 3) : allArticles.slice(0, 3);
 
   // "<Name> at The Legs Open" shows the player's own gallery. A player with no gallery uploaded yet
   // borrows the photos from the articles tagged to them in the admin -- those are written about
@@ -146,8 +149,8 @@ export async function PlayerDetail({ slug }: { slug: string }) {
   const galleryPhotos: PlayerGalleryPhoto[] =
     (player.gallery ?? []).length > 0
       ? (player.gallery ?? [])
-      : featuredArticleSlugs.length > 0
-        ? featuredArticles.filter((a) => a.imageUrl).map((a) => ({ imageUrl: a.imageUrl, caption: a.title }))
+      : aboutPlayer.length > 0
+        ? aboutPlayer.filter((a) => a.imageUrl).map((a) => ({ imageUrl: a.imageUrl, caption: a.title }))
         : [];
 
   const stats: { label: string; value: string | number }[] = [

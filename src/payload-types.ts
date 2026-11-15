@@ -313,6 +313,10 @@ export interface Article {
    * file was first written; widening them all is a job for the real generator.
    */
   category: number | string | ArticleCategoryDoc;
+  /** Hand-added with the field -- see note at top of file. */
+  otherCategories?: (number | string | ArticleCategoryDoc)[] | null;
+  /** Hand-added with the field -- see note at top of file. */
+  players?: (number | string | Player)[] | null;
   publishedAt: string;
   /** Hand-added with the field -- see note at top of file. Numeric id for the reason on `category`. */
   championship?: (number | string | null) | Championship;

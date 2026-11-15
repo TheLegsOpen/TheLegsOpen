@@ -1,4 +1,4 @@
-import { getPayload } from "payload";
+import { getPayload, type Where } from "payload";
 
 import configPromise from "@/payload.config";
 import { mediaUrl, slugify } from "@/lib/utils";
@@ -49,12 +49,13 @@ export async function getArticlesPage(options: {
 }): Promise<{ items: Article[]; hasMore: boolean; total: number }> {
   try {
     const payload = await getPayload({ config: configPromise });
-    const where =
+    const where: Where =
       options.category && options.category !== "All"
         // Matched on the category's name rather than its id, so every caller can keep passing the
         // string it already had -- the homepage, the listing's filter buttons, and the related
         // rail below. Names carry a unique index, so one name is one row.
-        ? { and: [PUBLISHED, { "category.name": { equals: options.category } }] }
+        // Either the main category or one of the others, so a piece filed under two shows under both.
+        ? { and: [PUBLISHED, { or: [{ "category.name": { equals: options.category } }, { "otherCategories.name": { equals: options.category } }] }] }
         : PUBLISHED;
     const result = await payload.find({
       collection: "articles",
@@ -93,6 +94,26 @@ export async function getAllArticleSlugs(): Promise<string[]> {
   const payload = await getPayload({ config: configPromise });
   const result = await payload.find({ collection: "articles", where: PUBLISHED, limit: 200 });
   return result.docs.map((doc) => doc.slug ?? slugify(doc.title));
+}
+
+/**
+ * Articles with this player under Players, newest first, for "More on" on the profile.
+ * Swallows its errors like the rest of this file: no rail rather than no profile.
+ */
+export async function getArticlesForPlayer(playerId: string, limit = 6): Promise<Article[]> {
+  try {
+    const payload = await getPayload({ config: configPromise });
+    const result = await payload.find({
+      collection: "articles",
+      where: { and: [PUBLISHED, { players: { contains: playerId } }] },
+      limit,
+      sort: "-publishedAt",
+      depth: 1,
+    });
+    return result.docs.map(mapArticle);
+  } catch {
+    return [];
+  }
 }
 
 /**

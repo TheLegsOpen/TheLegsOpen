@@ -38,10 +38,30 @@ export const Articles: CollectionConfig = {
       // so a mistake was permanent. Rows can be added, renamed and reordered in the admin, and a
       // rename reaches every article at once because the name is stored in one place.
       name: "category",
+      label: "Main category",
       type: "relationship",
       relationTo: "article-categories",
       required: true,
-      admin: { description: "Manage the list itself under Article Categories." },
+      admin: { description: "The one shown on the article's cards. Manage the list itself under Article Categories." },
+    },
+    {
+      // Kept apart from the main category rather than turning that into a list: cards show one
+      // label, so one of them has to be the main one, and the existing single column carries on
+      // untouched. The News page's filter buttons match either.
+      name: "otherCategories",
+      label: "Other categories",
+      type: "relationship",
+      relationTo: "article-categories",
+      hasMany: true,
+      admin: { description: "Optional. Further categories this also belongs to -- e.g. an \"in numbers\" piece filed under its Legs Open and under Legs Open Insights. It then shows under each one's filter on the News page." },
+    },
+    {
+      name: "players",
+      label: "Players",
+      type: "relationship",
+      relationTo: "players",
+      hasMany: true,
+      admin: { description: "Optional. Everyone this piece is about. It then shows under \"More on\" on each of their profiles, newest first, after any articles picked by hand on the player." },
     },
     { name: "publishedAt", type: "date", required: true, admin: { date: { pickerAppearance: "dayOnly" } } },
     {
