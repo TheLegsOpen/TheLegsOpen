@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
 import Link from "next/link";
@@ -42,6 +42,10 @@ export function NewsGrid({ articles }: { articles: Article[] }) {
           />
         </div>
 
+        {/* Phones get theopen.com's mobile carousel instead: every story in one sideways strip. */}
+        <NewsCarousel articles={articles} />
+
+        <div className="hidden flex-col gap-10 sm:flex">
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={page}
@@ -83,13 +87,14 @@ export function NewsGrid({ articles }: { articles: Article[] }) {
             })}
           </nav>
         ) : null}
+        </div>
       </Container>
     </section>
   );
 }
 
 /** theopen.com's 227px square image -- a fifth of the 1366 container less gutters and card padding. */
-const CARD_IMAGE_SIZES = "(min-width: 1430px) 227px, (min-width: 1024px) 17vw, (min-width: 640px) 45vw, 100vw";
+const CARD_IMAGE_SIZES = "(min-width: 1430px) 227px, (min-width: 1024px) 17vw, (min-width: 640px) 45vw, 64vw";
 
 /**
  * One row of five, copied from theopen.com's homepage "News and Features" carousel measured at
@@ -104,9 +109,85 @@ const CARD_IMAGE_SIZES = "(min-width: 1430px) 227px, (min-width: 1024px) 17vw, (
  */
 function NewsPage({ articles }: { articles: Article[] }) {
   return (
-    <ul className="-mx-5 grid grid-cols-1 gap-5 sm:mx-0 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+    <ul className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5">
       {articles.map((article) => (
         <li key={article.slug} className="flex">
+          <NewsCard article={article} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Below sm: theopen.com's homepage carousel at 384px -- cards about 63% of the screen wide, the
+ * current one centred with its neighbours showing either side, swiped left and right, one dot per
+ * story. Native scroll snapping rather than a slider library, so it moves under the thumb like
+ * any other swipe; the dots follow the scroll and tapping one scrolls to that story.
+ */
+function NewsCarousel({ articles }: { articles: Article[] }) {
+  const track = useRef<HTMLUListElement>(null);
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    const el = track.current;
+    if (!el) return;
+    const onScroll = () => {
+      const centre = el.scrollLeft + el.clientWidth / 2;
+      let best = 0;
+      let bestDistance = Infinity;
+      Array.from(el.children).forEach((child, index) => {
+        const c = child as HTMLElement;
+        const distance = Math.abs(c.offsetLeft + c.offsetWidth / 2 - centre);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = index;
+        }
+      });
+      setActive(best);
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const goTo = (index: number) => {
+    const el = track.current;
+    const card = el?.children[index] as HTMLElement | undefined;
+    if (!el || !card) return;
+    el.scrollTo({ left: card.offsetLeft - (el.clientWidth - card.offsetWidth) / 2, behavior: "smooth" });
+  };
+
+  return (
+    <div className="flex flex-col gap-8 sm:hidden">
+      <ul ref={track} aria-label="News and features" className="no-scrollbar -mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-[18vw] pb-1">
+        {articles.map((article) => (
+          <li key={article.slug} className="flex w-[64vw] max-w-[260px] shrink-0 snap-center">
+            <NewsCard article={article} />
+          </li>
+        ))}
+      </ul>
+      {articles.length > 1 ? (
+        <nav aria-label="News and features stories" className="flex flex-wrap items-center justify-center">
+          {articles.map((article, index) => (
+            <button
+              key={article.slug}
+              type="button"
+              onClick={() => goTo(index)}
+              aria-label={`Show story ${index + 1}: ${article.title}`}
+              aria-current={index === active ? "true" : undefined}
+              className="rounded-full p-[5px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <span className={cn("block h-2.5 rounded-full transition-all duration-300 ease-standard", index === active ? "w-7 bg-accent" : "w-2.5 bg-surface-dark-foreground/60")} />
+            </button>
+          ))}
+        </nav>
+      ) : null}
+    </div>
+  );
+}
+
+function NewsCard({ article }: { article: Article }) {
+  return (
           <Link
             href={`/latest/${article.slug}`}
             className="group flex w-full flex-col gap-5 bg-primary p-[15px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
@@ -133,8 +214,5 @@ function NewsPage({ articles }: { articles: Article[] }) {
               </span>
             </div>
           </Link>
-        </li>
-      ))}
-    </ul>
   );
 }

@@ -237,7 +237,7 @@ export async function VenueDetail({ slug }: { slug: string }) {
         />
       ) : null}
 
-      <VenueChampions venueName={venue.name} champions={champions} logoUrl={(await getSiteTheme()).logoUrl} />
+      <VenueChampions venueName={venue.name} champions={champions} logoUrl={await getSiteTheme().then((t) => t.championBadgeUrl ?? t.logoUrl)} />
     </>
   );
 }

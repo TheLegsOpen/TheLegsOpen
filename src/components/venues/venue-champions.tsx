@@ -66,8 +66,8 @@ export function VenueChampions({ venueName, champions, logoUrl }: { venueName: s
 
                 <div className="absolute left-[30px] top-[30px] flex flex-col items-center gap-2 text-white">
                   {logoUrl ? (
-                    // next/image: the site's 102x105 symbol, shown at 44px.
-                    <Image src={logoUrl} alt="" aria-hidden="true" width={44} height={45} className="h-[45px] w-[44px] object-contain" />
+                    // The Champion Badge from Site Theme (the silver jug, 54px square), shown at its own size.
+                    <Image src={logoUrl} alt="" aria-hidden="true" width={54} height={54} className="h-[54px] w-[54px] object-contain" />
                   ) : null}
                   <div className="flex flex-col items-center">
                     {champion.years.map((year) => (

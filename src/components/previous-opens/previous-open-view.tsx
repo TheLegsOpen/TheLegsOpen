@@ -2,7 +2,7 @@
 
 import { Fragment } from "react";
 import Link from "next/link";
-import { PlayCircle } from "lucide-react";
+import { ArrowRight, PlayCircle } from "lucide-react";
 
 import { Container } from "@/components/shared/container";
 import { RichTextBlock } from "@/components/shared/rich-text";
@@ -281,13 +281,16 @@ export function PreviousOpenView({
                 </div>
               ) : null}
 
+              {/* The venue page's own gold button (VenueHeroLine), so the two pages link to each other
+                  the same way; the replay sits beside it as the outlined secondary. On this light rail
+                  the hover goes navy rather than the white it uses on the venue's dark band. */}
               <div className="flex flex-col gap-3">
-              <Link href={`/venues/${championship.venueSlug}`} className="w-fit text-sm font-medium text-primary hover:underline">
-                View {championship.venueName} →
+              <Link href={`/venues/${championship.venueSlug}`} className="inline-flex w-fit items-center gap-2 bg-accent px-4 py-2 font-sans text-[17px] font-light uppercase text-[#06051e] transition-colors hover:bg-primary hover:text-white">
+                View {championship.venueName} <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               {hasReplay ? (
-                <Link href={`/previous-opens/${championship.year}/replay`} className="w-fit text-sm font-medium text-primary hover:underline">
-                  Replay the {championship.year} leaderboard →
+                <Link href={`/previous-opens/${championship.year}/replay`} className="inline-flex w-fit items-center gap-2 border border-[#06051e] px-4 py-2 font-sans text-[17px] font-light uppercase text-[#06051e] transition-colors hover:bg-primary hover:text-white">
+                  <PlayCircle className="h-4 w-4" aria-hidden="true" /> Replay the {championship.year} leaderboard
                 </Link>
               ) : null}
               </div>
