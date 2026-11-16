@@ -149,8 +149,10 @@ export async function PlayerDetail({ slug }: { slug: string }) {
   const galleryPhotos: PlayerGalleryPhoto[] =
     (player.gallery ?? []).length > 0
       ? (player.gallery ?? [])
-      : aboutPlayer.length > 0
-        ? aboutPlayer.filter((a) => a.imageUrl).map((a) => ({ imageUrl: a.imageUrl, caption: a.title }))
+      // Hand-picked only. A Players tag just means the piece mentions them, and its photo is
+      // usually of the winner: James Cannon's gallery showed Andrew Duncan off the Balmedie report.
+      : handPicked.length > 0
+        ? handPicked.filter((a) => a.imageUrl).map((a) => ({ imageUrl: a.imageUrl, caption: a.title }))
         : [];
 
   const stats: { label: string; value: string | number }[] = [
