@@ -139,7 +139,6 @@ function ArticleRow({ article }: { article: Article }) {
         <h3 className="text-[15px] leading-snug">
           <SplitTitle article={article} />
         </h3>
-        <p className="line-clamp-2 text-[13px] leading-snug text-muted-foreground">{article.dek}</p>
       </div>
     </Link>
   );
