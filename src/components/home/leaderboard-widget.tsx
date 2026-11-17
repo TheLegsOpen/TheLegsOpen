@@ -96,9 +96,9 @@ export function LeaderboardWidget({
               <col className="w-8" />
               <col />
               <col className={cn("hidden w-14", !compact && "sm:table-column")} />
-              <col className="w-14" />
-              <col className="w-14" />
-              <col className="w-14" />
+              <col className={cn("w-14", compact && "lg:max-xl:w-12")} />
+              <col className={cn("w-14", compact && "lg:max-xl:w-12")} />
+              <col className={cn("w-14", compact && "lg:max-xl:w-12")} />
             </colgroup>
             <thead>
               <tr className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 text-left text-xs uppercase tracking-wide text-surface-dark-foreground/60">
@@ -205,7 +205,7 @@ export function LeaderboardWidget({
                         </span>
                       ) : null}
                     </td>
-                    <td className="px-2 py-2 text-right">
+                    <td className={cn("px-2 py-2 text-right", compact && "lg:max-xl:px-1")}>
                       {entry.didNotStart || entry.withdrawn || entry.noReturn || entry.toPar === undefined ? (
                         <span className={cn(TILE_CLASS, COMPACT_TILE_CLASS, "bg-[#B0B0B0] text-[#08325A]")}>NR</span>
                       ) : (
@@ -214,10 +214,10 @@ export function LeaderboardWidget({
                         </span>
                       )}
                     </td>
-                    <td className="px-2 py-2 text-right tabular-nums">
+                    <td className={cn("px-2 py-2 text-right tabular-nums", compact && "lg:max-xl:px-1")}>
                       <span className={cn(TILE_CLASS, COMPACT_TILE_CLASS, NEUTRAL_TILE_CLASS)}>{entry.thru}</span>
                     </td>
-                    <td className="px-2 py-2 text-right tabular-nums">
+                    <td className={cn("px-2 py-2 text-right tabular-nums", compact && "lg:max-xl:px-1")}>
                       <span
                         className={cn(TILE_CLASS, COMPACT_TILE_CLASS, entry.noReturn || entry.withdrawn ? "bg-[#B0B0B0] text-[#08325A]" : NEUTRAL_TILE_CLASS)}
                       >
