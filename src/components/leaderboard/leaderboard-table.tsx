@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Star, ChevronUp, ChevronDown } from "lucide-react";
 
@@ -94,6 +94,40 @@ export function AnimatedValue({ value }: { value: string | number }) {
 }
 
 /**
+ * Shrinks its text, 1px at a time, until it fits the width it is given: the champion's surname is
+ * set at 30px on phones, and a long one ("LEISEGANG") with its flag ran up to 55px into the score
+ * boxes on a 390px phone, more with Android's larger-text setting. Short names keep the full size.
+ */
+function FitToWidth({ className, children }: { className?: string; children: React.ReactNode }) {
+  const outer = useRef<HTMLSpanElement>(null);
+  const inner = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const o = outer.current;
+    const i = inner.current;
+    if (!o || !i) return;
+    const fit = () => {
+      i.style.fontSize = "";
+      let size = parseFloat(getComputedStyle(i).fontSize);
+      while (i.scrollWidth > o.clientWidth && size > 16) {
+        size -= 1;
+        i.style.fontSize = `${size}px`;
+      }
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(o);
+    return () => observer.disconnect();
+  }, [children]);
+  return (
+    <span ref={outer} className="block w-full">
+      <span ref={inner} className={cn("inline-flex whitespace-nowrap", className)}>
+        {children}
+      </span>
+    </span>
+  );
+}
+
+/**
  * The champion's row once a competition is over, after theopen.com's: the champion standing in
  * the row (280x305 on a laptop, theirs measured at 1440), first name over a big surname, and a
  * strip of eighteen squares, one per hole.
@@ -125,14 +159,14 @@ function ChampionFeature({
           <Image src={championCutoutUrl} alt="" fill sizes="(min-width: 640px) 280px, 146px" className="object-contain object-bottom" />
         </div>
       ) : null}
-      <div className="min-w-0 py-4">
+      <div className="min-w-0 flex-1 py-4">
         <span className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.16em] text-primary">{CHAMPION_LABEL[competition]}</span>
-        <button type="button" onClick={() => onSelectPlayer(entry.player.id)} className="block text-left hover:underline">
+        <button type="button" onClick={() => onSelectPlayer(entry.player.id)} className="block w-full text-left hover:underline">
           <span className="block font-menu text-[18px] leading-tight sm:text-[24px]">{firstName}</span>
-          <span className="flex items-center gap-2 font-menu text-[30px] font-bold uppercase leading-none sm:text-[52px]">
+          <FitToWidth className="items-center gap-2 font-menu text-[30px] font-bold uppercase leading-none sm:text-[52px]">
             {surname}
             <CountryFlag code={entry.player.countryCode} className="h-4 w-5 shrink-0 sm:h-6 sm:w-8" />
-          </span>
+          </FitToWidth>
         </button>
         {/* Not on Stableford: points have no over/under-par colour, so every square came out the
             same and the strip said nothing. */}
