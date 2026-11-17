@@ -91,7 +91,7 @@ export function LiveSummary({
   return (
     <section
       aria-label="Championship summary"
-      className="-mx-5 grid gap-5 bg-accent px-5 py-7 text-accent-foreground md:-mx-[30px] md:px-[30px] lg:mx-0 lg:grid-cols-[200px_1fr] lg:gap-8 lg:px-8 lg:py-9"
+      className="grid gap-5 bg-accent px-5 py-7 text-accent-foreground md:px-[30px] lg:grid-cols-[200px_1fr] lg:gap-8 lg:py-11 xl:px-[70px]"
     >
       <div className="flex items-start justify-between gap-4 lg:flex-col lg:justify-start">
         <h2 className="font-display text-[28px] uppercase leading-[1.05] lg:text-[30px]">{settings.title ?? title}</h2>

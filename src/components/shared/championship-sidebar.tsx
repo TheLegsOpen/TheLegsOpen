@@ -34,6 +34,9 @@ interface ChampionshipSidebarProps {
   topTen?: CompetitionEntry[];
   /** A ready-made leaderboard block (the home page's widget), shown under the clock. */
   leaderboard?: React.ReactNode;
+  /** Edge-to-edge rail (the Live Blog's navy column): clock and leaderboard run the column's full
+   * width on desktop, as theopen.com's do, and only the Latest News block is inset. */
+  flush?: boolean;
   /** Keep the rail in view while the table beside it scrolls (desktop only). */
   sticky?: boolean;
 }
@@ -53,7 +56,7 @@ function postedTime(iso: string): string {
 /** Cancels the Container gutter (20 / 30px) below lg, where the rail stacks under the main column. */
 const BLEED = "-mx-5 md:-mx-[30px] lg:mx-0";
 
-export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "light", weather, upcomingTeeTimes, liveBlog, topTen, leaderboard, sticky = false }: ChampionshipSidebarProps) {
+export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "light", weather, upcomingTeeTimes, liveBlog, topTen, leaderboard, flush = false, sticky = false }: ChampionshipSidebarProps) {
   const isDark = tone === "dark";
   const border = isDark ? "border-surface-dark-foreground/15" : "border-border";
   return (
@@ -138,7 +141,7 @@ export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "ligh
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-3">
+      <div className={cn("flex flex-col gap-3", flush && "lg:px-5 lg:pb-10")}>
         <RailHeading isDark={isDark}>Latest News</RailHeading>
         {/* A 455px rail, not a third of the page -- see GRID_SIZES in ArticleCard. */}
         <ArticleCard article={featuredArticle} tone={tone} sizes="(min-width: 1430px) 455px, (min-width: 1024px) 32vw, 100vw" imageClassName={cn(BLEED, "rounded-none lg:rounded-lg")} />

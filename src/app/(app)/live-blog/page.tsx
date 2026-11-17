@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import { PageHero } from "@/components/shared/page-hero";
 import { ChampionshipWeekSwitcher } from "@/components/shared/championship-week-switcher";
-import { Container } from "@/components/shared/container";
 import { ChampionshipSidebar } from "@/components/shared/championship-sidebar";
 import { LiveBlogFeed } from "@/components/live-blog/live-blog-feed";
 import { getLiveBlogPosts, getLiveBlogSummarySettings } from "@/lib/data/live-blog";
@@ -100,9 +99,12 @@ export default async function LiveBlogPage() {
         overlay={<ChampionshipWeekSwitcher onPhoto />}
       />
   
-        <div className="bg-[#EEEEEE]">
-          <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_420px] lg:items-start">
-            <div className="flex min-w-0 flex-col gap-10">
+      {/* theopen.com's live blog frame: a 1366px page (15px margins below that) split 911 : 455, the
+          yellow summary and the navy rail both flush under the banner, posts padded inside the left
+          column. Below lg the rail drops under the posts as a full-width navy band. */}
+      <div className="bg-[#EEEEEE]">
+        <div className="mx-auto grid max-w-[1366px] grid-cols-1 lg:w-[calc(100%-30px)] lg:grid-cols-[911fr_455fr]">
+          <div className="flex min-w-0 flex-col">
             {active ? (
               <LiveSummary
                 title={`The ${ordinal(edition)} Legs Open`}
@@ -112,47 +114,51 @@ export default async function LiveBlogPage() {
                 stableford={stablefordEntries}
                 scratch={scratchEntries}
                 stablefordChampion={getEligibleStablefordChampion(mainEntries, stablefordEntries)}
-              settings={summarySettings}
+                settings={summarySettings}
               />
             ) : null}
-            <LiveBlogFeed
-              initialEntries={liveBlogPage.entries}
-              initialHasNextPage={liveBlogPage.hasNextPage}
-              realtimeChampionshipId={liveBlogPage.championshipId}
-              mainEntries={mainEntries}
-              stablefordEntries={stablefordEntries}
-              scratchEntries={scratchEntries}
-              nettCategories={nettCategories}
-              scratchCategories={scratchCategories}
-              streakCategories={streakCategories}
-              drivingCategories={drivingCategories}
-            approachCategories={approachCategories}
-            puttingCategories={puttingCategories}
-            logoUrl={theme.logoUrl}
-          />
-          </div>
-          {/* theopen.com's navy rail: the sidebar on its own dark column, running the page's full
-              height on desktop; on phones a navy band under the posts. */}
-          <div className="-mx-5 -mb-12 bg-surface-dark px-5 py-8 sm:-mb-16 md:-mx-[30px] md:px-[30px] lg:mx-0 lg:-my-16 lg:self-stretch lg:px-6 lg:py-16">
-          <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="dark"
-            leaderboard={
-              <LeaderboardWidget
-                compact
-                entries={mainEntries}
-                stableford={stablefordEntries}
-                scratch={scratchEntries}
+            <div className="px-5 py-10 md:px-[30px] xl:px-[70px]">
+              <LiveBlogFeed
+                initialEntries={liveBlogPage.entries}
+                initialHasNextPage={liveBlogPage.hasNextPage}
+                realtimeChampionshipId={liveBlogPage.championshipId}
+                mainEntries={mainEntries}
+                stablefordEntries={stablefordEntries}
+                scratchEntries={scratchEntries}
                 nettCategories={nettCategories}
                 scratchCategories={scratchCategories}
                 streakCategories={streakCategories}
                 drivingCategories={drivingCategories}
                 approachCategories={approachCategories}
                 puttingCategories={puttingCategories}
-                championWinnerBadgeUrl={theme.championWinnerBadgeUrl}
+                logoUrl={theme.logoUrl}
               />
-            }
-          />
+            </div>
           </div>
-        </Container>
+          <div className="min-w-0 bg-surface-dark px-5 py-8 md:px-[30px] lg:px-0 lg:py-0">
+            <ChampionshipSidebar
+              featuredArticle={articles[0]}
+              clockConfig={clockConfig}
+              tone="dark"
+              flush
+              leaderboard={
+                <LeaderboardWidget
+                  compact
+                  entries={mainEntries}
+                  stableford={stablefordEntries}
+                  scratch={scratchEntries}
+                  nettCategories={nettCategories}
+                  scratchCategories={scratchCategories}
+                  streakCategories={streakCategories}
+                  drivingCategories={drivingCategories}
+                  approachCategories={approachCategories}
+                  puttingCategories={puttingCategories}
+                  championWinnerBadgeUrl={theme.championWinnerBadgeUrl}
+                />
+              }
+            />
+          </div>
+        </div>
       </div>
     </>
   );
