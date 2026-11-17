@@ -77,7 +77,17 @@ export interface LiveBlogPage {
 // posts pushed it some 12,000px down. "Load more" pages the rest, as theopen.com does.
 const LIVE_BLOG_PAGE_SIZE = 15;
 
-export async function getLiveBlogPosts(page = 1, limit = LIVE_BLOG_PAGE_SIZE, championshipId?: string): Promise<LiveBlogPage> {
+/** The Live Blog's Filter menu: one competition, or the headline moments across all three. */
+export type LiveBlogFilter = "all" | "main" | "stableford" | "scratch" | "moments";
+export const LIVE_BLOG_FILTERS: LiveBlogFilter[] = ["all", "main", "stableford", "scratch", "moments"];
+/** What "Big moments" keeps: winners, leaders, records, and the scores people talk about afterwards. */
+const MOMENT_CATEGORIES = [
+  "winner-confirmed", "playoff", "leader", "tie", "lead-extends", "leader-falters", "clubhouse-leader",
+  "ace", "albatross", "eagle", "nett-eagle", "hot-streak", "charge",
+  "course-record", "record-lead", "record-margin", "record-low-score",
+];
+
+export async function getLiveBlogPosts(page = 1, limit = LIVE_BLOG_PAGE_SIZE, championshipId?: string, filter: LiveBlogFilter = "all"): Promise<LiveBlogPage> {
   const payload = await getPayload({ config: configPromise });
   const championship = championshipId
     ? await payload.findByID({ collection: "championships", id: championshipId }).catch(() => undefined)
@@ -86,7 +96,16 @@ export async function getLiveBlogPosts(page = 1, limit = LIVE_BLOG_PAGE_SIZE, ch
 
   const result = await payload.find({
     collection: "live-blog-posts",
-    where: { championship: { equals: championship.id } },
+    where: {
+      and: [
+        { championship: { equals: championship.id } },
+        ...(filter === "moments"
+          ? [{ category: { in: MOMENT_CATEGORIES } }]
+          : filter !== "all"
+            ? [{ competition: { equals: filter } }]
+            : []),
+      ],
+    },
     sort: "-postedAt",
     limit,
     page,

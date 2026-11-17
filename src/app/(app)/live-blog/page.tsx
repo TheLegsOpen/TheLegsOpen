@@ -101,7 +101,7 @@ export default async function LiveBlogPage() {
       />
   
         <div className="bg-[#EEEEEE]">
-          <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_380px] lg:items-start">
+          <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_420px] lg:items-start">
             <div className="flex min-w-0 flex-col gap-10">
             {active ? (
               <LiveSummary
@@ -131,7 +131,10 @@ export default async function LiveBlogPage() {
             logoUrl={theme.logoUrl}
           />
           </div>
-          <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="light"
+          {/* theopen.com's navy rail: the sidebar on its own dark column, running the page's full
+              height on desktop; on phones a navy band under the posts. */}
+          <div className="-mx-5 -mb-12 bg-surface-dark px-5 py-8 sm:-mb-16 md:-mx-[30px] md:px-[30px] lg:mx-0 lg:-my-16 lg:self-stretch lg:px-6 lg:py-16">
+          <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="dark"
             leaderboard={
               <LeaderboardWidget
                 compact
@@ -148,6 +151,7 @@ export default async function LiveBlogPage() {
               />
             }
           />
+          </div>
         </Container>
       </div>
     </>

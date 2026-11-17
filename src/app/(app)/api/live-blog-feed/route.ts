@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { getLiveBlogPosts } from "@/lib/data/live-blog";
+import { getLiveBlogPosts, LIVE_BLOG_FILTERS, type LiveBlogFilter } from "@/lib/data/live-blog";
 
 /** Backs the Live Blog page's "Load more" button — same data the initial server render uses, just for a later page. */
 export async function GET(request: NextRequest) {
@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
   }
 
   const championshipId = request.nextUrl.searchParams.get("championshipId") ?? undefined;
-  const result = await getLiveBlogPosts(page, undefined, championshipId);
+  const filterParam = request.nextUrl.searchParams.get("filter") as LiveBlogFilter | null;
+  const filter = filterParam && LIVE_BLOG_FILTERS.includes(filterParam) ? filterParam : "all";
+  const result = await getLiveBlogPosts(page, undefined, championshipId, filter);
   return NextResponse.json(result);
 }

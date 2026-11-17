@@ -4,9 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { ArrowRight, ChevronDown, Loader2 } from "lucide-react";
 
-import { ArticleCard } from "@/components/news/article-card";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
-import { Badge } from "@/components/ui/badge";
 import { SectionGrid } from "@/components/shared/section-grid";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,6 +26,78 @@ function StoryMeta({ article }: { article: Article }) {
   );
 }
 
+/**
+ * theopen.com's card headline: the title in capitals, a slash, then the standfirst in a light weight
+ * ("GENE SARAZEN / Grand Slam hero was the King of Prince's in 1932"). Built from our title and dek,
+ * so no new field is needed.
+ */
+function SplitTitle({ article }: { article: Article }) {
+  return (
+    <>
+      <span className="font-display font-bold uppercase transition-colors group-hover:text-primary">{article.title}</span>
+      {article.dek ? (
+        <>
+          <span className="mx-1.5 font-light text-accent">/</span>
+          <span className="font-sans font-light text-foreground/80">{article.dek}</span>
+        </>
+      ) : null}
+    </>
+  );
+}
+
+/** One of the three-across cards: picture, category, split headline, a "Read article" link. */
+function StoryCard({ article }: { article: Article }) {
+  return (
+    <Link href={`/latest/${article.slug}`} className="group flex flex-col border border-border bg-white">
+      <div className="overflow-hidden">
+        <PlaceholderArt
+          label={article.heroLabel}
+          imageUrl={article.imageUrl}
+          tone="navy"
+          ratio="16/9"
+          sizes="(min-width: 1430px) 442px, (min-width: 1024px) 31vw, 50vw"
+          className="transition-transform duration-300 ease-standard group-hover:scale-[1.02]"
+        />
+      </div>
+      <div className="flex flex-1 flex-col gap-3 p-5">
+        <p className="font-display text-[12px] uppercase tracking-wide text-muted-foreground">{article.category}</p>
+        <h3 className="text-[16px] leading-snug">
+          <SplitTitle article={article} />
+        </h3>
+        <span className="mt-auto inline-flex items-center gap-1.5 pt-2 text-xs font-bold uppercase tracking-wide text-[#2269AB]">
+          Read article <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+/** The two-across cards with the words set over the photograph, as theopen.com breaks up its grid. */
+function PhotoStory({ article }: { article: Article }) {
+  return (
+    <Link href={`/latest/${article.slug}`} className="group relative block aspect-[6/5] overflow-hidden bg-primary">
+      <PlaceholderArt
+        label={article.heroLabel}
+        imageUrl={article.imageUrl}
+        tone="navy"
+        fill
+        sizes="(min-width: 1430px) 663px, 50vw"
+        className="transition-transform duration-300 ease-standard group-hover:scale-[1.03]"
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(6,5,30,0.95)_0%,rgba(6,5,30,0.6)_35%,rgba(6,5,30,0)_65%)]" />
+      <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-6 text-white lg:p-8">
+        <p className="font-display text-[13px] uppercase tracking-wide text-white/75">{article.category}</p>
+        <h3 className="text-[22px] leading-snug [&_span]:!text-white lg:text-[26px]">
+          <SplitTitle article={article} />
+        </h3>
+        <span className="mt-1 inline-flex items-center gap-1.5 self-end text-xs font-bold uppercase tracking-wide text-accent">
+          Read article <ArrowRight className="h-3.5 w-3.5" />
+        </span>
+      </div>
+    </Link>
+  );
+}
+
 /** The wide story at the head of each page: words on one side, a big picture on the other. */
 function LeadStory({ article, flip, priority }: { article: Article; flip: boolean; priority: boolean }) {
   return (
@@ -44,13 +114,10 @@ function LeadStory({ article, flip, priority }: { article: Article; flip: boolea
         />
       </div>
       <div className={cn("flex flex-col gap-3", flip ? "sm:order-2" : "sm:order-1")}>
-        <Badge variant="muted" className="w-fit">
-          {article.category}
-        </Badge>
-        <h2 className="text-balance font-display text-[28px] font-bold leading-tight transition-colors group-hover:text-primary sm:text-[34px]">
-          {article.title}
+        <p className="font-display text-[13px] uppercase tracking-wide text-muted-foreground">{article.category}</p>
+        <h2 className="text-balance text-[24px] leading-snug sm:text-[28px]">
+          <SplitTitle article={article} />
         </h2>
-        <p className="text-base text-muted-foreground">{article.dek}</p>
         <StoryMeta article={article} />
         <span className="mt-1 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#2269AB]">
           Read article <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -69,7 +136,9 @@ function ArticleRow({ article }: { article: Article }) {
       </div>
       <div className="flex min-w-0 flex-col gap-1">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{article.category}</p>
-        <h3 className="font-display text-[17px] font-bold leading-snug group-hover:text-primary">{article.title}</h3>
+        <h3 className="text-[15px] leading-snug">
+          <SplitTitle article={article} />
+        </h3>
         <p className="line-clamp-2 text-[13px] leading-snug text-muted-foreground">{article.dek}</p>
       </div>
     </Link>
@@ -206,11 +275,24 @@ export function NewsListing({
                         </li>
                       ))}
                     </ul>
-                    <SectionGrid layout="thirds" className="hidden gap-y-12 sm:grid sm:grid-cols-2">
-                      {group.slice(1).map((article) => (
-                        <ArticleCard key={article.slug} article={article} />
-                      ))}
-                    </SectionGrid>
+                    {/* theopen.com's rhythm: three cards, two photo cards, then another wide story. */}
+                    <div className="hidden flex-col gap-8 sm:flex sm:gap-12">
+                      {group.slice(1, 4).length > 0 ? (
+                        <SectionGrid layout="thirds" className="gap-6 sm:grid-cols-2">
+                          {group.slice(1, 4).map((article) => (
+                            <StoryCard key={article.slug} article={article} />
+                          ))}
+                        </SectionGrid>
+                      ) : null}
+                      {group.slice(4, 6).length > 0 ? (
+                        <div className="grid gap-6 sm:grid-cols-2">
+                          {group.slice(4, 6).map((article) => (
+                            <PhotoStory key={article.slug} article={article} />
+                          ))}
+                        </div>
+                      ) : null}
+                      {group[6] ? <LeadStory article={group[6]} flip={g % 2 === 0} priority={false} /> : null}
+                    </div>
                   </>
                 ) : null}
               </div>

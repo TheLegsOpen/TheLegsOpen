@@ -7,6 +7,7 @@ import {
   ArrowUpCircle,
   AlertTriangle,
   Award,
+  Check,
   Building2,
   Camera,
   ChevronsDown,
@@ -25,6 +26,7 @@ import {
   Newspaper,
   Rocket,
   Shield,
+  SlidersHorizontal,
   Sparkles,
   Star,
   Swords,
@@ -46,7 +48,16 @@ import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { InstagramEmbed } from "@/components/live-blog/instagram-embed";
 import { useFavorites } from "@/hooks/use-favorites";
 import { useLiveBlogRealtime } from "@/hooks/use-live-blog-realtime";
-import type { LiveBlogCategory, LiveBlogCompetition, LiveBlogEntry, LiveBlogPage } from "@/lib/data/live-blog";
+import type { LiveBlogCategory, LiveBlogCompetition, LiveBlogEntry, LiveBlogFilter, LiveBlogPage } from "@/lib/data/live-blog";
+
+/** theopen.com's Filter menu, in our terms. The filtering itself happens in the query (see getLiveBlogPosts), so each page comes back full. */
+const FILTER_OPTIONS: { value: LiveBlogFilter; label: string }[] = [
+  { value: "all", label: "All posts" },
+  { value: "main", label: "Main" },
+  { value: "stableford", label: "Stableford" },
+  { value: "scratch", label: "Scratch" },
+  { value: "moments", label: "Big moments" },
+];
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { StatCategory } from "@/lib/statistics";
 
@@ -175,10 +186,38 @@ export function LiveBlogFeed({
   const [page, setPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(initialHasNextPage);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [filter, setFilter] = useState<LiveBlogFilter>("all");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filtering, setFiltering] = useState(false);
+
+  function feedQuery(pageNumber: number, f: LiveBlogFilter = filter) {
+    const params = new URLSearchParams({ page: String(pageNumber) });
+    if (championshipId) params.set("championshipId", championshipId);
+    if (f !== "all") params.set("filter", f);
+    return `/api/live-blog-feed?${params.toString()}`;
+  }
+
+  async function chooseFilter(next: LiveBlogFilter) {
+    setFilterOpen(false);
+    if (next === filter) return;
+    setFilter(next);
+    setFiltering(true);
+    try {
+      const res = await fetch(feedQuery(1, next));
+      if (!res.ok) throw new Error("Failed to filter posts");
+      const data: LiveBlogPage = await res.json();
+      setEntries(data.entries);
+      setHasNextPage(data.hasNextPage);
+      setPage(1);
+    } catch {
+      // Keep whatever is showing; the menu stays available to try again.
+    } finally {
+      setFiltering(false);
+    }
+  }
 
   useLiveBlogRealtime(realtimeChampionshipId, async () => {
-    const query = championshipId ? `page=1&championshipId=${championshipId}` : "page=1";
-    const res = await fetch(`/api/live-blog-feed?${query}`);
+    const res = await fetch(feedQuery(1));
     if (!res.ok) return;
     const data: LiveBlogPage = await res.json();
     setEntries((prev) => {
@@ -199,8 +238,7 @@ export function LiveBlogFeed({
     setLoadingMore(true);
     try {
       const nextPage = page + 1;
-      const query = championshipId ? `page=${nextPage}&championshipId=${championshipId}` : `page=${nextPage}`;
-      const res = await fetch(`/api/live-blog-feed?${query}`);
+      const res = await fetch(feedQuery(nextPage));
       if (!res.ok) throw new Error("Failed to load more posts");
       const data: LiveBlogPage = await res.json();
       setEntries((prev) => [...prev, ...data.entries]);
@@ -211,6 +249,61 @@ export function LiveBlogFeed({
     } finally {
       setLoadingMore(false);
     }
+  }
+
+  const activeLabel = FILTER_OPTIONS.find((o) => o.value === filter)?.label ?? "All posts";
+  const filterBar = (
+    <div className="relative flex items-center justify-end gap-3">
+      {filter !== "all" ? (
+        <button type="button" onClick={() => chooseFilter("all")} className={cn("text-xs font-bold uppercase tracking-wide underline-offset-2 hover:underline", tone === "dark" ? "text-surface-dark-foreground/70" : "text-black/60")}>
+          Clear
+        </button>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => setFilterOpen((v) => !v)}
+        aria-expanded={filterOpen}
+        aria-haspopup="menu"
+        className={cn(
+          "inline-flex items-center gap-2 rounded-full border px-5 py-2 text-[13px] font-bold uppercase tracking-wide transition-colors",
+          tone === "dark" ? "border-surface-dark-foreground/40 text-surface-dark-foreground hover:bg-white/10" : "border-black/20 bg-white text-primary hover:bg-black/5",
+          filter !== "all" && "border-accent bg-accent text-accent-foreground hover:bg-accent/90",
+        )}
+      >
+        {filtering ? <Loader2 className="h-4 w-4 animate-spin" /> : <SlidersHorizontal className="h-4 w-4" />}
+        {filter === "all" ? "Filter" : activeLabel}
+      </button>
+      {filterOpen ? (
+        <ul role="menu" className="absolute right-0 top-full z-20 mt-2 w-48 overflow-hidden border border-black/10 bg-white py-1 text-sm text-primary shadow-lg">
+          {FILTER_OPTIONS.map((o) => (
+            <li key={o.value}>
+              <button
+                type="button"
+                role="menuitemradio"
+                aria-checked={filter === o.value}
+                onClick={() => chooseFilter(o.value)}
+                className={cn("flex w-full items-center justify-between px-4 py-2 text-left hover:bg-black/5", filter === o.value && "font-bold")}
+              >
+                {o.label}
+                {filter === o.value ? <Check className="h-4 w-4" /> : null}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+
+  if (entries.length === 0 && filter !== "all") {
+    return (
+      <div className="flex flex-col gap-6">
+        {filterBar}
+        <div className="flex flex-col items-center gap-2 border border-dashed border-black/20 bg-white py-16 text-center">
+          <p className="font-display font-bold text-lg text-primary">Nothing here yet</p>
+          <p className="text-sm text-black/60">No {activeLabel.toLowerCase()} posts so far.</p>
+        </div>
+      </div>
+    );
   }
 
   if (entries.length === 0) {
@@ -352,7 +445,8 @@ export function LiveBlogFeed({
 
   return (
     <div className="flex flex-col gap-8">
-      {feedGrid}
+      {filterBar}
+      <div className={cn("transition-opacity", filtering && "opacity-50")}>{feedGrid}</div>
 
       {hasNextPage ? (
         <div className="flex justify-center">
