@@ -96,7 +96,7 @@ export default async function LiveBlogPage() {
             puttingCategories={puttingCategories}
             logoUrl={theme.logoUrl}
           />
-          <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="dark" />
+          <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="light" />
         </Container>
       </div>
     </>

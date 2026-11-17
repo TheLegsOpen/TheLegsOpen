@@ -73,7 +73,9 @@ export interface LiveBlogPage {
   championshipId: string | null;
 }
 
-const LIVE_BLOG_PAGE_SIZE = 40;
+// 15 rather than 40: on a phone the sidebar (clock, latest news) stacks below the feed, and 40
+// posts pushed it some 12,000px down. "Load more" pages the rest, as theopen.com does.
+const LIVE_BLOG_PAGE_SIZE = 15;
 
 export async function getLiveBlogPosts(page = 1, limit = LIVE_BLOG_PAGE_SIZE, championshipId?: string): Promise<LiveBlogPage> {
   const payload = await getPayload({ config: configPromise });

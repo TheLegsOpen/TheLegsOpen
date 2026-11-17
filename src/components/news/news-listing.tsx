@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Loader2 } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 
 import { ArticleCard } from "@/components/news/article-card";
 import { SectionGrid } from "@/components/shared/section-grid";
@@ -23,7 +23,11 @@ export function NewsListing({
   initialHasMore: boolean;
   categories: ArticleCategory[];
 }) {
-  const CATEGORIES: Array<ArticleCategory | "All"> = ["All", ...categories];
+  // One category per championship ("The 14th Legs Open") would be 15+ pills, a whole phone
+  // screen before the first story. Those go in a drop-down, newest first; the topics stay as pills.
+  const editionOf = (cat: string) => Number(/^the (\d+)(?:st|nd|rd|th) legs open$/i.exec(cat.trim())?.[1] ?? NaN);
+  const editions = categories.filter((cat) => !Number.isNaN(editionOf(cat))).sort((a, b) => editionOf(b) - editionOf(a));
+  const CATEGORIES: Array<ArticleCategory | "All"> = ["All", ...categories.filter((cat) => !editions.includes(cat))];
   const [category, setCategory] = useState<ArticleCategory | "All">("All");
   const [articles, setArticles] = useState(initialArticles);
   const [hasMore, setHasMore] = useState(initialHasMore);
@@ -63,7 +67,7 @@ export function NewsListing({
             aria-selected={category === cat}
             onClick={() => handleCategoryChange(cat)}
             className={cn(
-              "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+              "rounded-full border px-4 py-2 text-sm font-medium uppercase transition-colors",
               category === cat
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border bg-transparent text-foreground hover:bg-secondary",
@@ -72,6 +76,35 @@ export function NewsListing({
             {cat}
           </button>
         ))}
+        {editions.length > 0 ? (
+          <div className="relative">
+            <select
+              aria-label="Filter by championship"
+              value={editions.includes(category) ? category : ""}
+              onChange={(e) => handleCategoryChange(e.target.value || "All")}
+              className={cn(
+                "cursor-pointer appearance-none rounded-full border py-2 pl-4 pr-10 text-sm font-medium uppercase transition-colors",
+                editions.includes(category)
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-transparent text-foreground hover:bg-secondary",
+              )}
+            >
+              <option value="">By championship</option>
+              {editions.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat.toUpperCase()}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              aria-hidden
+              className={cn(
+                "pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2",
+                editions.includes(category) ? "text-primary-foreground" : "text-muted-foreground",
+              )}
+            />
+          </div>
+        ) : null}
       </div>
 
       {showEmpty ? (
