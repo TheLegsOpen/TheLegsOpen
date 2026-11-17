@@ -1,14 +1,80 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronDown, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, ChevronDown, Loader2 } from "lucide-react";
 
 import { ArticleCard } from "@/components/news/article-card";
+import { PlaceholderArt } from "@/components/shared/placeholder-art";
+import { Badge } from "@/components/ui/badge";
 import { SectionGrid } from "@/components/shared/section-grid";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { NEWS_PAGE_SIZE } from "@/lib/news-page-size";
+import { cn, formatDate } from "@/lib/utils";
 import type { Article, ArticleCategory } from "@/types/article";
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+
+function StoryMeta({ article }: { article: Article }) {
+  return (
+    <p className="text-xs text-muted-foreground">
+      {formatDate(article.publishedAt)} · {article.readTimeMinutes} min read
+    </p>
+  );
+}
+
+/** The wide story at the head of each page: words on one side, a big picture on the other. */
+function LeadStory({ article, flip, priority }: { article: Article; flip: boolean; priority: boolean }) {
+  return (
+    <Link href={`/latest/${article.slug}`} className="group grid items-center gap-5 border-b border-border pb-8 sm:grid-cols-[1fr_1.5fr] sm:gap-10 sm:pb-12">
+      <div className={cn("-mx-5 overflow-hidden sm:mx-0", flip ? "sm:order-1" : "sm:order-2")}>
+        <PlaceholderArt
+          label={article.heroLabel}
+          imageUrl={article.imageUrl}
+          tone="navy"
+          ratio="16/9"
+          sizes="(min-width: 1430px) 800px, (min-width: 640px) 60vw, 100vw"
+          priority={priority}
+          className="transition-transform duration-300 ease-standard group-hover:scale-[1.02]"
+        />
+      </div>
+      <div className={cn("flex flex-col gap-3", flip ? "sm:order-2" : "sm:order-1")}>
+        <Badge variant="muted" className="w-fit">
+          {article.category}
+        </Badge>
+        <h2 className="text-balance font-display text-[28px] font-bold leading-tight transition-colors group-hover:text-primary sm:text-[34px]">
+          {article.title}
+        </h2>
+        <p className="text-base text-muted-foreground">{article.dek}</p>
+        <StoryMeta article={article} />
+        <span className="mt-1 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[#2269AB]">
+          Read article <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+/** Phone only: a small picture on the left, the words on the right. */
+function ArticleRow({ article }: { article: Article }) {
+  return (
+    <Link href={`/latest/${article.slug}`} className="group flex gap-4 px-5 py-4">
+      <div className="w-[120px] shrink-0 overflow-hidden">
+        <PlaceholderArt label={article.heroLabel} imageUrl={article.imageUrl} tone="navy" ratio="4/3" sizes="120px" />
+      </div>
+      <div className="flex min-w-0 flex-col gap-1">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{article.category}</p>
+        <h3 className="font-display text-[17px] font-bold leading-snug group-hover:text-primary">{article.title}</h3>
+        <p className="line-clamp-2 text-[13px] leading-snug text-muted-foreground">{article.dek}</p>
+      </div>
+    </Link>
+  );
+}
 
 // The list used to live here as a hardcoded array that had to be kept in step with the enum on
 // the Articles collection. It comes from the Article Categories collection now, so adding one in
@@ -113,17 +179,44 @@ export function NewsListing({
           <p className="text-sm text-muted-foreground">Try a different category, or check back during championship week.</p>
         </div>
       ) : (
-        <SectionGrid layout="thirds" className="gap-y-12 sm:grid-cols-2">
-          {(loading || isPending) && articles.length === 0
-            ? Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex flex-col gap-3">
-                  <Skeleton className="aspect-[4/3] w-full" />
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-5 w-full" />
-                </div>
-              ))
-            : articles.map((article) => <ArticleCard key={article.slug} article={article} />)}
-        </SectionGrid>
+        (loading || isPending) && articles.length === 0 ? (
+          <SectionGrid layout="thirds" className="gap-y-12 sm:grid-cols-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex flex-col gap-3">
+                <Skeleton className="aspect-[4/3] w-full" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-5 w-full" />
+              </div>
+            ))}
+          </SectionGrid>
+        ) : (
+          // Each page of seven opens with a wide feature (picture swapping sides page to page),
+          // then two rows of three -- theopen.com's rhythm, and the grid always comes out even.
+          // On a phone the six become compact rows, so five or so stories fit on one screen.
+          <div className="flex flex-col gap-12 sm:gap-16">
+            {chunk(articles, NEWS_PAGE_SIZE).map((group, g) => (
+              <div key={group[0].slug} className="flex flex-col gap-8 sm:gap-12">
+                <LeadStory article={group[0]} flip={g % 2 === 1} priority={g === 0} />
+                {group.length > 1 ? (
+                  <>
+                    <ul className="-mx-5 flex flex-col divide-y divide-border border-y border-border sm:hidden">
+                      {group.slice(1).map((article) => (
+                        <li key={article.slug}>
+                          <ArticleRow article={article} />
+                        </li>
+                      ))}
+                    </ul>
+                    <SectionGrid layout="thirds" className="hidden gap-y-12 sm:grid sm:grid-cols-2">
+                      {group.slice(1).map((article) => (
+                        <ArticleCard key={article.slug} article={article} />
+                      ))}
+                    </SectionGrid>
+                  </>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        )
       )}
 
       {hasMore ? (

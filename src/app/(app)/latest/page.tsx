@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 
-import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
 import { NewsListing } from "@/components/news/news-listing";
 import { getArticleCategories, getArticlesPage } from "@/lib/data/articles";
-import { getPageBanners } from "@/lib/data/page-banners";
+import { NEWS_PAGE_SIZE } from "@/lib/news-page-size";
 import { getSeoSettings } from "@/lib/data/seo-settings";
-
-const PAGE_SIZE = 6;
 
 // See src/app/(app)/page.tsx for why this route is force-dynamic.
 export const dynamic = "force-dynamic";
@@ -17,26 +14,33 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: seo.latest.title, description: seo.latest.description };
 }
 
+/** "Tuesday 17th November", in UK time. */
+function today(): string {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/London" }).formatToParts(now);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  const day = Number(get("day"));
+  const suffix = day % 10 === 1 && day !== 11 ? "st" : day % 10 === 2 && day !== 12 ? "nd" : day % 10 === 3 && day !== 13 ? "rd" : "th";
+  return `${get("weekday")} ${day}${suffix} ${get("month")}`;
+}
+
 export default async function LatestPage() {
-  const [{ items, hasMore }, banners, categories] = await Promise.all([
-    getArticlesPage({ page: 1, pageSize: PAGE_SIZE }),
-    getPageBanners(),
+  const [{ items, hasMore }, categories] = await Promise.all([
+    getArticlesPage({ page: 1, pageSize: NEWS_PAGE_SIZE }),
     getArticleCategories(),
   ]);
 
   return (
     <>
-      <PageHero
-        variant="photo"
-        size="compact"
-        imageLabel="The Legs Open press box"
-        imageUrl={banners.latestUrl}
-        eyebrow={banners.latestEyebrow}
-        title={banners.latestTitle}
-        description={banners.latestDescription}
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Latest News" }]}
-      />
-      <Container className="py-16 sm:py-24">
+      {/* theopen.com's slim heading in place of the photo banner, so the stories start almost at once. */}
+      <div className="border-b border-border bg-secondary/60">
+        <Container className="py-6 sm:py-8">
+          <h1 className="font-display text-[24px] leading-tight sm:text-[30px]">
+            Latest from The Legs Open <span className="block font-bold sm:inline">{today()}</span>
+          </h1>
+        </Container>
+      </div>
+      <Container className="py-8 sm:py-12">
         <NewsListing initialArticles={items} initialHasMore={hasMore} categories={categories} />
       </Container>
     </>

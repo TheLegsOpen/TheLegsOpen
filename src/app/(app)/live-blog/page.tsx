@@ -8,7 +8,11 @@ import { LiveBlogFeed } from "@/components/live-blog/live-blog-feed";
 import { getLiveBlogPosts } from "@/lib/data/live-blog";
 import { getArticles } from "@/lib/data/articles";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
-import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
+import { getActiveChampionshipId, getCompetitionLeaderboard } from "@/lib/data/scorecards";
+import { getChampionshipHistory, isChampionshipInPlay } from "@/lib/data/championships";
+import { getPlayoffs, applyPlayoffToEntries, getEligibleStablefordChampion } from "@/lib/data/playoffs";
+import { LiveSummary } from "@/components/live-blog/live-summary";
+import { ordinal } from "@/lib/utils";
 import { getPageBanners } from "@/lib/data/page-banners";
 import { getSiteTheme } from "@/lib/data/site-theme";
 import {
@@ -39,15 +43,19 @@ export default async function LiveBlogPage() {
     clockConfig,
     banners,
     theme,
-    mainEntries,
-    stablefordEntries,
-    scratchEntries,
+    mainRaw,
+    stablefordRaw,
+    scratchRaw,
     nettCategories,
     scratchCategories,
     streakCategories,
     drivingCategories,
     approachCategories,
     puttingCategories,
+    playoffs,
+    inPlay,
+    activeChampionshipId,
+    championshipHistory,
   ] = await Promise.all([
     getLiveBlogPosts(),
     getArticles(),
@@ -63,40 +71,63 @@ export default async function LiveBlogPage() {
     getDrivingCategories(),
     getApproachCategories(),
     getPuttingCategories(),
+    getPlayoffs(),
+    isChampionshipInPlay(),
+    getActiveChampionshipId(),
+    getChampionshipHistory(),
   ]);
+
+  const mainEntries = applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main"));
+  const stablefordEntries = applyPlayoffToEntries(stablefordRaw, playoffs.find((p) => p.competition === "stableford"));
+  const scratchEntries = applyPlayoffToEntries(scratchRaw, playoffs.find((p) => p.competition === "scratch"));
+  const active = championshipHistory.find((c) => String(c.id) === String(activeChampionshipId));
+  // The 2013 championship is the 1st, so the edition is a count of those played up to this one.
+  const edition = active ? championshipHistory.filter((c) => c.year <= active.year).length : 0;
 
   return (
     <>
       <PageHero
         variant="photo"
-        size="compact"
+        size="slim"
         imageLabel="Gallery watching on the 18th at Seabrook Old Course"
         imageUrl={banners.liveBlogUrl}
         eyebrow={banners.liveBlogEyebrow}
         title={banners.liveBlogTitle}
         description={banners.liveBlogDescription}
-        breadcrumbs={[{ label: "Home", href: "/" }, { label: "Live Blog" }]}
+        overlay={<ChampionshipWeekSwitcher onPhoto />}
       />
-      <ChampionshipWeekSwitcher />
-
-      <div className="bg-[#EEEEEE]">
-        <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_320px] lg:items-start">
-          <LiveBlogFeed
-            initialEntries={liveBlogPage.entries}
-            initialHasNextPage={liveBlogPage.hasNextPage}
-            realtimeChampionshipId={liveBlogPage.championshipId}
-            mainEntries={mainEntries}
-            stablefordEntries={stablefordEntries}
-            scratchEntries={scratchEntries}
-            nettCategories={nettCategories}
-            scratchCategories={scratchCategories}
-            streakCategories={streakCategories}
-            drivingCategories={drivingCategories}
+  
+        <div className="bg-[#EEEEEE]">
+          <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_320px] lg:items-start">
+            <div className="flex min-w-0 flex-col gap-10">
+            {active ? (
+              <LiveSummary
+                title={`The ${ordinal(edition)} Legs Open`}
+                venueName={active.venueName}
+                inPlay={inPlay}
+                main={mainEntries}
+                stableford={stablefordEntries}
+                scratch={scratchEntries}
+                stablefordChampion={getEligibleStablefordChampion(mainEntries, stablefordEntries)}
+              />
+            ) : null}
+            <LiveBlogFeed
+              initialEntries={liveBlogPage.entries}
+              initialHasNextPage={liveBlogPage.hasNextPage}
+              realtimeChampionshipId={liveBlogPage.championshipId}
+              mainEntries={mainEntries}
+              stablefordEntries={stablefordEntries}
+              scratchEntries={scratchEntries}
+              nettCategories={nettCategories}
+              scratchCategories={scratchCategories}
+              streakCategories={streakCategories}
+              drivingCategories={drivingCategories}
             approachCategories={approachCategories}
             puttingCategories={puttingCategories}
             logoUrl={theme.logoUrl}
           />
-          <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="light" />
+          </div>
+          <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="light" topTen={mainEntries.slice(0, 10)} />
         </Container>
       </div>
     </>

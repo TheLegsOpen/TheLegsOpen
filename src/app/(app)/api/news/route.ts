@@ -4,7 +4,7 @@ import { getArticlesPage } from "@/lib/data/articles";
 import { delay } from "@/lib/mock-api";
 import type { ArticleCategory } from "@/types/article";
 
-const PAGE_SIZE = 6;
+import { NEWS_PAGE_SIZE as PAGE_SIZE } from "@/lib/news-page-size";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
