@@ -21,6 +21,9 @@ const PER_PAGE = 5;
  * (see NEWS_ARTICLE_COUNT in src/app/(app)/page.tsx), so changing dot is instant and never reads
  * from the database -- this replaced a "Load more stories" button that fetched each extra page.
  */
+/** Stories in the phone carousel; the paged grid on larger screens still shows them all. */
+const PHONE_STORY_COUNT = 9;
+
 export function NewsGrid({ articles }: { articles: Article[] }) {
   const [page, setPage] = useState(0);
   const reduceMotion = useReducedMotion();
@@ -42,8 +45,9 @@ export function NewsGrid({ articles }: { articles: Article[] }) {
           />
         </div>
 
-        {/* Phones get theopen.com's mobile carousel instead: every story in one sideways strip. */}
-        <NewsCarousel articles={articles} />
+        {/* Phones get theopen.com's mobile carousel instead: the latest nine in one sideways strip
+            (all of them made fifteen-odd swipes and a row of dots wider than the screen). */}
+        <NewsCarousel articles={articles.slice(0, PHONE_STORY_COUNT)} />
 
         <div className="hidden flex-col gap-10 sm:flex">
         <AnimatePresence mode="wait" initial={false}>
