@@ -119,6 +119,34 @@ export async function getLiveBlogPosts(page = 1, limit = LIVE_BLOG_PAGE_SIZE, ch
  * calling from inside the Scorecards afterChange hook so this reads within the same in-flight
  * transaction as the write that triggered it.
  */
+/** The Live Blog page's yellow summary box, as set in Live Blog Config. Defaults to fully automatic. */
+export interface LiveBlogSummarySettings {
+  show: boolean;
+  title?: string;
+  badge: "auto" | "live" | "final" | "none";
+  autoLines: boolean;
+  /** Lexical rich text, or undefined when empty. */
+  points?: unknown;
+}
+
+function hasRichText(data: unknown): boolean {
+  // Any text node with something other than spaces in it -- an untouched editor saves an empty paragraph.
+  const children = (data as { root?: { children?: unknown[] } } | null)?.root?.children ?? [];
+  return /"text":"[^"]*\S/.test(JSON.stringify(children));
+}
+
+export async function getLiveBlogSummarySettings(): Promise<LiveBlogSummarySettings> {
+  const payload = await getPayload({ config: configPromise });
+  const global = await payload.findGlobal({ slug: "live-blog-config", depth: 0 }).catch(() => undefined);
+  return {
+    show: global?.summaryShow ?? true,
+    title: global?.summaryTitle?.trim() || undefined,
+    badge: global?.summaryBadge ?? "auto",
+    autoLines: global?.summaryAutoLines ?? true,
+    points: hasRichText(global?.summaryPoints) ? global?.summaryPoints : undefined,
+  };
+}
+
 export async function getLiveBlogConfig(req?: PayloadRequest): Promise<PublicationConfig> {
   const payload = req?.payload ?? (await getPayload({ config: configPromise }));
   const global = await payload.findGlobal({ slug: "live-blog-config", depth: 0, req }).catch(() => undefined);

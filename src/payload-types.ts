@@ -436,6 +436,11 @@ export interface HomepageSettingsGlobal {
  */
 export interface LiveBlogConfigGlobal {
   id: string;
+  summaryShow?: boolean | null;
+  summaryTitle?: string | null;
+  summaryBadge?: ("auto" | "live" | "final" | "none") | null;
+  summaryAutoLines?: boolean | null;
+  summaryPoints?: unknown;
   enabled?: boolean | null;
   minimumSignificance: number;
   cooldownSeconds: number;

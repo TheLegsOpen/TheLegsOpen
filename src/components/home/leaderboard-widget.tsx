@@ -29,6 +29,8 @@ interface LeaderboardWidgetProps {
   approachCategories: StatCategory[];
   puttingCategories: StatCategory[];
   championWinnerBadgeUrl?: string;
+  /** Narrow rail (the Live Blog sidebar): drops the tee-time column so the names have room. */
+  compact?: boolean;
 }
 
 export function LeaderboardWidget({
@@ -42,6 +44,7 @@ export function LeaderboardWidget({
   approachCategories,
   puttingCategories,
   championWinnerBadgeUrl,
+  compact = false,
 }: LeaderboardWidgetProps) {
   const { favorites, toggleFavorite } = useFavorites();
   const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -92,7 +95,7 @@ export function LeaderboardWidget({
             <colgroup>
               <col className="w-8" />
               <col />
-              <col className="hidden w-14 sm:table-column" />
+              <col className={cn("hidden w-14", !compact && "sm:table-column")} />
               <col className="w-14" />
               <col className="w-14" />
               <col className="w-14" />
@@ -101,7 +104,7 @@ export function LeaderboardWidget({
               <tr className="border-b border-surface-dark-foreground/15 bg-surface-dark-foreground/5 text-left text-xs uppercase tracking-wide text-surface-dark-foreground/60">
                 <th className="px-2 py-2">Pos</th>
                 <th className="px-2 py-2">Player</th>
-                <th className="hidden px-2 py-2 text-right sm:table-cell" aria-label="Tee time" />
+                <th className={cn("hidden px-2 py-2 text-right", !compact && "sm:table-cell")} aria-label="Tee time" />
                 <th className="px-2 py-2 text-right">Par</th>
                 <th className="px-2 py-2 text-right">Hole</th>
                 <th className="px-2 py-2 text-right">Score</th>
@@ -185,7 +188,7 @@ export function LeaderboardWidget({
                         </div>
                       ) : null}
                     </td>
-                    <td className="hidden whitespace-nowrap px-2 py-2 text-right text-xs tabular-nums text-accent-foreground/70 sm:table-cell">
+                    <td className={cn("hidden whitespace-nowrap px-2 py-2 text-right text-xs tabular-nums text-accent-foreground/70", !compact && "sm:table-cell")}>
                       {!entry.started && entry.teeTime ? (
                         <span className="inline-flex items-center justify-end gap-1.5 leading-none">
                           <Clock className="h-3 w-3 shrink-0" />

@@ -18,6 +18,52 @@ export const LiveBlogConfig: GlobalConfig = {
   },
   fields: [
     {
+      type: "collapsible",
+      label: "Summary box (top of the Live Blog page)",
+      admin: {
+        description:
+          "The yellow box above the posts, like theopen.com's \"LIVE · The 154th Open\" panel. Leave everything as it is and it writes itself from the leaderboards: the three leaders while play is on, the three winners once it's over.",
+      },
+      fields: [
+        { name: "summaryShow", type: "checkbox", label: "Show the summary box", defaultValue: true },
+        {
+          name: "summaryTitle",
+          type: "text",
+          label: "Title",
+          admin: { description: "Leave empty for the championship's name, e.g. \"The 14th Legs Open\"." },
+        },
+        {
+          name: "summaryBadge",
+          type: "select",
+          label: "Badge",
+          enumName: "enum_live_blog_config_summary_badge",
+          defaultValue: "auto",
+          options: [
+            { label: "Automatic (LIVE while play is on, FINAL after)", value: "auto" },
+            { label: "LIVE", value: "live" },
+            { label: "FINAL", value: "final" },
+            { label: "No badge", value: "none" },
+          ],
+        },
+        {
+          name: "summaryAutoLines",
+          type: "checkbox",
+          label: "Include the automatic leader / winner lines",
+          defaultValue: true,
+          admin: { description: "Untick to show only your own points below." },
+        },
+        {
+          name: "summaryPoints",
+          type: "richText",
+          label: "Your points",
+          admin: {
+            description:
+              "Shown after the automatic lines (or on their own if those are switched off). Use a bulleted list, one point per bullet; links work, e.g. \"Full report\" or \"Tee times here\".",
+          },
+        },
+      ],
+    },
+    {
       name: "enabled",
       type: "checkbox",
       defaultValue: true,

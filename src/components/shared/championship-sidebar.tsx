@@ -32,6 +32,8 @@ interface ChampionshipSidebarProps {
   liveBlog?: LiveBlogEntry[];
   /** The Main leaderboard's top ten, for the Tee Times rail. */
   topTen?: CompetitionEntry[];
+  /** A ready-made leaderboard block (the home page's widget), shown under the clock. */
+  leaderboard?: React.ReactNode;
   /** Keep the rail in view while the table beside it scrolls (desktop only). */
   sticky?: boolean;
 }
@@ -51,7 +53,7 @@ function postedTime(iso: string): string {
 /** Cancels the Container gutter (20 / 30px) below lg, where the rail stacks under the main column. */
 const BLEED = "-mx-5 md:-mx-[30px] lg:mx-0";
 
-export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "light", weather, upcomingTeeTimes, liveBlog, topTen, sticky = false }: ChampionshipSidebarProps) {
+export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "light", weather, upcomingTeeTimes, liveBlog, topTen, leaderboard, sticky = false }: ChampionshipSidebarProps) {
   const isDark = tone === "dark";
   const border = isDark ? "border-surface-dark-foreground/15" : "border-border";
   return (
@@ -66,6 +68,8 @@ export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "ligh
           <WeatherWidget weather={weather} />
         </div>
       ) : null}
+
+      {leaderboard ? <div className={BLEED}>{leaderboard}</div> : null}
 
       {topTen && topTen.length > 0 ? (
         <div className="flex flex-col gap-3">

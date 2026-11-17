@@ -5,7 +5,8 @@ import { ChampionshipWeekSwitcher } from "@/components/shared/championship-week-
 import { Container } from "@/components/shared/container";
 import { ChampionshipSidebar } from "@/components/shared/championship-sidebar";
 import { LiveBlogFeed } from "@/components/live-blog/live-blog-feed";
-import { getLiveBlogPosts } from "@/lib/data/live-blog";
+import { getLiveBlogPosts, getLiveBlogSummarySettings } from "@/lib/data/live-blog";
+import { LeaderboardWidget } from "@/components/home/leaderboard-widget";
 import { getArticles } from "@/lib/data/articles";
 import { getSponsorClock } from "@/lib/data/sponsor-clock";
 import { getActiveChampionshipId, getCompetitionLeaderboard } from "@/lib/data/scorecards";
@@ -56,6 +57,7 @@ export default async function LiveBlogPage() {
     inPlay,
     activeChampionshipId,
     championshipHistory,
+    summarySettings,
   ] = await Promise.all([
     getLiveBlogPosts(),
     getArticles(),
@@ -75,6 +77,7 @@ export default async function LiveBlogPage() {
     isChampionshipInPlay(),
     getActiveChampionshipId(),
     getChampionshipHistory(),
+    getLiveBlogSummarySettings(),
   ]);
 
   const mainEntries = applyPlayoffToEntries(mainRaw, playoffs.find((p) => p.competition === "main"));
@@ -98,7 +101,7 @@ export default async function LiveBlogPage() {
       />
   
         <div className="bg-[#EEEEEE]">
-          <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_320px] lg:items-start">
+          <Container className="grid grid-cols-1 gap-10 py-12 sm:py-16 lg:grid-cols-[1fr_380px] lg:items-start">
             <div className="flex min-w-0 flex-col gap-10">
             {active ? (
               <LiveSummary
@@ -109,6 +112,7 @@ export default async function LiveBlogPage() {
                 stableford={stablefordEntries}
                 scratch={scratchEntries}
                 stablefordChampion={getEligibleStablefordChampion(mainEntries, stablefordEntries)}
+              settings={summarySettings}
               />
             ) : null}
             <LiveBlogFeed
@@ -127,7 +131,23 @@ export default async function LiveBlogPage() {
             logoUrl={theme.logoUrl}
           />
           </div>
-          <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="light" topTen={mainEntries.slice(0, 10)} />
+          <ChampionshipSidebar featuredArticle={articles[0]} clockConfig={clockConfig} tone="light"
+            leaderboard={
+              <LeaderboardWidget
+                compact
+                entries={mainEntries}
+                stableford={stablefordEntries}
+                scratch={scratchEntries}
+                nettCategories={nettCategories}
+                scratchCategories={scratchCategories}
+                streakCategories={streakCategories}
+                drivingCategories={drivingCategories}
+                approachCategories={approachCategories}
+                puttingCategories={puttingCategories}
+                championWinnerBadgeUrl={theme.championWinnerBadgeUrl}
+              />
+            }
+          />
         </Container>
       </div>
     </>
