@@ -150,6 +150,8 @@ interface LiveBlogFeedProps {
   realtimeChampionshipId?: string | null;
   /** The site's crest, recoloured to #08325A in place of the trophy icon on winner-confirmed posts. */
   logoUrl?: string;
+  /** "dark" when the feed sits on a navy panel (the Previous Opens tab): a light spine and gold-ringed dots, which the default grey line and navy rings vanish into. */
+  tone?: "light" | "dark";
 }
 
 export function LiveBlogFeed({
@@ -167,6 +169,7 @@ export function LiveBlogFeed({
   championshipId,
   realtimeChampionshipId,
   logoUrl,
+  tone = "light",
 }: LiveBlogFeedProps) {
   const [entries, setEntries] = useState(initialEntries);
   const [page, setPage] = useState(1);
@@ -226,7 +229,7 @@ export function LiveBlogFeed({
           background -- unlike an absolutely-positioned overlay sized to the whole list, this
           never has to "hide behind" opaque card content, it's simply never underneath it. */}
       <div className="pointer-events-none relative col-start-1" style={{ gridRow: `1 / ${entries.length + 1}` }} aria-hidden="true">
-        <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-black/15" />
+        <div className={cn("absolute inset-y-0 left-1/2 w-px -translate-x-1/2", tone === "dark" ? "bg-white/30" : "bg-black/15")} />
       </div>
 
       {entries.map((entry, index) => {
@@ -242,7 +245,12 @@ export function LiveBlogFeed({
         return (
           <Fragment key={entry.id}>
             <div className="relative col-start-1" style={{ gridRow: index + 1 }} aria-hidden="true">
-              <span className="absolute left-1/2 top-7 h-4 w-4 -translate-x-1/2 rounded-full border-2 border-primary bg-white" />
+              <span
+                className={cn(
+                  "absolute left-1/2 top-7 h-4 w-4 -translate-x-1/2 rounded-full border-2",
+                  tone === "dark" ? "border-accent bg-surface-dark" : "border-primary bg-white",
+                )}
+              />
             </div>
             <article
               className={cn("col-start-2 border border-black/10 py-6 px-5", meta.cardClass ?? "bg-white")}

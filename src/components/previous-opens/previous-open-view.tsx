@@ -436,6 +436,7 @@ export function PreviousOpenView({
                   puttingCategories={results.puttingCategories}
                   championshipId={championship.id}
                   logoUrl={results.logoUrl}
+                  tone="dark"
                 />
               </TabsContent>
             </Tabs>
