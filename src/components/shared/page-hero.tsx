@@ -24,8 +24,12 @@ interface PageHeroProps {
    * theopen.com's Previous Opens hero: clear at the top right, deepening to navy at the bottom left
    * (their 221deg gradient, transparent to 40%), so the photo reads left to right instead of having a
    * dark horizon. Phones keep a light fade from the foot, since our title sits on the photo there.
+   * "corner" is theopen.com's Venues hero: solid navy from the bottom-left corner to 40%, clearing
+   * towards the top right. "left" is a lighter navy wash from the left edge, gone by two-thirds of
+   * the way across, for the venue pages, where the course on the right is the point of the photo.
+   * On phones both run from the bottom-left corner, a little stronger, as the text covers more.
    */
-  shade?: "bottom" | "diagonal";
+  shade?: "bottom" | "diagonal" | "corner" | "left";
   /** Fixed height in pixels, overriding the vh-based `size` presets -- for a page that needs an exact height rather than one scaled to the viewport. */
   heightPx?: number;
   imageLabel?: string;
@@ -67,7 +71,11 @@ export function PageHero({ eyebrow, title, description, breadcrumbs, variant = "
         {/* Full-bleed, so 100vw is the honest hint. priority because this is the largest
             above-the-fold element on every page that has a photo hero. */}
         <PlaceholderArt label={imageLabel ?? title} imageUrl={imageUrl} tone="navy" fill sizes="100vw" priority position={imagePosition} />
-        {shade === "diagonal" ? (
+        {shade === "corner" ? (
+          <div className="absolute inset-0 bg-[linear-gradient(45deg,#06051e_30%,rgba(6,5,30,0.2))] sm:bg-[linear-gradient(45deg,#06051e_40%,rgba(6,5,30,0))]" />
+        ) : shade === "left" ? (
+          <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(6,5,30,0.95)_25%,rgba(6,5,30,0.15))] sm:bg-[linear-gradient(90deg,rgba(6,5,30,0.92)_0%,rgba(6,5,30,0.6)_38%,rgba(6,5,30,0)_70%)]" />
+        ) : shade === "diagonal" ? (
           <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(6,5,30,0.9)_0%,rgba(6,5,30,0.35)_45%,rgba(6,5,30,0)_75%)] sm:bg-[linear-gradient(221deg,rgba(6,5,30,0)_40%,#06051e_100%)]" />
         ) : (
           <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.8)_45%,rgba(0,0,0,0.25)_75%,rgba(0,0,0,0.05)_100%)]" />

@@ -106,6 +106,7 @@ export async function VenueDetail({ slug }: { slug: string }) {
       <PageHero
         variant="photo"
         size="venue"
+        shade="left"
         imageLabel={venue.imageLabel}
         imageUrl={venue.imageUrl}
         title={venue.name}
