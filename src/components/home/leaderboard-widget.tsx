@@ -130,7 +130,16 @@ export function LeaderboardWidget({
                           className="truncate hover:underline"
                         >
                           <span className="font-bold">{surname}</span>
-                          <span className="font-normal">, {firstName}</span>
+                          {compact ? (
+                            // The Live Blog rail is a third of the page at tablet widths, too narrow for
+                            // "DONALDSON, Fraser": theopen.com's first initial there, the full name either side.
+                            <span className="font-normal">
+                              , <span className="lg:max-xl:hidden">{firstName}</span>
+                              <span className="hidden lg:max-xl:inline">{firstName.charAt(0)}</span>
+                            </span>
+                          ) : (
+                            <span className="font-normal">, {firstName}</span>
+                          )}
                         </button>
                         <CountryFlag code={entry.player.countryCode} className="h-3 w-4 shrink-0 align-middle" />
                         {concluded && entry.position === 1 && !entry.tied && championWinnerBadgeUrl ? (
