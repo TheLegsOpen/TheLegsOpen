@@ -43,7 +43,7 @@ export function LiveSummary({
     lines.push(
       done ? (
         <>
-          <b>{m.player.name}</b> is Champion Golfer{venueName ? ` at ${venueName}` : ""}, on {mainScore(m)}.
+          <b>{m.player.name}</b> is Champion Golfer of the Year{venueName ? ` at ${venueName}` : ""}, on {mainScore(m)}.
         </>
       ) : (
         <>

@@ -36,7 +36,7 @@ export default async function LatestPage() {
       <div className="border-b border-border bg-secondary/60">
         <Container className="py-6 sm:py-8">
           <h1 className="font-display text-[24px] leading-tight sm:text-[30px]">
-            Latest from The Legs Open <span className="block font-bold sm:inline">{today()}</span>
+            Latest from The Legs Open <span className="block font-bold">{today()}</span>
           </h1>
         </Container>
       </div>

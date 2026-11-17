@@ -87,7 +87,7 @@ export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "ligh
               );
             })}
           </ol>
-          <Link href="/leaderboard" className="text-xs font-bold uppercase tracking-wide text-accent hover:underline">
+          <Link href="/leaderboard" className={cn("text-xs font-bold uppercase tracking-wide hover:underline", isDark ? "text-accent" : "text-primary")}>
             Full leaderboard →
           </Link>
         </div>
@@ -104,7 +104,7 @@ export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "ligh
               </li>
             ))}
           </ul>
-          <Link href="/tee-times" className="text-xs font-bold uppercase tracking-wide text-accent hover:underline">
+          <Link href="/tee-times" className={cn("text-xs font-bold uppercase tracking-wide hover:underline", isDark ? "text-accent" : "text-primary")}>
             All tee times →
           </Link>
         </div>
@@ -128,7 +128,7 @@ export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "ligh
               </li>
             ))}
           </ul>
-          <Link href="/live-blog" className="text-xs font-bold uppercase tracking-wide text-accent hover:underline">
+          <Link href="/live-blog" className={cn("text-xs font-bold uppercase tracking-wide hover:underline", isDark ? "text-accent" : "text-primary")}>
             Full live blog →
           </Link>
         </div>
