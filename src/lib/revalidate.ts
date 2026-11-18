@@ -73,6 +73,11 @@ export function revalidateMediaPage() {
 }
 
 /** Shown as the banner on every data-utility/listing page except the homepage and detail pages. */
+/** The menu is in the root layout, on every page. */
+export function revalidateMainMenu() {
+  revalidate([{ path: "/", type: "layout" }]);
+}
+
 export function revalidatePageBanners() {
   revalidate([
     "/field",

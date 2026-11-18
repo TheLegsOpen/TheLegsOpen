@@ -4,6 +4,7 @@ import { Container } from "@/components/shared/container";
 import { NewsListing } from "@/components/news/news-listing";
 import { getArticleCategories, getArticlesPage } from "@/lib/data/articles";
 import { NEWS_PAGE_SIZE } from "@/lib/news-page-size";
+import { getPageBanners } from "@/lib/data/page-banners";
 import { getSeoSettings } from "@/lib/data/seo-settings";
 
 // See src/app/(app)/page.tsx for why this route is force-dynamic.
@@ -25,9 +26,10 @@ function today(): string {
 }
 
 export default async function LatestPage() {
-  const [{ items, hasMore }, categories] = await Promise.all([
+  const [{ items, hasMore }, categories, banners] = await Promise.all([
     getArticlesPage({ page: 1, pageSize: NEWS_PAGE_SIZE }),
     getArticleCategories(),
+    getPageBanners(),
   ]);
 
   return (
@@ -36,7 +38,7 @@ export default async function LatestPage() {
       <div className="border-b border-border bg-secondary/60">
         <Container className="py-6 sm:py-8">
           <h1 className="font-display text-[24px] leading-tight sm:text-[30px]">
-            Latest from The Legs Open <span className="block font-bold">{today()}</span>
+            {banners.latestTitle} <span className="block font-bold">{today()}</span>
           </h1>
         </Container>
       </div>

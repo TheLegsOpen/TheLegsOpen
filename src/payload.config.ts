@@ -48,6 +48,7 @@ import { ContactPageSettings } from "./globals/ContactPageSettings";
 import { MediaPageSettings } from "./globals/MediaPageSettings";
 import { CareersPageSettings } from "./globals/CareersPageSettings";
 import { SEOSettings } from "./globals/SEOSettings";
+import { MainMenu } from "./globals/MainMenu";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -195,6 +196,7 @@ export default buildConfig({
     MediaPageSettings,
     CareersPageSettings,
     SEOSettings,
+    MainMenu,
   ],
   editor: lexicalEditor(),
   // Without this, Payload has nowhere to actually deliver account emails (forgot-password

@@ -123,6 +123,7 @@ export interface Config {
     'media-page': MediaPageSettingsGlobal;
     'careers-page': CareersPageSettingsGlobal;
     'seo-settings': SeoSettingsGlobal;
+    'main-menu': MainMenuGlobal;
   };
   globalsSelect: {};
   locale: null;
@@ -531,6 +532,16 @@ export interface NewsTickerGlobal {
 /**
  * Hand-added — see note at top of file.
  */
+export interface MainMenuGlobal {
+  id: string;
+  topLinks?: { label: string; href: string; id?: string | null }[] | null;
+  groups?:
+    | { heading?: string | null; emphasis?: boolean | null; links?: { label: string; href: string; id?: string | null }[] | null; id?: string | null }[]
+    | null;
+  showVenueLinks?: boolean | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
 export interface PageBannersGlobal {
   id: string;
   leaderboard?: (string | Media) | null;
@@ -566,6 +577,10 @@ export interface PageBannersGlobal {
   latestDescription?: string | null;
   playerProfile?: (string | Media) | null;
   playerProfileEyebrow?: string | null;
+  previousOpens?: (string | Media) | null;
+  previousOpensEyebrow?: string | null;
+  previousOpensTitle?: string | null;
+  previousOpensDescription?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }

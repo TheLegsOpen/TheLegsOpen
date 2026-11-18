@@ -5,7 +5,7 @@ import Image from "next/image";
 
 import { SheetClose } from "@/components/ui/sheet";
 import { buildNavPanel } from "@/data/navigation";
-import type { NavLink } from "@/types/nav";
+import type { NavLink, NavPanelGroup } from "@/types/nav";
 import type { SponsorEntry } from "@/lib/data/sponsors";
 import { cn } from "@/lib/utils";
 
@@ -27,13 +27,16 @@ export function NavPanel({
   venueLinks = [],
   logoUrl,
   patrons = [],
+  groups: givenGroups,
 }: {
   onNavigate: () => void;
   venueLinks?: NavLink[];
+  /** From the Main Menu global; built from the code's menu when not given. */
+  groups?: NavPanelGroup[];
   logoUrl?: string;
   patrons?: SponsorEntry[];
 }) {
-  const groups = buildNavPanel(venueLinks);
+  const groups = givenGroups ?? buildNavPanel(venueLinks);
 
   return (
     <nav aria-label="Site" className="flex flex-col">

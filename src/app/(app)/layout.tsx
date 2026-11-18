@@ -12,6 +12,7 @@ import { getSponsors } from "@/lib/data/sponsors";
 import { getSocialLinks } from "@/lib/data/social-links";
 import { getCookieBannerText } from "@/lib/data/cookie-banner";
 import { getMenuVenueLinks } from "@/lib/data/championships";
+import { getMainMenu } from "@/lib/data/main-menu";
 import { getFooterLegalLinks } from "@/lib/data/legal";
 import { getNewsTicker } from "@/lib/data/news-ticker";
 import { hexToHslTriplet } from "@/lib/utils";
@@ -93,6 +94,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     getFooterLegalLinks(),
     getNewsTicker(),
   ]);
+  const menu = await getMainMenu(venueLinks);
   const fontVars = FONT_PRESET_VARS[theme.fontPreset];
 
   const themeStyle = `:root {
@@ -115,7 +117,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <a href="#main-content" className="skip-link">
             Skip to main content
           </a>
-          <Header logoUrl={theme.logoUrl} venueLinks={venueLinks} patrons={sponsors.patrons} />
+          <Header logoUrl={theme.logoUrl} venueLinks={venueLinks} patrons={sponsors.patrons} topLinks={menu.topLinks} panelGroups={menu.groups} />
           {/* Sits in the layout rather than the homepage so it runs on every page, under the
               header, the way The Open's live band does. Renders nothing when there is no ticker
               content, so pages outside a championship are unaffected. */}

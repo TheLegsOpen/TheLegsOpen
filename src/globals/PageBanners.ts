@@ -24,7 +24,7 @@ export const PageBanners: GlobalConfig = {
     afterChange: [revalidatePageBanners],
   },
   admin: {
-    description: "Banner photo and text shown at the top of each listing page. Everything here is optional and falls back to a placeholder/default.",
+    description: "Banner photo and text shown at the top of each listing page. What you see here is exactly what shows: an empty Eyebrow or Description shows nothing. An empty Title falls back to the page's name (every page needs a heading), and an empty image to the generated placeholder.",
   },
   fields: [
     {
@@ -104,11 +104,22 @@ export const PageBanners: GlobalConfig = {
     {
       type: "collapsible",
       label: "Latest News",
+      admin: { description: "Latest now has theopen.com's slim heading instead of a photo banner: the Title shows with today's date under it. The image, eyebrow and description are kept but not shown." },
       fields: [
-        { name: "latest", type: "upload", relationTo: "media", label: "Banner Image", admin: { description: RECOMMENDED } },
-        { name: "latestEyebrow", type: "text", label: "Eyebrow" },
-        { name: "latestTitle", type: "text", label: "Title" },
-        { name: "latestDescription", type: "textarea", label: "Description" },
+        { name: "latest", type: "upload", relationTo: "media", label: "Banner Image (not shown)" },
+        { name: "latestEyebrow", type: "text", label: "Eyebrow (not shown)" },
+        { name: "latestTitle", type: "text", label: "Title", admin: { description: "e.g. \"Latest from The Legs Open\"." } },
+        { name: "latestDescription", type: "textarea", label: "Description (not shown)" },
+      ],
+    },
+    {
+      type: "collapsible",
+      label: "Previous Opens",
+      fields: [
+        { name: "previousOpens", type: "upload", relationTo: "media", label: "Banner Image", admin: { description: RECOMMENDED_COMPACT } },
+        { name: "previousOpensEyebrow", type: "text", label: "Eyebrow" },
+        { name: "previousOpensTitle", type: "text", label: "Title" },
+        { name: "previousOpensDescription", type: "textarea", label: "Description" },
       ],
     },
     {

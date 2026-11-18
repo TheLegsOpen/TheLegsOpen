@@ -7,59 +7,63 @@ export interface PageBanners {
   leaderboardUrl?: string;
   leaderboardEyebrow?: string;
   leaderboardTitle: string;
-  leaderboardDescription: string;
+  leaderboardDescription?: string;
   teeTimesUrl?: string;
   teeTimesEyebrow?: string;
   teeTimesTitle: string;
-  teeTimesDescription: string;
+  teeTimesDescription?: string;
   venuesUrl?: string;
-  venuesEyebrow: string;
+  venuesEyebrow?: string;
   venuesTitle: string;
-  venuesDescription: string;
+  venuesDescription?: string;
   fieldUrl?: string;
   fieldEyebrow?: string;
   fieldTitle: string;
   statisticsUrl?: string;
   statisticsEyebrow?: string;
   statisticsTitle: string;
-  statisticsDescription: string;
+  statisticsDescription?: string;
   recordsUrl?: string;
-  recordsEyebrow: string;
+  recordsEyebrow?: string;
   recordsTitle: string;
-  recordsDescription: string;
+  recordsDescription?: string;
   liveBlogUrl?: string;
   liveBlogEyebrow?: string;
   liveBlogTitle: string;
-  liveBlogDescription: string;
+  liveBlogDescription?: string;
   latestUrl?: string;
-  latestEyebrow: string;
+  latestEyebrow?: string;
   latestTitle: string;
-  latestDescription: string;
+  latestDescription?: string;
   playerProfileUrl?: string;
-  playerProfileEyebrow: string;
+  playerProfileEyebrow?: string;
+  previousOpensUrl?: string;
+  previousOpensEyebrow?: string;
+  previousOpensTitle: string;
+  previousOpensDescription?: string;
 }
 
 const DEFAULTS = {
   leaderboardTitle: "Leaderboard",
-  leaderboardDescription: "Live scoring from Seabrook Old Course. Star a player to follow them throughout the week.",
   teeTimesTitle: "Tee times",
-  teeTimesDescription: "Starting times for every round, grouped by day. Star a player on the leaderboard to see them highlighted here.",
-  venuesEyebrow: "The Rotation",
   venuesTitle: "Venues",
-  venuesDescription: "The links courses that make up The Legs Open rotation, past and future.",
   fieldTitle: "The Field",
   statisticsTitle: "Statistics",
-  statisticsDescription: "Scoring statistics computed live from every player's scorecard.",
-  recordsEyebrow: "Since 2013",
   recordsTitle: "Records & Statistics",
-  recordsDescription: "The roll of honour, milestones and scoring records from The Legs Open's history.",
   liveBlogTitle: "Live Blog",
-  liveBlogDescription: "Every notable moment from the course, as it happens.",
-  latestEyebrow: "Latest",
-  latestTitle: "News and features",
-  latestDescription: "The greatest stories in golf, from championship week and beyond.",
-  playerProfileEyebrow: "Player Profile",
+  latestTitle: "Latest from The Legs Open",
+  previousOpensTitle: "Previous Opens",
 } as const;
+
+/**
+ * Eyebrows and descriptions show exactly what the admin holds: empty means nothing on the page.
+ * They used to fall back to wording written here, so a banner could show text (Records' "Since
+ * 2013 / The roll of honour…") that appeared nowhere in the admin. Titles still fall back to the
+ * page's name, since every page needs a heading.
+ */
+function optional(value: string | null | undefined): string | undefined {
+  return value?.trim() ? value : undefined;
+}
 
 async function fetchPageBanners(): Promise<PageBanners> {
   const payload = await getPayload({ config: configPromise });
@@ -67,38 +71,42 @@ async function fetchPageBanners(): Promise<PageBanners> {
 
   return {
     leaderboardUrl: mediaUrl(settings.leaderboard),
-    leaderboardEyebrow: settings.leaderboardEyebrow || undefined,
+    leaderboardEyebrow: optional(settings.leaderboardEyebrow),
     leaderboardTitle: settings.leaderboardTitle || DEFAULTS.leaderboardTitle,
-    leaderboardDescription: settings.leaderboardDescription || DEFAULTS.leaderboardDescription,
+    leaderboardDescription: optional(settings.leaderboardDescription),
     teeTimesUrl: mediaUrl(settings.teeTimes),
-    teeTimesEyebrow: settings.teeTimesEyebrow || undefined,
+    teeTimesEyebrow: optional(settings.teeTimesEyebrow),
     teeTimesTitle: settings.teeTimesTitle || DEFAULTS.teeTimesTitle,
-    teeTimesDescription: settings.teeTimesDescription || DEFAULTS.teeTimesDescription,
+    teeTimesDescription: optional(settings.teeTimesDescription),
     venuesUrl: mediaUrl(settings.venues),
-    venuesEyebrow: settings.venuesEyebrow || DEFAULTS.venuesEyebrow,
+    venuesEyebrow: optional(settings.venuesEyebrow),
     venuesTitle: settings.venuesTitle || DEFAULTS.venuesTitle,
-    venuesDescription: settings.venuesDescription || DEFAULTS.venuesDescription,
+    venuesDescription: optional(settings.venuesDescription),
     fieldUrl: mediaUrl(settings.field),
-    fieldEyebrow: settings.fieldEyebrow || undefined,
+    fieldEyebrow: optional(settings.fieldEyebrow),
     fieldTitle: settings.fieldTitle || DEFAULTS.fieldTitle,
     statisticsUrl: mediaUrl(settings.statistics),
-    statisticsEyebrow: settings.statisticsEyebrow || undefined,
+    statisticsEyebrow: optional(settings.statisticsEyebrow),
     statisticsTitle: settings.statisticsTitle || DEFAULTS.statisticsTitle,
-    statisticsDescription: settings.statisticsDescription || DEFAULTS.statisticsDescription,
+    statisticsDescription: optional(settings.statisticsDescription),
     recordsUrl: mediaUrl(settings.records),
-    recordsEyebrow: settings.recordsEyebrow || DEFAULTS.recordsEyebrow,
+    recordsEyebrow: optional(settings.recordsEyebrow),
     recordsTitle: settings.recordsTitle || DEFAULTS.recordsTitle,
-    recordsDescription: settings.recordsDescription || DEFAULTS.recordsDescription,
+    recordsDescription: optional(settings.recordsDescription),
     liveBlogUrl: mediaUrl(settings.liveBlog),
-    liveBlogEyebrow: settings.liveBlogEyebrow || undefined,
+    liveBlogEyebrow: optional(settings.liveBlogEyebrow),
     liveBlogTitle: settings.liveBlogTitle || DEFAULTS.liveBlogTitle,
-    liveBlogDescription: settings.liveBlogDescription || DEFAULTS.liveBlogDescription,
+    liveBlogDescription: optional(settings.liveBlogDescription),
     latestUrl: mediaUrl(settings.latest),
-    latestEyebrow: settings.latestEyebrow || DEFAULTS.latestEyebrow,
+    latestEyebrow: optional(settings.latestEyebrow),
     latestTitle: settings.latestTitle || DEFAULTS.latestTitle,
-    latestDescription: settings.latestDescription || DEFAULTS.latestDescription,
+    latestDescription: optional(settings.latestDescription),
     playerProfileUrl: mediaUrl(settings.playerProfile),
-    playerProfileEyebrow: settings.playerProfileEyebrow || DEFAULTS.playerProfileEyebrow,
+    previousOpensUrl: mediaUrl(settings.previousOpens),
+    previousOpensEyebrow: optional(settings.previousOpensEyebrow),
+    previousOpensTitle: settings.previousOpensTitle || DEFAULTS.previousOpensTitle,
+    previousOpensDescription: optional(settings.previousOpensDescription),
+    playerProfileEyebrow: optional(settings.playerProfileEyebrow),
   };
 }
 

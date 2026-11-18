@@ -4,6 +4,7 @@ import { PageHero } from "@/components/shared/page-hero";
 import { Container } from "@/components/shared/container";
 import { PreviousOpensTimeline } from "@/components/history/previous-opens-timeline";
 import { getChampionshipHistory } from "@/lib/data/championships";
+import { getPageBanners } from "@/lib/data/page-banners";
 import { getSeoSettings } from "@/lib/data/seo-settings";
 
 // See src/app/(app)/page.tsx for why this route is force-dynamic.
@@ -15,14 +16,18 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PreviousOpensPage() {
-  const history = await getChampionshipHistory();
+  const [history, banners] = await Promise.all([getChampionshipHistory(), getPageBanners()]);
 
   return (
     <>
       <PageHero
-        eyebrow="Since 2013"
-        title="Previous Opens"
-        description="Every champion, venue and winning margin in The Legs Open's roll of honour."
+        variant={banners.previousOpensUrl ? "photo" : undefined}
+        size={banners.previousOpensUrl ? "compact" : undefined}
+        imageUrl={banners.previousOpensUrl}
+        imageLabel="Previous Opens"
+        eyebrow={banners.previousOpensEyebrow}
+        title={banners.previousOpensTitle}
+        description={banners.previousOpensDescription}
         breadcrumbs={[{ label: "Home", href: "/" }, { label: "Previous Opens" }]}
       />
       <Container className="py-16 sm:py-24">

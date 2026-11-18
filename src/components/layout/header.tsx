@@ -11,6 +11,7 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/s
 import { NavPanel } from "@/components/layout/nav-panel";
 import { SearchOverlay } from "@/components/layout/search-overlay";
 import { PRIMARY_NAV, SECONDARY_NAV } from "@/data/navigation";
+import type { NavPanelGroup, NavSection } from "@/types/nav";
 import { SITE } from "@/constants/site";
 import { useScrollDirection } from "@/hooks/use-scroll-direction";
 import { cn } from "@/lib/utils";
@@ -21,9 +22,14 @@ export function Header({
   logoUrl,
   venueLinks,
   patrons = [],
+  topLinks = PRIMARY_NAV,
+  panelGroups,
 }: {
   logoUrl?: string;
   venueLinks?: NavLink[];
+  /** From the Main Menu global (src/lib/data/main-menu.ts); the code's menu when not given. */
+  topLinks?: NavSection[];
+  panelGroups?: NavPanelGroup[];
   /** Forwarded to the slide-out panel, which carries an Our Patrons block as The Open's does. */
   patrons?: SponsorEntry[];
 }) {
@@ -72,7 +78,7 @@ export function Header({
 
         <nav aria-label="Primary" className="absolute left-1/2 hidden -translate-x-1/2 lg:block">
           <ul className="flex items-center gap-8">
-            {PRIMARY_NAV.map((section) => {
+            {topLinks.map((section) => {
               const active = isActive(section.href);
               return (
                 <li key={section.label}>
@@ -131,6 +137,7 @@ export function Header({
                 <NavPanel
                   onNavigate={() => setMobileOpen(false)}
                   venueLinks={venueLinks}
+                  groups={panelGroups}
                   logoUrl={logoUrl}
                   patrons={patrons}
                 />
