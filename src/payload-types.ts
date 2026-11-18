@@ -324,6 +324,7 @@ export interface Article {
   isChampionshipOverview?: boolean | null;
   readTimeMinutes: number;
   heroLabel: string;
+  heroCaption?: string | null;
   image?: (string | Media) | null;
   body: unknown;
   updatedAt: string;

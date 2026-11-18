@@ -110,7 +110,16 @@ export const Articles: CollectionConfig = {
       // null -- which is exactly how article 30 came to exist -- and only fails when published.
       admin: {
         description:
-          "Alt text for the photograph, and the caption on the generated artwork when there is no photograph. Leave it blank and it is taken from the image's own Alt text, or from the title when there is no image.",
+          "Alt text: describes the photograph for screen readers and search engines, and is never shown on the page. Leave it blank and it is taken from the image's own Alt text, or from the title when there is no image.",
+      },
+    },
+    {
+      name: "heroCaption",
+      type: "text",
+      label: "Caption",
+      admin: {
+        description:
+          "Optional. Shown in a white box under the photograph at the top of the article, as theopen.com does, e.g. \"Leisegang celebrates with the Claret Jug at Castle Stuart.\" Leave it empty for no caption.",
       },
     },
     {

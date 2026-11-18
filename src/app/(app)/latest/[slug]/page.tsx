@@ -113,16 +113,25 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               </div>
             </div>
 
-            <PlaceholderArt
-              label={article.heroLabel}
-              imageUrl={article.imageUrl}
-              tone="navy"
-              ratio="16/9"
-              className="w-full rounded-none"
-              showCaption
-              sizes="(min-width: 1430px) 748px, (min-width: 1024px) 55vw, 100vw"
-              priority
-            />
+            {/* theopen.com's caption: a white box under the photograph, riding up over its foot on
+                larger screens, a strip beneath it on phones -- never over the picture itself.
+                Optional: no Caption in the admin, no box. */}
+            <figure className="m-0">
+              <PlaceholderArt
+                label={article.heroLabel}
+                imageUrl={article.imageUrl}
+                tone="navy"
+                ratio="16/9"
+                className="w-full rounded-none"
+                sizes="(min-width: 1430px) 748px, (min-width: 1024px) 55vw, 100vw"
+                priority
+              />
+              {article.heroCaption ? (
+                <figcaption className="relative bg-white px-5 py-3 font-sans text-[15px] font-light leading-snug text-[#4a4a55] sm:-mt-14 sm:w-[62%] sm:px-7 sm:py-[18px] sm:text-[17px]">
+                  {article.heroCaption}
+                </figcaption>
+              ) : null}
+            </figure>
 
             <RichTextBlock data={article.body} className="max-w-[748px] font-sans text-[17px] font-light leading-[28px] text-[#2a2a2a]" dropBlankParagraphs />
 

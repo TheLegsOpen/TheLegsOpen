@@ -13,6 +13,8 @@ export interface Article {
   publishedAt: string;
   readTimeMinutes: number;
   heroLabel: string;
+  /** Optional caption under the article's lead photograph; empty means none. */
+  heroCaption?: string;
   imageUrl?: string;
   /** Renders in place of the generated summary on its championship's Overview tab. */
   isChampionshipOverview?: boolean;

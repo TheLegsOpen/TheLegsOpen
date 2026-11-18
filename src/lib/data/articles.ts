@@ -22,6 +22,7 @@ function mapArticle(doc: PayloadArticle): Article {
     publishedAt: doc.publishedAt,
     readTimeMinutes: doc.readTimeMinutes,
     heroLabel: doc.heroLabel,
+    heroCaption: doc.heroCaption?.trim() || undefined,
     imageUrl: mediaUrl(doc.image),
     isChampionshipOverview: doc.isChampionshipOverview ?? undefined,
     body: doc.body,
