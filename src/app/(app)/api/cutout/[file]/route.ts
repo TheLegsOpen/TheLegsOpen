@@ -1,3 +1,4 @@
+import { mediaSourceUrl } from "@/lib/media-source";
 import { makeCutout } from "@/lib/cutout";
 
 /**
@@ -12,7 +13,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
   const { file } = await params;
   if (!/^[\w.-]+\.(jpe?g|png|webp)$/i.test(file)) return new Response("Not found", { status: 404 });
 
-  const source = await fetch(new URL(`/api/media/file/${encodeURIComponent(file)}`, request.url));
+  const source = await fetch(mediaSourceUrl(file, request.url));
   if (!source.ok) return new Response("Not found", { status: 404 });
   const input = Buffer.from(await source.arrayBuffer());
 
