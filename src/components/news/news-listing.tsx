@@ -6,7 +6,6 @@ import { ArrowRight, ChevronDown, Loader2 } from "lucide-react";
 
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { SectionGrid } from "@/components/shared/section-grid";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NEWS_PAGE_SIZE } from "@/lib/news-page-size";
 import { cn, formatDate } from "@/lib/utils";
@@ -302,10 +301,16 @@ export function NewsListing({
 
       {hasMore ? (
         <div className="flex justify-center">
-          <Button variant="outline" size="lg" disabled={loading} onClick={() => fetchPage(category, page + 1, false)}>
+          {/* theopen.com's blue Load More, the same as the live blog's. */}
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => fetchPage(category, page + 1, false)}
+            className="inline-flex items-center gap-2 bg-[#2269AB] px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#1b558a] disabled:opacity-60"
+          >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {loading ? "Loading more" : "Load more stories"}
-          </Button>
+            {loading ? "Loading…" : "Load more stories"}
+          </button>
         </div>
       ) : null}
     </div>
