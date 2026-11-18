@@ -113,8 +113,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
               </div>
             </div>
 
-            {/* theopen.com's caption: a white box under the photograph, riding up over its foot on
-                larger screens, a strip beneath it on phones -- never over the picture itself.
+            {/* theopen.com's white caption box, set directly under the photograph at every size: riding up
+                over its foot (as theirs does) covered the scores along the bottom of our scorecard graphics.
                 Optional: no Caption in the admin, no box. */}
             <figure className="m-0">
               <PlaceholderArt
@@ -127,7 +127,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 priority
               />
               {article.heroCaption ? (
-                <figcaption className="relative bg-white px-5 py-3 font-sans text-[15px] font-light leading-snug text-[#4a4a55] sm:-mt-14 sm:w-[62%] sm:px-7 sm:py-[18px] sm:text-[17px]">
+                <figcaption className="relative bg-white px-5 py-3 font-sans text-[15px] font-light leading-snug text-[#4a4a55] sm:px-7 sm:py-[18px] sm:text-[17px]">
                   {article.heroCaption}
                 </figcaption>
               ) : null}
