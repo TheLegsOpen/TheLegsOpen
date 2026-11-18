@@ -2,32 +2,66 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { mediaUrl } from "@/lib/utils";
+import type { Media } from "@/payload-types";
+
+export interface GridBackground {
+  url: string;
+  width: number;
+  height: number;
+}
+
+/** The CSS object-position for each Focus choice in Page Banners. Centre (the browser default) is left unset. */
+export const BANNER_FOCUS: Record<string, string | undefined> = {
+  top: "50% 0%",
+  upper: "50% 25%",
+  centre: undefined,
+  lower: "50% 75%",
+  bottom: "50% 100%",
+};
+
+function bannerPosition(focus: string | null | undefined): string | undefined {
+  return focus ? BANNER_FOCUS[focus] : undefined;
+}
+
+function gridBackground(value: string | number | Media | null | undefined): GridBackground | undefined {
+  if (typeof value !== "object" || !value?.url || !value.width || !value.height) return undefined;
+  return { url: value.url, width: value.width, height: value.height };
+}
 
 export interface PageBanners {
   leaderboardUrl?: string;
+  leaderboardPosition?: string;
   leaderboardEyebrow?: string;
   leaderboardTitle: string;
   leaderboardDescription?: string;
   teeTimesUrl?: string;
+  teeTimesPosition?: string;
   teeTimesEyebrow?: string;
   teeTimesTitle: string;
   teeTimesDescription?: string;
   venuesUrl?: string;
+  venuesPosition?: string;
   venuesEyebrow?: string;
   venuesTitle: string;
   venuesDescription?: string;
   fieldUrl?: string;
+  fieldPosition?: string;
   fieldEyebrow?: string;
   fieldTitle: string;
+  /** The landscape behind the Field page's player tiles: its own upload, else the Field banner. */
+  fieldGrid?: GridBackground;
   statisticsUrl?: string;
+  statisticsPosition?: string;
   statisticsEyebrow?: string;
   statisticsTitle: string;
   statisticsDescription?: string;
   recordsUrl?: string;
+  recordsPosition?: string;
   recordsEyebrow?: string;
   recordsTitle: string;
   recordsDescription?: string;
   liveBlogUrl?: string;
+  liveBlogPosition?: string;
   liveBlogEyebrow?: string;
   liveBlogTitle: string;
   liveBlogDescription?: string;
@@ -38,6 +72,7 @@ export interface PageBanners {
   playerProfileUrl?: string;
   playerProfileEyebrow?: string;
   previousOpensUrl?: string;
+  previousOpensPosition?: string;
   previousOpensEyebrow?: string;
   previousOpensTitle: string;
   previousOpensDescription?: string;
@@ -71,29 +106,37 @@ async function fetchPageBanners(): Promise<PageBanners> {
 
   return {
     leaderboardUrl: mediaUrl(settings.leaderboard),
+    leaderboardPosition: bannerPosition(settings.leaderboardFocus),
     leaderboardEyebrow: optional(settings.leaderboardEyebrow),
     leaderboardTitle: settings.leaderboardTitle || DEFAULTS.leaderboardTitle,
     leaderboardDescription: optional(settings.leaderboardDescription),
     teeTimesUrl: mediaUrl(settings.teeTimes),
+    teeTimesPosition: bannerPosition(settings.teeTimesFocus),
     teeTimesEyebrow: optional(settings.teeTimesEyebrow),
     teeTimesTitle: settings.teeTimesTitle || DEFAULTS.teeTimesTitle,
     teeTimesDescription: optional(settings.teeTimesDescription),
     venuesUrl: mediaUrl(settings.venues),
+    venuesPosition: bannerPosition(settings.venuesFocus),
     venuesEyebrow: optional(settings.venuesEyebrow),
     venuesTitle: settings.venuesTitle || DEFAULTS.venuesTitle,
     venuesDescription: optional(settings.venuesDescription),
     fieldUrl: mediaUrl(settings.field),
+    fieldPosition: bannerPosition(settings.fieldFocus),
     fieldEyebrow: optional(settings.fieldEyebrow),
     fieldTitle: settings.fieldTitle || DEFAULTS.fieldTitle,
+    fieldGrid: gridBackground(settings.fieldGridBackground) ?? gridBackground(settings.field),
     statisticsUrl: mediaUrl(settings.statistics),
+    statisticsPosition: bannerPosition(settings.statisticsFocus),
     statisticsEyebrow: optional(settings.statisticsEyebrow),
     statisticsTitle: settings.statisticsTitle || DEFAULTS.statisticsTitle,
     statisticsDescription: optional(settings.statisticsDescription),
     recordsUrl: mediaUrl(settings.records),
+    recordsPosition: bannerPosition(settings.recordsFocus),
     recordsEyebrow: optional(settings.recordsEyebrow),
     recordsTitle: settings.recordsTitle || DEFAULTS.recordsTitle,
     recordsDescription: optional(settings.recordsDescription),
     liveBlogUrl: mediaUrl(settings.liveBlog),
+    liveBlogPosition: bannerPosition(settings.liveBlogFocus),
     liveBlogEyebrow: optional(settings.liveBlogEyebrow),
     liveBlogTitle: settings.liveBlogTitle || DEFAULTS.liveBlogTitle,
     liveBlogDescription: optional(settings.liveBlogDescription),
@@ -103,6 +146,7 @@ async function fetchPageBanners(): Promise<PageBanners> {
     latestDescription: optional(settings.latestDescription),
     playerProfileUrl: mediaUrl(settings.playerProfile),
     previousOpensUrl: mediaUrl(settings.previousOpens),
+    previousOpensPosition: bannerPosition(settings.previousOpensFocus),
     previousOpensEyebrow: optional(settings.previousOpensEyebrow),
     previousOpensTitle: settings.previousOpensTitle || DEFAULTS.previousOpensTitle,
     previousOpensDescription: optional(settings.previousOpensDescription),

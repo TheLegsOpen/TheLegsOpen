@@ -83,6 +83,7 @@ export default async function LeaderboardPage() {
         size="slim"
         imageLabel="The Legs Open leaderboard"
         imageUrl={banners.leaderboardUrl}
+        imagePosition={banners.leaderboardPosition}
         eyebrow={banners.leaderboardEyebrow}
         title={banners.leaderboardTitle}
         description={banners.leaderboardDescription}

@@ -93,6 +93,7 @@ export default async function LiveBlogPage() {
         size="slim"
         imageLabel="Gallery watching on the 18th at Seabrook Old Course"
         imageUrl={banners.liveBlogUrl}
+        imagePosition={banners.liveBlogPosition}
         eyebrow={banners.liveBlogEyebrow}
         title={banners.liveBlogTitle}
         description={banners.liveBlogDescription}

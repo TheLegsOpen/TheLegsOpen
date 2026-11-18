@@ -25,6 +25,7 @@ export default async function RecordsPage() {
         size="compact"
         imageLabel="The Claret Vase engraved with every Legs Open champion"
         imageUrl={banners.recordsUrl}
+        imagePosition={banners.recordsPosition}
         eyebrow={banners.recordsEyebrow}
         title={banners.recordsTitle}
         description={banners.recordsDescription}

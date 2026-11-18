@@ -75,6 +75,7 @@ export default async function StatisticsPage() {
         size="slim"
         imageLabel="Practice range at Seabrook Old Course"
         imageUrl={banners.statisticsUrl}
+        imagePosition={banners.statisticsPosition}
         eyebrow={banners.statisticsEyebrow}
         title={banners.statisticsTitle}
         description={banners.statisticsDescription}

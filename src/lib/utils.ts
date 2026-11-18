@@ -20,6 +20,16 @@ export function portraitUrl(url: string | undefined): string | undefined {
   return match ? `/api/portrait/${match[1]}` : url;
 }
 
+/**
+ * The same cut-out with a transparent background instead of a black one (see
+ * src/app/(app)/api/cutout/[file]/route.ts) -- for a portrait placed over a picture rather than
+ * flat navy. Anything not in the media library passes through.
+ */
+export function cutoutUrl(url: string | undefined): string | undefined {
+  const match = url?.match(/^\/api\/media\/file\/([^/?#]+)$/);
+  return match ? `/api/cutout/${match[1]}` : url;
+}
+
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", {
     day: "numeric",

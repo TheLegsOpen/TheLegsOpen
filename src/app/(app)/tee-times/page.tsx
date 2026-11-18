@@ -79,6 +79,7 @@ export default async function TeeTimesPage() {
         size="slim"
         imageLabel="Practice range at first light"
         imageUrl={banners.teeTimesUrl}
+        imagePosition={banners.teeTimesPosition}
         eyebrow={banners.teeTimesEyebrow}
         title={banners.teeTimesTitle}
         description={banners.teeTimesDescription}

@@ -40,6 +40,7 @@ export default async function FieldPage() {
         size="compact"
         imageLabel="The field walking down the 1st fairway"
         imageUrl={banners.fieldUrl}
+        imagePosition={banners.fieldPosition}
         eyebrow={banners.fieldEyebrow}
         title={banners.fieldTitle}
         description={description}
@@ -56,7 +57,7 @@ export default async function FieldPage() {
         </Container>
       </div>
       <div className="bg-white">
-        <FieldView players={sorted} debutantIds={debutantIds} championshipHistory={championshipHistory} championLogoUrl={theme.championBadgeUrl} />
+        <FieldView players={sorted} debutantIds={debutantIds} championshipHistory={championshipHistory} championLogoUrl={theme.championBadgeUrl} gridBackground={banners.fieldGrid} />
       </div>
     </>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Check, ChevronDown, ChevronUp, Search, Star, Trophy, X } from "lucide-react";
@@ -10,9 +10,46 @@ import { CountryFlag } from "@/components/shared/country-flag";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { COUNTRIES } from "@/data/countries";
 import { useFavorites } from "@/hooks/use-favorites";
-import { cn, playerSlug, portraitUrl, splitSurnameFirst } from "@/lib/utils";
+import { cn, cutoutUrl, playerSlug, splitSurnameFirst } from "@/lib/utils";
+import type { GridBackground } from "@/lib/data/page-banners";
 import type { Player } from "@/types/player";
 import type { ChampionshipWinner } from "@/types/championship";
+
+/** Tiles per row at each breakpoint of the grid below: base, sm, md, lg. */
+const COLUMNS = [2, 3, 4, 6] as const;
+/** The tiles are aspect-[3/4]. */
+const TILE_ASPECT = 3 / 4;
+
+/**
+ * The background-size and background-position that show tile `col` of a `cols`-wide row its own
+ * slice of one landscape, so the picture runs on unbroken from tile to tile -- theopen.com's field
+ * grid. The landscape covers the whole row, as background-size: cover would if the row were one
+ * box: as tall as the tiles with the sides cropped when it is wider than the row, else as wide as
+ * the row with the top and bottom cropped.
+ */
+function rowSlice(bg: GridBackground, cols: number, col: number): { size: string; position: string } {
+  const rowAspect = cols * TILE_ASPECT;
+  const imageAspect = bg.width / bg.height;
+  if (imageAspect >= rowAspect) {
+    const widthInTiles = imageAspect / TILE_ASPECT;
+    const offset = (widthInTiles - cols) / 2 + col;
+    return { size: "auto 100%", position: `${(offset / (widthInTiles - 1)) * 100}% 50%` };
+  }
+  return { size: `${cols * 100}% auto`, position: `${cols > 1 ? (col / (cols - 1)) * 100 : 50}% 40%` };
+}
+
+/** CSS variables carrying a tile's slice at every breakpoint, read by the [background-*:var()] classes on the tile. */
+function sliceVars(bg: GridBackground, index: number): CSSProperties {
+  const vars: Record<string, string> = {
+    backgroundImage: `url("/_next/image?url=${encodeURIComponent(bg.url)}&w=1920&q=75")`,
+  };
+  for (const cols of COLUMNS) {
+    const { size, position } = rowSlice(bg, cols, index % cols);
+    vars[`--bs${cols}`] = size;
+    vars[`--bp${cols}`] = position;
+  }
+  return vars as CSSProperties;
+}
 
 type ChipId = "champions" | "debutants" | "mine";
 
@@ -34,11 +71,14 @@ export function FieldView({
   debutantIds,
   championshipHistory,
   championLogoUrl,
+  gridBackground,
 }: {
   players: Player[];
   debutantIds: string[];
   championshipHistory: ChampionshipWinner[];
   championLogoUrl?: string;
+  /** A landscape run behind each row of tiles; without one the tiles are flat navy. */
+  gridBackground?: GridBackground;
 }) {
   const [query, setQuery] = useState("");
   const [country, setCountry] = useState("All");
@@ -160,24 +200,38 @@ export function FieldView({
         </div>
       ) : (
         <ul className="grid grid-cols-2 gap-px bg-[#B9BEC0] sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {filtered.map((player) => {
+          {filtered.map((player, index) => {
             const { surname, firstName } = splitSurnameFirst(player.name);
             const years = championYearsBySlug.get(playerSlug(player));
             const fav = hydrated && favorites.includes(player.id);
             return (
-              <li key={player.id} className={cn("group relative aspect-[3/4] overflow-hidden bg-primary", years && "ring-2 ring-inset ring-accent")}>
+              <li
+                key={player.id}
+                className={cn(
+                  "group relative aspect-[3/4] overflow-hidden bg-primary",
+                  gridBackground &&
+                    "bg-no-repeat [background-position:var(--bp2)] [background-size:var(--bs2)] sm:[background-position:var(--bp3)] sm:[background-size:var(--bs3)] md:[background-position:var(--bp4)] md:[background-size:var(--bs4)] lg:[background-position:var(--bp6)] lg:[background-size:var(--bs6)]",
+                  years && "ring-2 ring-inset ring-accent",
+                )}
+                style={gridBackground ? sliceVars(gridBackground, index) : undefined}
+              >
                 <Link href={`/players/${playerSlug(player)}`} className="absolute inset-0">
+                  {gridBackground ? (
+                    <>
+                      {/* Navy duotone: the first takes the landscape's own colour away and keeps its light and shade in navy, the second darkens it so the golfers stand out. */}
+                      <span className="absolute inset-0 bg-primary mix-blend-color" aria-hidden="true" />
+                      <span className="absolute inset-0 bg-primary/50" aria-hidden="true" />
+                    </>
+                  ) : null}
                   <PlaceholderArt
                     label={`${player.name} portrait`}
-                    imageUrl={portraitUrl(player.photoUrl)}
+                    imageUrl={cutoutUrl(player.photoUrl)}
                     tone="slate"
                     fill
-                    blendBlack
                     fit="contain-bottom"
                     sizes="(min-width: 1024px) 16vw, (min-width: 768px) 25vw, 50vw"
-                    // bg-primary: the hover zoom puts the photo in its own layer, and the screen
-                    // blend that turns its black background navy needs the navy inside that layer.
-                    className="bg-primary transition-transform duration-300 ease-standard group-hover:scale-[1.03]"
+                    // A transparent cut-out, so whatever is behind the tile (navy, or the landscape) shows round the golfer.
+                    className="bg-transparent transition-transform duration-300 ease-standard group-hover:scale-[1.03]"
                   />
                   <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-primary via-primary/60 to-transparent" aria-hidden="true" />
                   <span className="absolute bottom-3 right-3 text-right text-white">

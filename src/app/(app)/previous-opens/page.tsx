@@ -24,6 +24,7 @@ export default async function PreviousOpensPage() {
         variant={banners.previousOpensUrl ? "photo" : undefined}
         size={banners.previousOpensUrl ? "compact" : undefined}
         imageUrl={banners.previousOpensUrl}
+        imagePosition={banners.previousOpensPosition}
         imageLabel="Previous Opens"
         eyebrow={banners.previousOpensEyebrow}
         title={banners.previousOpensTitle}
