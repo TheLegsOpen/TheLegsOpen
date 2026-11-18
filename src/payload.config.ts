@@ -213,6 +213,11 @@ export default buildConfig({
     outputFile: path.resolve(dirname, "payload-types.ts"),
   },
   db: postgresAdapter({
+    // Never let a dev server reshape the database: this project has no migrations, schema changes
+    // are SQL run by hand in Supabase, and Payload's development push would otherwise try to make
+    // the live tables match this config on boot. (.env.local is a read-only login since
+    // 2026-11-17, which would refuse it anyway, but refusing at the database could stop the boot.)
+    push: false,
     pool: {
       connectionString: transactionPoolerConnectionString(),
       // Required now that "Enforce SSL on incoming connections" is on in Supabase (2026-09-07,
