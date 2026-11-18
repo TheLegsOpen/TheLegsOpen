@@ -21,7 +21,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
 
   let output: Buffer;
   try {
-    const trimmed = await sharp(input).flatten({ background: "#000000" }).trim({ background: "#000000", threshold: 40 }).toBuffer({ resolveWithObject: true });
+    // Flattened in a pipeline of its own: sharp always trims before it flattens, whatever order the
+    // calls are chained in, so a transparent PNG was trimmed while its background was still clear
+    // rather than black, nothing matched, and the golfer stayed small inside the whole canvas.
+    const flat = await sharp(input).flatten({ background: "#000000" }).toBuffer();
+    const trimmed = await sharp(flat).trim({ background: "#000000", threshold: 40 }).toBuffer({ resolveWithObject: true });
     const w = trimmed.info.width;
     output = await sharp(trimmed.data)
       .extend({ left: Math.round(w * 0.04), right: Math.round(w * 0.04), top: Math.round(w * 0.08), bottom: 0, background: "#000000" })
