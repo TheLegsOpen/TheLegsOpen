@@ -23,6 +23,10 @@ export const DATA_CACHE_SECONDS = Number(process.env.DATA_CACHE_SECONDS) || 3600
 export const DATA_TAGS = {
   championships: "data:championships",
   scorecards: "data:scorecards",
+  // Carried by every cache built from one championship's scorecards (see scorecardsTagFor) and by
+  // the career tables. Score saves never expire it -- they expire the saved card's own year
+  // instead. It's here so /api/revalidate?data=all, which walks this object, still reaches them.
+  scorecardHistory: "data:scorecards:history",
   players: "data:players",
   venues: "data:venues",
   teeTimes: "data:tee-time-rounds",
@@ -32,6 +36,24 @@ export type DataTag = (typeof DATA_TAGS)[keyof typeof DATA_TAGS];
 
 /** Everything a leaderboard is built from -- a change to any of these can change one. */
 export const LEADERBOARD_TAGS: DataTag[] = [DATA_TAGS.championships, DATA_TAGS.scorecards, DATA_TAGS.players, DATA_TAGS.venues, DATA_TAGS.teeTimes];
+
+/**
+ * One championship's scorecards. A live save expires only its own year's tag, so a stroke entered
+ * in 2027 no longer throws away every past year's boards and the career tables built from them --
+ * which cost about 1,500 queries on the next player-profile view.
+ */
+export function scorecardsTagFor(championshipId: string): string {
+  return `${DATA_TAGS.scorecards}:championship:${championshipId}`;
+}
+
+/** What a cache built from specific championships' scorecards is tagged with, besides those years' own tags. */
+export const SCORECARD_HISTORY_TAGS: DataTag[] = [
+  DATA_TAGS.championships,
+  DATA_TAGS.scorecardHistory,
+  DATA_TAGS.players,
+  DATA_TAGS.venues,
+  DATA_TAGS.teeTimes,
+];
 
 // Keyed per deployment so a code change that alters a cached value's shape can never be served
 // the old shape from a previous deploy. Costs one refill per query per deploy, which is still a
@@ -46,6 +68,18 @@ const BUILD_ID = process.env.VERCEL_GIT_COMMIT_SHA ?? "local";
  */
 export function cachedQuery<A extends unknown[], R>(key: string, tags: DataTag[], fn: (...args: A) => Promise<R>): (...args: A) => Promise<R> {
   return unstable_cache(fn, [BUILD_ID, key], { revalidate: DATA_CACHE_SECONDS, tags });
+}
+
+/**
+ * cachedQuery for an entry whose tags depend on its arguments (e.g. which championship it was
+ * built from). Same rules as cachedQuery: plain data only, and throw rather than return a fallback.
+ */
+export function cachedQueryTaggedBy<A extends unknown[], R>(
+  key: string,
+  tagsFor: (...args: A) => string[],
+  fn: (...args: A) => Promise<R>,
+): (...args: A) => Promise<R> {
+  return (...args: A) => unstable_cache(fn, [BUILD_ID, key], { revalidate: DATA_CACHE_SECONDS, tags: tagsFor(...args) })(...args);
 }
 
 /**

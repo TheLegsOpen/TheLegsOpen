@@ -1,9 +1,10 @@
+import { cache } from "react";
 import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { mapPlayer } from "@/lib/data/players";
 import { hasBeenPlayedWhere } from "@/lib/data/championship-timing";
-import { cachedQuery, LEADERBOARD_TAGS, slimPlayer } from "@/lib/data-cache";
+import { cachedQuery, cachedQueryTaggedBy, LEADERBOARD_TAGS, SCORECARD_HISTORY_TAGS, scorecardsTagFor, slimPlayer } from "@/lib/data-cache";
 import { allocateStrokes, stablefordPoints } from "@/lib/scoring";
 import type { Player } from "@/types/player";
 import type {
@@ -367,7 +368,7 @@ function buildLeaderboardFromDocs(
 export async function getCompetitionLeaderboard(competition: Competition, req?: PayloadRequest): Promise<CompetitionEntry[]> {
   // Inside a hook, read live within the transaction -- never from the cross-request cache.
   if (req) return buildActiveLeaderboard(competition, req);
-  return getCachedActiveLeaderboard(competition).catch(() => []);
+  return (await getActiveBoards())[competition];
 }
 
 async function buildActiveLeaderboard(competition: Competition, req?: PayloadRequest): Promise<CompetitionEntry[]> {
@@ -382,13 +383,39 @@ async function buildActiveLeaderboard(competition: Competition, req?: PayloadReq
 // leaderboard shares one read instead of each render pulling every scorecard at depth 2.
 //
 // getActiveChampionship swallows a failed read as "no championship", which would look identical to
-// a real empty board. So an empty board is never cached: it throws here, and the caller above turns
+// a real empty board. So an empty board is never cached: it throws here, and getActiveBoards turns
 // it back into []. Re-reading an empty board is cheap; caching a pooler blip for an hour isn't.
-const getCachedActiveLeaderboard = cachedQuery("leaderboard:active", LEADERBOARD_TAGS, async (competition: Competition) => {
-  const entries = await buildActiveLeaderboard(competition);
-  if (entries.length === 0) throw new Error("Empty leaderboard is not cached");
-  return slimEntries(entries);
+//
+// All three competitions share one entry, built from one read of the scorecards, so a live save
+// costs one rebuild rather than three.
+const getCachedActiveBoards = cachedQuery("leaderboards:active", LEADERBOARD_TAGS, async (): Promise<BoardSet> => {
+  const payload = await getPayload({ config: configPromise });
+  const { championship, holeInfos, docs, teeTimeByPlayer } = await loadLeaderboardInputs(payload);
+  if (!championship) throw new Error("Empty leaderboard is not cached");
+  const boards = buildSlimBoards(holeInfos, docs, teeTimeByPlayer);
+  if (ALL_COMPETITIONS.every((competition) => boards[competition].length === 0)) throw new Error("Empty leaderboard is not cached");
+  return boards;
 });
+
+// React's cache() on top of the cross-request one: one render asks for these boards from several
+// places at once (leaderboard, player overview, playoffs), and unstable_cache doesn't merge
+// concurrent misses -- each would run its own read.
+const getActiveBoards = cache(() => getCachedActiveBoards().catch(() => emptyBoards()));
+
+type BoardSet = Record<Competition, CompetitionEntry[]>;
+
+function emptyBoards(): BoardSet {
+  return { main: [], stableford: [], scratch: [] };
+}
+
+/** All three competitions, slimmed for caching, from one set of inputs -- they're built from the same cards. */
+function buildSlimBoards(holeInfos: { par: number; si: number }[], docs: PayloadScorecard[], teeTimeByPlayer: Map<string, string>): BoardSet {
+  const boards = emptyBoards();
+  for (const competition of ALL_COMPETITIONS) {
+    boards[competition] = slimEntries(buildLeaderboardFromDocs(competition, holeInfos, docs, teeTimeByPlayer));
+  }
+  return boards;
+}
 
 function slimEntries(entries: CompetitionEntry[]): CompetitionEntry[] {
   return entries.map((entry) => ({ ...entry, player: slimPlayer(entry.player) }));
@@ -410,10 +437,14 @@ export async function getCompetitionLeaderboardForChampionshipId(
     if (!championship) return [];
     return buildLeaderboardForChampionship(req.payload, championship, competition, req);
   }
-  // A failed read throws inside the cached function, so it isn't cached as an empty board. It
-  // becomes the same empty result the uncached version always returned here, outside the cache.
-  return getCachedChampionshipLeaderboard(championshipId, competition).catch(() => []);
+  return (await getChampionshipBoards(championshipId))[competition];
 }
+
+// A failed read throws inside the cached function, so it isn't cached as an empty board. It
+// becomes the same empty result the uncached version always returned here, outside the cache.
+// cache() for the same reason as getActiveBoards: a player profile asks for each year from its
+// results, its playoffs and the career tables, all at once.
+const getChampionshipBoards = cache((championshipId: string) => getCachedChampionshipBoards(championshipId).catch(() => emptyBoards()));
 
 async function buildLeaderboardForChampionship(
   payload: Payload,
@@ -429,13 +460,18 @@ async function buildLeaderboardForChampionship(
 // three times over (results, playoffs, career stats), and Records, Previous Opens and the venue
 // pages ask again. A concluded year's board only changes when someone edits it, so it's read once
 // and served from cache until a save expires it.
-const getCachedChampionshipLeaderboard = cachedQuery(
-  "leaderboard:by-championship",
-  LEADERBOARD_TAGS,
-  async (championshipId: string, competition: Competition) => {
+//
+// Tagged with its own year rather than the general scorecards tag: a live score expires only the
+// year it belongs to (src/lib/revalidate.ts), so live scoring no longer rebuilds every past year.
+// All three competitions share one entry, built from one read.
+const getCachedChampionshipBoards = cachedQueryTaggedBy(
+  "leaderboards:by-championship",
+  (championshipId: string) => [...SCORECARD_HISTORY_TAGS, scorecardsTagFor(championshipId)],
+  async (championshipId: string): Promise<BoardSet> => {
     const payload = await getPayload({ config: configPromise });
     const championship = await payload.findByID({ collection: "championships", id: championshipId });
-    return slimEntries(await buildLeaderboardForChampionship(payload, championship, competition));
+    const { holeInfos, docs, teeTimeByPlayer } = await loadLeaderboardInputs(payload, undefined, championship);
+    return buildSlimBoards(holeInfos, docs, teeTimeByPlayer);
   },
 );
 

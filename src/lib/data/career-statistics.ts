@@ -3,7 +3,7 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { getChampionshipHistory } from "@/lib/data/championships";
-import { cachedQuery, LEADERBOARD_TAGS, slimPlayer } from "@/lib/data-cache";
+import { cachedQueryTaggedBy, SCORECARD_HISTORY_TAGS, scorecardsTagFor, slimPlayer } from "@/lib/data-cache";
 import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
 import { isConcluded, formatToPar } from "@/lib/leaderboard";
 import { mapPlayer } from "@/lib/data/players";
@@ -476,7 +476,28 @@ function slimCategories(categories: StatCategory[]): StatCategory[] {
  * championship is saved, yet each profile render used to recompute them from a 2000-scorecard read.
  * One shared entry also means a cache miss runs loadCareerInputs once rather than six times.
  */
-const getCachedCareerCategories = cachedQuery("career-categories", LEADERBOARD_TAGS, async (): Promise<CareerCategories> => {
+//
+// Tagged per year, like the past-year boards it's built from, rather than with the general
+// scorecards tag -- so a live score doesn't rebuild it (and its 2000-card read) on the next profile
+// view. The years are every championship with a winner, the same set getTrustedChampionshipIds
+// starts from. The year being played has no winner until Completed is ticked, and that save expires
+// the championships tag, which this carries too -- so the new year joins the career tables then.
+// They're also the argument, so a year gaining a winner gives a new cache key regardless.
+const getCachedCareerCategoriesFor = cachedQueryTaggedBy(
+  "career-categories",
+  (yearIds: string[]) => [...SCORECARD_HISTORY_TAGS, ...yearIds.map(scorecardsTagFor)],
+  // yearIds is only the cache key and tags; loadCareerInputs works out the same set itself.
+  async (_yearIds: string[]): Promise<CareerCategories> => computeCareerCategories(),
+);
+
+// cache(): the six getCareer*Categories below are all called in one profile render, at once.
+const getCachedCareerCategories = cache(async (): Promise<CareerCategories> => {
+  const history = await getChampionshipHistory();
+  const yearIds = history.filter((c) => c.winnerName).map((c) => c.id);
+  return getCachedCareerCategoriesFor(yearIds);
+});
+
+async function computeCareerCategories(): Promise<CareerCategories> {
   const [nett, scratch, streak, driving, approach, putting] = await Promise.all([
     computeCareerNettScoringCategories(),
     computeCareerScratchScoringCategories(),
@@ -493,7 +514,7 @@ const getCachedCareerCategories = cachedQuery("career-categories", LEADERBOARD_T
     approach: slimCategories(approach),
     putting: slimCategories(putting),
   };
-});
+}
 
 export async function getCareerNettScoringCategories(): Promise<StatCategory[]> {
   return (await getCachedCareerCategories()).nett;

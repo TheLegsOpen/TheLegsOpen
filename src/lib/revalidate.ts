@@ -1,6 +1,14 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 
-import { DATA_TAGS, type DataTag } from "@/lib/data-cache";
+import { DATA_TAGS, scorecardsTagFor, type DataTag } from "@/lib/data-cache";
+
+type ScorecardLike = { championship?: number | string | { id: number | string } | null };
+
+function championshipIdOf(card: ScorecardLike | undefined): string | undefined {
+  const value = card?.championship;
+  if (value == null) return undefined;
+  return String(typeof value === "object" ? value.id : value);
+}
 
 type PathSpec = string | { path: string; type: "layout" };
 
@@ -138,9 +146,16 @@ export function revalidatePlayers() {
  * The busiest hook on the site — every hole-by-hole score entered during a live championship
  * fires this. Scoped to just the pages that actually show scores/results, so it doesn't also
  * bust the careers/contact/media/legal/patrons pages on every single stroke entered.
+ *
+ * Data-wise it expires the live board (the general scorecards tag) and only the saved card's own
+ * year -- plus the year it was moved from, if an edit changed its championship. Every past year's
+ * boards and the career tables stay cached through a live championship. A practice-round card has
+ * no championship, so it touches no year at all.
  */
-export function revalidateScorecards() {
+export function revalidateScorecards({ doc, previousDoc }: { doc?: ScorecardLike; previousDoc?: ScorecardLike } = {}) {
   expireData(DATA_TAGS.scorecards);
+  const years = new Set([championshipIdOf(doc), championshipIdOf(previousDoc)].filter((id): id is string => Boolean(id)));
+  for (const id of years) revalidateTag(scorecardsTagFor(id), { expire: 0 });
   revalidate([
     "/leaderboard",
     "/live-blog",
