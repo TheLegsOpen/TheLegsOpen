@@ -454,7 +454,7 @@ export function LiveBlogFeed({
             type="button"
             onClick={loadMore}
             disabled={loadingMore}
-            className="inline-flex items-center gap-2 bg-[#2269AB] px-6 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#1b558a] disabled:opacity-60"
+            className="inline-flex items-center gap-2 bg-[#2269AB] px-8 py-3.5 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#1b558a] disabled:opacity-60"
           >
             {loadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             {loadingMore ? "Loading…" : "Load more"}
