@@ -45,11 +45,11 @@ function Ring({ percent }: { percent: number }) {
  * with the flag, a ring chart for a percentage stat, and the value in a large yellow box. The
  * other two places keep the slim yellow rows beneath.
  */
-function LeaderRow({ row, category, onSelectPlayer }: { row: StatRow; category: StatCategory; onSelectPlayer: (playerId: string) => void }) {
+function LeaderRow({ row, category, onSelectPlayer, picked = false }: { row: StatRow; category: StatCategory; onSelectPlayer: (playerId: string) => void; picked?: boolean }) {
   const { surname, firstName } = splitSurnameFirst(row.player.name);
   const percent = percentOf(row.display);
   return (
-    <div className="flex items-center gap-4 border-b border-surface-dark-foreground/15 bg-primary px-4 py-4 text-primary-foreground">
+    <div className={cn("flex items-center gap-4 border-b border-surface-dark-foreground/15 bg-primary px-4 py-4 text-primary-foreground", picked && "ring-2 ring-inset ring-accent")}>
       <span className="w-12 shrink-0 font-menu text-[22px] leading-none">
         {row.tied ? "T" : ""}
         {ordinal(row.position ?? 1)}
@@ -91,10 +91,14 @@ export function StatPreviewCard({
   favoriteIds?: string[];
 }) {
   const top = category.rows.slice(0, PREVIEW_COUNT);
+  // Player ids reach the client as numbers (42), but a <select> hands back text ("42"), so compare
+  // them as strings -- a strict number-to-string match is why the Player filter never matched anyone.
+  const isPicked = (row: StatRow) => highlightId !== undefined && String(row.player.id) === String(highlightId);
+  const isFavourite = (row: StatRow) => favoriteIds.map(String).includes(String(row.player.id));
   // Everyone placed first gets the feature row, so a tie for first shows as joint leaders, each
   // with the large treatment ("T1st"), rather than one of them picked out by sort order.
   const isLeader = (row: StatRow) => (row.position ?? 1) === 1;
-  const extra = highlightId && !top.some((r) => r.player.id === highlightId) ? category.rows.find((r) => r.player.id === highlightId) : undefined;
+  const extra = highlightId && !top.some(isPicked) ? category.rows.find(isPicked) : undefined;
 
   return (
     <div className="flex flex-col gap-px overflow-hidden border-y border-surface-dark-foreground/15 sm:border-x">
@@ -119,13 +123,13 @@ export function StatPreviewCard({
         </div>
       ) : (
         [...top, ...(extra ? [extra] : [])].map((row) => isLeader(row) ? (
-          <LeaderRow key={row.player.id} row={row} category={category} onSelectPlayer={onSelectPlayer} />
+          <LeaderRow key={row.player.id} row={row} category={category} onSelectPlayer={onSelectPlayer} picked={isPicked(row)} />
         ) : (
           <div
             key={row.player.id}
             className={cn(
               "flex items-center justify-between gap-4 border-b border-surface-dark-foreground/15 bg-accent/90 px-4 py-3 text-accent-foreground last:border-0",
-              row.player.id === highlightId && "ring-2 ring-inset ring-primary",
+              isPicked(row) && "ring-2 ring-inset ring-primary",
               row === extra && "border-t-4 border-t-primary",
             )}
           >
@@ -136,7 +140,7 @@ export function StatPreviewCard({
               </span>
               <CountryFlag code={row.player.countryCode} className="h-3 w-4" />
               <button type="button" onClick={() => onSelectPlayer(row.player.id)} className="inline-flex items-center gap-1.5 font-medium hover:underline">
-                {favoriteIds.includes(row.player.id) ? <Star className="h-3 w-3 fill-primary text-primary" aria-label="My player" /> : null}
+                {isFavourite(row) ? <Star className="h-3 w-3 fill-primary text-primary" aria-label="My player" /> : null}
                 {surnameFirst(row.player.name)}
               </button>
             </div>

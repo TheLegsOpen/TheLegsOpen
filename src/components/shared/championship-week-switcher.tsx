@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLayoutEffect, useRef } from "react";
 
 import { Container } from "@/components/shared/container";
 import { cn } from "@/lib/utils";
@@ -18,12 +19,36 @@ const TABS = [
  */
 export function ChampionshipWeekSwitcher({ onPhoto = false }: { onPhoto?: boolean } = {}) {
   const pathname = usePathname();
+  const barRef = useRef<HTMLDivElement>(null);
+
+  // A zoomed page or a larger text setting leaves the phone bar under 300px, where the three
+  // labels at 15px need 302 and "Statistics" was cut off. Shrink them a pixel at a time until they
+  // fit (down to 11px); from sm up the floating pill has room, so leave its size alone.
+  useLayoutEffect(() => {
+    const bar = barRef.current;
+    if (!bar) return;
+    const fit = () => {
+      const links = [...bar.querySelectorAll<HTMLElement>("a")];
+      links.forEach((a) => (a.style.fontSize = ""));
+      if (window.matchMedia("(min-width: 640px)").matches) return;
+      let size = parseFloat(getComputedStyle(links[0]).fontSize);
+      while (bar.scrollWidth > bar.clientWidth && size > 11) {
+        size -= 1;
+        links.forEach((a) => (a.style.fontSize = `${size}px`));
+      }
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(bar);
+    return () => observer.disconnect();
+  }, []);
 
   // On a phone this is theopen.com's segmented bar: the full width of the page, the three labels
   // sharing it on one line each (39px tall, 15px type, thin rules between), rounded only at the
   // two ends. From sm up it is the floating pill with a gap between tabs.
   const tabs = (
         <div
+          ref={barRef}
           role="tablist"
           aria-label="Championship week"
           className={cn(
