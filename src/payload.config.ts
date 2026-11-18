@@ -269,7 +269,11 @@ export default buildConfig({
       // Drop idle clients rather than keeping them (and the pool) alive between invocations --
       // the recommended posture for serverless, and the counterpart to the short idle timeout.
       allowExitOnIdle: true,
-      connectionTimeoutMillis: 20_000,
+      // Development waits up to 5 minutes. A dev server on someone's own computer is a round trip
+      // from the database, and a cold player page rebuilds 14 years of leaderboards (about 1,500
+      // queries): at 20s those queued past the limit, the failed reads were rightly not cached, and
+      // so the next load started cold again and never warmed up. Production keeps 20s.
+      connectionTimeoutMillis: process.env.NODE_ENV === "development" ? 300_000 : 20_000,
       // Not 1: at max: 1 a single connection that died during a freeze starves the instance
       // permanently. Not 3 either -- that was chosen while this pointed at the session pooler,
       // whose 15-client ceiling it then exhausted under real traffic. Now that connections go
