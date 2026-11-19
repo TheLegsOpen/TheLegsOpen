@@ -8,11 +8,14 @@ import { cn, ordinal, splitSurnameFirst } from "@/lib/utils";
 
 /**
  * The two players in the design system's two brand colours: the first in deep navy, the second in
- * gold (with navy text on it, as everywhere gold is a fill). Halved holes are the site's light grey.
+ * the leaderboard's orange -- the champion row's gold at 90% over the navy page (accent/90 on
+ * #06051E), which reads as a deeper amber than plain gold on white. Navy text on it, as everywhere
+ * gold is a fill. Halved holes are white with the site's border.
  */
+const LEADERBOARD_ORANGE = "bg-[#E6A803]";
 const PLAYER = {
   a: { fill: "bg-primary text-primary-foreground", bar: "bg-primary" },
-  b: { fill: "bg-accent text-accent-foreground", bar: "bg-accent" },
+  b: { fill: `${LEADERBOARD_ORANGE} text-accent-foreground`, bar: LEADERBOARD_ORANGE },
 } as const;
 
 export interface YearRow {
