@@ -142,18 +142,12 @@ export async function PlayerDetail({ slug }: { slug: string }) {
   const aboutPlayer = [...handPicked, ...taggedArticles.filter((a) => !handPicked.some((h) => h.slug === a.slug))];
   const featuredArticles: Article[] = aboutPlayer.length > 0 ? aboutPlayer.slice(0, 3) : allArticles.slice(0, 3);
 
-  // "<Name> at The Legs Open" shows the player's own gallery. A player with no gallery uploaded yet
-  // borrows the photos from the articles tagged to them in the admin -- those are written about
-  // them, so their pictures are of them. Never the untagged latest-articles fallback above, which
-  // could be about anyone. Nothing to show either way and the band isn't rendered at all.
-  const galleryPhotos: PlayerGalleryPhoto[] =
-    (player.gallery ?? []).length > 0
-      ? (player.gallery ?? [])
-      // Hand-picked only. A Players tag just means the piece mentions them, and its photo is
-      // usually of the winner: James Cannon's gallery showed Andrew Duncan off the Balmedie report.
-      : handPicked.length > 0
-        ? handPicked.filter((a) => a.imageUrl).map((a) => ({ imageUrl: a.imageUrl, caption: a.title }))
-        : [];
+  // "<Name> at The Legs Open" shows the player's own Gallery from the admin and nothing else; with
+  // none uploaded the band isn't rendered. It used to borrow the pictures off the player's Featured
+  // Articles, but a featured article is only a link to a piece the player appears in, and its
+  // picture is often of someone else: Colum Watters' profile showed a large photo of Kevin Park off
+  // the 2020 report. Featured articles still appear, as links, under "More on" below.
+  const galleryPhotos: PlayerGalleryPhoto[] = player.gallery ?? [];
 
   const stats: { label: string; value: string | number }[] = [
     { label: "Age", value: player.ageAtChampionship ?? "—" },
