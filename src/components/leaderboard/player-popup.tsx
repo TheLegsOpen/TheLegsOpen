@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ChevronDown, Star } from "lucide-react";
 
@@ -59,9 +59,14 @@ export function PlayerPopup({
 }: PlayerPopupProps) {
   const [competition, setCompetition] = useState<Competition>(initialCompetition);
 
-  useEffect(() => {
+  // Each time the pop-up opens it starts on the leaderboard's current competition. Done while
+  // rendering rather than in an effect, React's recommended way to reset state when a prop
+  // changes: an effect would paint the old competition for a frame first, then render again.
+  const [synced, setSynced] = useState({ open, initialCompetition });
+  if (synced.open !== open || synced.initialCompetition !== initialCompetition) {
+    setSynced({ open, initialCompetition });
     if (open) setCompetition(initialCompetition);
-  }, [open, initialCompetition]);
+  }
 
   if (!main) return null;
   const { player } = main;

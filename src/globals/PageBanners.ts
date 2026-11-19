@@ -9,10 +9,10 @@ import { revalidatePageBanners } from "@/lib/revalidate";
  * the sides. Each constant adds its own page's height.
  */
 const BANNER =
-  "Optional — a placeholder shows until one is set. Upload a wide landscape photo, at least 1920×640px (larger is fine). It fills the full width of the screen as a short strip, so the top and bottom are cropped on wide screens and the sides on phones: keep the subject in a band across the middle. The page title sits over the bottom-left.";
-const RECOMMENDED = `${BANNER} About 300px tall on a laptop.`;
-const RECOMMENDED_COMPACT = `${BANNER} About 300px tall on a laptop.`;
-const RECOMMENDED_SLIM = `${BANNER} The slimmest banner on the site, about 230px tall, with the championship-week switcher along its bottom edge.`;
+  "Optional — a placeholder shows until one is set. Best at 2400×800px (3:1), JPEG or WebP under about 600KB; 1920×640 also works. It fills the full width of the screen as a short strip: a wide screen shows only the middle third of the photo's height, and a phone about the middle three-quarters of its width. So keep the subject (faces, signs, the jug) inside that band across the middle, then use Focus below to move the band up or down. The page title sits over the bottom-left, so keep that corner calm.";
+const RECOMMENDED = `${BANNER} About 290px tall on every screen.`;
+const RECOMMENDED_COMPACT = `${BANNER} About 340px tall on a laptop.`;
+const RECOMMENDED_SLIM = `${BANNER} The slimmest banner on the site, about 230px tall (174px on phones). On Leaderboard, Tee Times and Statistics the championship-week switcher also runs along its bottom edge.`;
 
 /**
  * Which band of the photo shows in the strip. The banners are much wider than they are tall, so
@@ -133,7 +133,7 @@ export const PageBanners: GlobalConfig = {
       type: "collapsible",
       label: "Live Blog",
       fields: [
-        { name: "liveBlog", type: "upload", relationTo: "media", label: "Banner Image", admin: { description: RECOMMENDED_COMPACT } },
+        { name: "liveBlog", type: "upload", relationTo: "media", label: "Banner Image", admin: { description: RECOMMENDED_SLIM } },
         focusField("liveBlogFocus"),
         { name: "liveBlogEyebrow", type: "text", label: "Eyebrow" },
         { name: "liveBlogTitle", type: "text", label: "Title" },

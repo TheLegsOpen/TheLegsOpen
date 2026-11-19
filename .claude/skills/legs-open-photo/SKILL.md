@@ -108,8 +108,8 @@ form can overwrite the change.
 | Slot | `--slot` | Master | The site shows it | Admin field and PATCH | Check |
 |---|---|---|---|---|---|
 | Article image | `article` | 1600×900 | 16:9 at the top of the article, 4:3 on news cards, square in the home page's News & Features, small 16:10 thumbnail under Related | `PATCH /api/articles/<id>` `{image: mediaId, _status: "published"}`. Find the id with `/api/articles?where[slug][equals]=<slug>&draft=true` | the article, `/`, `/latest`, plus its venue page and `/previous-opens/<year>` if tagged to a championship |
-| Page banner | `banner` | 2400×800 | full-width strip, about 230px tall (Leaderboard, Tee Times, Statistics) or about 300px (Field, Records, Live Blog, Latest News, Venues). Top and bottom cropped on wide screens, sides on phones; page title over the bottom-left | `POST /api/globals/page-banners` `{<field>: mediaId}`. Fields: `leaderboard`, `teeTimes`, `statistics`, `field`, `records`, `liveBlog`, `latest`, `venues` (`playerProfile` exists but is not shown anywhere) | that page |
-| Player photo | `player` | the cut-out as supplied, max 2020px tall | trimmed to the golfer automatically and blended into navy: Field grid, profile page, leaderboard, tee-time cards, Head-to-head | `PATCH /api/players/<id>` `{photo: mediaId}` | `/players/<slug>`, `/field` |
+| Page banner | `banner` | 2400×800 | full-width strip: about 230px tall, 174 on phones (Leaderboard, Tee Times, Statistics, Live Blog), about 340px, 165 on phones (Field, Records), or 292px (Venues). A wide screen shows only the middle third of the height, a phone about the middle three-quarters of the width; page title over the bottom-left. Latest News shows no photo | `POST /api/globals/page-banners` `{<field>: mediaId}`. Fields: `leaderboard`, `teeTimes`, `statistics`, `field`, `records`, `liveBlog`, `venues`, `previousOpens` (`latest` and `playerProfile` exist but are not shown). Then set `<field>Focus` (`top`, `upper`, `centre`, `lower`, `bottom`): see Banner Focus below | that page |
+| Player photo | `player` | a transparent cut-out as WebP, max 2020px tall | trimmed to the golfer automatically by `/api/cutout` and stood over navy or the Field landscape: Field grid, profile page, leaderboard pop-up, tee-time cards, Head-to-head, venue champion fallback | `PATCH /api/players/<id>` `{photo: mediaId}` | `/players/<slug>`, `/field` |
 | Champion photo | `champion` | 1920×1080, landscape | the banner on `/previous-opens/<year>`, framed at 50% 30% so faces survive (only used there when landscape and 1200px+ wide, otherwise the venue photo shows); the venue's Champion Golfers card (400×600 from the centre); the venue strip fallback (224×340) | `PATCH /api/championships/<id>` `{winnerPhoto: mediaId}` | `/previous-opens/<year>`, `/venues/<slug>`, `/leaderboard` if it is the active year |
 | Champion cut-out | `cutout` | the trimmed figure, max 1200×1300, waist up with `--keep-top 0.6` | stood on the yellow winner row of the Main leaderboard, 280×305 on a laptop (theopen.com's size). Without one the row has no picture | `PATCH /api/championships/<id>` `{championCutout: mediaId}` | `/leaderboard` if it is the active year, `/previous-opens/<year>` Results tab |
 | Venue image | `venue` | 2400×1350 | the 520px banner at the top of the venue page, the course page, Upcoming Venues cards | `PATCH /api/venues/<id>` `{image: mediaId}` | `/venues/<slug>`, `/venues/<slug>/course` |
@@ -138,9 +138,31 @@ form can overwrite the change.
   0.68 keeps the whole trophy including its base in a waist-up figure (check the box preview).
   Photos against a plain background (sky, fairway) cut out cleanly.
 
-- **Player photos** must be a cut-out on plain black or a transparent PNG. Anything else shows as
-  a box behind the player. If the user sends an ordinary photo, say so; background removal needs
-  Photoshop, which is a different job.
+- **Page banner Focus:** after uploading a page banner, render it at each Focus on phone (390), tablet
+  (768), laptop (1440) and wide (1920) screens, using each strip's heights from the table, and pick
+  the Focus that keeps the subject in shot on laptops and wider (phones crop the sides, so Focus
+  barely changes them). Save it by POSTing the whole global from `?depth=0` with the new
+  `<field>Focus` values, then check the page has the matching `object-position` (`top` = 50% 0%,
+  `upper` = 50% 25%, `centre` = none, `lower` = 50% 75%, `bottom` = 50% 100%).
+- **Player photos** must be a transparent cut-out (PNG or WebP with real transparency). Every
+  player has one since November 2026; keep it that way. A photo on plain black still works, but
+  dark hair or a dark top touching the black goes see-through over the Field landscape and in front
+  of the champion's jug. For an ordinary photo, or a batch, run Photoshop's Remove Background with
+  `photoshop-cutout.jsx` (in this folder):
+  1. Make a working folder under `photo-work/` with an `originals/` folder of the photos, and copy
+     the script in beside it.
+  2. Launch it in the Photoshop that is already open (2026 here; starting 2027 alongside it hands
+     off and exits): `Start-Process "C:\Program Files\Adobe\Adobe Photoshop 2026\Photoshop.exe"
+     -ArgumentList '"<folder>\photoshop-cutout.jsx"'`. It takes about five seconds a photo and
+     writes `png/` plus `log.txt`. If no log appears, Photoshop is showing a dialog: ask the user
+     to look and dismiss it, and the queued script then runs.
+  3. Check every PNG is transparent, build a contact sheet over the Field landscape and on
+     mid-grey, and get the user's approval before uploading.
+  4. Convert to WebP (`sharp(png).resize({height: 2020, withoutEnlargement: true}).webp({quality:
+     85, alphaQuality: 90})`).
+- **Player photo file names must not contain spaces**: `/api/cutout` and `/api/portrait` only
+  accept letters, digits, dots, hyphens and underscores, so a spaced name shows a broken image.
+  Use `First-Last-Cut-out.webp`, with the player's name as the alt text.
 - **Hole maps** are not cropped, only resized. A landscape map is small in the tall panel; rotating
   it a quarter-turn so the hole runs bottom to top fills it better. Use `--rotate 270` and tell
   the user, since north is then at the side. Maps on white backgrounds show as a white card on the
