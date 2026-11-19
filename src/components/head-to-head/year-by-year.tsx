@@ -59,17 +59,18 @@ export function YearByYearRows({ rows, nameA, nameB }: { rows: YearRow[]; nameA:
                     onClick={() => setOpen(isOpen ? null : row.year)}
                     aria-expanded={isOpen}
                     aria-controls={`match-${row.year}`}
-                    className={cn(
-                      "inline-flex items-center gap-2 whitespace-nowrap font-bold tabular-nums underline-offset-4 hover:underline",
-                      outcome === "halved" ? "text-muted-foreground" : "text-primary",
-                    )}
+                    className="inline-flex items-center gap-1.5 whitespace-nowrap font-bold tabular-nums"
                   >
-                    {/* The winner's colour as a small square, as on the card it opens. */}
-                    {outcome !== "halved" ? (
-                      <span className={cn("h-2.5 w-2.5 shrink-0", outcome === "won" ? PLAYER.a.bar : PLAYER.b.bar)} aria-hidden="true" />
-                    ) : null}
-                    {row.match.result.label}
-                    <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} aria-hidden="true" />
+                    {/* A pill in the winner's colour, as the score on the card it opens. */}
+                    <span
+                      className={cn(
+                        "px-2 py-0.5",
+                        outcome === "won" ? PLAYER.a.fill : outcome === "lost" ? PLAYER.b.fill : "border border-border text-muted-foreground",
+                      )}
+                    >
+                      {row.match.result.label}
+                    </span>
+                    <ChevronDown className={cn("h-4 w-4 text-primary transition-transform", isOpen && "rotate-180")} aria-hidden="true" />
                   </button>
                 ) : (
                   <span className="text-border">—</span>
@@ -109,8 +110,14 @@ function MatchCard({ match, year, venue, nameA, nameB }: { match: MatchPlayCard;
           <p className="font-sans text-[13px] font-bold uppercase tracking-[1.2px] text-primary sm:text-[16px]">
             {match.decidedOn ? `On the ${ordinal(match.decidedOn)}` : "Final"}
           </p>
-          {/* Always navy: gold text on white is too faint to read. The winner's arrow says who. */}
-          <p className={cn("font-menu text-[30px] font-bold uppercase leading-none tabular-nums sm:text-[44px]", outcome === "halved" ? "text-muted-foreground" : "text-primary")}>
+          {/* On a block of the winner's colour rather than as coloured text: gold text on white is
+              too faint to read, gold behind navy text is how the site uses gold everywhere. */}
+          <p
+            className={cn(
+              "mt-1 px-2.5 pb-0.5 pt-1.5 font-menu text-[30px] font-bold uppercase leading-none tabular-nums sm:px-3 sm:text-[44px]",
+              outcome === "won" ? PLAYER.a.fill : outcome === "lost" ? PLAYER.b.fill : "text-muted-foreground",
+            )}
+          >
             {score}
           </p>
         </div>
