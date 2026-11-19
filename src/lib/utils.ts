@@ -12,18 +12,11 @@ export function mediaUrl(value: string | number | Media | null | undefined): str
 }
 
 /**
- * A player cut-out trimmed to the golfer (see src/app/(app)/api/portrait/[file]/route.ts), so
- * portraits of every shape line up in a grid. Anything not in the media library passes through.
- */
-export function portraitUrl(url: string | undefined): string | undefined {
-  const match = url?.match(/^\/api\/media\/file\/([^/?#]+)$/);
-  return match ? `/api/portrait/${match[1]}` : url;
-}
-
-/**
- * The same cut-out with a transparent background instead of a black one (see
- * src/app/(app)/api/cutout/[file]/route.ts) -- for a portrait placed over a picture rather than
- * flat navy. Anything not in the media library passes through.
+ * A player photo as a transparent cut-out trimmed to the golfer (see
+ * src/app/(app)/api/cutout/[file]/route.ts), so portraits of every shape line up and stand over
+ * whatever is behind them. Every portrait on the site uses it; /api/portrait, the older black-backed
+ * version, is kept only so links already out there keep working. Anything not in the media
+ * library passes through.
  */
 export function cutoutUrl(url: string | undefined): string | undefined {
   const match = url?.match(/^\/api\/media\/file\/([^/?#]+)$/);

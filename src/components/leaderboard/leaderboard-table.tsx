@@ -5,7 +5,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Star, ChevronUp, ChevronDown } from "lucide-react";
 
-import { cn, portraitUrl, splitSurnameFirst } from "@/lib/utils";
+import { cn, splitSurnameFirst } from "@/lib/utils";
 import { formatToPar, isConcluded } from "@/lib/leaderboard";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";

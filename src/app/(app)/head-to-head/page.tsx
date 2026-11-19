@@ -7,7 +7,7 @@ import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { getPlayers, getPlayerResults, type PlayerYearResult } from "@/lib/data/players";
 import { formatToPar } from "@/lib/leaderboard";
 import { matchPlayResult } from "@/lib/match-play";
-import { cn, playerSlug, portraitUrl, splitSurnameFirst } from "@/lib/utils";
+import { cn, cutoutUrl, playerSlug, splitSurnameFirst } from "@/lib/utils";
 import type { Player } from "@/types/player";
 
 export const dynamic = "force-dynamic";
@@ -60,7 +60,7 @@ function PlayerHead({ player }: { player: Player }) {
   return (
     <Link href={`/players/${playerSlug(player)}`} className="group flex items-end gap-4">
       <span className="relative h-[120px] w-[100px] shrink-0 overflow-hidden bg-primary">
-        <PlaceholderArt label="" imageUrl={portraitUrl(player.photoUrl)} tone="navy" blendBlack fill fit="contain-bottom" sizes="100px" />
+        <PlaceholderArt label="" imageUrl={cutoutUrl(player.photoUrl)} tone="navy" className="bg-transparent" fill fit="contain-bottom" sizes="100px" />
       </span>
       <span>
         <span className="block font-menu text-[18px] leading-tight text-primary">{firstName}</span>

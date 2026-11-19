@@ -4,7 +4,7 @@ import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
 import { formatHandicap } from "@/lib/scoring";
-import { cn, portraitUrl, splitSurnameFirst } from "@/lib/utils";
+import { cn, cutoutUrl, splitSurnameFirst } from "@/lib/utils";
 import { scorePillClass, TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { TeeTimeEntry } from "@/types/championship";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
@@ -61,7 +61,7 @@ export function MatchupCard({
               {/* Smaller on phones, and the name block keeps clear of it (pr below), so a long
                   surname and its handicap wrap beside the photo instead of running across it. */}
               <div className="absolute bottom-0 right-0 h-[120px] w-[96px] sm:h-[150px] sm:w-[120px]" aria-hidden="true">
-                <PlaceholderArt label="" imageUrl={portraitUrl(player.photoUrl)} tone="navy" blendBlack fill fit="contain-bottom" sizes="120px" />
+                <PlaceholderArt label="" imageUrl={cutoutUrl(player.photoUrl)} tone="navy" className="bg-transparent" fill fit="contain-bottom" sizes="120px" />
               </div>
               <div className="relative pr-[92px] sm:pr-[112px]">
                 <button type="button" onClick={() => onSelectPlayer(player.id)} className="text-left text-surface-dark-foreground hover:text-accent">

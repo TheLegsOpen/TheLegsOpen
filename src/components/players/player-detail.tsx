@@ -30,7 +30,7 @@ import { getSiteTheme } from "@/lib/data/site-theme";
 import { formatToPar } from "@/lib/leaderboard";
 import type { Article } from "@/types/article";
 import type { PlayerGalleryPhoto } from "@/types/player";
-import { cn, cutoutUrl, portraitUrl } from "@/lib/utils";
+import { cn, cutoutUrl } from "@/lib/utils";
 
 /** theopen.com's section__title: 14px Cardinal Photo, bold, uppercase over 1.6px, in #43524E. */
 const SECTION_TITLE = "mb-5 font-menu text-[14px] font-bold uppercase leading-[16px] tracking-[1.6px] text-[#43524E]";
@@ -212,9 +212,9 @@ export async function PlayerDetail({ slug }: { slug: string }) {
               <div className="pointer-events-none absolute -bottom-[55px] left-[43.78%] h-[528px] w-[540px]">
                 <PlaceholderArt
                   label={`${player.name} portrait`}
-                  imageUrl={portraitUrl(player.photoUrl)}
+                  imageUrl={cutoutUrl(player.photoUrl)}
                   tone="slate"
-                  blendBlack
+                  className="bg-transparent"
                   fill
                   fit="contain-bottom"
                   sizes="540px"
@@ -360,7 +360,7 @@ export async function PlayerDetail({ slug }: { slug: string }) {
 
       <section className="relative hidden w-full overflow-hidden bg-primary text-primary-foreground lg:block xl:hidden">
         {/* Fixed height only from lg up (430px) -- below that the grid stacks to a single column, and a fixed height would clip the stacked content. No breadcrumbs/eyebrow here by request, so this is just the stat/portrait/badge row, vertically centered in the banner. */}
-        {/* No z-index here -- it would isolate the portrait's mix-blend-mode into its own stacking context, cutting it off from the section's own bg-primary it needs to blend against. Plain DOM order already paints this on top, so z-10 is unnecessary. */}
+        {/* No z-index here -- it would isolate the trophy's mix-blend-mode into its own stacking context, cutting it off from the section's own bg-primary it needs to blend against. Plain DOM order already paints this on top, so z-10 is unnecessary. */}
         {/* Desktop-only: anchored to the whole hero (not the badge column) so it reads as a full-height decorative element alongside the portrait, matching the earlier desktop treatment. Below lg there's no room for this, so the badge column gets its own smaller corner version instead. */}
         {/* The trophy is scaled with the portrait (both up from 240x300 to 352x440), keeping the
             proportions they had to each other before the hero grew to theopen.com's height. */}
@@ -392,9 +392,9 @@ export async function PlayerDetail({ slug }: { slug: string }) {
               <div className="relative aspect-[3/4] w-[55%] max-w-[260px] sm:max-w-[300px] lg:aspect-auto lg:h-[440px] lg:w-[352px] lg:max-w-none">
                 <PlaceholderArt
                   label={`${player.name} portrait`}
-                  imageUrl={portraitUrl(player.photoUrl)}
+                  imageUrl={cutoutUrl(player.photoUrl)}
                   tone="slate"
-                  blendBlack
+                  className="bg-transparent"
                   fill
                   sizes="(min-width: 1024px) 352px, (min-width: 640px) 300px, 55vw"
                 />

@@ -12,7 +12,7 @@ import { getSiteTheme } from "@/lib/data/site-theme";
 import { getPlayers } from "@/lib/data/players";
 import { getArticles } from "@/lib/data/articles";
 import { loadCourseGuide } from "@/lib/data/course-guide";
-import { cn, portraitUrl } from "@/lib/utils";
+import { cn, cutoutUrl } from "@/lib/utils";
 import { VenueCourseCard, VenueFeaturedArticle, VenueGalleryAll, VenueHeroLine } from "@/components/venues/venue-sections";
 
 /**
@@ -84,7 +84,7 @@ export async function VenueDetail({ slug }: { slug: string }) {
       name: c.winnerName,
       slug: c.winnerPlayerSlug,
       countryCode: player?.countryCode,
-      photoUrl: theirWins.find((w) => w.championCardPhotoUrl)?.championCardPhotoUrl ?? c.winnerPhotoUrl ?? portraitUrl(player?.photoUrl),
+      photoUrl: theirWins.find((w) => w.championCardPhotoUrl)?.championCardPhotoUrl ?? c.winnerPhotoUrl ?? cutoutUrl(player?.photoUrl),
       years: theirWins.map((w) => w.year).sort((a, b) => a - b),
     });
   }
@@ -233,7 +233,7 @@ export async function VenueDetail({ slug }: { slug: string }) {
             // The strip photo sits outside the winnerName check deliberately. A championship with
             // no champion recorded yet can still have a photograph of the course.
             photoUrl:
-              c.venueStripPhotoUrl ?? (c.winnerName ? c.winnerPhotoUrl ?? portraitUrl(playerByName.get(c.winnerName)?.photoUrl) : undefined),
+              c.venueStripPhotoUrl ?? (c.winnerName ? c.winnerPhotoUrl ?? cutoutUrl(playerByName.get(c.winnerName)?.photoUrl) : undefined),
           }))}
         />
       ) : null}
