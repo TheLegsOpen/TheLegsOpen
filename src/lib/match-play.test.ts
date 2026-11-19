@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { matchPlayResult } from "./match-play";
+import { matchPlayHoles, matchPlayResult } from "./match-play";
 import type { HoleScore } from "@/lib/data/scorecards";
 
 const card = (values: (number | undefined)[]): HoleScore[] =>
@@ -37,5 +37,31 @@ describe("matchPlayResult", () => {
   it("returns nothing without hole-by-hole cards", () => {
     expect(matchPlayResult(undefined, card(level))).toBeUndefined();
     expect(matchPlayResult(card(Array(18).fill(undefined)), card(level))).toBeUndefined();
+  });
+});
+
+describe("matchPlayHoles", () => {
+  it("records each hole and marks the holes after the match was decided as unplayed", () => {
+    const a = card([3, 3, 3, ...Array(15).fill(4)]);
+    const m = matchPlayHoles(a, card(level))!;
+    expect(m.result.label).toBe("Won 3 & 2");
+    expect(m.decidedOn).toBe(16);
+    expect(m.holes.slice(0, 3)).toEqual(["won", "won", "won"]);
+    expect(m.holes.slice(3, 16).every((h) => h === "halved")).toBe(true);
+    expect(m.holes.slice(16)).toEqual(["unplayed", "unplayed"]);
+  });
+
+  it("plays all 18 for a match decided on the last hole", () => {
+    const b = card([...Array(17).fill(4), 3]);
+    const m = matchPlayHoles(card(level), b)!;
+    expect(m.result.label).toBe("Lost 1 Up");
+    expect(m.decidedOn).toBeUndefined();
+    expect(m.holes[17]).toBe("lost");
+    expect(m.holes).not.toContain("unplayed");
+  });
+
+  it("agrees with matchPlayResult", () => {
+    const a = card([5, 3, 4, 6, 4, 4, 3, 4, 4, 5, 4, 4, 3, 4, 4, 4, 4, 4]);
+    expect(matchPlayHoles(a, card(level))!.result).toEqual(matchPlayResult(a, card(level)));
   });
 });

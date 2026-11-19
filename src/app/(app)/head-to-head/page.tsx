@@ -6,7 +6,8 @@ import { CountryFlag } from "@/components/shared/country-flag";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { getPlayers, getPlayerResults, type PlayerYearResult } from "@/lib/data/players";
 import { formatToPar } from "@/lib/leaderboard";
-import { matchPlayResult } from "@/lib/match-play";
+import { matchPlayHoles, matchPlayResult } from "@/lib/match-play";
+import { YearByYearRows } from "@/components/head-to-head/year-by-year";
 import { cn, cutoutUrl, playerSlug, splitSurnameFirst } from "@/lib/utils";
 import type { Player } from "@/types/player";
 
@@ -211,39 +212,25 @@ export default async function HeadToHeadPreview({ searchParams }: { searchParams
                     <th className="px-3 py-2 text-right" title={`${pa.name} against ${pb.name}, hole by hole on nett scores`}>Match play</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {years.map((y) => {
+                <YearByYearRows
+                  nameA={pa.name}
+                  nameB={pb.name}
+                  rows={years.map((y) => {
                     const x = ra.find((r) => r.year === y);
                     const z = rb.find((r) => r.year === y);
-                    const who = ahead(y);
-                    // Only years both played with hole-by-hole cards; blank otherwise.
-                    const match = x && z ? matchPlayResult(x.main.holes, z.main.holes) : undefined;
-                    return (
-                      <tr key={y} className="border-b border-[#E3E6E8]">
-                        <td className="px-3 py-2 tabular-nums">{y}</td>
-                        <td className="px-3 py-2">{(x ?? z)?.venueName}</td>
-                        <td className={cn("px-3 py-2 text-center tabular-nums", who === "a" && "bg-accent/30 font-bold")}>
-                          {finishLabel(x)}
-                          {x?.main.toPar !== undefined && !x.main.noReturn ? <span className="ml-1 text-xs text-[#43524E]">({formatToPar(x.main.toPar)})</span> : null}
-                        </td>
-                        <td className={cn("px-3 py-2 text-center tabular-nums", who === "b" && "bg-accent/30 font-bold")}>
-                          {finishLabel(z)}
-                          {z?.main.toPar !== undefined && !z.main.noReturn ? <span className="ml-1 text-xs text-[#43524E]">({formatToPar(z.main.toPar)})</span> : null}
-                        </td>
-                        <td
-                          className={cn(
-                            "whitespace-nowrap px-3 py-2 text-right font-bold tabular-nums",
-                            match?.outcome === "won" && "text-[#2269AB]",
-                            match?.outcome === "lost" && "text-[#CB333B]",
-                            match?.outcome === "halved" && "text-[#43524E]",
-                          )}
-                        >
-                          {match?.label ?? <span className="font-normal text-[#B9BEC0]">—</span>}
-                        </td>
-                      </tr>
-                    );
+                    return {
+                      year: y,
+                      venue: (x ?? z)?.venueName,
+                      finishA: finishLabel(x),
+                      finishB: finishLabel(z),
+                      toParA: x?.main.toPar !== undefined && !x.main.noReturn ? formatToPar(x.main.toPar) : undefined,
+                      toParB: z?.main.toPar !== undefined && !z.main.noReturn ? formatToPar(z.main.toPar) : undefined,
+                      ahead: ahead(y),
+                      // Only years both played with hole-by-hole cards; blank otherwise.
+                      match: x && z ? matchPlayHoles(x.main.holes, z.main.holes) : undefined,
+                    };
                   })}
-                </tbody>
+                />
               </table>
               </div>
             </div>

@@ -20,22 +20,49 @@ export interface MatchPlayResult {
  * Returns undefined when either card has no hole-by-hole scores to play the match from.
  */
 export function matchPlayResult(a: HoleScore[] | undefined, b: HoleScore[] | undefined): MatchPlayResult | undefined {
+  return matchPlayHoles(a, b)?.result;
+}
+
+/** Who took a hole, from the first player's side; "unplayed" once the match was already decided. */
+export type HoleOutcome = "won" | "lost" | "halved" | "unplayed";
+
+export interface MatchPlayCard {
+  result: MatchPlayResult;
+  /** One entry per hole, in order. */
+  holes: HoleOutcome[];
+  /** The hole the match was won on, or undefined when it went the distance (including all square). */
+  decidedOn?: number;
+}
+
+/**
+ * The same match as matchPlayResult, hole by hole -- for the head-to-head match card, which colours
+ * each hole by who won it. Holes after the match was decided are "unplayed", as they would be in
+ * real match play.
+ */
+export function matchPlayHoles(a: HoleScore[] | undefined, b: HoleScore[] | undefined): MatchPlayCard | undefined {
   if (!a?.length || !b?.length) return undefined;
-  const holes = Math.max(a.length, b.length);
+  const count = Math.max(a.length, b.length);
   if (!a.some((h) => h.value !== undefined) || !b.some((h) => h.value !== undefined)) return undefined;
+  const holes: HoleOutcome[] = [];
   let up = 0; // positive: the first player is ahead
-  for (let i = 0; i < holes; i++) {
+  for (let i = 0; i < count; i++) {
     const x = a[i]?.value;
     const y = b[i]?.value;
-    if (x !== undefined && y !== undefined) up += x < y ? 1 : x > y ? -1 : 0;
-    else if (x !== undefined) up += 1;
-    else if (y !== undefined) up -= 1;
-    const left = holes - (i + 1);
+    const outcome: HoleOutcome =
+      x !== undefined && y !== undefined ? (x < y ? "won" : x > y ? "lost" : "halved") : x !== undefined ? "won" : y !== undefined ? "lost" : "halved";
+    holes.push(outcome);
+    up += outcome === "won" ? 1 : outcome === "lost" ? -1 : 0;
+    const left = count - (i + 1);
     if (Math.abs(up) > left) {
       const margin = Math.abs(up);
       const score = left === 0 ? `${margin} Up` : `${margin} & ${left}`;
-      return up > 0 ? { outcome: "won", label: `Won ${score}` } : { outcome: "lost", label: `Lost ${score}` };
+      while (holes.length < count) holes.push("unplayed");
+      return {
+        result: up > 0 ? { outcome: "won", label: `Won ${score}` } : { outcome: "lost", label: `Lost ${score}` },
+        holes,
+        decidedOn: left === 0 ? undefined : i + 1,
+      };
     }
   }
-  return { outcome: "halved", label: "A/S" };
+  return { result: { outcome: "halved", label: "A/S" }, holes };
 }
