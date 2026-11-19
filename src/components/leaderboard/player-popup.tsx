@@ -102,7 +102,10 @@ export function PlayerPopup({
             <Star className={cn("h-5 w-5", isFav && "fill-current text-accent")} />
           </button>
 
-          <div className="mt-8 flex items-start gap-3 sm:mt-0">
+          {/* On phones the name drops onto its own line under the score and photo: beside them it
+              had about 65px, so a surname like LEISEGANG ran past the edge and the whole pop-out
+              scrolled sideways. */}
+          <div className="mt-8 flex min-w-0 flex-wrap items-start gap-3 sm:mt-0 sm:flex-nowrap">
             <span
               className={cn(
                 "inline-flex h-12 w-14 shrink-0 items-center justify-center font-display text-xl font-bold tabular-nums",
@@ -125,9 +128,9 @@ export function PlayerPopup({
               sizes="110px"
             />
 
-            <div>
+            <div className="min-w-0 basis-full sm:basis-auto">
               <p className="font-display text-lg">{firstName}</p>
-              <h2 className="-mt-1 font-display text-3xl font-bold uppercase leading-none">{surname}</h2>
+              <h2 className="-mt-1 break-words font-display text-3xl font-bold uppercase leading-none">{surname}</h2>
               <p className="mt-1 flex items-center gap-1.5 text-sm text-primary-foreground/70">
                 <CountryFlag code={player.countryCode} className="h-3 w-4" />
                 {player.country}
