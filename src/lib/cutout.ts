@@ -17,7 +17,7 @@ const BACKDROP = 32;
  * jumper that runs unbroken into the backdrop is reached by the flood and still goes faint, which
  * only a proper cut-out avoids.
  */
-export async function makeCutout(input: Buffer): Promise<Buffer> {
+export async function makeCutout(input: Buffer, { frame = false }: { frame?: boolean } = {}): Promise<Buffer> {
   const { isOpaque } = await sharp(input).stats();
 
   const trimmed = isOpaque
@@ -35,7 +35,113 @@ export async function makeCutout(input: Buffer): Promise<Buffer> {
 
   if (isOpaque) clearBackdrop(data, info.width, info.height);
 
-  return sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } }).webp({ quality: 85, alphaQuality: 90 }).toBuffer();
+  const raw = { raw: { width: info.width, height: info.height, channels: 4 as const } };
+  if (frame) {
+    const framing = frameByHead(data, info.width, info.height);
+    if (framing) {
+      const { canvas, left, top, crop } = framing;
+      const figure = await sharp(data, raw).extract(crop).png().toBuffer();
+      return sharp({ create: { width: canvas.width, height: canvas.height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+        .composite([{ input: figure, left, top }])
+        .png()
+        .toBuffer()
+        .then((png) => sharp(png).resize({ height: MAX_HEIGHT, withoutEnlargement: true }).webp({ quality: 85, alphaQuality: 90 }).toBuffer());
+    }
+  }
+
+  return sharp(data, raw).webp({ quality: 85, alphaQuality: 90 }).toBuffer();
+}
+
+/** Head width as a share of the frame's width: the typical player's before framing existed. */
+const HEAD_SHARE = 0.31;
+/** The gap above the head, as a share of the frame's height. */
+const TOP_GAP = 0.07;
+/** The lowest a head may sit (its top, as a share of the frame's height) before the frame stops growing. */
+const LOWEST_HEAD = 0.2;
+
+/**
+ * The head of a cut-out: from the top of the figure, the widest span before the neck narrows.
+ * Undefined when no neck shows (a figure that never narrows below the head).
+ */
+export function findHead(alpha: (y: number) => [number, number] | null, width: number, height: number): { top: number; bottom: number; width: number; centreX: number } | undefined {
+  let top = -1;
+  for (let y = 0; y < height; y++) if (alpha(y)) { top = y; break; }
+  if (top < 0) return undefined;
+  const span = Math.min(height - top, Math.round(width * 0.9));
+  const widths = Array.from({ length: span }, (_, i) => {
+    const r = alpha(top + i);
+    return r ? r[1] - r[0] : 0;
+  });
+  const k = Math.max(2, Math.round(width * 0.01));
+  const smooth = widths.map((_, i) => {
+    let sum = 0;
+    let n = 0;
+    for (let j = i - k; j <= i + k; j++) if (j >= 0 && j < widths.length) { sum += widths[j]; n++; }
+    return sum / n;
+  });
+  let peak = 0;
+  let peakAt = 0;
+  for (let i = Math.round(width * 0.05); i < smooth.length; i++) {
+    if (smooth[i] > peak) {
+      peak = smooth[i];
+      peakAt = i;
+    } else if (smooth[i] < peak * 0.93) {
+      let neck = i;
+      while (neck + 1 < smooth.length && smooth[neck + 1] <= smooth[neck]) neck++;
+      const r = alpha(top + peakAt);
+      return { top, bottom: top + neck, width: peak, centreX: r ? (r[0] + r[1]) / 2 : width / 2 };
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Where to place a cut-out on a 3:4 frame so every golfer's head comes out the same size, wherever
+ * the photo was cropped. Fitting each outline to the tile instead made a golfer photographed down to
+ * the thighs (Robert Hamilton) or in a wide jacket (Steven Leisegang) noticeably smaller than one
+ * cropped at the chest.
+ *
+ * The frame is sized so the head is HEAD_SHARE of its width, centred on the head, with the body
+ * standing on the bottom edge. A tall figure whose head would then poke out of the top is lowered to
+ * TOP_GAP and cropped at the bottom instead. A short one (a close-up ending at the chest) would leave
+ * its head low in the frame; the frame stops growing at LOWEST_HEAD rather than leaving the body
+ * floating above the bottom edge, so that head stays a little bigger than the rest.
+ *
+ * Undefined when no head can be found, and the caller keeps the outline-fitted cut-out.
+ */
+export function frameByHead(px: Buffer | Uint8Array, width: number, height: number) {
+  const spans: ([number, number] | null)[] = [];
+  let bottom = -1;
+  for (let y = 0; y < height; y++) {
+    let l = -1;
+    let r = -1;
+    for (let x = 0; x < width; x++) if (px[(y * width + x) * 4 + 3] > 128) { if (l < 0) l = x; r = x; }
+    spans.push(l < 0 ? null : [l, r]);
+    if (l >= 0) bottom = y;
+  }
+  const head = findHead((y) => spans[y], width, height);
+  if (!head || head.width < width * 0.12) return undefined;
+
+  const figureHeight = bottom + 1 - head.top;
+  // Width from the head, capped so a short figure still reaches the bottom edge with its head no lower than LOWEST_HEAD.
+  const frameWidth = Math.round(Math.min(head.width / HEAD_SHARE, (figureHeight / (1 - LOWEST_HEAD)) * 0.75));
+  const frameHeight = Math.round((frameWidth * 4) / 3);
+
+  const left = Math.round(frameWidth / 2 - head.centreX);
+  let top = frameHeight - (bottom + 1);
+  if (top + head.top < TOP_GAP * frameHeight) top = Math.round(TOP_GAP * frameHeight - head.top);
+
+  // The part of the figure that lands inside the frame.
+  const srcLeft = Math.max(0, -left);
+  const srcTop = Math.max(0, -top);
+  const crop = {
+    left: srcLeft,
+    top: srcTop,
+    width: Math.min(width - srcLeft, frameWidth - Math.max(0, left)),
+    height: Math.min(height - srcTop, frameHeight - Math.max(0, top)),
+  };
+  if (crop.width <= 0 || crop.height <= 0) return undefined;
+  return { canvas: { width: frameWidth, height: frameHeight }, left: Math.max(0, left), top: Math.max(0, top), crop, head };
 }
 
 /**

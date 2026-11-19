@@ -12,15 +12,15 @@ export function mediaUrl(value: string | number | Media | null | undefined): str
 }
 
 /**
- * A player photo as a transparent cut-out trimmed to the golfer (see
- * src/app/(app)/api/cutout/[file]/route.ts), so portraits of every shape line up and stand over
- * whatever is behind them. Every portrait on the site uses it; /api/portrait, the older black-backed
- * version, is kept only so links already out there keep working. Anything not in the media
+ * A player photo as a transparent cut-out, framed so every golfer's head is the same size (see
+ * src/app/(app)/api/player-photo/[file]/route.ts), standing over whatever is behind it. Every
+ * portrait on the site uses it; /api/cutout and the older black-backed /api/portrait are kept only
+ * so links already out there keep working. Anything not in the media
  * library passes through.
  */
 export function cutoutUrl(url: string | undefined): string | undefined {
   const match = url?.match(/^\/api\/media\/file\/([^/?#]+)$/);
-  return match ? `/api/cutout/${match[1]}` : url;
+  return match ? `/api/player-photo/${match[1]}` : url;
 }
 
 /** In UK time, so the server (UTC) and the browser agree on the day of anything posted near midnight in summer. */
