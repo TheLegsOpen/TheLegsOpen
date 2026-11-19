@@ -44,8 +44,72 @@ export function ScorecardGrid({ entry, competition }: { entry: ScorecardEntry; c
     return isStableford ? NEUTRAL_TILE_CLASS : holeScorePillClass(hole.relative);
   }
 
+  const all = [...FRONT_NINE, ...BACK_NINE];
+  const holeCell = (i: number, phone = false) => {
+    const hole = entry.holes[i];
+    return (
+      <span className={cn(TILE_CLASS, phone ? "w-full min-w-0 px-0" : "min-w-0 w-8 px-0", hole?.noReturn ? HOLE_NR_TILE_CLASS : pillClass(hole))}>
+        {hole?.noReturn ? "NR" : (hole?.value ?? "")}
+      </span>
+    );
+  };
+  const totalCell = (indices: number[], value: number | string | undefined, phone = false) => (
+    <span className={cn(TILE_CLASS, phone ? "w-full min-w-0 px-0" : "min-w-0 w-8 px-0", hasNoReturn(entry, indices) ? NR_TILE_CLASS : NEUTRAL_TILE_CLASS)}>
+      {hasNoReturn(entry, indices) ? "NR" : (value ?? "—")}
+    </span>
+  );
+  const total = isStableford ? (entry.score ?? 0) : entry.score;
+
+  /**
+   * Phones: the front nine and the back nine as two rows of eleven equal columns, the way the
+   * head-to-head match cards split their holes, so the card fits the screen instead of scrolling
+   * sideways. The front row's last column is left empty so both rows' holes line up.
+   */
+  const phoneRow = (indices: number[], label: string, extra?: { label: string; par: number; value: number | string | undefined }) => (
+    <table className="w-full table-fixed border-collapse text-sm">
+      <thead>
+        <tr className="bg-accent text-center text-[11px] uppercase tracking-wide text-accent-foreground">
+          {indices.map((i) => (
+            <th key={i} className="px-px py-1">
+              <span className="block">{i + 1}</span>
+              <span className="block font-normal normal-case text-accent-foreground/60">{entry.holes[i]?.par}</span>
+            </th>
+          ))}
+          <th className="px-px py-1">
+            <span className="block">{label}</span>
+            <span className="block font-normal normal-case text-accent-foreground/60">{sumPars(entry, indices)}</span>
+          </th>
+          <th className="px-px py-1">
+            {extra ? (
+              <>
+                <span className="block">{extra.label}</span>
+                <span className="block font-normal normal-case text-accent-foreground/60">{extra.par}</span>
+              </>
+            ) : null}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          {indices.map((i) => (
+            <td key={i} className="px-px py-1 text-center">
+              {holeCell(i, true)}
+            </td>
+          ))}
+          <td className="px-px py-1 text-center">{totalCell(indices, sumHoles(entry, indices), true)}</td>
+          <td className="px-px py-1 text-center">{extra ? totalCell(all, extra.value, true) : null}</td>
+        </tr>
+      </tbody>
+    </table>
+  );
+
   return (
-    <div className="no-scrollbar overflow-x-auto border border-surface-dark-foreground/15">
+    <>
+    <div className="flex flex-col gap-2 border border-surface-dark-foreground/15 sm:hidden">
+      {phoneRow(FRONT_NINE, "Out")}
+      {phoneRow(BACK_NINE, "In", { label: "Tot", par: sumPars(entry, all), value: total })}
+    </div>
+    <div className="no-scrollbar hidden overflow-x-auto border border-surface-dark-foreground/15 sm:block">
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr className="bg-accent text-center text-xs uppercase tracking-wide text-accent-foreground">
@@ -122,5 +186,6 @@ export function ScorecardGrid({ entry, competition }: { entry: ScorecardEntry; c
         </tbody>
       </table>
     </div>
+    </>
   );
 }
