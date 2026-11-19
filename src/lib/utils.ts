@@ -23,11 +23,13 @@ export function cutoutUrl(url: string | undefined): string | undefined {
   return match ? `/api/cutout/${match[1]}` : url;
 }
 
+/** In UK time, so the server (UTC) and the browser agree on the day of anything posted near midnight in summer. */
 export function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "Europe/London",
   });
 }
 

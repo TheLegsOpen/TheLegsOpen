@@ -133,12 +133,18 @@ export const COMPETITION_BADGE_CLASS: Record<LiveBlogCompetition, string> = {
   scratch: "bg-[#6B7280] text-white",
 };
 
+/**
+ * Both in UK time, always. Without a fixed timeZone they format in whatever zone they run in: the
+ * server renders in UTC on Vercel and the browser in UK time, so a post from championship week
+ * (BST, an hour ahead) read "14:03" in the server's HTML and "15:03" once the page loaded in the
+ * browser -- React's hydration error #418 on every page showing the live blog.
+ */
 export function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
 }
 
 export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+  return new Date(iso).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "Europe/London" });
 }
 
 interface LiveBlogFeedProps {
