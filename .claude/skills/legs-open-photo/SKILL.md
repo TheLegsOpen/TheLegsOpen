@@ -163,6 +163,7 @@ form can overwrite the change.
 - **Player photo file names must not contain spaces**: `/api/cutout` and `/api/portrait` only
   accept letters, digits, dots, hyphens and underscores, so a spaced name shows a broken image (`/api/player-photo` too).
   Use `First-Last-Cut-out.webp`, with the player's name as the alt text.
+- **Framed photos are stored once** in Blob under `player-photo/<FRAMING_VERSION>/` (see `src/app/(app)/api/player-photo/[file]/route.ts`). A new upload is made on its first view, about two seconds, then served from the store. If the framing in `src/lib/cutout.ts` ever changes, bump `FRAMING_VERSION` or the live site keeps serving the old framing.
 - **Hole maps** are not cropped, only resized. A landscape map is small in the tall panel; rotating
   it a quarter-turn so the hole runs bottom to top fills it better. Use `--rotate 270` and tell
   the user, since north is then at the side. Maps on white backgrounds show as a white card on the
