@@ -1,14 +1,19 @@
 "use client";
 
-import { Fragment, useState, type CSSProperties } from "react";
+import { Fragment, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 import type { HoleOutcome, MatchPlayCard } from "@/lib/match-play";
 import { cn, ordinal, splitSurnameFirst } from "@/lib/utils";
 
-/** The first player's colour and the second's, as in the rest of the head-to-head page. */
-const A_COLOUR = "#2269AB";
-const B_COLOUR = "#CB333B";
+/**
+ * The two players in the design system's two brand colours: the first in deep navy, the second in
+ * gold (with navy text on it, as everywhere gold is a fill). Halved holes are the site's light grey.
+ */
+const PLAYER = {
+  a: { fill: "bg-primary text-primary-foreground", bar: "bg-primary" },
+  b: { fill: "bg-accent text-accent-foreground", bar: "bg-accent" },
+} as const;
 
 export interface YearRow {
   year: number;
@@ -36,16 +41,16 @@ export function YearByYearRows({ rows, nameA, nameB }: { rows: YearRow[]; nameA:
         const outcome = row.match?.result.outcome;
         return (
           <Fragment key={row.year}>
-            <tr className={cn("border-b border-[#E3E6E8]", isOpen && "border-b-0")}>
+            <tr className={cn("border-b border-border", isOpen && "border-b-0")}>
               <td className="px-3 py-2 tabular-nums">{row.year}</td>
               <td className="px-3 py-2">{row.venue}</td>
               <td className={cn("px-3 py-2 text-center tabular-nums", row.ahead === "a" && "bg-accent/30 font-bold")}>
                 {row.finishA}
-                {row.toParA ? <span className="ml-1 text-xs text-[#43524E]">({row.toParA})</span> : null}
+                {row.toParA ? <span className="ml-1 text-xs text-muted-foreground">({row.toParA})</span> : null}
               </td>
               <td className={cn("px-3 py-2 text-center tabular-nums", row.ahead === "b" && "bg-accent/30 font-bold")}>
                 {row.finishB}
-                {row.toParB ? <span className="ml-1 text-xs text-[#43524E]">({row.toParB})</span> : null}
+                {row.toParB ? <span className="ml-1 text-xs text-muted-foreground">({row.toParB})</span> : null}
               </td>
               <td className="px-3 py-2 text-right">
                 {row.match ? (
@@ -55,22 +60,24 @@ export function YearByYearRows({ rows, nameA, nameB }: { rows: YearRow[]; nameA:
                     aria-expanded={isOpen}
                     aria-controls={`match-${row.year}`}
                     className={cn(
-                      "inline-flex items-center gap-1 whitespace-nowrap font-bold tabular-nums underline-offset-4 hover:underline",
-                      outcome === "won" && "text-[#2269AB]",
-                      outcome === "lost" && "text-[#CB333B]",
-                      outcome === "halved" && "text-[#43524E]",
+                      "inline-flex items-center gap-2 whitespace-nowrap font-bold tabular-nums underline-offset-4 hover:underline",
+                      outcome === "halved" ? "text-muted-foreground" : "text-primary",
                     )}
                   >
+                    {/* The winner's colour as a small square, as on the card it opens. */}
+                    {outcome !== "halved" ? (
+                      <span className={cn("h-2.5 w-2.5 shrink-0", outcome === "won" ? PLAYER.a.bar : PLAYER.b.bar)} aria-hidden="true" />
+                    ) : null}
                     {row.match.result.label}
                     <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} aria-hidden="true" />
                   </button>
                 ) : (
-                  <span className="text-[#B9BEC0]">—</span>
+                  <span className="text-border">—</span>
                 )}
               </td>
             </tr>
             {isOpen && row.match ? (
-              <tr id={`match-${row.year}`} className="border-b border-[#E3E6E8]">
+              <tr id={`match-${row.year}`} className="border-b border-border">
                 <td colSpan={5} className="px-0 pb-5 pt-1 sm:px-3">
                   {/* Below md the table is wider than the screen and scrolls sideways; the card is
                       held to the screen's width and pinned to its left edge, so it is never cut off. */}
@@ -90,38 +97,38 @@ export function YearByYearRows({ rows, nameA, nameB }: { rows: YearRow[]; nameA:
 function MatchCard({ match, year, venue, nameA, nameB }: { match: MatchPlayCard; year: number; venue?: string; nameA: string; nameB: string }) {
   const { outcome, label } = match.result;
   const score = label.replace(/^(Won|Lost) /, "");
-  const winnerColour = outcome === "won" ? A_COLOUR : outcome === "lost" ? B_COLOUR : "#43524E";
   return (
-    <div className="overflow-hidden bg-white shadow-[0_1px_6px_rgba(6,5,30,0.12)]">
+    <div className="overflow-hidden border border-border bg-white">
       <div className="grid min-h-[120px] grid-cols-[1fr_auto_1fr] sm:min-h-[140px]">
-        <Side name={nameA} colour={A_COLOUR} winner={outcome === "won"} side="left" />
+        <Side name={nameA} player="a" winner={outcome === "won"} side="left" />
         <div className="flex flex-col items-center justify-center px-2 py-3 text-center sm:px-6">
-          <p className="text-[12px] text-[#43524E] sm:text-[14px]">
+          <p className="text-[12px] text-muted-foreground sm:text-[14px]">
             {year}
             {venue ? <span className="hidden sm:inline"> · {venue}</span> : null}
           </p>
           <p className="font-sans text-[13px] font-bold uppercase tracking-[1.2px] text-primary sm:text-[16px]">
             {match.decidedOn ? `On the ${ordinal(match.decidedOn)}` : "Final"}
           </p>
-          <p className="font-menu text-[30px] font-bold uppercase leading-none tabular-nums sm:text-[44px]" style={{ color: winnerColour }}>
+          {/* Always navy: gold text on white is too faint to read. The winner's arrow says who. */}
+          <p className={cn("font-menu text-[30px] font-bold uppercase leading-none tabular-nums sm:text-[44px]", outcome === "halved" ? "text-muted-foreground" : "text-primary")}>
             {score}
           </p>
         </div>
-        <Side name={nameB} colour={B_COLOUR} winner={outcome === "lost"} side="right" />
+        <Side name={nameB} player="b" winner={outcome === "lost"} side="right" />
       </div>
-      <div className="bg-[#F2F3F4] px-3 py-4 sm:px-8">
-        <ol className="mx-auto grid max-w-[460px] grid-cols-9 gap-1.5 sm:gap-3" aria-label="Hole by hole">
+      <div className="border-t border-border bg-secondary px-3 py-4 sm:px-8">
+        <ol className="mx-auto grid max-w-[460px] grid-cols-9 gap-1.5 sm:gap-2" aria-label="Hole by hole">
           {match.holes.map((hole, i) => (
-            <li key={i} className={cn("flex aspect-square items-center justify-center rounded-full font-menu text-[13px] tabular-nums sm:text-[16px]", HOLE_CLASS[hole])} style={HOLE_STYLE[hole]}>
+            <li key={i} className={cn("flex aspect-square items-center justify-center font-menu text-[13px] tabular-nums sm:text-[16px]", HOLE_CLASS[hole])}>
               <span className="sr-only">{holeText(hole, i + 1, nameA, nameB)}</span>
               <span aria-hidden="true">{i + 1}</span>
             </li>
           ))}
         </ol>
-        <p className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] uppercase tracking-[1px] text-[#43524E]">
-          <Legend colour={A_COLOUR} text={`${splitSurnameFirst(nameA).surname} won`} />
-          <Legend colour={B_COLOUR} text={`${splitSurnameFirst(nameB).surname} won`} />
-          <Legend colour="#CDD2D6" text="Halved" />
+        <p className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 font-menu text-[11px] uppercase tracking-[1.6px] text-muted-foreground">
+          <Legend swatch={PLAYER.a.bar} text={`${splitSurnameFirst(nameA).surname} won`} />
+          <Legend swatch={PLAYER.b.bar} text={`${splitSurnameFirst(nameB).surname} won`} />
+          <Legend swatch="border border-border bg-white" text="Halved" />
         </p>
       </div>
     </div>
@@ -129,17 +136,14 @@ function MatchCard({ match, year, venue, nameA, nameB }: { match: MatchPlayCard;
 }
 
 /** A player's end of the card: the winner's on an arrow of their colour pointing at the score, the other plain with a bar of theirs at the edge. */
-function Side({ name, colour, winner, side }: { name: string; colour: string; winner: boolean; side: "left" | "right" }) {
+function Side({ name, player, winner, side }: { name: string; player: "a" | "b"; winner: boolean; side: "left" | "right" }) {
   const { firstName, surname } = splitSurnameFirst(name);
   return (
     <div
-      className={cn("relative flex items-center px-3 sm:px-6", side === "left" ? "justify-start text-left" : "justify-end text-right", winner ? "text-white" : "text-primary")}
-      style={
-        winner
-          ? { backgroundColor: colour, clipPath: side === "left" ? "polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%)" : "polygon(18% 0, 100% 0, 100% 100%, 18% 100%, 0 50%)" }
-          : { boxShadow: `inset ${side === "left" ? "6px" : "-6px"} 0 0 ${colour}` }
-      }
+      className={cn("relative flex items-center px-3 sm:px-6", side === "left" ? "justify-start text-left" : "justify-end text-right", winner ? PLAYER[player].fill : "text-primary")}
+      style={winner ? { clipPath: side === "left" ? "polygon(0 0, 82% 0, 100% 50%, 82% 100%, 0 100%)" : "polygon(18% 0, 100% 0, 100% 100%, 18% 100%, 0 50%)" } : undefined}
     >
+      {winner ? null : <span className={cn("absolute inset-y-0 w-1.5", side === "left" ? "left-0" : "right-0", PLAYER[player].bar)} aria-hidden="true" />}
       <p className={cn("font-menu uppercase leading-tight", side === "left" ? "pr-4 sm:pr-8" : "pl-4 sm:pl-8")}>
         <span className="block text-[14px] sm:text-[20px]">{firstName}</span>
         <span className="block text-[16px] font-bold sm:text-[24px]">{surname}</span>
@@ -148,17 +152,12 @@ function Side({ name, colour, winner, side }: { name: string; colour: string; wi
   );
 }
 
+/** Square tiles, like the scorecard cells in the leaderboard pop-up. */
 const HOLE_CLASS: Record<HoleOutcome, string> = {
-  won: "text-white",
-  lost: "text-white",
-  halved: "bg-[#CDD2D6] text-primary",
-  unplayed: "border border-dashed border-[#B9BEC0] text-[#B9BEC0]",
-};
-const HOLE_STYLE: Record<HoleOutcome, CSSProperties | undefined> = {
-  won: { backgroundColor: A_COLOUR },
-  lost: { backgroundColor: B_COLOUR },
-  halved: undefined,
-  unplayed: undefined,
+  won: PLAYER.a.fill,
+  lost: PLAYER.b.fill,
+  halved: "border border-border bg-white text-primary",
+  unplayed: "border border-dashed border-border text-muted-foreground/50",
 };
 
 function holeText(hole: HoleOutcome, n: number, nameA: string, nameB: string): string {
@@ -168,10 +167,10 @@ function holeText(hole: HoleOutcome, n: number, nameA: string, nameB: string): s
   return `Hole ${n}: not played, match already decided`;
 }
 
-function Legend({ colour, text }: { colour: string; text: string }) {
+function Legend({ swatch, text }: { swatch: string; text: string }) {
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colour }} aria-hidden="true" />
+      <span className={cn("h-2.5 w-2.5", swatch)} aria-hidden="true" />
       {text}
     </span>
   );
