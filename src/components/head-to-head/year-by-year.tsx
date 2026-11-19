@@ -72,7 +72,11 @@ export function YearByYearRows({ rows, nameA, nameB }: { rows: YearRow[]; nameA:
             {isOpen && row.match ? (
               <tr id={`match-${row.year}`} className="border-b border-[#E3E6E8]">
                 <td colSpan={5} className="px-0 pb-5 pt-1 sm:px-3">
-                  <MatchCard match={row.match} year={row.year} venue={row.venue} nameA={nameA} nameB={nameB} />
+                  {/* Below md the table is wider than the screen and scrolls sideways; the card is
+                      held to the screen's width and pinned to its left edge, so it is never cut off. */}
+                  <div className="sticky left-0 w-[calc(100vw-2.5rem)] md:static md:w-auto">
+                    <MatchCard match={row.match} year={row.year} venue={row.venue} nameA={nameA} nameB={nameB} />
+                  </div>
                 </td>
               </tr>
             ) : null}
