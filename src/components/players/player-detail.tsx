@@ -185,6 +185,8 @@ export async function PlayerDetail({ slug }: { slug: string }) {
   // PREVIEW (21): theopen.com opens a player's Overview with a one-line summary. Ours is the
   // first paragraph of the bio, which the Bio tab still shows in full.
   const standfirst = firstParagraph(player.bio);
+  /** The phone hero's jug beside a champion -- see that section. */
+  const jugInHero = winYears.length > 0 && Boolean(theme.championTrophyGraphicUrl);
 
   return (
     <>
@@ -295,16 +297,23 @@ export async function PlayerDetail({ slug }: { slug: string }) {
           (photo, then a two-column stat grid) that ran to 800px before the name appeared. ---- */}
       <section className="relative w-full overflow-hidden bg-primary text-primary-foreground lg:hidden">
         <div className="relative h-[360px] sm:h-[440px]">
-          {/* The jug behind a champion, as theirs is: large, rising behind his shoulder on the
-              right. It needs the transparent cut-out (/api/cutout) in front of it -- the black-backed
-              portrait's screen blend let the jug show through the shirt like a watermark, which is
-              why this was left out before. */}
-          {winYears.length > 0 && theme.championTrophyGraphicUrl ? (
-            <div className="pointer-events-none absolute right-[-6%] top-4 h-[300px] w-[62%] sm:right-[2%] sm:h-[380px] sm:w-[46%]" aria-hidden="true">
-              <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="(min-width: 640px) 46vw, 62vw" />
+          {/* A champion's hero is theopen.com's, measured off /players/padraig-harrington at 360px:
+              the golfer smaller, from about a third of the way down, between a fifth and a tenth in
+              from the sides, and the jug whole beside him at the right edge, a quarter of the width,
+              behind the Champion Golfer years. It needs the transparent cut-out (/api/cutout) in
+              front -- the black-backed portrait's screen blend let the jug show through the shirt,
+              which is why it was left out before. Everyone else keeps the larger portrait. */}
+          {jugInHero ? (
+            <div className="pointer-events-none absolute bottom-[10%] right-[-1%] h-[46%] w-[25%] sm:bottom-[8%] sm:right-[3%] sm:w-[20%]" aria-hidden="true">
+              <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="(min-width: 640px) 20vw, 25vw" />
             </div>
           ) : null}
-          <div className="pointer-events-none absolute bottom-0 left-[16%] right-[-16%] top-2 sm:left-[26%] sm:right-[-4%]">
+          <div
+            className={cn(
+              "pointer-events-none absolute bottom-0",
+              jugInHero ? "left-[20%] right-[12%] top-[30%] sm:left-[30%] sm:right-[18%] sm:top-[22%]" : "left-[16%] right-[-16%] top-2 sm:left-[26%] sm:right-[-4%]",
+            )}
+          >
             <PlaceholderArt
               label={`${player.name} portrait`}
               imageUrl={cutoutUrl(player.photoUrl)}
