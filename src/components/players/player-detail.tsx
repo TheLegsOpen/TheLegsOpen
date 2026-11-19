@@ -304,7 +304,9 @@ export async function PlayerDetail({ slug }: { slug: string }) {
               front -- the black-backed portrait's screen blend let the jug show through the shirt,
               which is why it was left out before. Everyone else keeps the larger portrait. */}
           {jugInHero ? (
-            <div className="pointer-events-none absolute bottom-[10%] right-[-1%] h-[46%] w-[25%] sm:bottom-[8%] sm:right-[3%] sm:w-[20%]" aria-hidden="true">
+            // Brightened to theopen.com's bright silver. The filter goes on the img itself: on this
+            // wrapper it would isolate the img's screen blend, and the jug's black would show.
+            <div className="pointer-events-none absolute bottom-[10%] right-[-1%] h-[46%] w-[25%] sm:bottom-[8%] sm:right-[3%] sm:w-[20%] [&_img]:brightness-[1.6] [&_img]:contrast-[1.15]" aria-hidden="true">
               <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="(min-width: 640px) 20vw, 25vw" />
             </div>
           ) : null}
