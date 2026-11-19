@@ -1,6 +1,3 @@
-import { put } from "@vercel/blob";
-
-import { makeCutout } from "@/lib/cutout";
 import { blobBaseUrl, mediaSourceUrl } from "@/lib/media-source";
 
 /**
@@ -44,6 +41,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
   if (!source.ok) return new Response("Not found", { status: 404 });
   const input = Buffer.from(await source.arrayBuffer());
 
+  // Loaded only when a photo has to be made: sharp is heavy to start, and a stored copy needs none of it.
+  const { makeCutout } = await import("@/lib/cutout");
   let output: Buffer;
   try {
     output = await makeCutout(input, { frame: true });
@@ -55,6 +54,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
   if (live && base) {
     // Best effort: a failed save only means the next request makes it again.
     try {
+      const { put } = await import("@vercel/blob");
       await put(storedPath, output, { access: "public", contentType: "image/webp", addRandomSuffix: false, allowOverwrite: true });
     } catch (err) {
       console.error("player-photo: could not store", storedPath, err);
