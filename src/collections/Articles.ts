@@ -1,4 +1,7 @@
 import type { CollectionConfig } from "payload";
+import { BlocksFeature, lexicalEditor } from "@payloadcms/richtext-lexical";
+
+import { ArticleVideoBlock } from "@/blocks/article-video";
 
 import { revalidateArticles } from "@/lib/revalidate";
 
@@ -131,7 +134,14 @@ export const Articles: CollectionConfig = {
           "Landscape, at least 1600×900px, with the subject in the centre. Shown 16:9 at the top of the article, 4:3 on news cards, square in the homepage News & Features row and as a small thumbnail under Related, so the edges get cropped in places. A placeholder shows until one is set.",
       },
     },
-    { name: "body", type: "richText", required: true },
+    {
+      name: "body",
+      type: "richText",
+      required: true,
+      // The site's default editor plus a Video block (+ in the editor, or type /video), for a
+      // YouTube, Vimeo or Media video between paragraphs, as theopen.com does.
+      editor: lexicalEditor({ features: ({ defaultFeatures }) => [...defaultFeatures, BlocksFeature({ blocks: [ArticleVideoBlock] })] }),
+    },
   ],
   hooks: {
     beforeValidate: [

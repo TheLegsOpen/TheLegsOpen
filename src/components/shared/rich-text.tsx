@@ -1,5 +1,6 @@
-import { RichText } from "@payloadcms/richtext-lexical/react";
+import { RichText, type JSXConvertersFunction } from "@payloadcms/richtext-lexical/react";
 
+import { OverviewVideo } from "@/components/previous-opens/overview-video";
 import { cn } from "@/lib/utils";
 
 /**
@@ -36,9 +37,38 @@ function withoutBlankParagraphs(data: unknown): unknown {
   return { ...(data as object), root: { ...root, children: root.children.filter((node) => !isBlankParagraph(node)) } };
 }
 
+interface VideoBlockFields {
+  url?: string | null;
+  file?: { url?: string | null } | number | null;
+  caption?: string | null;
+}
+
+/**
+ * The article Video block (src/blocks/article-video.ts): the same player as the Previous Opens
+ * overview, full width, with its caption under it. A block whose link isn't YouTube, Vimeo or a
+ * video file renders nothing rather than an empty frame.
+ */
+const converters: JSXConvertersFunction = ({ defaultConverters }) => ({
+  ...defaultConverters,
+  blocks: {
+    video: ({ node }: { node: { fields: VideoBlockFields } }) => {
+      const { url, file, caption } = node.fields;
+      const fileUrl = typeof file === "object" && file?.url ? file.url : undefined;
+      if (!fileUrl && !url) return null;
+      return (
+        <figure className="my-2 flex flex-col gap-2">
+          <OverviewVideo url={url ?? undefined} fileUrl={fileUrl} />
+          {caption ? <figcaption className="text-sm text-muted-foreground">{caption}</figcaption> : null}
+        </figure>
+      );
+    },
+  },
+});
+
 export function RichTextBlock({ data, className, dropBlankParagraphs = false }: { data: unknown; className?: string; dropBlankParagraphs?: boolean }) {
   return (
     <RichText
+      converters={converters}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       data={(dropBlankParagraphs ? withoutBlankParagraphs(data) : data) as any}
       className={cn(
