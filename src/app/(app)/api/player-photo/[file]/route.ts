@@ -30,10 +30,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
 
   if (live && base) {
     try {
-      const stored = await fetch(`${base}/${storedPath}`);
+      // Asked of Blob's API rather than by fetching the file's address: a fetch before the copy
+      // exists gets a 404 that Blob's CDN caches, and the next few requests would then miss the copy
+      // and make the photo again. The file is fetched at an address carrying its upload time, which
+      // never saw that 404.
+      const { head } = await import("@vercel/blob");
+      const meta = await head(storedPath);
+      const stored = await fetch(`${meta.url}?v=${meta.uploadedAt.getTime()}`);
       if (stored.ok) return imageResponse(Buffer.from(await stored.arrayBuffer()), "image/webp");
     } catch {
-      // Not stored yet, or Blob unreachable: make it below.
+      // Not stored yet (BlobNotFoundError), or Blob unreachable: make it below.
     }
   }
 
