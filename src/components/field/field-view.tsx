@@ -218,9 +218,9 @@ export function FieldView({
                 <Link href={`/players/${playerSlug(player)}`} className="absolute inset-0">
                   {gridBackground ? (
                     <>
-                      {/* Navy duotone: the first takes the landscape's own colour away and keeps its light and shade in navy, the second darkens it so the golfers stand out. */}
+                      {/* Navy duotone: the first takes the landscape's own colour away and keeps its light and shade in navy, the second darkens it to theopen.com's deep navy, the landscape just showing at the top and sinking into the navy towards the golfers' shoulders. */}
                       <span className="absolute inset-0 bg-primary mix-blend-color" aria-hidden="true" />
-                      <span className="absolute inset-0 bg-primary/50" aria-hidden="true" />
+                      <span className="absolute inset-0 bg-gradient-to-b from-primary/70 via-primary/80 to-primary/90" aria-hidden="true" />
                     </>
                   ) : null}
                   <PlaceholderArt
