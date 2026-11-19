@@ -27,8 +27,13 @@ import { getSupabaseBrowserClient } from "@/lib/supabase-client";
  * a missing grant looks like no live updates rather than like an error.
  */
 export function useLiveBlogRealtime(championshipId: string | null | undefined, onNewPost: () => void) {
+  // The latest callback, for the subscription below to call without resubscribing whenever the
+  // caller passes a new function. Kept current in an effect, not during render: the ref is only
+  // read when a Realtime event arrives, which is always after a render has committed.
   const onNewPostRef = useRef(onNewPost);
-  onNewPostRef.current = onNewPost;
+  useEffect(() => {
+    onNewPostRef.current = onNewPost;
+  }, [onNewPost]);
 
   useEffect(() => {
     if (!championshipId) return;

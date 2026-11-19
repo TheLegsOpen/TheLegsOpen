@@ -6,17 +6,21 @@ import { Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudMoon, CloudRain, Cl
 import { cn } from "@/lib/utils";
 import type { VenueWeather } from "@/lib/data/weather";
 
-/** Maps Open-Meteo's WMO weather codes to an icon, day/night aware. */
-function weatherIcon(code: number, isDay: boolean) {
-  if (code === 0) return isDay ? Sun : Moon;
-  if (code <= 3) return isDay ? CloudSun : CloudMoon;
-  if (code <= 48) return CloudFog;
-  if (code <= 57) return CloudDrizzle;
-  if (code <= 67) return CloudRain;
-  if (code <= 77) return CloudSnow;
-  if (code <= 82) return CloudRain;
-  if (code <= 86) return CloudSnow;
-  return CloudLightning;
+/**
+ * Open-Meteo's WMO weather code as an icon, day/night aware. A component that returns the icon
+ * rather than a function that returns the icon's component: picking a component while rendering
+ * and then rendering it is something the React compiler can't track.
+ */
+function WeatherIcon({ code, isDay, className }: { code: number; isDay: boolean; className?: string }) {
+  if (code === 0) return isDay ? <Sun className={className} /> : <Moon className={className} />;
+  if (code <= 3) return isDay ? <CloudSun className={className} /> : <CloudMoon className={className} />;
+  if (code <= 48) return <CloudFog className={className} />;
+  if (code <= 57) return <CloudDrizzle className={className} />;
+  if (code <= 67) return <CloudRain className={className} />;
+  if (code <= 77) return <CloudSnow className={className} />;
+  if (code <= 82) return <CloudRain className={className} />;
+  if (code <= 86) return <CloudSnow className={className} />;
+  return <CloudLightning className={className} />;
 }
 
 function windDirectionLabel(deg: number): string {
@@ -34,14 +38,13 @@ function formatDay(iso: string): string {
 
 export function WeatherWidget({ weather }: { weather: VenueWeather }) {
   const [range, setRange] = useState<"today" | "week">("today");
-  const CurrentIcon = weatherIcon(weather.currentWeatherCode, weather.isDay);
 
   return (
     <div className="flex h-full flex-col overflow-hidden text-white">
       <div className="grid grid-cols-2">
         <div className="flex flex-col items-center justify-center gap-1 bg-accent px-4 py-5 text-accent-foreground">
           <p className="text-[9px] font-bold uppercase tracking-widest text-accent-foreground/70">Right now</p>
-          <CurrentIcon className="h-9 w-9" />
+          <WeatherIcon code={weather.currentWeatherCode} isDay={weather.isDay} className="h-9 w-9" />
           <p className="font-display text-3xl font-bold tabular-nums">
             {Math.round(weather.currentTemperatureC)}
             <span className="text-lg align-top">°C</span>
@@ -68,11 +71,10 @@ export function WeatherWidget({ weather }: { weather: VenueWeather }) {
         {range === "today" ? (
           <div className="grid grid-cols-6 gap-1 text-center">
             {weather.hourly.map((hour) => {
-              const Icon = weatherIcon(hour.weatherCode, hour.isDay);
               return (
                 <div key={hour.time} className="flex flex-col items-center gap-1">
                   <p className="text-[11px] text-white/60">{formatHour(hour.time)}</p>
-                  <Icon className="h-5 w-5 text-accent" />
+                  <WeatherIcon code={hour.weatherCode} isDay={hour.isDay} className="h-5 w-5 text-accent" />
                   <p className="text-sm font-bold tabular-nums">{Math.round(hour.temperatureC)}°</p>
                   <p className="flex items-center gap-0.5 text-[10px] text-white/50">
                     <Wind className="h-2.5 w-2.5" />
@@ -85,11 +87,10 @@ export function WeatherWidget({ weather }: { weather: VenueWeather }) {
         ) : (
           <div className="grid grid-cols-6 gap-1 text-center">
             {weather.daily.slice(0, 6).map((day) => {
-              const Icon = weatherIcon(day.weatherCode, true);
               return (
                 <div key={day.date} className="flex flex-col items-center gap-1">
                   <p className="text-[11px] text-white/60">{formatDay(day.date)}</p>
-                  <Icon className="h-5 w-5 text-accent" />
+                  <WeatherIcon code={day.weatherCode} isDay className="h-5 w-5 text-accent" />
                   <p className="whitespace-nowrap text-[11px] font-bold tabular-nums">
                     {Math.round(day.maxTemperatureC)}°<span className="text-white/50">/{Math.round(day.minTemperatureC)}°</span>
                   </p>

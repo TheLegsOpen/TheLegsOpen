@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { motion } from "framer-motion";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
@@ -13,25 +13,22 @@ import type { InfoCardGroupSection } from "@/types/homepage-section";
 
 export function InfoCardGroup({ section }: { section: InfoCardGroupSection }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", loop: false });
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(false);
-
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return;
-    setCanScrollPrev(emblaApi.canScrollPrev());
-    setCanScrollNext(emblaApi.canScrollNext());
-  }, [emblaApi]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    onSelect();
-    emblaApi.on("select", onSelect);
-    emblaApi.on("reInit", onSelect);
-    return () => {
-      emblaApi.off("select", onSelect);
-      emblaApi.off("reInit", onSelect);
-    };
-  }, [emblaApi, onSelect]);
+  // Whether the arrows can move is read straight from the carousel, re-read whenever it scrolls or
+  // is re-measured, rather than copied into state from an effect.
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      if (!emblaApi) return () => {};
+      emblaApi.on("select", onChange);
+      emblaApi.on("reInit", onChange);
+      return () => {
+        emblaApi.off("select", onChange);
+        emblaApi.off("reInit", onChange);
+      };
+    },
+    [emblaApi],
+  );
+  const canScrollPrev = useSyncExternalStore(subscribe, () => emblaApi?.canScrollPrev() ?? false, () => false);
+  const canScrollNext = useSyncExternalStore(subscribe, () => emblaApi?.canScrollNext() ?? false, () => false);
 
   return (
     <section className="bg-surface-dark py-16 text-surface-dark-foreground sm:py-24">

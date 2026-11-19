@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -35,20 +35,19 @@ export function PlayerGallery({
   contained?: boolean;
 }) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: photos.length > 1 });
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
-  const onSelect = useCallback(() => {
-    if (emblaApi) setSelectedIndex(emblaApi.selectedScrollSnap());
-  }, [emblaApi]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    onSelect();
-    emblaApi.on("select", onSelect);
-    return () => {
-      emblaApi.off("select", onSelect);
-    };
-  }, [emblaApi, onSelect]);
+  // The carousel is the source of truth for which slide is showing; read it from there rather than
+  // copying it into state from an effect.
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      if (!emblaApi) return () => {};
+      emblaApi.on("select", onChange);
+      return () => {
+        emblaApi.off("select", onChange);
+      };
+    },
+    [emblaApi],
+  );
+  const selectedIndex = useSyncExternalStore(subscribe, () => emblaApi?.selectedScrollSnap() ?? 0, () => 0);
 
   if (photos.length === 0) return null;
 

@@ -223,18 +223,24 @@ export function ScoringApp({
     else setCurrentHole((h) => Math.min(18, h + 1));
   }
 
-  /** Whenever the hole changes, aim the keypad at the first player still to be scored on it. */
-  useEffect(() => {
+  /**
+   * Whenever the hole changes (and on first render), aim the keypad at the first player still to
+   * be scored on it. Keyed on the hole alone: re-running this as scores change would yank the
+   * highlight away from whoever the scorer is part-way through typing.
+   *
+   * Done while rendering rather than in an effect -- React's way to reset state when a value
+   * changes -- so the new hole never paints for a frame with the previous hole's highlight.
+   */
+  const [aimedHole, setAimedHole] = useState<number | null>(null);
+  if (aimedHole !== currentHole) {
+    setAimedHole(currentHole);
     const firstEmpty = group.players.findIndex((p) => {
       const h = holesState[p.scorecardId][currentHole - 1];
       return h?.strokes === undefined && !h?.noReturn;
     });
     setActivePlayer(firstEmpty === -1 ? 0 : firstEmpty);
     setDigitBuffer("");
-    // Deliberately keyed on the hole alone: re-running this as scores change would yank the
-    // highlight away from whoever the scorer is part-way through typing.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentHole]);
+  }
 
   function jumpToHole(hole: number) {
     setCurrentHole(hole);

@@ -274,7 +274,7 @@ export const CourseImportField: UIFieldClientComponent = () => {
           </button>
           <p style={{ fontSize: 12, color: "var(--theme-elevation-500)", width: "100%", margin: 0 }}>
             Searches every club in the selected country, page by page (the free API tier limits this to one page every ~13
-            seconds) — matches appear as they're found, and you can pick one or stop early rather than waiting for the whole
+            seconds) — matches appear as they&apos;re found, and you can pick one or stop early rather than waiting for the whole
             country. A full pass over Scotland takes a couple of minutes if you let it run to the end.
           </p>
         </div>
