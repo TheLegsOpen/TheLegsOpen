@@ -7,15 +7,14 @@ import type { HoleOutcome, MatchPlayCard } from "@/lib/match-play";
 import { cn, ordinal, splitSurnameFirst } from "@/lib/utils";
 
 /**
- * The two players in the design system's two brand colours: the first in deep navy, the second in
- * the leaderboard's orange -- the champion row's gold at 90% over the navy page (accent/90 on
- * #06051E), which reads as a deeper amber than plain gold on white. Navy text on it, as everywhere
- * gold is a fill. Halved holes are white with the site's border.
+ * The two players in the design system's deep navy and its call-to-action blue (#2269AB, the See
+ * More button's), white on either as a fill. Both read as text on white too, so the score and the
+ * table's results are plain text in the winner's colour. Halved holes are white with the site's border.
  */
-const LEADERBOARD_ORANGE = "bg-[#E6A803]";
+const CTA_BLUE = "#2269AB";
 const PLAYER = {
-  a: { fill: "bg-primary text-primary-foreground", bar: "bg-primary" },
-  b: { fill: `${LEADERBOARD_ORANGE} text-accent-foreground`, bar: LEADERBOARD_ORANGE },
+  a: { fill: "bg-primary text-primary-foreground", bar: "bg-primary", text: "text-primary" },
+  b: { fill: `bg-[${CTA_BLUE}] text-white`, bar: `bg-[${CTA_BLUE}]`, text: `text-[${CTA_BLUE}]` },
 } as const;
 
 export interface YearRow {
@@ -64,15 +63,8 @@ export function YearByYearRows({ rows, nameA, nameB }: { rows: YearRow[]; nameA:
                     aria-controls={`match-${row.year}`}
                     className="inline-flex items-center gap-1.5 whitespace-nowrap font-bold tabular-nums"
                   >
-                    {/* A pill in the winner's colour, as the score on the card it opens. */}
-                    <span
-                      className={cn(
-                        "px-2 py-0.5",
-                        outcome === "won" ? PLAYER.a.fill : outcome === "lost" ? PLAYER.b.fill : "border border-border text-muted-foreground",
-                      )}
-                    >
-                      {row.match.result.label}
-                    </span>
+                    {/* In the winner's colour, as the score on the card it opens. */}
+                    <span className={outcome === "won" ? PLAYER.a.text : outcome === "lost" ? PLAYER.b.text : "text-muted-foreground"}>{row.match.result.label}</span>
                     <ChevronDown className={cn("h-4 w-4 text-primary transition-transform", isOpen && "rotate-180")} aria-hidden="true" />
                   </button>
                 ) : (
@@ -113,12 +105,11 @@ function MatchCard({ match, year, venue, nameA, nameB }: { match: MatchPlayCard;
           <p className="font-sans text-[13px] font-bold uppercase tracking-[1.2px] text-primary sm:text-[16px]">
             {match.decidedOn ? `On the ${ordinal(match.decidedOn)}` : "Final"}
           </p>
-          {/* On a block of the winner's colour rather than as coloured text: gold text on white is
-              too faint to read, gold behind navy text is how the site uses gold everywhere. */}
+          {/* In the winner's colour. */}
           <p
             className={cn(
-              "mt-1 px-2.5 pb-0.5 pt-1.5 font-menu text-[30px] font-bold uppercase leading-none tabular-nums sm:px-3 sm:text-[44px]",
-              outcome === "won" ? PLAYER.a.fill : outcome === "lost" ? PLAYER.b.fill : "text-muted-foreground",
+              "font-menu text-[30px] font-bold uppercase leading-none tabular-nums sm:text-[44px]",
+              outcome === "won" ? PLAYER.a.text : outcome === "lost" ? PLAYER.b.text : "text-muted-foreground",
             )}
           >
             {score}
