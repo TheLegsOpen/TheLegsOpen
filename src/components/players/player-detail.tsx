@@ -30,7 +30,7 @@ import { getSiteTheme } from "@/lib/data/site-theme";
 import { formatToPar } from "@/lib/leaderboard";
 import type { Article } from "@/types/article";
 import type { PlayerGalleryPhoto } from "@/types/player";
-import { cn, portraitUrl } from "@/lib/utils";
+import { cn, cutoutUrl, portraitUrl } from "@/lib/utils";
 
 /** theopen.com's section__title: 14px Cardinal Photo, bold, uppercase over 1.6px, in #43524E. */
 const SECTION_TITLE = "mb-5 font-menu text-[14px] font-bold uppercase leading-[16px] tracking-[1.6px] text-[#43524E]";
@@ -295,14 +295,21 @@ export async function PlayerDetail({ slug }: { slug: string }) {
           (photo, then a two-column stat grid) that ran to 800px before the name appeared. ---- */}
       <section className="relative w-full overflow-hidden bg-primary text-primary-foreground lg:hidden">
         <div className="relative h-[360px] sm:h-[440px]">
-          {/* No jug here, unlike theirs: our portraits are cut-outs on black blended into the navy,
-              so anything placed behind one shows through the shirt like a watermark. */}
+          {/* The jug behind a champion, as theirs is: large, rising behind his shoulder on the
+              right. It needs the transparent cut-out (/api/cutout) in front of it -- the black-backed
+              portrait's screen blend let the jug show through the shirt like a watermark, which is
+              why this was left out before. */}
+          {winYears.length > 0 && theme.championTrophyGraphicUrl ? (
+            <div className="pointer-events-none absolute right-[-6%] top-4 h-[300px] w-[62%] sm:right-[2%] sm:h-[380px] sm:w-[46%]" aria-hidden="true">
+              <PlaceholderArt label="" imageUrl={theme.championTrophyGraphicUrl} tone="navy" blendBlack fill fit="contain-bottom" sizes="(min-width: 640px) 46vw, 62vw" />
+            </div>
+          ) : null}
           <div className="pointer-events-none absolute bottom-0 left-[16%] right-[-16%] top-2 sm:left-[26%] sm:right-[-4%]">
             <PlaceholderArt
               label={`${player.name} portrait`}
-              imageUrl={portraitUrl(player.photoUrl)}
+              imageUrl={cutoutUrl(player.photoUrl)}
               tone="slate"
-              blendBlack
+              className="bg-transparent"
               fill
               fit="contain-bottom"
               sizes="(min-width: 640px) 72vw, 86vw"
