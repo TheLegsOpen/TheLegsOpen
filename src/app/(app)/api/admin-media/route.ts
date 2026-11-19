@@ -74,6 +74,12 @@ const mb = (bytes: number) => `${(bytes / 1048576).toFixed(2)} MB`;
  * A populated upload is unmistakable -- it carries both a filename and a mimeType -- so this
  * walks every value of every document and every global and looks for exactly that shape, rather
  * than guessing from field names. New fields are therefore covered automatically.
+ *
+ * A file can also be pointed at by its address rather than its id: the video-link fields on
+ * Championships and Venues take "/api/media/file/clip.mp4", and any text box can hold a pasted
+ * image link. Those are plain strings, invisible to the shape check, so every string is also
+ * searched for the candidates' addresses -- as /api/media/file/<name> or a Blob URL, with the name
+ * either raw or URL-encoded.
  */
 async function findReferences(
   payload: Awaited<ReturnType<typeof getPayload>>,
@@ -86,7 +92,20 @@ async function findReferences(
     if (!hits.get(id)!.includes(where)) hits.get(id)!.push(where);
   };
 
+  const candidates = await payload.find({ collection: "media", where: { id: { in: [...ids] } }, limit: ids.size, depth: 0, pagination: false });
+  const names = candidates.docs.flatMap((doc) =>
+    typeof doc.filename === "string" ? [...new Set([doc.filename, encodeURIComponent(doc.filename)])].map((name) => ({ id: Number(doc.id), name })) : [],
+  );
+  const matchAddress = (text: string, where: string) => {
+    if (!text.includes("/api/media/file/") && !text.includes("blob.vercel-storage.com/")) return;
+    for (const { id, name } of names) if (text.includes(`/${name}`)) note(id, where);
+  };
+
   const walk = (node: unknown, where: string, seen = new Set<unknown>()) => {
+    if (typeof node === "string") {
+      matchAddress(node, where);
+      return;
+    }
     if (!node || typeof node !== "object" || seen.has(node)) return;
     seen.add(node);
     if (Array.isArray(node)) {
