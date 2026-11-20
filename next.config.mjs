@@ -32,6 +32,13 @@ const nextConfig = {
         destination: "https://thelegsopen.com/:path*",
         permanent: true,
       },
+      // Alistair Campbell's name was misspelt "Alastair" until November 2026, and player addresses
+      // are built from the name, so links to the old spelling are sent on to the new one.
+      {
+        source: "/players/alastair-campbell",
+        destination: "/players/alistair-campbell",
+        permanent: true,
+      },
     ];
   },
   // Lets the on-course scoring app be tested over the LAN (phone/laptop on the same WiFi hitting

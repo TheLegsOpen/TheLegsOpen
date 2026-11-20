@@ -5,11 +5,11 @@ nobody in the field could break par.
 ## In front at the turn
 
 Clee went out in the last group with Gary Simpson and Jamie Bain, and set the tone early. By the
-fifth he was two clear, the biggest lead anyone held all day, and by the turn he was out in front on his own. Alastair Campbell went past him at the tenth and three of them were level with four to play, but steady, unspectacular golf, the kind that wins championships, carried him home, and he signed for a nett 74, four over Lanark's par, to hold on.
+fifth he was two clear, the biggest lead anyone held all day, and by the turn he was out in front on his own. Alistair Campbell went past him at the tenth and three of them were level with four to play, but steady, unspectacular golf, the kind that wins championships, carried him home, and he signed for a nett 74, four over Lanark's par, to hold on.
 
 ## Hamilton's double
 
-Robert Hamilton, in the first group out with the 2013 champion Alastair Campbell and Davie
+Robert Hamilton, in the first group out with the 2013 champion Alistair Campbell and Davie
 Clelland, pushed hardest of the chasers. His nett 76 earned him a share of second in the Main, and
 it was a big afternoon for him regardless of the placing. He also took both the Stableford and the
 Scratch, a rare double that gave a tight championship another twist.
@@ -20,6 +20,6 @@ Lanark gave nothing away from start to finish, and several players found it unfo
 pick up rather than grind out the worst of the holes. Simply getting round with a card intact was
 no small achievement this year.
 
-Clee's name now sits on a roll of honour that already includes Alastair Campbell, who won the
+Clee's name now sits on a roll of honour that already includes Alistair Campbell, who won the
 first Legs Open in a playoff in 2013, and John Pow in 2014.
 `;

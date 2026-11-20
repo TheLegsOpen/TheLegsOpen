@@ -151,23 +151,23 @@ describe("2013 replay (real production data through the real production hook)", 
     await expect(runFullReplay()).resolves.toBeDefined();
   });
 
-  it("confirms the real 2013 result: Alastair Campbell wins Main via playoff over Bobby Ferguson", async () => {
+  it("confirms the real 2013 result: Alistair Campbell wins Main via playoff over Bobby Ferguson", async () => {
     const { payload } = await runFullReplay();
     const posts = payload.liveBlogPosts() as unknown as LiveBlogPost[];
 
     const playoff = posts.find((p) => p.category === "playoff");
     expect(playoff?.body).toContain("Bobby Ferguson");
-    expect(playoff?.body).toContain("Alastair Campbell");
+    expect(playoff?.body).toContain("Alistair Campbell");
 
     const mainWinner = posts.find((p) => p.category === "winner-confirmed" && p.competition === "main");
-    expect(mainWinner?.body).toContain("Alastair Campbell");
+    expect(mainWinner?.body).toContain("Alistair Campbell");
     expect(mainWinner?.body).toContain("Beat Bobby Ferguson on countback");
 
     const stablefordWinner = posts.find((p) => p.category === "winner-confirmed" && p.competition === "stableford");
     expect(stablefordWinner?.body).toContain("Bobby Ferguson");
 
     const scratchWinner = posts.find((p) => p.category === "winner-confirmed" && p.competition === "scratch");
-    expect(scratchWinner?.body).toContain("Alastair Campbell");
+    expect(scratchWinner?.body).toContain("Alistair Campbell");
 
     // The playoff announcement must precede its own result, not follow it.
     expect(playoff && mainWinner && posts.indexOf(playoff) < posts.indexOf(mainWinner)).toBe(true);

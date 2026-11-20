@@ -65,7 +65,7 @@ export async function getLargestMarginRecord(req: PayloadRequest, currentChampio
  *
  * Unlike the margin record above, a playoff year counts here. That distinction was missed and it
  * published a false claim: in 2019 the blog told everyone Bryan Forbes's -1 was the lowest winning
- * total in championship history, when Alastair Campbell had won at -4 in 2013. Campbell was
+ * total in championship history, when Alistair Campbell had won at -4 in 2013. Campbell was
  * invisible to this lookup because he won on countback, so the raw leaderboard has him tied for
  * first and the outright-winner filter borrowed from getLargestMarginRecord skipped his year
  * entirely. A tiebreak has no stroke margin to compare, which is why that filter is right there --

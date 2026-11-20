@@ -11,7 +11,7 @@ import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { ChampionshipWinner } from "@/types/championship";
 import type { PlayoffResult } from "@/lib/data/playoffs";
 
-/** "Alastair Campbell (-2) beat Bobby Ferguson (E)" -- the deciding tiebreak step's own scores for the winner and the best-placed non-winner, reusing the exact same countback resolution the live leaderboard shows during play. Undefined if the title genuinely ended up shared (every tiebreak step exhausted, still level). */
+/** "Alistair Campbell (-2) beat Bobby Ferguson (E)" -- the deciding tiebreak step's own scores for the winner and the best-placed non-winner, reusing the exact same countback resolution the live leaderboard shows during play. Undefined if the title genuinely ended up shared (every tiebreak step exhausted, still level). */
 function formatPlayoffResult(result: PlayoffResult): string | undefined {
   if (!result.winner || result.steps.length === 0) return undefined;
   const decidingStep = result.steps[result.steps.length - 1];
@@ -59,7 +59,7 @@ export interface YearVenueEntry {
 }
 
 export interface PlayoffRecordEntry extends YearVenueEntry {
-  /** e.g. "Alastair Campbell (-2) beat Bobby Ferguson (E)" -- undefined if the title ended up genuinely shared. */
+  /** e.g. "Alistair Campbell (-2) beat Bobby Ferguson (E)" -- undefined if the title ended up genuinely shared. */
   result?: string;
 }
 

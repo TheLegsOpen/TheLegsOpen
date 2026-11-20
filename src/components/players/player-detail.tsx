@@ -108,7 +108,7 @@ export async function PlayerDetail({ slug }: { slug: string }) {
   // ranked below everyone who finished, but a position all the same -- and in a small field that
   // can look better than a real finish from another year. Iain MacLeod read "T6 - 2016" off a
   // round he picked up in, ahead of the 8th he actually played to in 2013. A withdrawal is treated
-  // the same way: Alastair Campbell's 2016 is not a result either.
+  // the same way: Alistair Campbell's 2016 is not a result either.
   const completed = results.filter((r) => !r.main.noReturn && !r.main.withdrawn);
   const bestPosition = completed.length > 0 ? Math.min(...completed.map((r) => r.position)) : undefined;
   const bestFinishYears = completed.filter((r) => r.position === bestPosition).sort((a, b) => a.year - b.year);

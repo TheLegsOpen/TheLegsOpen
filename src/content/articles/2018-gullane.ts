@@ -32,7 +32,7 @@ golf coped with the downpour. The paperwork did not.
 
 Stephen Magowan coped better than most, at least to begin with. Off twelve, he made three
 at the second, a birdie that with his stroke was a nett eagle, and was two under after two.
-Nett pars took him to the sixth at three under. Only three rounds had gone lower, all at Carnwath in 2013: Alastair Campbell got to five under, and David Clee and Bobby Ferguson to four under. Magowan had reached three under once before, at Dalmahoy a year earlier, and he and Clee are the only men to have got there twice.
+Nett pars took him to the sixth at three under. Only three rounds had gone lower, all at Carnwath in 2013: Alistair Campbell got to five under, and David Clee and Bobby Ferguson to four under. Magowan had reached three under once before, at Dalmahoy a year earlier, and he and Clee are the only men to have got there twice.
 
 It did not last. A six at the seventh cost him two, the eighth cost another, and he turned
 at level. A seven at the thirteenth ended the charge for good. He signed for 87, nett 75,

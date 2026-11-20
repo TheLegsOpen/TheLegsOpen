@@ -167,7 +167,7 @@ describe("the two competitions count back on different holes", () => {
   const EADIE = player("eadie", "Neal Eadie");
   const SINTON = player("sinton", "Tom Sinton");
   const FERGUSON = player("ferguson", "Bobby Ferguson");
-  const CAMPBELL = player("campbell", "Alastair Campbell");
+  const CAMPBELL = player("campbell", "Alistair Campbell");
 
   /** Stableford holes carry the points themselves; Main holes carry strokes against par. */
   function withHoles(p: Player, per: number[], stableford: boolean): CompetitionEntry {

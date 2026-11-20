@@ -65,7 +65,7 @@ Five players picked up: Watters, Lewis, Iain MacLeod, Stanton and Stephen Magowa
 field of eleven, in that wind, that says less about the golfers than about a course that
 had long since stopped being playable in any ordinary sense.
 
-Alastair Campbell's afternoon ended differently, and deserves to be recorded as such. The
+Alistair Campbell's afternoon ended differently, and deserves to be recorded as such. The
 man who won the inaugural championship in 2013 opened with a nine, played the 132-yard
 fourth and withdrew injured after two holes. He did not choose to stop. He could not go on.
 

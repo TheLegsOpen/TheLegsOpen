@@ -101,7 +101,7 @@ Some of that is Dalmahoy being a different golf course, 6,956 yards with a par o
 that nobody was fighting to stay on their feet.
 
 The scoring bears that out. Howieson's 79 was only the second round under 80 in the five
-championships on record, with Alastair Campbell's 75 at Carnwath in 2013 still the best of them, and
+championships on record, with Alistair Campbell's 75 at Carnwath in 2013 still the best of them, and
 his inward 39 was the only half under 40 all day. Ten men completed eighteen holes, where a year
 earlier only five had.
 

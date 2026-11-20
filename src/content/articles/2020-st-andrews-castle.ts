@@ -22,7 +22,7 @@ Stephen Magowan was second on nett 75, seven behind, and Colum Watters third on 
 ## Seven cards that never came back
 
 Sixteen started and nine finished. Owen Watters, Colin Howieson, Andrew Spiers, Barry Thomas,
-Jim Yuille, Danny Gardiner and Alastair Campbell all failed to return a card, Gardiner having
+Jim Yuille, Danny Gardiner and Alistair Campbell all failed to return a card, Gardiner having
 withdrawn.
 
 That is a heavy toll. At Gullane two years earlier a downpour destroyed the cards themselves.

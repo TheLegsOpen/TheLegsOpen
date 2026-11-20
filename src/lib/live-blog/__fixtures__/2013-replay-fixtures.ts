@@ -60,7 +60,7 @@ export const PLAYER_SEEDS: PlayerSeed[] = [
   { id: "21", name: "Mark Alston", handicap: 24, country: "Scotland", countryCode: "SCO" },
   { id: "32", name: "David Pow", handicap: 20, country: "Scotland", countryCode: "SCO" },
   { id: "29", name: "Iain MacLeod", handicap: 20, country: "Scotland", countryCode: "SCO" },
-  { id: "23", name: "Alastair Campbell", handicap: 10, country: "Scotland", countryCode: "SCO" },
+  { id: "23", name: "Alistair Campbell", handicap: 10, country: "Scotland", countryCode: "SCO" },
 ];
 
 export const PLAYERS: Player[] = PLAYER_SEEDS.map((p) => ({
@@ -90,7 +90,7 @@ export const CHAMPIONSHIP: Championship = {
   createdAt: timestamp,
 };
 
-/** Real tee-off order -- Group 4 (David Pow, Iain MacLeod, Alastair Campbell) really was last out, matching the actual "last group out" post from the live replay. */
+/** Real tee-off order -- Group 4 (David Pow, Iain MacLeod, Alistair Campbell) really was last out, matching the actual "last group out" post from the live replay. */
 export const GROUPS: { time: string; playerIds: string[] }[] = [
   { time: "09.00", playerIds: ["26", "24"] },
   { time: "09.10", playerIds: ["27", "28", "25"] },

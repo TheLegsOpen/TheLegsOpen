@@ -41,7 +41,7 @@ Bobby Ferguson's 86 was good enough for third, and Robert Hamilton's early promi
 on 89. Alston recovered from his early wobble to finish fifth on nett 93, ahead of Jim Yuille,
 Scott Ingram, John Taylor, David Pow and Iain MacLeod, completing a field of ten.
 
-Pow succeeds Alastair Campbell, who needed a playoff to win the inaugural title twelve months
+Pow succeeds Alistair Campbell, who needed a playoff to win the inaugural title twelve months
 earlier. If the first two Legs Opens have taught anyone anything, it is that nothing is decided
 until the last card is signed.
 `;

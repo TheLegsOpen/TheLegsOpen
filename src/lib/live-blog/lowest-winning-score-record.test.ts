@@ -31,13 +31,13 @@ beforeEach(() => boards.clear());
 describe("getLowestWinningScoreRecord", () => {
   /**
    * 2019 published "Bryan Forbes wins on -1 -- the lowest winning total in championship history",
-   * naming 2018's +2 as the previous record. Alastair Campbell had won at -4 in 2013, on
+   * naming 2018's +2 as the previous record. Alistair Campbell had won at -4 in 2013, on
    * countback, which leaves him tied for first on the raw leaderboard -- and the outright-winner
    * filter borrowed from the margin record skipped his year entirely. The margin record is right
    * to skip a tiebreak, which has no stroke margin to compare. This one has a score.
    */
   it("counts a year whose title was decided on countback", async () => {
-    const campbell = player("campbell", "Alastair Campbell");
+    const campbell = player("campbell", "Alistair Campbell");
     boards.set("2013", [
       entry(campbell, { toPar: -4, tied: true, holes: [] }),
       entry(player("clee", "David Clee"), { toPar: -4, tied: true }),

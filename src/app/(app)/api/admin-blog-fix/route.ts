@@ -39,12 +39,12 @@ const CORRECTIONS: Correction[] = [
     postId: "3709",
     reason:
       "Published during the 2019 rerun. Claimed Forbes's -1 was the lowest winning total in " +
-      "championship history and named 2018's +2 as the previous best. Alastair Campbell won at " +
+      "championship history and named 2018's +2 as the previous best. Alistair Campbell won at " +
       "-4 at Carnwath in 2013 -- invisible to the record lookup because he won on countback, " +
       "which shows as a tie for first. The lookup is fixed; this repairs what it published.",
     headline: "Lowest winning score since 2013",
     body:
-      "Bryan Forbes wins on -1 — the lowest winning total since Alastair Campbell's -4 at " +
+      "Bryan Forbes wins on -1 — the lowest winning total since Alistair Campbell's -4 at " +
       "Carnwath in 2013, and only the second time the championship has been won under par.",
   },
 ];

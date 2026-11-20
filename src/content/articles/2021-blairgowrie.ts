@@ -51,7 +51,7 @@ that figure, the pair tied for third. Stevie Anderson was fifth on 74.
 Robert Hamilton, off six, went out in 38, the best front nine of the championship by three
 shots. He came back in 44 and finished tied sixth on nett 76. Had he come home in Ward's 37, he would have won by one.
 
-Alastair Campbell, the 2013 champion, was also tied sixth on nett 76, with the second-best inward half of
+Alistair Campbell, the 2013 champion, was also tied sixth on nett 76, with the second-best inward half of
 the day, a 40.
 
 ## A field that mostly got round
