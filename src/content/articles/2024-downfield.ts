@@ -67,7 +67,7 @@ averaged 90.2, or 18.2 over par.
 
 ## A first title
 
-It was Duncan's first Legs Open after a run of near misses: second at Ladybank in 2019, fourth at
+It was Duncan's first Legs Open title after a run of near misses: second at Ladybank in 2019, fourth at
 the Castle Course in 2020 and a share of second at Loch Lomond in 2022.
 
 He would not have to wait nearly as long for the next one.

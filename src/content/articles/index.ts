@@ -66,8 +66,8 @@ export const ARTICLE_SOURCES: ArticleSource[] = [
     // Written in the admin; brought into source on 2026-11-10 to be rewritten. Title, dek, hero
     // label and date are the live ones, copied unchanged. Pre-rewrite copy: content-backups/.
     slug: "clee-leads-from-the-turn-to-land-legs-open-crown-at-lanark",
-    title: "Clee Leads From The Turn To Land Legs Open Crown At Lanark",
-    dek: "David Clee held the outright lead from the turn at a demanding Lanark to see off Robert Hamilton by two shots — though Hamilton took home both the Stableford and Scratch titles on the same afternoon.",
+    title: "Clee holds off Hamilton at Lanark",
+    dek: "David Clee led at the turn at a demanding Lanark and saw off Robert Hamilton by two shots — though Hamilton took home both the Stableford and Scratch titles on the same afternoon.",
     category: "Championship News",
     publishedAt: "2015-09-06T12:00:00.000Z",
     heroLabel: "David Clee closes out victory at Lanark",

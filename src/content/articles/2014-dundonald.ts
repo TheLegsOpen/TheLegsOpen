@@ -15,20 +15,16 @@ bogeys, and by the turn the field was averaging eleven over. Dundonald was not h
 out.
 
 Pow was the one who steadied things. Back-to-back birdies at the third and fourth put him in
-front in both the Main and the Stableford, but the course had an answer for every move. Bogeys
-at the sixth and seventh let Robert Hamilton draw level, and the lead changed hands almost hole by
-hole from there: Pow, then Pow and Hamilton together, then Hamilton alone at the turn, with Pow a
-shot back and Clelland lurking three behind.
+front in both the Main and the Stableford, but the course had an answer for every move. Bogeys at the sixth and seventh gave two of those shots back, but he was still two clear of Robert Hamilton and Clelland through seven, and turned a shot ahead of both.
 
 ## Hamilton's twelfth, and a two-man fight
 
-Pow and Hamilton were still tied through ten, with Clelland a shot further back. Then Hamilton's
+Hamilton drew level at the tenth, with Clelland a shot further back. Then Hamilton's
 challenge came apart at the twelfth, a hole that took him from three over to six over at a stroke
 and out of contention for good.
 
 That left Pow and Clelland, level at three over through fourteen and trading blows down the
-stretch. Pow reached the closing holes in front and pulled clear to lead by four through sixteen.
-Clelland birdied the seventeenth to cut it to three, but it was not quite enough. Pow came home in
+stretch. Pow went two clear at the fifteenth and stayed there. Clelland birdied the seventeenth, but so did Pow, and the gap was still two at the finish. Pow came home in
 nett 74, two over for the day, and was crowned champion for the first time, aged 58.
 
 ## Clelland's consolation double

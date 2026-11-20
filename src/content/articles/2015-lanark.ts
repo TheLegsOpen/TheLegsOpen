@@ -2,12 +2,10 @@ export const markdown = `
 David Clee won the 2015 Legs Open at Lanark by two shots from Robert Hamilton, on a day when
 nobody in the field could break par.
 
-## Out in front from the turn
+## In front at the turn
 
 Clee went out in the last group with Gary Simpson and Jamie Bain, and set the tone early. By the
-fifth he was two clear, the biggest lead anyone held all day, and by the turn he was out in front
-on his own. From there it was steady, unspectacular golf, the kind that wins championships, and
-he signed for a nett 74, four over Lanark's par, to hold on.
+fifth he was two clear, the biggest lead anyone held all day, and by the turn he was out in front on his own. Alastair Campbell went past him at the tenth and three of them were level with four to play, but steady, unspectacular golf, the kind that wins championships, carried him home, and he signed for a nett 74, four over Lanark's par, to hold on.
 
 ## Hamilton's double
 

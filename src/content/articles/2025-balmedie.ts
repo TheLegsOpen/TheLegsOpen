@@ -29,7 +29,7 @@ sixes at the first, ninth and tenth, but also threes at the sixth, seventh and s
 three of the precious few birdies the course gave up all day. Colin Hart and John Taylor shared
 third on 32.
 
-Andrew Oliphant was third in the Main on nett 78 and second in the Scratch with an 80, and his
+Andrew Oliphant was tied third in the Main with John Taylor on nett 78 and second in the Scratch with an 80, and his
 inward 37 was the second-best back nine of the day.
 
 ## Fifteen cards that never came back
