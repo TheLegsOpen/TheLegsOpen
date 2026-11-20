@@ -48,20 +48,44 @@ function ageInYears(dobIso: string, asOfIso: string): number {
   return age;
 }
 
-/** Cumulative to-par after each hole, for every player who completed all 18 with a valid round -- the real basis for front-9/lead facts. A no-return player can still show thru "F" (all 18 hole slots filled in, some as NR) despite being disqualified, so that alone isn't enough. */
-function runningTotalsByPlayer(entries: CompetitionEntry[]): Map<string, number[]> {
+/**
+ * Cumulative to-par after each hole a player actually completed, for everyone on the course --
+ * the basis for the front-9 facts. A player who went on to return no card still counts for the
+ * holes before his pickup: a man level with the champion at the turn was level at the turn,
+ * whatever happened to him afterwards. Leaving no-returns out entirely is what put Bryan Forbes
+ * on the "led outright after 9" list for 2019, when Stephen Magowan (no card) was level with him.
+ * The running total stops at the first hole picked up or not yet played, so it never shows a
+ * score the player didn't have.
+ */
+export function runningTotalsByPlayer(entries: CompetitionEntry[]): Map<string, number[]> {
   const map = new Map<string, number[]>();
   for (const entry of entries) {
-    if (entry.thru !== "F" || entry.noReturn) continue;
     let running = 0;
     const cumulative: number[] = [];
     for (const hole of entry.holes) {
+      if (hole.noReturn || hole.value === undefined) break;
       running += hole.relative;
       cumulative.push(running);
     }
-    map.set(entry.player.id, cumulative);
+    if (cumulative.length > 0) map.set(entry.player.id, cumulative);
   }
   return map;
+}
+
+/**
+ * Where the champion stood after nine holes: leading outright, or how many shots behind the leader.
+ * Level at the top is neither -- it isn't an outright lead (Lloyd Swan and Tom Sinton were level
+ * at the turn in 2022) and it isn't a deficit, so both come back empty.
+ */
+export function championAfterNine(
+  cumulativeByPlayer: Map<string, number[]>,
+  championId: string,
+): { ledOutright: boolean; deficit?: number } {
+  const after9 = leadAtHole(cumulativeByPlayer, 8);
+  const championNine = cumulativeByPlayer.get(championId)?.[8];
+  if (!after9 || championNine === undefined) return { ledOutright: false };
+  if (after9.leaderId === championId && after9.lead > 0) return { ledOutright: true };
+  return { ledOutright: false, deficit: championNine - after9.leaderValue };
 }
 
 function leadAtHole(
@@ -181,20 +205,9 @@ export async function computeChampionshipAutoStats(payload: Payload, championshi
     stats.scratchWinnerCountry = scratchResult.winner.country;
   }
 
-  const cumulative = runningTotalsByPlayer(main);
-  const after9 = leadAtHole(cumulative, 8);
-  const winnerCumulative = cumulative.get(winner.id);
-  if (after9 && winnerCumulative) {
-    if (after9.leaderId === winner.id) {
-      stats.ledOutrightAfter9 = true;
-    } else {
-      // Deficit is the champion's own gap to whoever actually led at 9, not the 1st-vs-2nd
-      // gap (after9.lead) -- those only coincide when the champion happened to be sitting in
-      // outright 2nd. When the champion was 3rd or worse, or 1st/2nd were tied for the lead,
-      // using after9.lead as a stand-in silently produced the wrong number (or zero).
-      stats.deficitAfter9 = winnerCumulative[8] - after9.leaderValue;
-    }
-  }
+  const afterNine = championAfterNine(runningTotalsByPlayer(main), winner.id);
+  if (afterNine.ledOutright) stats.ledOutrightAfter9 = true;
+  else if (afterNine.deficit !== undefined) stats.deficitAfter9 = afterNine.deficit;
 
   // Measured on the clock, not hole-for-hole -- see largestLeadOnTheClock for why this one record
   // differs from the two after-nine records above.

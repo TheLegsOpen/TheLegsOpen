@@ -22,7 +22,7 @@ there were no eagles.
 ## Hamilton takes the Stableford
 
 Robert Hamilton was second in the Main on nett 74 from a gross 83, and with Duncan taken out of
-the points by the society's rule, the Stableford went to Hamilton on 34.
+the points by the championship's rule, the Stableford went to Hamilton on 34.
 
 His card swung around a good deal more than the champion's. There was a seven at the fourth and
 sixes at the first, ninth and tenth, but also threes at the sixth, seventh and seventeenth,
@@ -63,5 +63,5 @@ Duncan birdied the fifteenth. Most of the field were just glad to get off it at 
 Level par nett, level par on the back nine, the best round of the day, and the Scratch alongside
 the Main.
 
-Thirteen championships, and only the second successful defence in the society's history.
+Thirteen championships, and only the second successful defence in the championship's history.
 `;

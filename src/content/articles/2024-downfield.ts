@@ -51,7 +51,7 @@ for the Main and the Scratch, both of which need a gross total. The Stableford n
 thing, because it only scores the holes a player completes, and his seventeen holes of points
 were worth more than anyone else's eighteen.
 
-The margin is worth spelling out, because it had nothing to do with the society's rule. Duncan
+The margin is worth spelling out, because it had nothing to do with the championship's rule. Duncan
 had the most points among the completed cards, 36, and the Main champion is taken out of the
 Stableford as a matter of course. But McAlpine beat him by a point regardless. Stuart Hamilton and
 Fraser Donaldson were next on 35, and Oliphant on 34.

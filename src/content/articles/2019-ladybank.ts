@@ -57,7 +57,7 @@ other holes to play less than a shot over.
 ## Duncan takes the Stableford
 
 Forbes had the most Stableford points too, 38, which on the scoring alone would have given
-him a third title in one afternoon. The society's rule settled it as it always does: the
+him a third title in one afternoon. The championship's rule settled it as it always does: the
 Main champion does not also take the Stableford.
 
 So the Stableford went to Andrew Duncan on 35, and he had earned it on his own terms. He was

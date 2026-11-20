@@ -33,7 +33,7 @@ Clelland's finish said plenty. That birdie at the seventeenth helped him to a gr
 round of the day, beating the target Pow had set earlier in the clubhouse, and with it came both
 the Scratch and the Stableford titles.
 
-Pow had the better Stableford card, 34 points to Clelland's 32, but under the society's rule the
+Pow had the better Stableford card, 34 points to Clelland's 32, but under the championship's rule the
 Main champion cannot take the other trophies as well. So the runner-up's spoils went to the man
 who beat the course, if not the field.
 

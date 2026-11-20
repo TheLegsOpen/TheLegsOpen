@@ -35,7 +35,7 @@ const MAIN_TIEBREAK_STEPS: TiebreakStep[] = [
 ];
 
 /**
- * The Stableford settles its ties on the inward half, as the society does in practice -- holes
+ * The Stableford settles its ties on the inward half, as the championship does in practice -- holes
  * 1, 2, 17 & 18 are not part of its ladder at all.
  *
  * 2022 at Loch Lomond is the case that established it. Lloyd Swan's 36 points topped the

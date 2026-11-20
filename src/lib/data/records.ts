@@ -7,6 +7,7 @@ import { getCompetitionLeaderboardForChampionshipId, getAllScorecardParticipatio
 import { clockLabel, largestLeadOnTheClock, type LeadOnTheClock } from "@/lib/data/round-timeline";
 import { getEligibleStablefordChampion, getPlayoffs } from "@/lib/data/playoffs";
 import { playerSlug } from "@/lib/utils";
+import { championAfterNine, runningTotalsByPlayer } from "@/lib/data/championship-stats";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { ChampionshipWinner } from "@/types/championship";
 import type { PlayoffResult } from "@/lib/data/playoffs";
@@ -189,34 +190,6 @@ function namesFor(entries: CompetitionEntry[], position: number): { names: strin
   };
 }
 
-/** Cumulative to-par after each hole, for every player who completed all 18 with a valid round — the real basis for front-9/lead records, computed from actual hole-by-hole scorecard data rather than hand-entered. A no-return player can still show thru "F" (all 18 hole slots filled in, some as NR) despite being disqualified, so that alone isn't enough. */
-function runningTotalsByPlayer(entries: CompetitionEntry[]): Map<string, number[]> {
-  const map = new Map<string, number[]>();
-  for (const entry of entries) {
-    if (entry.thru !== "F" || entry.noReturn) continue;
-    let running = 0;
-    const cumulative: number[] = [];
-    for (const hole of entry.holes) {
-      running += hole.relative;
-      cumulative.push(running);
-    }
-    map.set(entry.player.id, cumulative);
-  }
-  return map;
-}
-
-function leadAtHole(
-  cumulativeByPlayer: Map<string, number[]>,
-  holeIndex: number,
-): { leaderId: string; leaderValue: number; lead: number } | undefined {
-  const values = Array.from(cumulativeByPlayer.entries())
-    .map(([id, cumulative]) => ({ id, value: cumulative[holeIndex] }))
-    .filter((v): v is { id: string; value: number } => v.value !== undefined)
-    .sort((a, b) => a.value - b.value);
-  if (values.length < 2) return undefined;
-  return { leaderId: values[0].id, leaderValue: values[0].value, lead: values[1].value - values[0].value };
-}
-
 /** Precise calendar age (years/months/days) as of a given date, plus a totalDays figure for exact tie-breaking between two ages that round to the same number of years. */
 function ageAt(dobIso: string, atIso: string): AgeBreakdown {
   const dob = new Date(dobIso);
@@ -297,8 +270,6 @@ export async function computeAutoFacts(championship: ChampionshipWinner): Promis
     ? { names: scratchWinnerEntry?.player.name ?? "", country: scratchWinnerEntry?.player.country }
     : namesFor(scratch, 1);
 
-  const cumulative = runningTotalsByPlayer(main);
-
   // Largest lead is the one record here that asks what the leaderboard showed rather than how two
   // rounds compare, so it's measured on the clock -- see largestLeadOnTheClock. The two after-nine
   // records below stay hole-for-hole, deliberately: they ask about the rounds.
@@ -337,20 +308,9 @@ export async function computeAutoFacts(championship: ChampionshipWinner): Promis
   let deficitAfter9: number | undefined;
   const championEntry = main.find((e) => e.player.name === championship.winnerName);
   if (championEntry) {
-    const after9 = leadAtHole(cumulative, 8);
-    const championId = championEntry.player.id;
-    const championCumulative = cumulative.get(championId);
-    if (after9 && championCumulative) {
-      if (after9.leaderId === championId) {
-        ledOutrightAfter9 = true;
-      } else {
-        // Deficit is the champion's own gap to whoever actually led at 9, not the 1st-vs-2nd
-        // gap (after9.lead) -- those only coincide when the champion happened to be sitting in
-        // outright 2nd. When the champion was 3rd or worse, or 1st/2nd were tied for the lead,
-        // using after9.lead as a stand-in silently produced the wrong number (or zero).
-        deficitAfter9 = championCumulative[8] - after9.leaderValue;
-      }
-    }
+    const afterNine = championAfterNine(runningTotalsByPlayer(main), championEntry.player.id);
+    ledOutrightAfter9 = afterNine.ledOutright;
+    deficitAfter9 = afterNine.deficit;
   }
 
   return {

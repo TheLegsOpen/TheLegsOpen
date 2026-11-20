@@ -155,7 +155,7 @@ describe("hasBeenPlayedWhere", () => {
 
 describe("the live-scoring window", () => {
   // 2027 is the next championship: Castle Stuart, Saturday 11 September. The practice round is
-  // always the day before, so the window the society actually wants is the 10th, 11th and 12th.
+  // always the day before, so the window the championship actually wants is the 10th, 11th and 12th.
   const CHAMPIONSHIP = { year: 2027, date: "2027-09-11T12:00:00.000Z" };
 
   /** What a Payload find() with inPlayWhere() would match, evaluated in JS. */

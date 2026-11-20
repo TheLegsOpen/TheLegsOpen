@@ -44,7 +44,7 @@ It was Magowan's second podium in three years and his first Scratch title. Forbe
 defending champion, was out in 41, the best front nine of the day, but could not keep it
 going and finished fifth in the Main on nett 80.
 
-Magowan took the Stableford as well. Park had the most points, 39, but the society's rule
+Magowan took the Stableford as well. Park had the most points, 39, but the championship's rule
 keeps the Main champion out of that competition, which left Magowan and Colum Watters tied on
 33, and the title went to Magowan.
 

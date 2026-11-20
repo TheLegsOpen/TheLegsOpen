@@ -45,7 +45,7 @@ and Andrew Duncan. Nobody made three, and four players took nine or worse.
 ## Connelly takes the Stableford
 
 Stevie Connelly was second in the Main on nett 77, one clear of the chasing pack, and his Stableford
-return was the best of the day behind Leisegang's 33. The society's long-standing rule settled it: the
+return was the best of the day behind Leisegang's 33. The championship's long-standing rule settled it: the
 Main champion does not also take the Stableford. So it went to Connelly on 31 points, and on merit
 rather than by default. He was the only player besides the champion to get past 30 on a day when the
 course gave up almost nothing.
