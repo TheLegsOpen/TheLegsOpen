@@ -156,7 +156,7 @@ const SAMPLE_ARGS: Record<string, unknown[][]> = {
   ],
   winnerConfirmedCommentary: [
     ["Test Player", "Main", "-2"],
-    ["Test Player", "Main", "-2", "Beat Runner Up on countback, -2 to E."],
+    ["Test Player", "Main", "-2", "Beat Runner Up in the playoff, -2 to E."],
   ],
   clubhouseLeaderCommentary: [["Test Player", -2]],
   bestGrossRoundCommentary: [["Test Player", 5]],

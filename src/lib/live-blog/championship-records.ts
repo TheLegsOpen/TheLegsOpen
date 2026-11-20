@@ -2,6 +2,7 @@ import type { PayloadRequest } from "payload";
 
 import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecards";
 import { resolveCompetitionWinner } from "@/lib/data/championship-stats";
+import { largestLeadOnTheClock } from "@/lib/data/round-timeline";
 
 /**
  * These three mirror the exact same figures the /records page shows ("Largest margin of victory",
@@ -95,34 +96,22 @@ export async function getLowestWinningScoreRecord(req: PayloadRequest, currentCh
 
 /** Largest lead held by ANY player, at ANY point in a round, ever recorded, from any prior
  * championship -- unlike the two records above (only knowable once a championship concludes),
- * this can be compared against a live in-progress lead at any time. */
+ * this can be compared against a live in-progress lead at any time.
+ *
+ * Measured on the clock, exactly as the Records page's "Largest lead by any player" is, because
+ * the live lead it is compared against is the leaderboard as it stands, not a hole-for-hole
+ * comparison. This used to rebuild the record hole for hole from finished cards only, which is
+ * how the 2016 post credited the previous record to John Pow in 2014 (it was David Clee's 4 at
+ * Lanark in 2015) and the 2020 post called Kevin Park's 5-shot lead unprecedented when it only
+ * equalled Clee's 5 at Southerness. */
 export async function getLargestLeadRecord(req: PayloadRequest, currentChampionshipId: string | number): Promise<LeadRecord | null> {
   const championships = await priorChampionships(req, currentChampionshipId);
   let best: LeadRecord | null = null;
   for (const championship of championships) {
     const entries = await getCompetitionLeaderboardForChampionshipId(championship.id, "main", req);
-    const finished = entries.filter((e) => e.thru === "F");
-    const cumulativeByPlayer = new Map<string, number[]>();
-    for (const entry of finished) {
-      let running = 0;
-      const cumulative: number[] = [];
-      for (const hole of entry.holes) {
-        running += hole.relative;
-        cumulative.push(running);
-      }
-      cumulativeByPlayer.set(entry.player.id, cumulative);
-    }
-    for (let holeIndex = 0; holeIndex < 18; holeIndex++) {
-      const values = Array.from(cumulativeByPlayer.entries())
-        .map(([id, cumulative]) => ({ id, value: cumulative[holeIndex] }))
-        .filter((v): v is { id: string; value: number } => v.value !== undefined)
-        .sort((a, b) => a.value - b.value);
-      if (values.length < 2) continue;
-      const lead = values[1].value - values[0].value;
-      if (lead > 0 && (!best || lead > best.margin)) {
-        const holder = finished.find((e) => e.player.id === values[0].id);
-        if (holder) best = { margin: lead, holderName: holder.player.name, year: championship.year };
-      }
+    const lead = largestLeadOnTheClock(entries);
+    if (lead && lead.margin > 0 && (!best || lead.margin > best.margin)) {
+      best = { margin: lead.margin, holderName: lead.holderName, year: championship.year };
     }
   }
   return best;

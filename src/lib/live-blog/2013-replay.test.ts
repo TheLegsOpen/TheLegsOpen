@@ -161,7 +161,7 @@ describe("2013 replay (real production data through the real production hook)", 
 
     const mainWinner = posts.find((p) => p.category === "winner-confirmed" && p.competition === "main");
     expect(mainWinner?.body).toContain("Alistair Campbell");
-    expect(mainWinner?.body).toContain("Beat Bobby Ferguson on countback");
+    expect(mainWinner?.body).toContain("Beat Bobby Ferguson in the playoff");
 
     const stablefordWinner = posts.find((p) => p.category === "winner-confirmed" && p.competition === "stableford");
     expect(stablefordWinner?.body).toContain("Bobby Ferguson");

@@ -297,7 +297,7 @@ export function playoffCommentary(names: string[], competitionLabel: string, sco
   const headline = pick(["Playoff!", "It's a playoff"]);
   const body = pick([
     `${joined} are locked together at ${scoreLabel} after 18 holes — the ${competitionLabel} title goes to a playoff.`,
-    `Level at the top on ${scoreLabel}. ${joined} will settle the ${competitionLabel} title on countback.`,
+    `Level at the top on ${scoreLabel}. ${joined} will settle the ${competitionLabel} title in a playoff over the 1st, 2nd, 17th and 18th.`,
   ]);
   return { headline, body };
 }
@@ -511,7 +511,7 @@ export function pressureMomentCommentary(playerName: string, margin: number, uni
   return { headline, body };
 }
 
-/** `playoffDetail`, when supplied (e.g. "beating Bobby Ferguson on countback, -2 to E"), is appended so the result post names who was beaten and how -- not just that a title was won. */
+/** `playoffDetail`, when supplied (e.g. "Beat Bobby Ferguson in the playoff, -2 to E"), is appended so the result post names who was beaten and how -- not just that a title was won. */
 export function winnerConfirmedCommentary(playerName: string, competitionLabel: string, scoreLabel: string, playoffDetail?: string): Commentary {
   const headline = pick(["Champion confirmed", `${playerName.split(" ").slice(-1)[0]} takes the title`]);
   const suffix = playoffDetail ? ` ${playoffDetail}` : "";

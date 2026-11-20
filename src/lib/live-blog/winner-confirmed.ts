@@ -13,7 +13,7 @@ function scoreLabel(competition: Competition, entry: CompetitionEntry): string {
   return competition === "stableford" ? `${entry.score ?? 0} pts` : formatToPar(entry.toPar ?? 0);
 }
 
-/** "beating Bobby Ferguson on countback (-2 to E)" -- the deciding step's own scores, matching the same detail the Records page shows for a past playoff. Undefined if there's no countback to describe (shouldn't happen when viaTiebreak is true, but resolveCompetitionWinner's steps/tiedEntries are optional). */
+/** "Beat Bobby Ferguson in the playoff, -2 to E" -- the deciding step's own scores, matching the same detail the Records page shows for a past playoff. Undefined if there's no countback to describe (shouldn't happen when viaTiebreak is true, but resolveCompetitionWinner's steps/tiedEntries are optional). */
 function playoffDetail(result: WinnerResolution, competition: Competition): string | undefined {
   if (!result.winner || !result.steps || result.steps.length === 0) return undefined;
   const decidingStep = result.steps[result.steps.length - 1];
@@ -22,7 +22,12 @@ function playoffDetail(result: WinnerResolution, competition: Competition): stri
     .filter((c) => c.player.id !== result.winner!.id)
     .sort((a, b) => (competition === "stableford" ? b.value - a.value : a.value - b.value))[0];
   if (!winnerScore || !runnerUpContender) return undefined;
-  return `Beat ${runnerUpContender.player.name} on countback, ${winnerScore} to ${runnerUpContender.display}.`;
+  // The championship calls a Main or Scratch tiebreak a playoff, never a countback. A Stableford tie
+  // is settled on the holes the deciding step names, almost always the back nine.
+  if (competition === "stableford") {
+    return `Beat ${runnerUpContender.player.name} on ${decidingStep.description.toLowerCase()}, ${winnerScore} to ${runnerUpContender.display}.`;
+  }
+  return `Beat ${runnerUpContender.player.name} in the playoff, ${winnerScore} to ${runnerUpContender.display}.`;
 }
 
 /**
