@@ -77,13 +77,19 @@ export function ResultsTab({ results }: { results: PlayerYearResult[] }) {
     let top25 = 0;
     let nrs = 0;
     for (const r of rows) {
+      // A no-return or withdrawal still takes a place on the Main leaderboard, below everyone who
+      // finished, but it isn't a finish. Counting it gave Toby Stanton a Top 10 of 4 and a Top 25
+      // of 7 when he has only three completed rounds, all inside the top ten.
+      if (r.main.noReturn || r.main.withdrawn) {
+        if (r.main.noReturn) nrs += 1;
+        continue;
+      }
       if (r.finish === "Winner") wins += 1;
       if (r.position === 2) second += 1;
       if (r.position === 3) third += 1;
       if (r.position <= 5) top5 += 1;
       if (r.position <= 10) top10 += 1;
       if (r.position <= 25) top25 += 1;
-      if (r.main.noReturn) nrs += 1;
     }
     return { wins, second, third, top5, top10, top25, nrs };
   }, [rows]);
