@@ -101,7 +101,9 @@ export default async function HeadToHeadPreview({ searchParams }: { searchParams
     if (!x || !z) return undefined;
     const xOut = x.main.noReturn || x.main.withdrawn;
     const zOut = z.main.noReturn || z.main.withdrawn;
-    if (xOut && zOut) return "level";
+    // Neither returned a card, so neither finished ahead: the year is left out of the tally rather
+    // than halved (Howieson and Thomas read ½–1½ when 2020, a no-return each, counted as shared).
+    if (xOut && zOut) return undefined;
     if (xOut) return "b";
     if (zOut) return "a";
     return x.position < z.position ? "a" : z.position < x.position ? "b" : "level";
