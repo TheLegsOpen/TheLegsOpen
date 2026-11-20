@@ -2,22 +2,25 @@ import { CountryFlag } from "@/components/shared/country-flag";
 import { cn, surnameFirst } from "@/lib/utils";
 import type { PlayoffResult } from "@/lib/data/playoffs";
 
+/** What decided it, in the championship's own words. A Main or Scratch tie goes to a playoff over
+ * holes 1, 2, 17 and 18 -- never "countback". A Stableford tie is not a playoff: it is settled on
+ * the holes the deciding step names, almost always the back nine. */
+function decidedLine(result: PlayoffResult): string {
+  if (!result.winner) return result.stillTied ? "Still level after every tiebreaker — a shared title." : "Tiebreak in progress.";
+  const decidingStep = result.steps[result.steps.length - 1];
+  if (!decidingStep) return `${result.winner.name} takes the title.`;
+  if (result.competition === "stableford") return `${result.winner.name} wins on ${decidingStep.description.toLowerCase()}.`;
+  return `${result.winner.name} wins the playoff.`;
+}
+
 function PlayoffCard({ result, onSelectPlayer }: { result: PlayoffResult; onSelectPlayer: (playerId: string) => void }) {
-  const hasSteps = result.steps.length > 0;
+  const heading = result.competition === "stableford" ? `${result.competitionLabel} Tiebreak` : `${result.competitionLabel} Playoff`;
 
   return (
     <div className="flex flex-col border border-surface-dark-foreground/15">
       <div className="bg-primary px-4 py-3">
-        <h3 className="font-display text-lg font-bold uppercase tracking-wide text-primary-foreground">{result.competitionLabel} Playoff</h3>
-        <p className="text-xs text-primary-foreground/70">
-          {result.winner
-            ? hasSteps
-              ? `${result.winner.name} wins on countback.`
-              : `${result.winner.name} takes the title.`
-            : result.stillTied
-              ? "Still level after every tiebreaker — a shared title."
-              : "Tiebreak in progress."}
-        </p>
+        <h3 className="font-display text-lg font-bold uppercase tracking-wide text-primary-foreground">{heading}</h3>
+        <p className="text-xs text-primary-foreground/70">{decidedLine(result)}</p>
       </div>
 
       {result.ineligible.length > 0 ? (
