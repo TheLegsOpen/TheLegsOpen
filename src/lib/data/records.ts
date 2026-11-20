@@ -8,6 +8,7 @@ import { clockLabel, largestLeadOnTheClock, type LeadOnTheClock } from "@/lib/da
 import { getEligibleStablefordChampion, getPlayoffs } from "@/lib/data/playoffs";
 import { playerSlug } from "@/lib/utils";
 import { championAfterNine, runningTotalsByPlayer } from "@/lib/data/championship-stats";
+import { getNettScoringCategories } from "@/lib/data/scoring-statistics";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { ChampionshipWinner } from "@/types/championship";
 import type { PlayoffResult } from "@/lib/data/playoffs";
@@ -22,6 +23,17 @@ function formatPlayoffResult(result: PlayoffResult): string | undefined {
     .sort((a, b) => (result.competition === "stableford" ? b.value - a.value : a.value - b.value))[0];
   if (!winnerContender || !runnerUpContender) return undefined;
   return `${result.winner.name} (${winnerContender.display}) beat ${runnerUpContender.player.name} (${runnerUpContender.display})`;
+}
+
+/**
+ * The five lowest, except that everyone sharing the record itself is always listed: a record
+ * held jointly by six players shows all six. Ties after the record are ordered by year.
+ */
+export function lowestWithEveryHolder(entries: ScoreEntry[], count = 5): ScoreEntry[] {
+  const sorted = [...entries].sort((a, b) => a.value - b.value || a.year - b.year || a.name.localeCompare(b.name));
+  if (sorted.length === 0) return [];
+  const holders = sorted.filter((e) => e.value === sorted[0].value).length;
+  return sorted.slice(0, Math.max(count, holders));
 }
 
 /** Below this a Venue's totalPar reflects an incomplete hole setup, not a genuine course par — see Championships.scoreToPar admin note. */
@@ -153,6 +165,8 @@ export interface RecordsData {
   largestLeadByAnyPlayer: LargestLeadEntry[];
   mostAppearances: AppearanceLeader[];
   lowestRunnerUpTotal: ScoreEntry[];
+  lowestFrontNine: ScoreEntry[];
+  lowestBackNine: ScoreEntry[];
   oldestChampion: AgeEntry[];
   youngestChampion: AgeEntry[];
   oldestCompetitor: CompetitorAgeEntry[];
@@ -347,10 +361,19 @@ export async function getRecords(): Promise<RecordsData> {
   );
 
   const autoFactsByYear = new Map<number, AutoFacts>();
+  const frontNines: ScoreEntry[] = [];
+  const backNines: ScoreEntry[] = [];
   await Promise.all(
     played.map(async (c) => {
-      const facts = await computeAutoFacts(c);
+      const [facts, nettCategories] = await Promise.all([computeAutoFacts(c), getNettScoringCategories(c.id)]);
       if (facts) autoFactsByYear.set(c.year, facts);
+      // Every player's nett nine, the same figures as the Statistics page's Best Front 9 and Best
+      // Back 9 for that year -- a no-return's completed nine included.
+      for (const [key, into] of [["best-front-9-nett", frontNines], ["best-back-9-nett", backNines]] as const) {
+        for (const row of nettCategories.find((cat) => cat.key === key)?.rows ?? []) {
+          into.push({ year: c.year, name: row.player.name, venueName: c.venueName, value: row.value });
+        }
+      }
     }),
   );
 
@@ -536,6 +559,9 @@ export async function getRecords(): Promise<RecordsData> {
     .sort((a, b) => a.value - b.value)
     .slice(0, 5);
 
+  const lowestFrontNine = lowestWithEveryHolder(frontNines);
+  const lowestBackNine = lowestWithEveryHolder(backNines);
+
   const agesAtWin = played
     .map((c) => {
       if (c.winnerPlayerId && c.winnerPlayerDateOfBirth && c.date) {
@@ -603,6 +629,8 @@ export async function getRecords(): Promise<RecordsData> {
     largestLeadByAnyPlayer,
     mostAppearances,
     lowestRunnerUpTotal,
+    lowestFrontNine,
+    lowestBackNine,
     oldestChampion,
     youngestChampion,
     oldestCompetitor,

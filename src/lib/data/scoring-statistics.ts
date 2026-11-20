@@ -47,6 +47,20 @@ export function formatDecimalToPar(value: number): string {
   return rounded > 0 ? `+${fixed}` : `-${fixed}`;
 }
 
+/**
+ * A nine's score in relation to par -- holes 1-9 from `start` 0, holes 10-18 from 9 -- or
+ * undefined unless every one of those nine holes has a score.
+ */
+export function nineToPar(scoreByHole: (number | undefined)[], holeInfos: { par: number }[], start: 0 | 9): number | undefined {
+  let total = 0;
+  for (let i = start; i < start + 9; i++) {
+    const score = scoreByHole[i];
+    if (score == null || !holeInfos[i]) return undefined;
+    total += score - holeInfos[i].par;
+  }
+  return total;
+}
+
 /** Assigns tie-aware rank (1st, 2nd, T2nd...) to an already-sorted (best-first) row list. */
 export function assignPositions(rows: StatRow[]): void {
   let position = 0;
@@ -129,8 +143,17 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   const parCountRows: StatRow[] = [];
   const bogeyOrWorseRows: StatRow[] = [];
   const strokesGainedRows: StatRow[] = [];
+  const frontNineRows: StatRow[] = [];
+  const backNineRows: StatRow[] = [];
 
   for (const { player, scoreByHole } of playerScores) {
+    // A nine counts once every hole in it has a score, even if the player picked up later in the
+    // round: a no-return's completed front nine is a real front nine.
+    for (const [rows, start] of [[frontNineRows, 0], [backNineRows, 9]] as const) {
+      const nine = nineToPar(scoreByHole, holeInfos, start);
+      if (nine !== undefined) rows.push({ player, value: nine, display: formatToPar(nine) });
+    }
+
     const parTotals: Record<3 | 4 | 5, { sum: number; count: number }> = {
       3: { sum: 0, count: 0 },
       4: { sum: 0, count: 0 },
@@ -191,9 +214,15 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   assignPositions(bogeyOrWorseRows);
   strokesGainedRows.sort((a, b) => a.value - b.value);
   assignPositions(strokesGainedRows);
+  frontNineRows.sort((a, b) => a.value - b.value);
+  assignPositions(frontNineRows);
+  backNineRows.sort((a, b) => a.value - b.value);
+  assignPositions(backNineRows);
 
   const label = mode === "nett" ? "Nett" : "Scratch";
   return [
+    { key: `best-front-9-${mode}`, title: `Best Front 9 - ${label}`, columnLabel: "TOTAL", rows: frontNineRows, useParColoring: true },
+    { key: `best-back-9-${mode}`, title: `Best Back 9 - ${label}`, columnLabel: "TOTAL", rows: backNineRows, useParColoring: true },
     { key: `par-3-scoring-${mode}`, title: `Par 3 Scoring - ${label}`, columnLabel: "TOTAL", rows: parBuckets[3], useParColoring: true },
     { key: `par-4-scoring-${mode}`, title: `Par 4 Scoring - ${label}`, columnLabel: "TOTAL", rows: parBuckets[4], useParColoring: true },
     { key: `par-5-scoring-${mode}`, title: `Par 5 Scoring - ${label}`, columnLabel: "TOTAL", rows: parBuckets[5], useParColoring: true },

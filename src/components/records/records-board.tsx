@@ -77,6 +77,8 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
     largestLeadByAnyPlayer,
     mostAppearances,
     lowestRunnerUpTotal,
+    lowestFrontNine,
+    lowestBackNine,
     oldestChampion,
     youngestChampion,
     oldestCompetitor,
@@ -186,6 +188,24 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
               <Empty />
             ) : (
               lowestRunnerUpTotal.map((e) => <RecordRow key={e.year} left={e.name} sub={`${e.venueName} · ${e.year}`} right={e.value} />)
+            )}
+          </Category>
+          <Category value="lowest-front-9" title="Lowest front 9 score" count={lowestFrontNine.length}>
+            {lowestFrontNine.length === 0 ? (
+              <Empty />
+            ) : (
+              lowestFrontNine.map((e) => (
+                <RecordRow key={`${e.year}-${e.name}`} left={e.name} sub={`${e.venueName} · ${e.year}`} right={formatToPar(e.value)} />
+              ))
+            )}
+          </Category>
+          <Category value="lowest-back-9" title="Lowest back 9 score" count={lowestBackNine.length}>
+            {lowestBackNine.length === 0 ? (
+              <Empty />
+            ) : (
+              lowestBackNine.map((e) => (
+                <RecordRow key={`${e.year}-${e.name}`} left={e.name} sub={`${e.venueName} · ${e.year}`} right={formatToPar(e.value)} />
+              ))
             )}
           </Category>
           <Category value="largest-margin" title="Largest margin of victory" count={largestMargin.length}>
