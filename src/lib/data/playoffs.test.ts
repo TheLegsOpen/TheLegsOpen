@@ -225,3 +225,23 @@ describe("the two competitions count back on different holes", () => {
     expect(winner?.id).toBe("campbell");
   });
 });
+
+describe("playoff labels", () => {
+  it("calls a Main tie settled on holes 1, 2, 17 and 18 a playoff", () => {
+    const entries = [
+      entry(WATTERS, { toPar: 1, position: 1, tied: true }),
+      entry(MAGOWAN, { toPar: 1, position: 1, tied: true }),
+    ];
+    const playoff: PlayoffResult = {
+      competition: "main",
+      competitionLabel: "Main",
+      steps: [step([MAGOWAN, WATTERS], [MAGOWAN])],
+      winner: MAGOWAN,
+      stillTied: false,
+      ineligible: [],
+    };
+    const ranked = applyPlayoffToEntries(entries, playoff);
+    expect(ranked.find((e) => e.player.id === "magowan")?.playoffNote?.label).toBe("Won Playoff");
+    expect(ranked.find((e) => e.player.id === "watters")?.playoffNote?.label).toBe("Lost Playoff");
+  });
+});

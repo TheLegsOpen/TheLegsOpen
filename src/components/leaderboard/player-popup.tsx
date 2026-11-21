@@ -13,6 +13,7 @@ import { scorePillClass } from "@/components/leaderboard/leaderboard-table";
 import { PlayerStatPanel } from "@/components/leaderboard/player-stat-panel";
 import { ScorecardGrid } from "@/components/players/scorecard-grid";
 import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
+import type { RankedEntry } from "@/lib/data/playoffs";
 import type { StatCategory } from "@/lib/statistics";
 
 const COMPETITION_OPTIONS: { value: Competition; label: string }[] = [
@@ -73,10 +74,14 @@ export function PlayerPopup({
   const { surname, firstName } = splitSurnameFirst(player.name);
 
   const shotsOffLead = main.toPar !== undefined ? main.toPar - leaderToPar : undefined;
+  // Level with the leader after a playoff is not leading: the playoff decided it.
+  const mainPlayoff = (main as RankedEntry).playoffNote;
   const leadText = main.withdrawn
     ? "Withdrawn."
     : main.noReturn
       ? "No return."
+      : mainPlayoff && mainPlayoff.label !== "Ineligible"
+        ? `${mainPlayoff.won ? "Won" : "Lost"} the playoff.`
       : shotsOffLead === undefined
         ? "Yet to start."
         : shotsOffLead === 0

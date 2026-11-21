@@ -204,7 +204,7 @@ export function getEligibleStablefordChampion(
 
 export interface PlayoffNote {
   won: boolean;
-  /** e.g. "Won First Tiebreaker" / "Lost First Tiebreaker". */
+  /** e.g. "Won Playoff" / "Lost Playoff", or "Won First Tiebreaker" for a Stableford tie. */
   label: string;
   /** The step's hole description, e.g. "Holes 1, 2, 17 & 18". */
   description: string;
@@ -239,6 +239,13 @@ function findLastStepFor(steps: TiebreakStepResult[], playerId: string) {
  * relabelling a field doesn't move a row -- without this the winner's row could still render
  * below the row it just outranked.
  */
+/** A Main or Scratch tie is settled by a playoff over holes 1, 2, 17 and 18, so its first step is
+ * "Playoff" -- never "countback" or "First Tiebreaker". Only a tie that survives the playoff goes
+ * on to the later steps. A Stableford tie is not a playoff; its steps keep their tiebreaker names. */
+function stepName(playoff: PlayoffResult, index: number, label: string): string {
+  return playoff.competition !== "stableford" && index === 0 ? "Playoff" : label;
+}
+
 export function applyPlayoffToEntries(entries: CompetitionEntry[], playoff: PlayoffResult | undefined): RankedEntry[] {
   if (!playoff || playoff.stillTied || !playoff.winner) return entries;
 
@@ -269,7 +276,7 @@ export function applyPlayoffToEntries(entries: CompetitionEntry[], playoff: Play
         tied: false,
         playoffNote: found && {
           won: true,
-          label: `Won ${found.step.label}`,
+          label: `Won ${stepName(playoff, found.index, found.step.label)}`,
           description: found.step.description,
           display: found.contender.display,
           holeIndices: found.step.holeIndices,
@@ -284,7 +291,7 @@ export function applyPlayoffToEntries(entries: CompetitionEntry[], playoff: Play
         tied: loserIds.size > 1,
         playoffNote: found && {
           won: false,
-          label: `Lost ${found.step.label}`,
+          label: `Lost ${stepName(playoff, found.index, found.step.label)}`,
           description: found.step.description,
           display: found.contender.display,
           holeIndices: found.step.holeIndices,
