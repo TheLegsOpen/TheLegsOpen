@@ -91,7 +91,7 @@ export default async function LiveBlogPage() {
       <PageHero
         variant="photo"
         size="slim"
-        imageLabel="Gallery watching on the 18th at Seabrook Old Course"
+        imageLabel="Live blog"
         imageUrl={banners.liveBlogUrl}
         imagePosition={banners.liveBlogPosition}
         eyebrow={banners.liveBlogEyebrow}

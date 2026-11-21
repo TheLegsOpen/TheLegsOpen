@@ -85,12 +85,15 @@ export function StatPreviewCard({
   onSelectPlayer: (playerId: string) => void;
   /** Pass when showing a specific past championship (e.g. Previous Opens) so "Full rankings" links to that year's detail page instead of whichever championship is currently active. */
   championshipYear?: number;
-  /** The player picked in the Player filter -- ringed, and added below the top three if outside them. */
+  /** The player picked in the Player filter -- ringed, and added below the top rows if outside them. */
   highlightId?: string;
   /** My players, starred in the rows. */
   favoriteIds?: string[];
 }) {
-  const top = category.rows.slice(0, PREVIEW_COUNT);
+  // The top three, but never fewer than every joint leader: four players tied for first all show,
+  // rather than three of them and the fourth left to the full rankings.
+  const leaders = category.rows.filter((row) => row.position === 1).length;
+  const top = category.rows.slice(0, Math.max(PREVIEW_COUNT, leaders));
   // Player ids reach the client as numbers (42), but a <select> hands back text ("42"), so compare
   // them as strings -- a strict number-to-string match is why the Player filter never matched anyone.
   const isPicked = (row: StatRow) => highlightId !== undefined && String(row.player.id) === String(highlightId);
