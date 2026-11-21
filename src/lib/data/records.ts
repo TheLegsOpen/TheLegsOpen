@@ -26,14 +26,24 @@ function formatPlayoffResult(result: PlayoffResult): string | undefined {
 }
 
 /**
- * The five lowest, except that everyone sharing the record itself is always listed: a record
- * held jointly by six players shows all six. Ties after the record are ordered by year.
+ * The first `count` of an already-sorted list, plus everyone level with the last of them: seven
+ * champions who won by two shots all show, not the first three to reach the cut.
+ */
+export function topWithTies<T>(sorted: T[], value: (entry: T) => number, count = 5): T[] {
+  if (sorted.length <= count) return sorted;
+  const cut = value(sorted[count - 1]);
+  let end = count;
+  while (end < sorted.length && value(sorted[end]) === cut) end += 1;
+  return sorted.slice(0, end);
+}
+
+/**
+ * The five lowest, plus every player level with the fifth -- so a record held jointly by six
+ * players shows all six. Ties are ordered by year.
  */
 export function lowestWithEveryHolder(entries: ScoreEntry[], count = 5): ScoreEntry[] {
   const sorted = [...entries].sort((a, b) => a.value - b.value || a.year - b.year || a.name.localeCompare(b.name));
-  if (sorted.length === 0) return [];
-  const holders = sorted.filter((e) => e.value === sorted[0].value).length;
-  return sorted.slice(0, Math.max(count, holders));
+  return topWithTies(sorted, (e) => e.value, count);
 }
 
 /** Below this a Venue's totalPar reflects an incomplete hole setup, not a genuine course par — see Championships.scoreToPar admin note. */
@@ -411,15 +421,15 @@ export async function getRecords(): Promise<RecordsData> {
   const mostVictoriesStableford = victoryCounts(championsStableford);
   const mostVictoriesScratch = victoryCounts(championsScratch);
 
-  const largestMargin: MarginEntry[] = played
+  const largestMarginAll: MarginEntry[] = played
     .map((c) => {
       const auto = autoFactsByYear.get(c.year);
       const margin = auto ? auto.marginStrokes : Number(c.margin);
       return { year: c.year, name: c.winnerName, venueName: c.venueName, margin };
     })
     .filter((entry): entry is MarginEntry => Number.isFinite(entry.margin))
-    .sort((a, b) => b.margin - a.margin)
-    .slice(0, 5);
+    .sort((a, b) => b.margin - a.margin);
+  const largestMargin = topWithTies(largestMarginAll, (e) => e.margin);
 
   // c.margin is set to "Playoff" (by computeChampionshipAutoStats, tie-aware via the real
   // playoffs resolution) whenever the Main competition needed a tiebreak -- checking it directly
@@ -470,7 +480,7 @@ export async function getRecords(): Promise<RecordsData> {
     if (earliest === undefined || c.year < earliest) firstVictoryKeyYear.set(key, c.year);
   }
 
-  const mostAppearancesBeforeFirstVictory = played
+  const firstVictoryAppearances = played
     .filter((c) => firstVictoryKeyYear.get(c.winnerPlayerId ?? c.winnerName) === c.year)
     .map((c) => {
       if (c.winnerPlayerId) {
@@ -480,8 +490,8 @@ export async function getRecords(): Promise<RecordsData> {
       return c.priorAppearances !== undefined ? { year: c.year, name: c.winnerName, appearances: c.priorAppearances } : undefined;
     })
     .filter((e): e is { year: number; name: string; appearances: number } => Boolean(e) && e!.appearances > 0)
-    .sort((a, b) => b.appearances - a.appearances)
-    .slice(0, 5);
+    .sort((a, b) => b.appearances - a.appearances);
+  const mostAppearancesBeforeFirstVictory = topWithTies(firstVictoryAppearances, (e) => e.appearances);
 
   const decadesByName = new Map<string, { years: number[]; decades: Set<number> }>();
   for (const c of championsMain) {
@@ -502,29 +512,29 @@ export async function getRecords(): Promise<RecordsData> {
     .filter((c) => autoFactsByYear.get(c.year)?.ledOutrightAfter9 ?? c.ledOutrightAfter9)
     .map((c) => ({ year: c.year, name: c.winnerName, venueName: c.venueName }));
 
-  const lowestScoreInRound: ScoreEntry[] = played
+  const lowestScoreInRoundAll: ScoreEntry[] = played
     .filter((c) => c.winningScore !== undefined)
     .map((c) => ({ year: c.year, name: c.winnerName, venueName: c.venueName, value: c.winningScore! }))
-    .sort((a, b) => a.value - b.value)
-    .slice(0, 5);
+    .sort((a, b) => a.value - b.value);
+  const lowestScoreInRound = topWithTies(lowestScoreInRoundAll, (e) => e.value);
 
-  const lowestWinningToPar: ScoreEntry[] = played
+  const lowestWinningToParAll: ScoreEntry[] = played
     .filter((c) => c.scoreToPar !== undefined)
     .map((c) => ({ year: c.year, name: c.winnerName, venueName: c.venueName, value: c.scoreToPar! }))
-    .sort((a, b) => a.value - b.value)
-    .slice(0, 5);
+    .sort((a, b) => a.value - b.value);
+  const lowestWinningToPar = topWithTies(lowestWinningToParAll, (e) => e.value);
 
-  const greatestComebackAfter9: ComebackEntry[] = played
+  const comebacksAll: ComebackEntry[] = played
     .map((c) => {
       const auto = autoFactsByYear.get(c.year);
       const deficit = auto ? auto.deficitAfter9 : c.deficitAfter9;
       return deficit !== undefined && deficit > 0 ? { year: c.year, name: c.winnerName, venueName: c.venueName, deficit } : undefined;
     })
     .filter((e): e is ComebackEntry => Boolean(e))
-    .sort((a, b) => b.deficit - a.deficit)
-    .slice(0, 5);
+    .sort((a, b) => b.deficit - a.deficit);
+  const greatestComebackAfter9 = topWithTies(comebacksAll, (e) => e.deficit);
 
-  const largestLeadByAnyPlayer: LargestLeadEntry[] = played
+  const largestLeadsAll: LargestLeadEntry[] = played
     .map((c) => {
       const auto = autoFactsByYear.get(c.year)?.largestLead;
       if (auto) return { year: c.year, name: auto.holderName, venueName: c.venueName, margin: auto.margin, afterHole: auto.afterHole, at: clockLabel(auto.atMinutes) };
@@ -534,10 +544,10 @@ export async function getRecords(): Promise<RecordsData> {
       return undefined;
     })
     .filter((e): e is LargestLeadEntry => Boolean(e))
-    .sort((a, b) => b.margin - a.margin)
-    .slice(0, 5);
+    .sort((a, b) => b.margin - a.margin);
+  const largestLeadByAnyPlayer = topWithTies(largestLeadsAll, (e) => e.margin);
 
-  const mostAppearances: AppearanceLeader[] = players
+  const appearanceLeadersAll: AppearanceLeader[] = players
     .map((p) => {
       const digitalYears = new Set(
         participation.filter((part) => part.playerId === String(p.id) && part.started).map((part) => part.championshipId),
@@ -545,10 +555,10 @@ export async function getRecords(): Promise<RecordsData> {
       return { name: p.name, slug: playerSlug(p), countryCode: p.countryCode, appearances: p.previousOpens + digitalYears.size };
     })
     .filter((p) => p.appearances > 0)
-    .sort((a, b) => b.appearances - a.appearances)
-    .slice(0, 5);
+    .sort((a, b) => b.appearances - a.appearances);
+  const mostAppearances = topWithTies(appearanceLeadersAll, (e) => e.appearances);
 
-  const lowestRunnerUpTotal: ScoreEntry[] = played
+  const runnerUpTotalsAll: ScoreEntry[] = played
     .map((c) => {
       const auto = autoFactsByYear.get(c.year);
       const name = auto?.runnerUpName ?? c.runnerUpName;
@@ -556,8 +566,8 @@ export async function getRecords(): Promise<RecordsData> {
       return name && value !== undefined ? { year: c.year, name, venueName: c.venueName, value } : undefined;
     })
     .filter((e): e is ScoreEntry => Boolean(e))
-    .sort((a, b) => a.value - b.value)
-    .slice(0, 5);
+    .sort((a, b) => a.value - b.value);
+  const lowestRunnerUpTotal = topWithTies(runnerUpTotalsAll, (e) => e.value);
 
   const lowestFrontNine = lowestWithEveryHolder(frontNines);
   const lowestBackNine = lowestWithEveryHolder(backNines);

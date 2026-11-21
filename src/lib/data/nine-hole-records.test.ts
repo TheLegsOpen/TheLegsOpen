@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { nineToPar } from "@/lib/data/scoring-statistics";
-import { lowestWithEveryHolder, type ScoreEntry } from "@/lib/data/records";
+import { lowestWithEveryHolder, topWithTies, type ScoreEntry } from "@/lib/data/records";
 
 const pars = [4, 4, 3, 5, 4, 4, 3, 5, 4, 4, 4, 3, 5, 4, 4, 3, 5, 4].map((par) => ({ par }));
 
@@ -33,5 +33,22 @@ describe("lowestWithEveryHolder", () => {
     expect(list).toHaveLength(6);
     expect(list.every((e) => e.value === -3)).toBe(true);
     expect(list[0].year).toBe(2014);
+  });
+});
+
+describe("topWithTies", () => {
+  it("keeps everyone level with the fifth", () => {
+    const margins = [7, 5, 2, 2, 2, 2, 2, 2, 2, 1];
+    expect(topWithTies(margins, (m) => m)).toEqual([7, 5, 2, 2, 2, 2, 2, 2, 2]);
+  });
+
+  it("stops at five when the sixth is not level", () => {
+    expect(topWithTies([1, 2, 3, 4, 5, 6], (m) => m)).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it("lists past five when players are level with the fifth best", () => {
+    const entry = (year: number, value: number): ScoreEntry => ({ year, name: `P${year}`, venueName: "Course", value });
+    const list = lowestWithEveryHolder([-4, -3, -2, -1, 0, 0, 0, 1].map((v, i) => entry(2013 + i, v)));
+    expect(list.map((e) => e.value)).toEqual([-4, -3, -2, -1, 0, 0, 0]);
   });
 });
