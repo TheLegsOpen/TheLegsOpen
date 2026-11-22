@@ -77,6 +77,7 @@ const SAMPLES: [string, (...args: never[]) => commentary.Commentary][] = [
   ["pressureMomentCommentary", commentary.pressureMomentCommentary as never],
   ["winnerConfirmedCommentary", commentary.winnerConfirmedCommentary as never],
   ["clubhouseLeaderCommentary", commentary.clubhouseLeaderCommentary as never],
+  ["clubhouseShareCommentary", commentary.clubhouseShareCommentary as never],
   ["bestGrossRoundCommentary", commentary.bestGrossRoundCommentary as never],
   ["courseRecordPaceCommentary", commentary.courseRecordPaceCommentary as never],
   ["courseRecordCommentary", commentary.courseRecordCommentary as never],
@@ -159,6 +160,10 @@ const SAMPLE_ARGS: Record<string, unknown[][]> = {
     ["Test Player", "Main", "-2", "Beat Runner Up in the playoff, -2 to E."],
   ],
   clubhouseLeaderCommentary: [["Test Player", -2]],
+  clubhouseShareCommentary: [
+    ["Test Player", -2, ["Other Player"]],
+    ["Test Player", 4, ["Other Player", "Third Player"], true],
+  ],
   bestGrossRoundCommentary: [["Test Player", 5]],
   courseRecordPaceCommentary: [["Test Player", "Test Venue", 12, 65, "Prior Holder", 2019]],
   courseRecordCommentary: [

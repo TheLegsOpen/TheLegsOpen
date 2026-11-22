@@ -146,9 +146,12 @@ export function turnReportCommentary(leaderNames: string[], leaderToPar: number,
   const lurkWord = challengerNames.length > 1 ? "lurk" : "lurks";
   const challengerClause = challengerNames.length > 0 ? ` ${joinNames(challengerNames)} ${lurkWord} within range.` : "";
   const headline = pick(["At the turn", "Front-nine picture"]);
+  // Posted once half the field has turned, so every figure here is about that half only. Written as
+  // "at the turn, X leads" it read as the full field's turn standings, and five years named the
+  // wrong man: Kevin Park led at the turn in 2020 and had not reached it yet.
   const body = pick([
-    `At the turn, ${leaders} ${leadWord} the Main on ${formatToPar(leaderToPar)}, with the field averaging ${formatToPar(Math.round(fieldAverageToPar))} through the front nine.${challengerClause}`,
-    `Front-nine picture: ${leaders} ${leadWord} at ${formatToPar(leaderToPar)}, the field averaging ${formatToPar(Math.round(fieldAverageToPar))} so far.${challengerClause}`,
+    `Half the field has turned. Of those through nine, ${leaders} ${leadWord} in the Main on ${formatToPar(leaderToPar)}, with those players averaging ${formatToPar(Math.round(fieldAverageToPar))} for the nine.${challengerClause}`,
+    `Half the field has turned. Of those through nine, ${leaders} ${leadWord} at ${formatToPar(leaderToPar)}, with those players averaging ${formatToPar(Math.round(fieldAverageToPar))} for the nine.${challengerClause}`,
   ]);
   return { headline, body };
 }
@@ -502,12 +505,21 @@ export function bigDropCommentary(playerName: string, beforePosition: number, af
  * closing holes of the championship") rather than naming one exact hole, so it never risks reading
  * as inaccurate whichever of the three holes triggered it. */
 export function pressureMomentCommentary(playerName: string, margin: number, unit: "shot" | "point", competitionLabel: string): Commentary {
-  const marginLabel = margin === 0 ? `level with the lead` : `${margin} ${unit}${margin === 1 ? "" : "s"} off the lead`;
+  // Nought off the lead covers a man three clear as well as one sharing it, so it says "at the
+  // top" rather than "level with the lead": Kevin Park was six clear when he was told he was level.
+  const marginLabel = `${margin} ${unit}${margin === 1 ? "" : "s"} off the lead`;
   const headline = pick(["Pressure moment", `${playerName.split(" ").slice(-1)[0]} enters the closing stretch`]);
-  const body = pick([
-    `${playerName} reaches the closing holes of the championship ${marginLabel} in the ${competitionLabel} competition.`,
-    `Into the closing holes of the championship for ${playerName}, ${marginLabel}.`,
-  ]);
+  const body = pick(
+    margin === 0
+      ? [
+          `${playerName} reaches the closing holes of the championship at the top of the ${competitionLabel} leaderboard.`,
+          `Into the closing holes of the championship for ${playerName}, at the top of the leaderboard.`,
+        ]
+      : [
+          `${playerName} reaches the closing holes of the championship ${marginLabel} in the ${competitionLabel} competition.`,
+          `Into the closing holes of the championship for ${playerName}, ${marginLabel}.`,
+        ],
+  );
   return { headline, body };
 }
 
@@ -530,6 +542,17 @@ export function clubhouseLeaderCommentary(playerName: string, toPar: number): Co
     `${playerName} posts ${formatToPar(toPar)} to take over as clubhouse leader.`,
     `That's the new mark to beat — ${playerName} leads the clubhouse at ${formatToPar(toPar)}.`,
   ]);
+  return { headline, body };
+}
+
+/** A finisher who matches the clubhouse mark rather than beating it. `sharingWith` is everyone
+ * already in on that score; it is never empty here (the caller uses the plain versions then). */
+export function clubhouseShareCommentary(playerName: string, toPar: number, sharingWith: string[], gross = false): Commentary {
+  const headline = gross ? "Level on the best gross round" : "Level in the clubhouse";
+  const body =
+    sharingWith.length === 1
+      ? `${playerName} joins ${sharingWith[0]} at the top of the ${gross ? "Scratch " : ""}clubhouse on ${formatToPar(toPar)}.`
+      : `${playerName} makes it ${["three", "four", "five", "six"][sharingWith.length - 2] ?? sharingWith.length + 1} at the top of the ${gross ? "Scratch " : ""}clubhouse on ${formatToPar(toPar)}, level with ${joinAnd(sharingWith)}.`;
   return { headline, body };
 }
 

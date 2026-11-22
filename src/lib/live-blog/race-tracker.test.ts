@@ -215,7 +215,7 @@ describe("leaving contention reports where the player is now", () => {
     expect(leaving?.thru).toBe("16");
   });
 
-  it("falls back to the last known figures when the player has left the board entirely", () => {
+  it("leaves a pick-up to the no-return post rather than reporting stale figures", () => {
     const quitter = makePlayer("q", "Picked Up");
     const leader = makePlayer("l", "Leader");
 
@@ -233,8 +233,7 @@ describe("leaving contention reports where the player is now", () => {
     );
 
     const leaving = diffRaceTrackers(before, after).find((c) => c.kind === "leaving-contention");
-    expect(leaving?.scoreValue).toBe(1);
-    expect(leaving?.thru).toBe("11");
+    expect(leaving).toBeUndefined();
   });
 
   it("keeps a standing for every started player, not only those in contention", () => {

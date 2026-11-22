@@ -36,6 +36,7 @@ import {
   pressureMomentCommentary,
   throughCommentary,
   clubhouseLeaderCommentary,
+  clubhouseShareCommentary,
   bestGrossRoundCommentary,
   courseRecordPaceCommentary,
   courseRecordCommentary,
@@ -838,9 +839,17 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
       },
     });
 
+    // A finisher who only matches the best score in is level, not the new leader -- picking the
+    // first of a tied pair off a sort told Robert Hamilton he led the clubhouse on +4 when David
+    // Clee was already in on +4 (2021). Matching the mark still posts, as a shared lead.
     const finishedEntries = mainEntries.filter((e) => e.score !== undefined);
-    const bestFinished = finishedEntries.slice().sort((a, b) => (a.toPar ?? 0) - (b.toPar ?? 0))[0];
-    if (bestFinished && String(bestFinished.player.id) === String(playerId)) {
+    const bestFinishedToPar = finishedEntries.length > 0 ? Math.min(...finishedEntries.map((e) => e.toPar ?? 0)) : undefined;
+    const ownFinished = finishedEntries.find((e) => String(e.player.id) === String(playerId));
+    const bestFinished = ownFinished && (ownFinished.toPar ?? 0) === bestFinishedToPar ? ownFinished : undefined;
+    const sharingClubhouseWith = bestFinished
+      ? finishedEntries.filter((e) => e !== bestFinished && (e.toPar ?? 0) === bestFinishedToPar).map((e) => e.player.name)
+      : [];
+    if (bestFinished) {
       const latestClubhouseLeaderPosts = await req.payload.find({
         collection: "live-blog-posts",
         where: { and: [{ championship: { equals: championshipId } }, { category: { equals: "clubhouse-leader" } }] },
@@ -852,7 +861,10 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
       const lastPost = latestClubhouseLeaderPosts.docs[0];
       const lastClubhouseLeaderId = lastPost ? (typeof lastPost.player === "object" ? lastPost.player?.id : lastPost.player) : undefined;
       if (String(lastClubhouseLeaderId) !== String(playerId)) {
-        const { headline: chHeadline, body: chBody } = clubhouseLeaderCommentary(player.name, bestFinished.toPar ?? 0);
+        const { headline: chHeadline, body: chBody } =
+          sharingClubhouseWith.length > 0
+            ? clubhouseShareCommentary(player.name, bestFinished.toPar ?? 0, sharingClubhouseWith)
+            : clubhouseLeaderCommentary(player.name, bestFinished.toPar ?? 0);
         await publish({
           category: "clubhouse-leader",
           championshipId: championshipId as string,
@@ -877,8 +889,13 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
     // the tournament's best gross round so far, live. Same dedup pattern: only posts again once a
     // different player actually takes over the spot.
     const finishedScratchEntries = scratchEntries.filter((e) => e.score !== undefined);
-    const bestGrossFinished = finishedScratchEntries.slice().sort((a, b) => (a.toPar ?? 0) - (b.toPar ?? 0))[0];
-    if (scratchEntry && !scratchEntry.noReturn && bestGrossFinished && String(bestGrossFinished.player.id) === String(playerId)) {
+    const bestGrossToPar = finishedScratchEntries.length > 0 ? Math.min(...finishedScratchEntries.map((e) => e.toPar ?? 0)) : undefined;
+    const ownGrossFinished = finishedScratchEntries.find((e) => String(e.player.id) === String(playerId));
+    const bestGrossFinished = ownGrossFinished && (ownGrossFinished.toPar ?? 0) === bestGrossToPar ? ownGrossFinished : undefined;
+    const sharingBestGrossWith = bestGrossFinished
+      ? finishedScratchEntries.filter((e) => e !== bestGrossFinished && (e.toPar ?? 0) === bestGrossToPar).map((e) => e.player.name)
+      : [];
+    if (scratchEntry && !scratchEntry.noReturn && bestGrossFinished) {
       const latestBestGrossPosts = await req.payload.find({
         collection: "live-blog-posts",
         where: { and: [{ championship: { equals: championshipId } }, { category: { equals: "best-gross-round" } }] },
@@ -890,7 +907,10 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
       const lastPost = latestBestGrossPosts.docs[0];
       const lastBestGrossId = lastPost ? (typeof lastPost.player === "object" ? lastPost.player?.id : lastPost.player) : undefined;
       if (String(lastBestGrossId) !== String(playerId)) {
-        const { headline: bgHeadline, body: bgBody } = bestGrossRoundCommentary(player.name, bestGrossFinished.toPar ?? 0);
+        const { headline: bgHeadline, body: bgBody } =
+          sharingBestGrossWith.length > 0
+            ? clubhouseShareCommentary(player.name, bestGrossFinished.toPar ?? 0, sharingBestGrossWith, true)
+            : bestGrossRoundCommentary(player.name, bestGrossFinished.toPar ?? 0);
         await publish({
           category: "best-gross-round",
           championshipId: championshipId as string,

@@ -268,15 +268,19 @@ export function diffRaceTrackers(before: RaceTracker, after: RaceTracker): RaceC
   for (const m of before.members) {
     if (!afterMemberIds.has(m.playerId)) {
       const now = after.standingByPlayer.get(m.playerId);
+      // Not on the board at all means a pick-up, and the no-return post already says what that
+      // costs them. Reporting it here as well used the figures from before the pick-up, which
+      // told readers Colum Watters was nought shots behind the leader as he walked off at Loch
+      // Lomond.
+      if (!now) continue;
       candidates.push({
         kind: "leaving-contention",
         competition: before.competition,
         playerId: m.playerId,
         playerName: m.playerName,
-        // Where they stand after this save. Falls back to the old figures only if the player has
-        // left the board entirely (a pick-up), where there is no "now" to report.
-        scoreValue: now?.margin ?? m.margin,
-        thru: now?.thru ?? m.thru,
+        // Where they stand after this save.
+        scoreValue: now.margin,
+        thru: now.thru,
       });
     }
   }
