@@ -9,6 +9,8 @@ import { scorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/lea
 import type { StatCategory, StatRow } from "@/lib/statistics";
 
 const PREVIEW_COUNT = 3;
+/** How far the preview will stretch to keep a tie at the cut together before it says "N more tied" instead. */
+const MAX_TIE_ROWS = 6;
 
 /** A percentage stat ("62%") gets a ring chart in the leader's row; anything else does not. */
 function percentOf(display: string): number | undefined {
@@ -93,7 +95,16 @@ export function StatPreviewCard({
   // The top three, but never fewer than every joint leader: four players tied for first all show,
   // rather than three of them and the fourth left to the full rankings.
   const leaders = category.rows.filter((row) => row.position === 1).length;
-  const top = category.rows.slice(0, Math.max(PREVIEW_COUNT, leaders));
+  const cut = Math.max(PREVIEW_COUNT, leaders);
+  // A tie at the cut stays together too: a plain slice showed two of three players tied 3rd and
+  // left the third out as though he were 4th. Up to six rows that just means showing them all;
+  // beyond that (twenty men on one birdie) the card says how many more share the place.
+  const cutPosition = category.rows[cut - 1]?.position;
+  let tieEnd = cut;
+  while (cutPosition !== undefined && tieEnd < category.rows.length && category.rows[tieEnd].position === cutPosition) tieEnd++;
+  const keepTie = tieEnd <= MAX_TIE_ROWS;
+  const top = category.rows.slice(0, keepTie ? tieEnd : cut);
+  const moreTied = keepTie ? 0 : tieEnd - cut;
   // Player ids reach the client as numbers (42), but a <select> hands back text ("42"), so compare
   // them as strings -- a strict number-to-string match is why the Player filter never matched anyone.
   const isPicked = (row: StatRow) => highlightId !== undefined && String(row.player.id) === String(highlightId);
@@ -153,6 +164,11 @@ export function StatPreviewCard({
           </div>
         ))
       )}
+      {moreTied > 0 && cutPosition !== undefined ? (
+        <p className="bg-accent/90 px-4 py-2 text-xs font-medium text-accent-foreground">
+          And {moreTied} more tied {ordinal(cutPosition)}
+        </p>
+      ) : null}
     </div>
   );
 }
