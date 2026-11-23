@@ -508,7 +508,7 @@ export async function PlayerDetail({ slug }: { slug: string }) {
                   <p className={SECTION_TITLE}>This championship</p>
                   <dl className="grid grid-cols-2 gap-5 sm:grid-cols-4">
                     {[
-                      { label: "Position", value: positionLabel(entry) || "—" },
+                      { label: "Position", value: positionLabel(entry) },
                       { label: "To Par", value: entry.toPar !== undefined ? formatToPar(entry.toPar) : "—" },
                       { label: "Score", value: entry.score ?? "—" },
                       { label: "Thru", value: entry.thru },

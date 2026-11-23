@@ -144,8 +144,8 @@ export function PlayerPopup({
           </div>
 
           <div className="text-sm text-primary-foreground/80 sm:ml-auto sm:text-right">
-            {/* A no-return has no placing; the line below already says "No return." */}
-            {main.noReturn ? null : <p className="font-bold">Position {positionLabel(main)}</p>}
+            {/* A no-return or withdrawal has no placing; the line below already says which. */}
+            {main.noReturn || main.withdrawn ? null : <p className="font-bold">Position {positionLabel(main)}</p>}
             <p>{leadText}</p>
           </div>
         </div>

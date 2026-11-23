@@ -38,7 +38,11 @@ describe("positionLabel", () => {
     expect(positionLabel({ position: 12, tied: false })).toBe("12");
   });
 
-  it("leaves a no-return's position blank", () => {
-    expect(positionLabel({ position: 29, tied: true, noReturn: true })).toBe("");
+  it("shows NR for a no-return", () => {
+    expect(positionLabel({ position: 29, tied: true, noReturn: true })).toBe("NR");
+  });
+
+  it("shows WD for a withdrawal, even one that also picked up", () => {
+    expect(positionLabel({ position: 37, tied: false, withdrawn: true, noReturn: true })).toBe("WD");
   });
 });

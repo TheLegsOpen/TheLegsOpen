@@ -135,12 +135,13 @@ export function topWithTies<T extends { position: number; started: boolean; noRe
 }
 
 /**
- * What goes in a leaderboard's position column: "T4", "12", or nothing at all for a no-return. A
- * no-return is sorted to the bottom of the Main and Scratch boards but has no placing in them, so
- * the column is left blank rather than calling eight men "T29". In the Stableford the same players
- * keep their points and their place, and `noReturn` is false there, so they keep a position.
+ * What goes in a leaderboard's position column: "T4", "12", or "WD"/"NR" for a player with no
+ * result. They are sorted to the bottom of the board but have no placing, so eight no-returns in
+ * 2026 read as "T29" when they were never tied for 29th. In the Stableford a no-return keeps
+ * their points and their place (`noReturn` is false there), so only a withdrawal shows WD.
  */
-export function positionLabel(entry: { position: number; tied: boolean; noReturn?: boolean }): string {
-  if (entry.noReturn) return "";
+export function positionLabel(entry: { position: number; tied: boolean; noReturn?: boolean; withdrawn?: boolean }): string {
+  if (entry.withdrawn) return "WD";
+  if (entry.noReturn) return "NR";
   return `${entry.tied ? "T" : ""}${entry.position}`;
 }
