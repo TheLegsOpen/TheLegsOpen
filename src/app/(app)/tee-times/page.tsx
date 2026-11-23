@@ -77,7 +77,7 @@ export default async function TeeTimesPage() {
       <PageHero
         variant="photo"
         size="slim"
-        imageLabel="Practice range at first light"
+        imageLabel="Tee times"
         imageUrl={banners.teeTimesUrl}
         imagePosition={banners.teeTimesPosition}
         eyebrow={banners.teeTimesEyebrow}
