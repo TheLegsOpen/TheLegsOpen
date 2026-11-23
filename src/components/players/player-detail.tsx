@@ -27,7 +27,7 @@ import {
 import { getTeeTimes } from "@/lib/data/tee-times";
 import { getArticles, getArticlesForPlayer } from "@/lib/data/articles";
 import { getSiteTheme } from "@/lib/data/site-theme";
-import { formatToPar } from "@/lib/leaderboard";
+import { formatToPar, positionLabel } from "@/lib/leaderboard";
 import type { Article } from "@/types/article";
 import type { PlayerGalleryPhoto } from "@/types/player";
 import { cn, cutoutUrl } from "@/lib/utils";
@@ -508,7 +508,7 @@ export async function PlayerDetail({ slug }: { slug: string }) {
                   <p className={SECTION_TITLE}>This championship</p>
                   <dl className="grid grid-cols-2 gap-5 sm:grid-cols-4">
                     {[
-                      { label: "Position", value: `${entry.tied ? "T" : ""}${entry.position}` },
+                      { label: "Position", value: positionLabel(entry) || "—" },
                       { label: "To Par", value: entry.toPar !== undefined ? formatToPar(entry.toPar) : "—" },
                       { label: "Score", value: entry.score ?? "—" },
                       { label: "Thru", value: entry.thru },

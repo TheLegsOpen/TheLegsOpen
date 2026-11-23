@@ -7,7 +7,7 @@ import { ArrowRight, Clock, Star } from "lucide-react";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { useFavorites } from "@/hooks/use-favorites";
-import { formatToPar, isConcluded, topWithTies } from "@/lib/leaderboard";
+import { formatToPar, isConcluded, positionLabel, topWithTies } from "@/lib/leaderboard";
 import { cn, splitSurnameFirst } from "@/lib/utils";
 import { scorePillClass, holeScorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { RankedEntry } from "@/lib/data/playoffs";
@@ -116,8 +116,7 @@ export function LeaderboardWidget({
                 return (
                   <tr key={entry.player.id} className="bg-accent/90 text-accent-foreground hover:bg-accent">
                     <td className="px-2 py-2 tabular-nums">
-                      {entry.tied ? "T" : ""}
-                      {entry.position}
+                      {positionLabel(entry)}
                     </td>
                     <td className="px-2 py-2">
                       <div className="flex items-center gap-1.5">

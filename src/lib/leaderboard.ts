@@ -133,3 +133,14 @@ export function topWithTies<T extends { position: number; started: boolean; noRe
   while (end < entries.length && entries[end].position === last.position) end++;
   return entries.slice(0, end);
 }
+
+/**
+ * What goes in a leaderboard's position column: "T4", "12", or nothing at all for a no-return. A
+ * no-return is sorted to the bottom of the Main and Scratch boards but has no placing in them, so
+ * the column is left blank rather than calling eight men "T29". In the Stableford the same players
+ * keep their points and their place, and `noReturn` is false there, so they keep a position.
+ */
+export function positionLabel(entry: { position: number; tied: boolean; noReturn?: boolean }): string {
+  if (entry.noReturn) return "";
+  return `${entry.tied ? "T" : ""}${entry.position}`;
+}

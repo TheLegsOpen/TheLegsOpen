@@ -7,7 +7,7 @@ import { ArrowRight, ChevronDown, Star } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
-import { formatToPar } from "@/lib/leaderboard";
+import { formatToPar, positionLabel } from "@/lib/leaderboard";
 import { cn, cutoutUrl, playerSlug, splitSurnameFirst } from "@/lib/utils";
 import { scorePillClass } from "@/components/leaderboard/leaderboard-table";
 import { PlayerStatPanel } from "@/components/leaderboard/player-stat-panel";
@@ -144,10 +144,8 @@ export function PlayerPopup({
           </div>
 
           <div className="text-sm text-primary-foreground/80 sm:ml-auto sm:text-right">
-            <p className="font-bold">
-              Position {main.tied ? "T" : ""}
-              {main.position}
-            </p>
+            {/* A no-return has no placing; the line below already says "No return." */}
+            {main.noReturn ? null : <p className="font-bold">Position {positionLabel(main)}</p>}
             <p>{leadText}</p>
           </div>
         </div>

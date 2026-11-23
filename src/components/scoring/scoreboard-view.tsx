@@ -2,7 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn, splitSurnameFirst } from "@/lib/utils";
-import { formatToPar } from "@/lib/leaderboard";
+import { formatToPar, positionLabel } from "@/lib/leaderboard";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 
 export interface ScoreboardData {
@@ -71,8 +71,7 @@ function Table({
           {entries.map((e) => (
             <tr key={e.player.id} className="bg-accent/90 text-accent-foreground">
               <td className="px-2 py-3 font-bold tabular-nums">
-                {e.tied ? "T" : ""}
-                {e.position}
+                {positionLabel(e)}
               </td>
               <td className="px-2 py-3">
                 <PlayerName name={e.player.name} />

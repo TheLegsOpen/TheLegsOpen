@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { topWithTies } from "@/lib/leaderboard";
+import { positionLabel, topWithTies } from "@/lib/leaderboard";
 
 const row = (position: number, extra: Partial<{ started: boolean; noReturn: boolean }> = {}) => ({ position, started: true, ...extra });
 
@@ -26,5 +26,19 @@ describe("topWithTies", () => {
 
   it("copes with a list shorter than the count", () => {
     expect(topWithTies([row(1), row(1)], 10)).toHaveLength(2);
+  });
+});
+
+describe("positionLabel", () => {
+  it("prints a tied position with its T", () => {
+    expect(positionLabel({ position: 9, tied: true })).toBe("T9");
+  });
+
+  it("prints a sole position bare", () => {
+    expect(positionLabel({ position: 12, tied: false })).toBe("12");
+  });
+
+  it("leaves a no-return's position blank", () => {
+    expect(positionLabel({ position: 29, tied: true, noReturn: true })).toBe("");
   });
 });

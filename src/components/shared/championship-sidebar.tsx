@@ -9,7 +9,7 @@ import type { SponsorClock } from "@/lib/data/sponsor-clock";
 import type { VenueWeather } from "@/lib/data/weather";
 import type { LiveBlogEntry } from "@/lib/data/live-blog";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
-import { formatToPar } from "@/lib/leaderboard";
+import { formatToPar, positionLabel } from "@/lib/leaderboard";
 import { splitSurnameFirst } from "@/lib/utils";
 
 /** A tee time still to come, with the players due off at it. */
@@ -82,7 +82,7 @@ export function ChampionshipSidebar({ featuredArticle, clockConfig, tone = "ligh
               const { surname, firstName } = splitSurnameFirst(entry.player.name);
               return (
                 <li key={entry.player.id} className="flex items-center gap-3 border-b border-black/10 bg-accent/90 px-3 py-2 text-sm text-accent-foreground last:border-0">
-                  <span className="w-8 shrink-0 tabular-nums">{`${entry.tied ? "T" : ""}${entry.position}`}</span>
+                  <span className="w-8 shrink-0 tabular-nums">{positionLabel(entry)}</span>
                   <span className="min-w-0 flex-1 truncate">
                     <span className="font-bold uppercase">{surname}</span>, {firstName.charAt(0)}
                   </span>

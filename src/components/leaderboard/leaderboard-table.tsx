@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Star, ChevronUp, ChevronDown } from "lucide-react";
 
 import { cn, splitSurnameFirst } from "@/lib/utils";
-import { formatToPar, isConcluded } from "@/lib/leaderboard";
+import { formatToPar, isConcluded, positionLabel } from "@/lib/leaderboard";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import type { CompetitionEntry, Competition } from "@/lib/data/scorecards";
@@ -244,7 +244,7 @@ function LeaderboardRow({
       </td>
       <td className="px-2 py-3 tabular-nums">
         <span className={cn(isLeader && "text-lg font-black text-primary")}>
-          <AnimatedValue value={`${entry.tied ? "T" : ""}${entry.position}`} />
+          <AnimatedValue value={positionLabel(entry)} />
         </span>
         {moved ? (
           <span

@@ -3,7 +3,7 @@
 import { Clock } from "lucide-react";
 
 import { cn, splitSurnameFirst } from "@/lib/utils";
-import { formatToPar } from "@/lib/leaderboard";
+import { formatToPar, positionLabel } from "@/lib/leaderboard";
 import { CountryFlag } from "@/components/shared/country-flag";
 import {
   scorePillClass,
@@ -70,8 +70,7 @@ export function HoleByHoleTable({ entries, onSelectPlayer, competition }: HoleBy
             return (
               <tr key={entry.player.id} className="bg-accent/90 text-accent-foreground hover:bg-accent">
                 <td className="px-2 py-3 tabular-nums">
-                  {entry.tied ? "T" : ""}
-                  {entry.position}
+                  {positionLabel(entry)}
                 </td>
                 <td className="px-2 py-3">
                   <div className="flex items-center gap-2">
