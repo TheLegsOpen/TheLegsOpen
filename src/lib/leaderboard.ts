@@ -115,3 +115,21 @@ export function synthesizePastResults(player: Player, championshipHistory: Champ
 
   return results;
 }
+
+/**
+ * The first `count` rows of a sorted leaderboard, plus anyone tied with the last of them. A plain
+ * slice cut John Taylor off the home page's top ten in 2026 while Sinton and Forbes, level with
+ * him on +11, were shown as T9. Ties only carry over for a real score: before anyone has teed off,
+ * or among no-returns, everyone shares a position and the list would run to the whole field.
+ */
+export function topWithTies<T extends { position: number; started: boolean; noReturn?: boolean; withdrawn?: boolean }>(
+  entries: T[],
+  count: number,
+): T[] {
+  const top = entries.slice(0, count);
+  const last = top[top.length - 1];
+  if (!last || !last.started || last.noReturn || last.withdrawn) return top;
+  let end = count;
+  while (end < entries.length && entries[end].position === last.position) end++;
+  return entries.slice(0, end);
+}

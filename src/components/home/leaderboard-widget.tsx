@@ -7,7 +7,7 @@ import { ArrowRight, Clock, Star } from "lucide-react";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { useFavorites } from "@/hooks/use-favorites";
-import { formatToPar, isConcluded } from "@/lib/leaderboard";
+import { formatToPar, isConcluded, topWithTies } from "@/lib/leaderboard";
 import { cn, splitSurnameFirst } from "@/lib/utils";
 import { scorePillClass, holeScorePillClass, TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { RankedEntry } from "@/lib/data/playoffs";
@@ -54,8 +54,8 @@ export function LeaderboardWidget({
 
   // Favorites are starred site-wide (main leaderboard, player popups, statistics) via the shared
   // useFavorites hook, so switching this on shows every favorited player, not just whichever of
-  // them happen to already be in the widget's normal top-10 cut.
-  const visible = favoritesOnly ? entries.filter((entry) => favorites.includes(entry.player.id)) : entries.slice(0, WIDGET_ROW_COUNT);
+  // them happen to already be in the widget's normal top-10 cut (which runs on past ten to keep a tie together).
+  const visible = favoritesOnly ? entries.filter((entry) => favorites.includes(entry.player.id)) : topWithTies(entries, WIDGET_ROW_COUNT);
 
   const selectedMain = entries.find((e) => e.player.id === selectedPlayerId);
   const selectedStableford = stableford.find((e) => e.player.id === selectedPlayerId);
