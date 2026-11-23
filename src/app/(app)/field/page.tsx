@@ -38,7 +38,7 @@ export default async function FieldPage() {
       <PageHero
         variant="photo"
         size="compact"
-        imageLabel="The field walking down the 1st fairway"
+        imageLabel="The field"
         imageUrl={banners.fieldUrl}
         imagePosition={banners.fieldPosition}
         eyebrow={banners.fieldEyebrow}

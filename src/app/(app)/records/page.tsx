@@ -23,7 +23,7 @@ export default async function RecordsPage() {
       <PageHero
         variant="photo"
         size="compact"
-        imageLabel="The Claret Vase engraved with every Legs Open champion"
+        imageLabel="Records"
         imageUrl={banners.recordsUrl}
         imagePosition={banners.recordsPosition}
         eyebrow={banners.recordsEyebrow}

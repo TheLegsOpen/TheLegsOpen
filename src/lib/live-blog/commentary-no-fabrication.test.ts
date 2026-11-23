@@ -28,6 +28,11 @@ const BANNED_WORDS = [
   "never in doubt",
   "front of the cup",
   "lip",
+  "rolls in",
+  "shot of the day",
+  "nerves",
+  "clean sweep",
+  "great streaks",
 ];
 
 // Genuine exceptions, reviewed by hand: "First balls down the fairway" is generic scene-setting

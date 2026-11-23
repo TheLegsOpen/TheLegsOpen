@@ -31,7 +31,7 @@ export default async function VenuesPage() {
         variant="photo"
         heightPx={292}
         shade="corner"
-        imageLabel="Aerial view of a links course in the rotation"
+        imageLabel="Venues"
         imageUrl={banners.venuesUrl}
         imagePosition={banners.venuesPosition}
         eyebrow={banners.venuesEyebrow}

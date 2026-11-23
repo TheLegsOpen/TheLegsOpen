@@ -59,7 +59,7 @@ export function eagleCommentary(playerName: string, holeNumber: number, playingT
   const suffix = playingTough ? " It's been one of the toughest holes on the course today." : "";
   const headline = pick(["Eagle!", `${playerName.split(" ").slice(-1)[0]} soars`, "Two shots gone in one"]);
   const body = pick([
-    `${playerName} rolls in an eagle at the ${ordinal(holeNumber)}. That's the shot of the day so far.${suffix}`,
+    `${playerName} makes an eagle at the ${ordinal(holeNumber)}.${suffix}`,
     `A brilliant eagle from ${playerName} on the ${ordinal(holeNumber)} — two shots clawed back at a stroke.${suffix}`,
     `${playerName} finds something special at the ${ordinal(holeNumber)}, carding an eagle to light up the board.${suffix}`,
   ]);
@@ -69,7 +69,7 @@ export function eagleCommentary(playerName: string, holeNumber: number, playingT
 export function birdieCommentary(playerName: string, holeNumber: number): Commentary {
   const headline = pick(["Birdie", `${playerName.split(" ").slice(-1)[0]} makes a move`, "One back"]);
   const body = pick([
-    `${playerName} rolls in a birdie at the ${ordinal(holeNumber)}.`,
+    `${playerName} makes a birdie at the ${ordinal(holeNumber)}.`,
     `${playerName} picks up a shot at the ${ordinal(holeNumber)}.`,
     `Good hole for ${playerName} — a birdie at the ${ordinal(holeNumber)} moves them the right way.`,
     `A shot gained for ${playerName} at the ${ordinal(holeNumber)}.`,
@@ -131,7 +131,7 @@ export function leaderCommentaryMulti(playerName: string, competitionLabels: str
   const headline = pick(["New leader", `${playerName.split(" ").slice(-1)[0]} takes control`]);
   const body = pick([
     `${playerName} moves to the top of the ${list} leaderboards${suffix}.`,
-    `A clean sweep at the top — ${playerName} now leads the ${list} standings${suffix}.`,
+    `${playerName} now leads the ${list} standings${suffix}.`,
   ]);
   return { headline, body };
 }
@@ -167,12 +167,14 @@ export function competitionUnderwayCommentary(year: number, venueName: string): 
 }
 
 export function roundCompleteCommentary(playerName: string, toPar: number, position: number, tied: boolean): Commentary {
-  const posLabel = `${tied ? "T" : ""}${position}`;
+  // Written out as a place ("2nd", "tied 4th"): the leaderboard's own "T4" read as "sitting 2" and
+  // "moves to T4" in a sentence.
+  const place = `${tied ? "tied " : ""}${ordinal(position)}`;
   const headline = pick(["In the clubhouse", `${playerName.split(" ").slice(-1)[0]} signs for the card`]);
   const body = pick([
-    `${playerName} is in the clubhouse at ${formatToPar(toPar)}, sitting ${posLabel} on the leaderboard.`,
-    `That's the card signed for ${playerName} — ${formatToPar(toPar)} for the round, currently ${posLabel}.`,
-    `${playerName} finishes their round at ${formatToPar(toPar)} and moves to ${posLabel}.`,
+    `${playerName} is in the clubhouse at ${formatToPar(toPar)}, sitting ${place} on the leaderboard.`,
+    `That's the card signed for ${playerName} — ${formatToPar(toPar)} for the round, currently ${place}.`,
+    `${playerName} finishes their round at ${formatToPar(toPar)}, ${tied ? `sharing ${ordinal(position)}` : `in ${ordinal(position)}`} for now.`,
   ]);
   return { headline, body };
 }
@@ -212,7 +214,7 @@ export function chargeCommentary(playerName: string, streak: number): Commentary
 export function hotStreakCommentary(playerName: string, streak: number): Commentary {
   const headline = pick(["Can't be stopped", `${playerName.split(" ").slice(-1)[0]} is on fire`, "Relentless"]);
   const body = pick([
-    `${playerName} just keeps going — ${streak} holes in a row under par now, one of the great streaks of the day.`,
+    `${playerName} just keeps going — ${streak} holes in a row under par now.`,
     `Still under par: ${playerName} has gone ${streak} straight holes now, a genuinely rare run.`,
     `${playerName} shows no sign of stopping — ${streak} in a row and counting.`,
   ]);
@@ -256,7 +258,7 @@ export function leaderFaltersCommentary(playerName: string, streak: number): Com
   const headline = pick(["Leader falters", `${playerName.split(" ").slice(-1)[0]} under pressure`]);
   const body = pick([
     `${playerName} has dropped shots on ${streak} straight holes coming down the stretch — the pressure is showing at the top.`,
-    `Signs of nerves from the leader: ${playerName} has gone ${streak} holes in a row dropping shots as the finish nears.`,
+    `The leader, ${playerName}, has gone ${streak} holes in a row dropping shots as the finish nears.`,
     `${playerName}'s advantage is looking shaky — ${streak} dropped shots in a row in the closing holes.`,
   ]);
   return { headline, body };
@@ -267,7 +269,7 @@ export function challengeFaltersCommentary(playerName: string, streak: number): 
   const headline = pick(["Challenge falters", `${playerName.split(" ").slice(-1)[0]} fades`]);
   const body = pick([
     `${playerName}'s challenge is fading — ${streak} dropped shots in a row coming down the stretch.`,
-    `The pressure tells on ${playerName}, who has gone ${streak} holes in a row dropping shots as the finish nears.`,
+    `${playerName} has gone ${streak} holes in a row dropping shots as the finish nears.`,
     `A real setback for ${playerName} — ${streak} straight holes lost in the closing stretch.`,
   ]);
   return { headline, body };

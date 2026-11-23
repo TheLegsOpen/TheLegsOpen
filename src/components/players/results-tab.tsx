@@ -35,6 +35,7 @@ function FinishTile({ value, label }: { value: number; label: string }) {
 
 function PosCell({ result }: { result: PlayerCompetitionResult | undefined }) {
   if (!result) return <td className="px-3 py-3 text-center text-surface-dark-foreground/40">—</td>;
+  if (result.withdrawn) return <td className="px-3 py-3 text-center font-bold text-[#FF8A80]">WD</td>;
   if (result.noReturn) return <td className="px-3 py-3 text-center font-bold text-[#FF8A80]">NR</td>;
   return (
     <td className="px-3 py-3 text-center font-bold tabular-nums">
@@ -45,7 +46,7 @@ function PosCell({ result }: { result: PlayerCompetitionResult | undefined }) {
 }
 
 function ScoreCell({ result }: { result: PlayerCompetitionResult | undefined }) {
-  return <td className="px-3 py-3 text-center tabular-nums">{result?.noReturn ? "—" : (result?.score ?? "—")}</td>;
+  return <td className="px-3 py-3 text-center tabular-nums">{result?.noReturn || result?.withdrawn ? "—" : (result?.score ?? "—")}</td>;
 }
 
 function ToParCell({ result }: { result: PlayerCompetitionResult | undefined }) {
