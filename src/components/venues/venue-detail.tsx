@@ -41,7 +41,8 @@ export async function VenueDetail({ slug }: { slug: string }) {
   //
   // Most courses have hosted exactly once, where "First Hosted 2025 / Last Hosted 2025" reads as
   // a bug rather than a fact, so a single hosting collapses to one line.
-  const hostedYears = championshipsChronological.map((c) => c.year);
+  // Completed ones only: a championship still to come has not been hosted yet.
+  const hostedYears = championshipsChronological.filter((c) => c.completed).map((c) => c.year);
   const hostingFacts =
     hostedYears.length === 0
       ? []

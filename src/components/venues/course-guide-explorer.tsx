@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn, ordinal } from "@/lib/utils";
+import { holeList } from "@/lib/course-guide-extremes";
 import type { CourseGuide } from "@/lib/data/course-guide";
 
 const SECTION_TITLE = "font-menu text-[14px] font-bold uppercase leading-[16px] tracking-[1.6px] text-[#43524E]";
@@ -46,8 +47,8 @@ export function CourseGuideExplorer({ guide, venueName }: { guide: CourseGuide; 
                   aria-pressed={on}
                   className={cn(
                     "flex h-full w-full flex-col gap-1 bg-white p-3 text-left transition-colors hover:bg-[#EEF2F4]",
-                    h.holeNumber === hardest && "bg-[#CB333B] text-white hover:bg-[#b52d34]",
-                    h.holeNumber === easiest && "bg-[#0E3D2C] text-white hover:bg-[#0b3022]",
+                    hardest.includes(h.holeNumber) && "bg-[#CB333B] text-white hover:bg-[#b52d34]",
+                    easiest.includes(h.holeNumber) && "bg-[#0E3D2C] text-white hover:bg-[#0b3022]",
                     on && "outline outline-4 -outline-offset-4 outline-accent",
                   )}
                 >
@@ -101,8 +102,16 @@ export function CourseGuideExplorer({ guide, venueName }: { guide: CourseGuide; 
             {hole.average !== undefined ? (
               <p className="text-white/80">
                 The field has averaged {signed(hole.average - hole.par)} here
-                {hole.holeNumber === hardest ? ", the hardest hole on the course in Legs Open play" : ""}
-                {hole.holeNumber === easiest ? ", the easiest hole on the course in Legs Open play" : ""}.
+                {hardest.includes(hole.holeNumber)
+                  ? hardest.length > 1
+                    ? `, joint hardest on the course in Legs Open play with ${holeList(hardest.filter((n) => n !== hole.holeNumber), ordinal)}`
+                    : ", the hardest hole on the course in Legs Open play"
+                  : ""}
+                {easiest.includes(hole.holeNumber)
+                  ? easiest.length > 1
+                    ? `, joint easiest on the course in Legs Open play with ${holeList(easiest.filter((n) => n !== hole.holeNumber), ordinal)}`
+                    : ", the easiest hole on the course in Legs Open play"
+                  : ""}.
               </p>
             ) : null}
             {hole.description ? (

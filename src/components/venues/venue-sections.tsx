@@ -9,6 +9,7 @@ import { getArticlesForChampionship } from "@/lib/data/articles";
 import type { CourseGuide } from "@/lib/data/course-guide";
 import { isStillToCome } from "@/lib/data/championship-timing";
 import { cn, ordinal } from "@/lib/utils";
+import { holeList } from "@/lib/course-guide-extremes";
 import type { Venue } from "@/types/venue";
 import type { ChampionshipWinner } from "@/types/championship";
 import type { Article } from "@/types/article";
@@ -69,7 +70,11 @@ export function VenueCourseCard({ venue, guide }: { venue: Venue; guide: CourseG
       <div className="flex flex-col gap-2">
         <h2 className="font-menu text-[28px] font-bold uppercase leading-none">The Course</h2>
         <p className="text-sm text-white/80">{venue.parYardage ?? `Par ${totalPar}${yardage}`}</p>
-        {hardest ? <p className="text-sm text-white/80">Hardest hole in Legs Open play: the {ordinal(hardest)}</p> : null}
+        {hardest.length > 0 ? (
+          <p className="text-sm text-white/80">
+            Hardest {hardest.length > 1 ? "holes" : "hole"} in Legs Open play: {holeList(hardest, ordinal)}
+          </p>
+        ) : null}
       </div>
       <Link href={`/venues/${venue.slug}/course`} className={BUTTON}>
         Hole by hole <ArrowRight className="h-4 w-4" />

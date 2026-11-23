@@ -2,6 +2,7 @@ import { getPayload } from "payload";
 
 import configPromise from "@/payload.config";
 import { getToughestHoles } from "@/lib/data/scoring-statistics";
+import { extremeHoles } from "@/lib/course-guide-extremes";
 import { mediaUrl } from "@/lib/utils";
 import type { ChampionshipWinner } from "@/types/championship";
 
@@ -20,8 +21,9 @@ export interface CourseGuideHole {
 
 export interface CourseGuide {
   holes: CourseGuideHole[];
-  hardest?: number;
-  easiest?: number;
+  /** Every hole tied for hardest at the two decimals shown -- usually one, but not always. */
+  hardest: number[];
+  easiest: number[];
   totalPar: number;
   totalYards: number;
   playedCount: number;
@@ -62,15 +64,14 @@ export async function loadCourseGuide(venueSlug: string, championships: Champion
     };
   });
 
-  const scored = holes.filter((h) => h.average !== undefined);
-  const overPar = (h: CourseGuideHole) => h.average! - h.par;
+  const { hardest, easiest } = extremeHoles(holes);
   return {
     holes,
-    hardest: scored.length ? scored.reduce((a, b) => (overPar(b) > overPar(a) ? b : a)).holeNumber : undefined,
-    easiest: scored.length ? scored.reduce((a, b) => (overPar(b) < overPar(a) ? b : a)).holeNumber : undefined,
+    hardest,
+    easiest,
     totalPar: holes.reduce((s, h) => s + h.par, 0),
     totalYards: holes.reduce((s, h) => s + (h.yards ?? 0), 0),
-    playedCount: played.length,
+    playedCount: perChampionship.filter((rows) => rows.some((r) => r.average !== undefined)).length,
     imageCount: holes.filter((h) => h.imageUrl).length,
   };
 }
