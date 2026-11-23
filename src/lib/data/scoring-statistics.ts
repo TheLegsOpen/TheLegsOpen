@@ -37,6 +37,11 @@ export interface HoleToughnessRow {
 interface PlayerHoleScores {
   player: Player;
   scoreByHole: (number | undefined)[];
+  /**
+   * True for a hole the player will never score: picked up (marked no return) or left unplayed
+   * after withdrawing. Different from a hole simply not reached yet in a live round.
+   */
+  lostHoles: boolean[];
 }
 
 /** Strokes Gained is the only stat here with genuine fractional values (field averages are rarely whole numbers). */
@@ -116,7 +121,8 @@ const getPlayerScoresByMode = cache(async function getPlayerScoresByMode(
       const strokes = doc.holes?.[i]?.strokes;
       return strokes == null ? undefined : strokes - strokesReceived[i];
     });
-    return { player, scoreByHole };
+    const lostHoles = holeInfos.map((_, i) => doc.holes?.[i]?.strokes == null && (Boolean(doc.holes?.[i]?.noReturn) || Boolean(doc.withdrawn)));
+    return { player, scoreByHole, lostHoles };
   });
 
   return { holeInfos, playerScores };
@@ -146,7 +152,7 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   const frontNineRows: StatRow[] = [];
   const backNineRows: StatRow[] = [];
 
-  for (const { player, scoreByHole } of playerScores) {
+  for (const { player, scoreByHole, lostHoles } of playerScores) {
     // A nine counts once every hole in it has a score, even if the player picked up later in the
     // round: a no-return's completed front nine is a real front nine.
     for (const [rows, start] of [[frontNineRows, 0], [backNineRows, 9]] as const) {
@@ -185,9 +191,14 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
       if (fieldAverage !== undefined) strokesGainedTotal += fieldAverage - score;
     });
 
+    // A total over a set of holes is only comparable when none of them was lost. A no-return's par-3
+    // total with one par 3 missing read -1 and topped the 2026 table above a dozen complete ones,
+    // so a player who picked up on (or withdrew before) a par 3 has no par-3 total at all. A hole
+    // not yet reached in a live round is not lost, so the tables still fill in as play goes on.
     ([3, 4, 5] as const).forEach((par) => {
       const { sum, count } = parTotals[par];
       if (count === 0) return;
+      if (holeInfos.some((info, i) => info.par === par && lostHoles[i])) return;
       parBuckets[par].push({ player, value: sum, display: formatToPar(sum) });
     });
 
@@ -195,6 +206,9 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
       birdieOrBetterRows.push({ player, value: birdieOrBetterCount, display: String(birdieOrBetterCount) });
       parCountRows.push({ player, value: parCount, display: String(parCount) });
       bogeyOrWorseRows.push({ player, value: bogeyOrWorseCount, display: String(bogeyOrWorseCount) });
+    }
+    // Strokes gained is a total over the holes played, so the same rule: a lost hole leaves it short.
+    if (holesPlayed > 0 && !lostHoles.some(Boolean)) {
       // Stored negated so ascending sort (matching every other category here) still ranks best-first,
       // and scorePillClass's under/level/over colouring reads correctly (gained shots = "under par" = red).
       strokesGainedRows.push({ player, value: -strokesGainedTotal, display: formatDecimalToPar(strokesGainedTotal) });
@@ -394,8 +408,12 @@ const getPlayerSkillHoles = cache(async function getPlayerSkillHoles(
 
   const players = scorecards.docs.map((doc) => {
     const player = mapPlayer(doc.player as PayloadPlayer);
-    const fairwayHitByHole = holeInfos.map((_, i) => (doc.holes?.[i]?.strokes != null ? Boolean(doc.holes[i]?.fairwayHit) : undefined));
-    const girByHole = holeInfos.map((_, i) => (doc.holes?.[i]?.strokes != null ? Boolean(doc.holes[i]?.greenInRegulation) : undefined));
+    // Blank is "not recorded", not "missed". Nobody has entered a fairway or green on any card yet,
+    // and reading blank as false ranked the whole 2026 field joint first on 0/14 fairways and 0/18
+    // greens. A hole only counts once the box has actually been set one way or the other.
+    const recorded = (v: boolean | null | undefined) => (v == null ? undefined : v);
+    const fairwayHitByHole = holeInfos.map((_, i) => (doc.holes?.[i]?.strokes != null ? recorded(doc.holes[i]?.fairwayHit) : undefined));
+    const girByHole = holeInfos.map((_, i) => (doc.holes?.[i]?.strokes != null ? recorded(doc.holes[i]?.greenInRegulation) : undefined));
     const puttsByHole = holeInfos.map((_, i) => (doc.holes?.[i]?.strokes != null ? (doc.holes[i]?.putts ?? undefined) : undefined));
     return { player, fairwayHitByHole, girByHole, puttsByHole };
   });

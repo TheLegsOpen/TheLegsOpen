@@ -84,6 +84,8 @@ interface PlayerYearScores {
   player: Player;
   championshipId: string;
   scoreByHole: (number | undefined)[];
+  /** Holes this card will never score: picked up (no return) or unplayed after a withdrawal. */
+  lostHoles: boolean[];
 }
 
 function scoresForMode(mode: ScoringMode, inputs: CareerInputs): PlayerYearScores[] {
@@ -101,7 +103,8 @@ function scoresForMode(mode: ScoringMode, inputs: CareerInputs): PlayerYearScore
         const strokes = doc.holes?.[i]?.strokes;
         return strokes == null ? undefined : strokes - strokesReceived[i];
       });
-      out.push({ player, championshipId, scoreByHole });
+      const lostHoles = holeInfos.map((_, i) => doc.holes?.[i]?.strokes == null && (Boolean(doc.holes?.[i]?.noReturn) || Boolean(doc.withdrawn)));
+      out.push({ player, championshipId, scoreByHole, lostHoles });
     }
   }
   return out;
@@ -157,10 +160,16 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
     let bogeyOrWorseCount = 0;
     let strokesGainedTotal = 0;
     let holesPlayed = 0;
+    let strokesGainedYears = 0;
 
     for (const entry of entries) {
       const holeInfos = inputs.holeInfosByChampionship.get(entry.championshipId) ?? [];
       const fieldAverage = fieldAverages.get(entry.championshipId) ?? [];
+      // As in scoring-statistics.ts: a year where a hole was lost (picked up, or withdrawn before it)
+      // adds nothing to the totals that hole belongs to, rather than a short total that looks good.
+      const lostPar = (par: number) => holeInfos.some((info, i) => info.par === par && entry.lostHoles[i]);
+      const countsForStrokesGained = !entry.lostHoles.some(Boolean);
+      if (countsForStrokesGained) strokesGainedYears += 1;
 
       holeInfos.forEach((info, i) => {
         const score = entry.scoreByHole[i];
@@ -169,7 +178,7 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
 
         const relative = score - info.par;
         const par = info.par as 3 | 4 | 5;
-        if (par === 3 || par === 4 || par === 5) {
+        if ((par === 3 || par === 4 || par === 5) && !lostPar(par)) {
           parTotals[par].sum += relative;
           parTotals[par].count += 1;
         }
@@ -179,7 +188,7 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
         else bogeyOrWorseCount += 1;
 
         const average = fieldAverage[i];
-        if (average !== undefined) strokesGainedTotal += average - score;
+        if (average !== undefined && countsForStrokesGained) strokesGainedTotal += average - score;
       });
     }
 
@@ -193,6 +202,8 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
       birdieOrBetterRows.push({ player, value: birdieOrBetterCount, display: String(birdieOrBetterCount) });
       parCountRows.push({ player, value: parCount, display: String(parCount) });
       bogeyOrWorseRows.push({ player, value: bogeyOrWorseCount, display: String(bogeyOrWorseCount) });
+    }
+    if (holesPlayed > 0 && strokesGainedYears > 0) {
       strokesGainedRows.push({ player, value: -strokesGainedTotal, display: formatDecimalToPar(strokesGainedTotal) });
     }
   }
@@ -293,8 +304,10 @@ function skillEntries(inputs: CareerInputs): PlayerSkillEntry[] {
     const holeInfos = inputs.holeInfosByChampionship.get(championshipId) ?? [];
     for (const doc of docs) {
       const player = mapPlayer(doc.player as PayloadPlayer);
-      const fairwayHitByHole = holeInfos.map((_, i) => (doc.holes?.[i]?.strokes != null ? Boolean(doc.holes[i]?.fairwayHit) : undefined));
-      const girByHole = holeInfos.map((_, i) => (doc.holes?.[i]?.strokes != null ? Boolean(doc.holes[i]?.greenInRegulation) : undefined));
+      // Blank is "not recorded", not "missed" -- see the same note in scoring-statistics.ts.
+      const recorded = (v: boolean | null | undefined) => (v == null ? undefined : v);
+      const fairwayHitByHole = holeInfos.map((_, i) => (doc.holes?.[i]?.strokes != null ? recorded(doc.holes[i]?.fairwayHit) : undefined));
+      const girByHole = holeInfos.map((_, i) => (doc.holes?.[i]?.strokes != null ? recorded(doc.holes[i]?.greenInRegulation) : undefined));
       const puttsByHole = holeInfos.map((_, i) => (doc.holes?.[i]?.strokes != null ? (doc.holes[i]?.putts ?? undefined) : undefined));
       out.push({ player, championshipId, fairwayHitByHole, girByHole, puttsByHole });
     }
