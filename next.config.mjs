@@ -44,6 +44,12 @@ const nextConfig = {
         destination: "/latest/alistair-campbell-2013-in-numbers",
         permanent: true,
       },
+      // Tom Sinton's address was misspelt "tam-sinton" until November 2026.
+      {
+        source: "/players/tam-sinton",
+        destination: "/players/tom-sinton",
+        permanent: true,
+      },
     ];
   },
   // Lets the on-course scoring app be tested over the LAN (phone/laptop on the same WiFi hitting
