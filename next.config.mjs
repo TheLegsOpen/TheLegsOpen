@@ -39,6 +39,11 @@ const nextConfig = {
         destination: "/players/alistair-campbell",
         permanent: true,
       },
+      {
+        source: "/latest/alastair-campbell-2013-in-numbers",
+        destination: "/latest/alistair-campbell-2013-in-numbers",
+        permanent: true,
+      },
     ];
   },
   // Lets the on-course scoring app be tested over the LAN (phone/laptop on the same WiFi hitting

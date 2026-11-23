@@ -129,7 +129,7 @@ export function Footer({ logoUrl, patrons, officialSuppliers, socialLinks, legal
             {SITE.name}
           </Link>
           <p>
-            © {new Date().getFullYear()} Legs Open Championships Ltd.
+            © {new Date().getFullYear()} The Legs Open Championship.
           </p>
         </Container>
       </div>
