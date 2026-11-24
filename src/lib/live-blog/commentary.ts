@@ -537,8 +537,13 @@ export function winnerConfirmedCommentary(playerName: string, competitionLabel: 
   return { headline, body };
 }
 
-export function clubhouseLeaderCommentary(playerName: string, toPar: number): Commentary {
+/** `first` is the first card of the day: there is no one to take over from, so none of the
+ * "new leader" lines fit -- David Clee, first in at Southerness in 2016, was said to "take over". */
+export function clubhouseLeaderCommentary(playerName: string, toPar: number, first = false): Commentary {
   const headline = pick(["Clubhouse leader", `${playerName.split(" ").slice(-1)[0]} sets the target`]);
+  if (first) {
+    return { headline, body: `${playerName} is first into the clubhouse, on ${formatToPar(toPar)} — the target for those still out on the course.` };
+  }
   const body = pick([
     `${playerName} is the new clubhouse leader at ${formatToPar(toPar)} — the target for those still out on the course.`,
     `${playerName} posts ${formatToPar(toPar)} to take over as clubhouse leader.`,
@@ -559,8 +564,11 @@ export function clubhouseShareCommentary(playerName: string, toPar: number, shar
 }
 
 /** Mirrors clubhouseLeaderCommentary but for gross/Scratch -- the tournament's best gross round so far, live. */
-export function bestGrossRoundCommentary(playerName: string, toPar: number): Commentary {
+export function bestGrossRoundCommentary(playerName: string, toPar: number, first = false): Commentary {
   const headline = pick(["Best of the day (gross)", `${playerName.split(" ").slice(-1)[0]} sets the Scratch target`]);
+  if (first) {
+    return { headline, body: `${playerName} is first in with a gross round, ${formatToPar(toPar)} — the Scratch target.` };
+  }
   const body = pick([
     `${playerName} posts the lowest gross round of the day so far, ${formatToPar(toPar)} — the new Scratch target.`,
     `That's the new mark to beat, gross — ${playerName} leads the Scratch clubhouse at ${formatToPar(toPar)}.`,

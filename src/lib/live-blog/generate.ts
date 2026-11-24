@@ -864,7 +864,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         const { headline: chHeadline, body: chBody } =
           sharingClubhouseWith.length > 0
             ? clubhouseShareCommentary(player.name, bestFinished.toPar ?? 0, sharingClubhouseWith)
-            : clubhouseLeaderCommentary(player.name, bestFinished.toPar ?? 0);
+            : clubhouseLeaderCommentary(player.name, bestFinished.toPar ?? 0, finishedEntries.length === 1);
         await publish({
           category: "clubhouse-leader",
           championshipId: championshipId as string,
@@ -910,7 +910,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         const { headline: bgHeadline, body: bgBody } =
           sharingBestGrossWith.length > 0
             ? clubhouseShareCommentary(player.name, bestGrossFinished.toPar ?? 0, sharingBestGrossWith, true)
-            : bestGrossRoundCommentary(player.name, bestGrossFinished.toPar ?? 0);
+            : bestGrossRoundCommentary(player.name, bestGrossFinished.toPar ?? 0, finishedScratchEntries.length === 1);
         await publish({
           category: "best-gross-round",
           championshipId: championshipId as string,

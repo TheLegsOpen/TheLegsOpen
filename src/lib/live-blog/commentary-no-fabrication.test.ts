@@ -164,12 +164,12 @@ const SAMPLE_ARGS: Record<string, unknown[][]> = {
     ["Test Player", "Main", "-2"],
     ["Test Player", "Main", "-2", "Beat Runner Up in the playoff, -2 to E."],
   ],
-  clubhouseLeaderCommentary: [["Test Player", -2]],
+  clubhouseLeaderCommentary: [["Test Player", -2], ["Test Player", -2, true]],
   clubhouseShareCommentary: [
     ["Test Player", -2, ["Other Player"]],
     ["Test Player", 4, ["Other Player", "Third Player"], true],
   ],
-  bestGrossRoundCommentary: [["Test Player", 5]],
+  bestGrossRoundCommentary: [["Test Player", 5], ["Test Player", 5, true]],
   courseRecordPaceCommentary: [["Test Player", "Test Venue", 12, 65, "Prior Holder", 2019]],
   courseRecordCommentary: [
     ["Test Player", "Test Venue", 64, -8, "Prior Holder", 2019, false],
@@ -211,4 +211,15 @@ describe("commentary copy never asserts invented shot detail", () => {
       }
     });
   }
+});
+
+describe("the first card into the clubhouse", () => {
+  it("never says the player took over from anyone", () => {
+    for (let i = 0; i < 20; i++) {
+      const nett = commentary.clubhouseLeaderCommentary("David Clee", 17, true).body;
+      const gross = commentary.bestGrossRoundCommentary("David Clee", 32, true).body;
+      expect(nett).toBe("David Clee is first into the clubhouse, on +17 — the target for those still out on the course.");
+      expect(gross).toBe("David Clee is first in with a gross round, +32 — the Scratch target.");
+    }
+  });
 });
