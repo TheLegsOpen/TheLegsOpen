@@ -29,14 +29,23 @@ interface Career {
 
 function summarise(player: Player, results: PlayerYearResult[]): Career {
   const completed = results.filter((r) => !r.main.noReturn && !r.main.withdrawn);
-  const best = completed.length ? completed.reduce((a, b) => (b.position < a.position ? b : a)) : undefined;
+  // Every year that matched the best finish, not just the first found: Clee won in 2015 and 2016,
+  // and "1 (2015)" read as though he had won once. Grouped by label, since a best of second can be
+  // an outright 2 one year and a T2 another (Hamilton, 2025 and 2015).
+  const bestPosition = completed.length ? Math.min(...completed.map((r) => r.position)) : undefined;
+  const byLabel = new Map<string, number[]>();
+  for (const r of completed.filter((r) => r.position === bestPosition).sort((x, y) => x.year - y.year)) {
+    const label = r.finish === "Winner" ? "1" : r.finish;
+    byLabel.set(label, [...(byLabel.get(label) ?? []), r.year]);
+  }
+  const bestFinish = byLabel.size ? [...byLabel].map(([label, years]) => `${label} (${years.join(", ")})`).join(", ") : undefined;
   const nett = completed.map((r) => r.main.score).filter((s): s is number => s !== undefined);
   const stableford = results.map((r) => r.stableford?.score).filter((s): s is number => s !== undefined);
   const gross = results.filter((r) => !r.scratch?.noReturn).map((r) => r.scratch?.score).filter((s): s is number => s !== undefined);
   return {
     appearances: player.previousOpens + results.length,
     wins: results.filter((r) => r.finish === "Winner").length,
-    bestFinish: best ? `${best.finish === "Winner" ? "1" : best.finish} (${best.year})` : undefined,
+    bestFinish,
     averageNett: nett.length ? nett.reduce((a, b) => a + b, 0) / nett.length : undefined,
     bestStableford: stableford.length ? Math.max(...stableford) : undefined,
     bestGross: gross.length ? Math.min(...gross) : undefined,
