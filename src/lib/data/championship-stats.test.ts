@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { championAfterNine, runningTotalsByPlayer } from "@/lib/data/championship-stats";
+import { championAfterNine, resolveCompetitionWinner, runningTotalsByPlayer } from "@/lib/data/championship-stats";
 import type { CompetitionEntry, HoleScore } from "@/lib/data/scorecards";
 import type { Player } from "@/types/player";
 
@@ -53,5 +53,24 @@ describe("championAfterNine", () => {
   it("gives the champion's own gap to the leader when behind", () => {
     const totals = runningTotalsByPlayer([entry("champ", nine(2)), entry("second", nine(1)), entry("leader", nine(-3))]);
     expect(championAfterNine(totals, "champ")).toEqual({ ledOutright: false, deficit: 5 });
+  });
+});
+
+describe("resolveCompetitionWinner", () => {
+  const finished = (id: string, toPar: number): CompetitionEntry => ({ ...entry(id, []), toPar, score: 70 + toPar });
+
+  it("names everyone sharing second, not just the first of them (2022, four on 74)", () => {
+    const result = resolveCompetitionWinner(
+      [finished("Swan", 0), finished("Scott", 2), finished("Eadie", 2), finished("Duncan", 2), finished("Sinton", 2), finished("Donaldson", 4)],
+      "main",
+      new Set(),
+    );
+    expect(result.winner?.name).toBe("Swan");
+    expect(result.runnersUp?.map((e) => e.player.name)).toEqual(["Scott", "Eadie", "Duncan", "Sinton"]);
+  });
+
+  it("names a lone runner-up alone", () => {
+    const result = resolveCompetitionWinner([finished("Duncan", 0), finished("Hamilton", 2), finished("Taylor", 6)], "main", new Set());
+    expect(result.runnersUp?.map((e) => e.player.name)).toEqual(["Hamilton"]);
   });
 });

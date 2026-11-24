@@ -104,6 +104,8 @@ export interface WinnerResolution {
   winner?: Player;
   winnerEntry?: CompetitionEntry;
   runnerUp?: CompetitionEntry;
+  /** Everyone who shares second place -- runnerUp alone names just the first of them. After a tiebreak this is only the player who lost it. */
+  runnersUp?: CompetitionEntry[];
   viaTiebreak: boolean;
   /** The deciding tiebreak's full step-by-step countback, when viaTiebreak is true -- lets a caller show the actual scores that decided it (e.g. "-2 to E"), not just who won. */
   steps?: TiebreakStepResult[];
@@ -142,15 +144,15 @@ export function resolveCompetitionWinner(entries: CompetitionEntry[], competitio
     if (eligible.length === 0) continue; // whole group excluded -- check the next-best group
 
     if (eligible.length === 1) {
-      const runnerUp = group.length > 1 ? group.find((e) => e.player.id !== eligible[0].player.id) : groups[i + 1]?.[0];
-      return { winner: eligible[0].player, winnerEntry: eligible[0], runnerUp, viaTiebreak: false };
+      const runnersUp = group.length > 1 ? group.filter((e) => e.player.id !== eligible[0].player.id) : (groups[i + 1] ?? []);
+      return { winner: eligible[0].player, winnerEntry: eligible[0], runnerUp: runnersUp[0], runnersUp, viaTiebreak: false };
     }
 
     const { winner, stillTied, steps } = resolveTiebreak(eligible, competition);
     if (!winner || stillTied) return { viaTiebreak: false }; // genuinely shared title -- don't guess
     const winnerEntry = eligible.find((e) => e.player.id === winner.id);
     const runnerUp = eligible.find((e) => e.player.id !== winner.id);
-    return { winner, winnerEntry, runnerUp, viaTiebreak: true, steps, tiedEntries: eligible };
+    return { winner, winnerEntry, runnerUp, runnersUp: runnerUp ? [runnerUp] : [], viaTiebreak: true, steps, tiedEntries: eligible };
   }
 
   return { viaTiebreak: false };
@@ -184,7 +186,9 @@ export async function computeChampionshipAutoStats(payload: Payload, championshi
   stats.scoreToPar = winnerEntry.toPar;
 
   if (mainResult.runnerUp) {
-    stats.runnerUpName = mainResult.runnerUp.player.name;
+    // Every name when several share second (2022 had four on 74), joined as the Records page
+    // joins tied names -- the first of them alone read as the sole runner-up.
+    stats.runnerUpName = (mainResult.runnersUp ?? [mainResult.runnerUp]).map((e) => e.player.name).join(", ");
     stats.runnerUpScore = mainResult.runnerUp.score;
   }
   if (mainResult.viaTiebreak) {
