@@ -234,3 +234,11 @@ describe("movement posts and shared places", () => {
     }
   });
 });
+
+describe("no-return posts", () => {
+  it("use a real dash, not a typed double hyphen", () => {
+    for (let i = 0; i < 20; i++) {
+      expect(commentary.noReturnCommentary("Mark Alston", 17).body).not.toMatch(/ -- /);
+    }
+  });
+});

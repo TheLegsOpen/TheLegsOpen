@@ -291,8 +291,8 @@ export function defendingChampionUnderwayCommentary(playerName: string, holeNumb
 export function noReturnCommentary(playerName: string, holeNumber: number): Commentary {
   const headline = pick(["Picked up", `${playerName.split(" ").slice(-1)[0]} picks up`]);
   const body = pick([
-    `${playerName} picks up at the ${ordinal(holeNumber)} and is out of the Main and Scratch competitions -- still live in the Stableford.`,
-    `A no-return at the ${ordinal(holeNumber)} for ${playerName}, who's now out of contention for Main and Scratch -- the Stableford points keep counting.`,
+    `${playerName} picks up at the ${ordinal(holeNumber)} and is out of the Main and Scratch competitions — still live in the Stableford.`,
+    `A no-return at the ${ordinal(holeNumber)} for ${playerName}, who's now out of contention for Main and Scratch — the Stableford points keep counting.`,
   ]);
   return { headline, body };
 }

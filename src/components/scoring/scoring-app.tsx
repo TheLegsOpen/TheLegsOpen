@@ -406,7 +406,7 @@ export function ScoringApp({
             <h1 className="font-display text-xl font-bold">
               {view === "turn-review"
                 ? "Front 9 review"
-                : "Round complete -- review"}
+                : "Round complete — review"}
             </h1>
           </div>
           <div className="flex items-center gap-3">
