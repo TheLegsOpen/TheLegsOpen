@@ -164,13 +164,27 @@ function clockLabel(firstTeeTime: string, minute: number): string {
   return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 
-export function LeaderboardReplay({ replay }: { replay: ChampionshipReplay }) {
+/** The official end-of-championship boards, shown on the replay's last minute. See getFinalBoards. */
+export interface FinalBoards {
+  main: CompetitionEntry[];
+  stableford: CompetitionEntry[];
+  scratch: CompetitionEntry[];
+  stablefordTitleHolderId?: string;
+}
+
+export function LeaderboardReplay({ replay, finalBoards }: { replay: ChampionshipReplay; finalBoards?: FinalBoards }) {
   const [minute, setMinute] = useState(replay.durationMinutes);
   const [competition, setCompetition] = useState<Competition>("main");
   const [playing, setPlaying] = useState(false);
   const { favorites, toggleFavorite } = useFavorites();
 
-  const entries = useMemo(() => boardAt(replay, competition, minute), [replay, competition, minute]);
+  // On the last minute the round is over, and the official boards take over: a round that ended
+  // level then shows who won the playoff or tiebreak, as "Final" promises.
+  const atEnd = minute >= replay.durationMinutes && Boolean(finalBoards);
+  const entries = useMemo(
+    () => (atEnd && finalBoards ? finalBoards[competition] : boardAt(replay, competition, minute)),
+    [atEnd, finalBoards, replay, competition, minute],
+  );
 
   // The Main champion never also takes the Stableford title -- the same rule the live leaderboard
   // applies, and it only comes into force once Main has actually concluded.
@@ -178,8 +192,16 @@ export function LeaderboardReplay({ replay }: { replay: ChampionshipReplay }) {
     () => (competition === "stableford" ? boardAt(replay, "main", minute) : undefined),
     [replay, competition, minute],
   );
+  // Stableford only: the Main champion cannot also take it. Applied to the other boards, it
+  // marked Leisegang ineligible for the Main he had just won.
   const mainChampionId =
-    mainEntries && isConcluded(mainEntries) ? mainEntries.find((e) => e.position === 1 && !e.tied)?.player.id : undefined;
+    competition !== "stableford"
+      ? undefined
+      : atEnd && finalBoards
+        ? finalBoards.main.find((e) => e.position === 1 && !e.tied)?.player.id
+        : mainEntries && isConcluded(mainEntries)
+          ? mainEntries.find((e) => e.position === 1 && !e.tied)?.player.id
+          : undefined;
 
   useEffect(() => {
     if (!playing) return;
@@ -280,6 +302,7 @@ export function LeaderboardReplay({ replay }: { replay: ChampionshipReplay }) {
           favoritesOnly={false}
           onSelectPlayer={() => {}}
           excludeFromTitle={mainChampionId}
+          titleHolderId={atEnd && competition === "stableford" ? finalBoards?.stablefordTitleHolderId : undefined}
         />
         </div>
 
