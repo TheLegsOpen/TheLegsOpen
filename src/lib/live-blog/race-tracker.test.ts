@@ -167,6 +167,12 @@ describe("diffPositionMovement", () => {
     );
   });
 
+  it("carries whether each place was shared", () => {
+    const before = [makeEntry({ player: makePlayer("a"), position: 12 })];
+    const after = [makeEntry({ player: makePlayer("a"), position: 1, tied: true })];
+    expect(diffPositionMovement(before, after, "a")).toEqual(expect.objectContaining({ kind: "enter-top-5", position: 1, tied: true }));
+  });
+
   it("ignores a player who hasn't started yet", () => {
     const notStarted = [makeEntry({ player: makePlayer("a"), position: 20, started: false })];
     const started = [makeEntry({ player: makePlayer("a"), position: 5, started: true })];

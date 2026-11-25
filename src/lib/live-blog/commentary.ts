@@ -472,29 +472,34 @@ export function aceCommentary(playerName: string, holeNumber: number): Commentar
  * nett result), when known, name what caused the move -- matches bigDropCommentary naming the
  * mistake behind a fall. Omitted when the move spans a save with no single clear cause (e.g. a
  * position change with nothing better than par this save). */
-export function enterTopCommentary(playerName: string, topN: number, position: number, gainLabel?: string, gainHole?: number): Commentary {
+/** "tied 3rd" for a shared place, "3rd" for one held alone. */
+function placeLabel(position: number, tied?: boolean): string {
+  return `${tied ? "tied " : ""}${ordinal(position)}`;
+}
+
+export function enterTopCommentary(playerName: string, topN: number, position: number, gainLabel?: string, gainHole?: number, tied?: boolean): Commentary {
   const cause = gainLabel && gainHole ? ` after a ${gainLabel} at the ${ordinal(gainHole)}` : "";
   const headline = pick([`Into the top ${topN}`, `${playerName.split(" ").slice(-1)[0]} breaks into the top ${topN}`]);
   const body = pick([
-    `${playerName} moves into the top ${topN}${cause}, up to ${ordinal(position)}.`,
-    `A big move — ${playerName} climbs into the top ${topN} at ${ordinal(position)}${cause}.`,
+    `${playerName} moves into the top ${topN}${cause}, up to ${placeLabel(position, tied)}.`,
+    `A big move — ${playerName} climbs into the top ${topN} at ${placeLabel(position, tied)}${cause}.`,
   ]);
   return { headline, body };
 }
 
-export function bigGainCommentary(playerName: string, positionsGained: number, position: number, gainLabel?: string, gainHole?: number): Commentary {
+export function bigGainCommentary(playerName: string, positionsGained: number, position: number, gainLabel?: string, gainHole?: number, tied?: boolean): Commentary {
   const cause = gainLabel && gainHole ? ` with a ${gainLabel} at the ${ordinal(gainHole)}` : "";
   const headline = pick(["Big mover", `${playerName.split(" ").slice(-1)[0]} surges up the board`]);
   const body = pick([
-    `${playerName} climbs ${positionsGained} places to ${ordinal(position)}${cause}.`,
-    `A real surge — ${playerName} moves up ${positionsGained} spots to ${ordinal(position)}${cause}.`,
+    `${playerName} climbs ${positionsGained} places to ${placeLabel(position, tied)}${cause}.`,
+    `A real surge — ${playerName} moves up ${positionsGained} spots to ${placeLabel(position, tied)}${cause}.`,
   ]);
   return { headline, body };
 }
 
 /** `missLabel` (e.g. "double bogey"), when known, names the mistake that caused the fall -- matches the pattern the field's example used ("A costly double bogey drops ... from second to eighth."). `missHole`, when also known, names where. */
-export function bigDropCommentary(playerName: string, beforePosition: number, afterPosition: number, missLabel?: string, missHole?: number): Commentary {
-  const fromTo = `from ${ordinal(beforePosition)} to ${ordinal(afterPosition)}`;
+export function bigDropCommentary(playerName: string, beforePosition: number, afterPosition: number, missLabel?: string, missHole?: number, beforeTied?: boolean, afterTied?: boolean): Commentary {
+  const fromTo = `from ${placeLabel(beforePosition, beforeTied)} to ${placeLabel(afterPosition, afterTied)}`;
   const at = missHole ? ` at the ${ordinal(missHole)}` : "";
   const headline = pick(["Costly spell", `${playerName.split(" ").slice(-1)[0]} slips back`]);
   const body = missLabel

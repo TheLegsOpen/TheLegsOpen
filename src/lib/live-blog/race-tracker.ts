@@ -147,6 +147,10 @@ export interface MovementCandidate {
   beforePosition: number;
   position: number;
   positionsChanged: number;
+  /** Whether each place is shared. Without them a player level with three others read "up to 1st"
+   * (Colin Hart, 2026) in the same minute as the post saying he had drawn level. */
+  beforeTied?: boolean;
+  tied?: boolean;
 }
 
 const BIG_MOVE_THRESHOLD = 5;
@@ -184,7 +188,7 @@ export function diffPositionMovement(
 
   const gained = before.position - after.position;
   if (gained > 0) {
-    const base = { playerId, playerName: after.player.name, beforePosition: before.position, position: after.position, positionsChanged: gained };
+    const base = { playerId, playerName: after.player.name, beforePosition: before.position, position: after.position, positionsChanged: gained, beforeTied: before.tied, tied: after.tied };
     if (before.position > 5 && after.position <= 5 && withinStrikingDistance) return { ...base, kind: "enter-top-5" };
     if (before.position > 10 && after.position <= 10 && withinStrikingDistance) return { ...base, kind: "enter-top-10" };
     if (gained >= BIG_MOVE_THRESHOLD) return { ...base, kind: "big-gain" };
@@ -193,7 +197,7 @@ export function diffPositionMovement(
 
   const dropped = after.position - before.position;
   if (dropped >= BIG_MOVE_THRESHOLD) {
-    return { kind: "big-drop", playerId, playerName: after.player.name, beforePosition: before.position, position: after.position, positionsChanged: dropped };
+    return { kind: "big-drop", playerId, playerName: after.player.name, beforePosition: before.position, position: after.position, positionsChanged: dropped, beforeTied: before.tied, tied: after.tied };
   }
   return undefined;
 }

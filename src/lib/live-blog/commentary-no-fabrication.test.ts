@@ -223,3 +223,14 @@ describe("the first card into the clubhouse", () => {
     }
   });
 });
+
+describe("movement posts and shared places", () => {
+  it("says tied when the place is shared, and not when it is held alone", () => {
+    for (let i = 0; i < 20; i++) {
+      expect(commentary.enterTopCommentary("Colin Hart", 5, 1, "birdie", 3, true).body).toMatch(/tied 1st/);
+      expect(commentary.enterTopCommentary("Colin Hart", 5, 1, "birdie", 3, false).body).not.toMatch(/tied/);
+      expect(commentary.bigGainCommentary("David Clee", 6, 21, "birdie", 4, true).body).toMatch(/to tied 21st/);
+      expect(commentary.bigDropCommentary("Andrew Duncan", 1, 32, "double bogey", 2, true, false).body).toMatch(/from tied 1st to 32nd/);
+    }
+  });
+});

@@ -1117,7 +1117,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
     if (movement) {
       const gainLabel = bestRelativeThisSave !== undefined ? birdieGainLabel(bestRelativeThisSave) : undefined;
       if (movement.kind === "enter-top-5" || movement.kind === "enter-top-10") {
-        const { headline, body } = enterTopCommentary(player.name, movement.kind === "enter-top-5" ? 5 : 10, movement.position, gainLabel, bestHoleThisSave);
+        const { headline, body } = enterTopCommentary(player.name, movement.kind === "enter-top-5" ? 5 : 10, movement.position, gainLabel, bestHoleThisSave, movement.tied);
         await publish({
           category: "moving-up",
           championshipId: championshipId as string,
@@ -1136,7 +1136,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
           },
         });
       } else if (movement.kind === "big-gain") {
-        const { headline, body } = bigGainCommentary(player.name, movement.positionsChanged, movement.position, gainLabel, bestHoleThisSave);
+        const { headline, body } = bigGainCommentary(player.name, movement.positionsChanged, movement.position, gainLabel, bestHoleThisSave, movement.tied);
         await publish({
           category: "moving-up",
           championshipId: championshipId as string,
@@ -1156,7 +1156,7 @@ export const generateLiveBlogPosts: CollectionAfterChangeHook<Scorecard> = async
         });
       } else if (movement.kind === "big-drop") {
         const missLabel = worstRelativeThisSave !== undefined ? bogeyMissLabel(worstRelativeThisSave) : undefined;
-        const { headline, body } = bigDropCommentary(player.name, movement.beforePosition, movement.position, missLabel, worstHoleThisSave);
+        const { headline, body } = bigDropCommentary(player.name, movement.beforePosition, movement.position, missLabel, worstHoleThisSave, movement.beforeTied, movement.tied);
         await publish({
           category: "moving-down",
           championshipId: championshipId as string,
