@@ -36,5 +36,10 @@ const PREVIEW_SCORING_KEYS = [
 ];
 
 export function previewCategories(categories: StatCategory[], mode: "nett" | "scratch"): StatCategory[] {
-  return PREVIEW_SCORING_KEYS.flatMap((key) => categories.filter((c) => c.key === `${key}-${mode}`));
+  return PREVIEW_SCORING_KEYS.flatMap((key) => categories.filter((c) => c.key === `${key}-${mode}`)).filter(
+    // A gross eagle is rare enough that most years' scratch card would read "No eagles.", so it
+    // only previews in a year that had one. The table lists only players who made an eagle, so
+    // empty means none. Still in the explorer either way.
+    (c) => !(c.key === "most-eagles-or-better-scratch" && c.rows.length === 0),
+  );
 }
