@@ -15,4 +15,6 @@ export interface StatCategory {
   rows: StatRow[];
   /** True for to-par-style values (Par Scoring, Strokes Gained) -- colours the tile red/green/blue like the leaderboard's Par column. Plain counts (birdies, pars, bogeys) leave this unset. */
   useParColoring?: boolean;
+  /** What an empty table says. Defaults to "Nothing recorded yet.", which is wrong for a finished year that simply had no eagles. */
+  emptyMessage?: string;
 }

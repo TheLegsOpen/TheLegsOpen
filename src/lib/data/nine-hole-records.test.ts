@@ -1,8 +1,32 @@
 import { describe, expect, it } from "vitest";
 
-import { assignPositions, birdieToBogeyRow, bounceBack, nineToPar, percentageRow, reverseBounceBack } from "@/lib/data/scoring-statistics";
+import {
+  assignPositions,
+  birdieToBogeyRow,
+  bounceBack,
+  holesPerEagleRow,
+  nineToPar,
+  percentageRow,
+  reverseBounceBack,
+} from "@/lib/data/scoring-statistics";
 import { lowestWithEveryHolder, topWithTies, type ScoreEntry } from "@/lib/data/records";
 import type { StatRow } from "@/lib/statistics";
+
+describe("holesPerEagleRow", () => {
+  const player = { id: "1" } as unknown as StatRow["player"];
+
+  it("divides holes played by eagles, fewest first", () => {
+    const rows = [holesPerEagleRow(player, 18, 1), holesPerEagleRow(player, 14, 1), holesPerEagleRow(player, 36, 2)];
+    expect(rows.map((r) => r.display)).toEqual(["18.0 (1 in 18)", "14.0 (1 in 14)", "18.0 (2 in 36)"]);
+    rows.sort((a, b) => a.value - b.value);
+    assignPositions(rows);
+    expect(rows.map((r) => [r.display, r.position, r.tied])).toEqual([
+      ["14.0 (1 in 14)", 1, false],
+      ["18.0 (1 in 18)", 2, true],
+      ["18.0 (2 in 36)", 2, true],
+    ]);
+  });
+});
 
 describe("percentageRow", () => {
   const player = { id: "1" } as unknown as StatRow["player"];

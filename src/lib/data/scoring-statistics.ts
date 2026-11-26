@@ -97,6 +97,15 @@ export function percentageRow(player: Player, count: number, total: number): Sta
 }
 
 /**
+ * PGA Tour's Eagles (Holes per): holes played divided by eagles or better, fewest first. Only a
+ * player with an eagle has one. Shown to one decimal with the counts, and ranked on that figure.
+ */
+export function holesPerEagleRow(player: Player, holesPlayed: number, eagles: number): StatRow {
+  const perEagle = Math.round((holesPlayed / eagles) * 10) / 10;
+  return { player, value: perEagle, display: `${perEagle.toFixed(1)} (${eagles} in ${holesPlayed})` };
+}
+
+/**
  * PGA Tour's Birdie to Bogey Ratio: birdies or better divided by bogeys or worse, higher is better.
  * Shown with the counts behind it. A round without a bogey has no ratio to show, so it reads as the
  * count alone and ranks above every ratio, more birdies first. Not Infinity: the career tables are
@@ -216,6 +225,8 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   const birdieToBogeyRows: StatRow[] = [];
   const birdieOrBetterPercentRows: StatRow[] = [];
   const bogeyAvoidanceRows: StatRow[] = [];
+  const eagleRows: StatRow[] = [];
+  const holesPerEagleRows: StatRow[] = [];
   const parBirdieRows: Record<3 | 4 | 5, StatRow[]> = { 3: [], 4: [], 5: [] };
 
   for (const { player, scoreByHole, lostHoles } of playerScores) {
@@ -238,6 +249,7 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
     };
     // Birdies or better on each par, out of that par's holes played -- a share, so a no-return's holes count too.
     const parBirdies: Record<3 | 4 | 5, { birdies: number; played: number }> = { 3: { birdies: 0, played: 0 }, 4: { birdies: 0, played: 0 }, 5: { birdies: 0, played: 0 } };
+    let eagleCount = 0;
     let birdieOrBetterCount = 0;
     let parCount = 0;
     let bogeyOrWorseCount = 0;
@@ -260,6 +272,7 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
         parBirdies[par].played += 1;
         if (relative <= -1) parBirdies[par].birdies += 1;
       }
+      if (relative <= -2) eagleCount += 1;
       if (relative <= -1) birdieOrBetterCount += 1;
       else if (relative === 0) parCount += 1;
       else bogeyOrWorseCount += 1;
@@ -288,6 +301,11 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
       // Shares of the holes actually played, so a no-return's shorter card is measured fairly.
       birdieOrBetterPercentRows.push(percentageRow(player, birdieOrBetterCount, holesPlayed));
       bogeyAvoidanceRows.push(percentageRow(player, bogeyOrWorseCount, holesPlayed));
+      // Only players who made one: a table of the whole field on nought would say nothing.
+      if (eagleCount > 0) {
+        eagleRows.push({ player, value: eagleCount, display: String(eagleCount) });
+        holesPerEagleRows.push(holesPerEagleRow(player, holesPlayed, eagleCount));
+      }
     }
     ([3, 4, 5] as const).forEach((par) => {
       const { birdies, played } = parBirdies[par];
@@ -329,6 +347,10 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   // PGA Tour's Bogey Avoidance: the share of holes at bogey or worse, so lower is better.
   bogeyAvoidanceRows.sort((a, b) => a.value - b.value);
   assignPositions(bogeyAvoidanceRows);
+  eagleRows.sort((a, b) => b.value - a.value);
+  assignPositions(eagleRows);
+  holesPerEagleRows.sort((a, b) => a.value - b.value);
+  assignPositions(holesPerEagleRows);
   ([3, 4, 5] as const).forEach((par) => {
     parBirdieRows[par].sort((a, b) => b.value - a.value);
     assignPositions(parBirdieRows[par]);
@@ -349,6 +371,8 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
     { key: `birdie-to-bogey-ratio-${mode}`, title: `Birdie to Bogey Ratio - ${label}`, columnLabel: "RATIO", rows: birdieToBogeyRows },
     { key: `birdie-or-better-percentage-${mode}`, title: `Birdie or Better % - ${label}`, columnLabel: "RATE", rows: birdieOrBetterPercentRows },
     { key: `bogey-avoidance-${mode}`, title: `Bogey Avoidance - ${label}`, columnLabel: "RATE", rows: bogeyAvoidanceRows },
+    { key: `most-eagles-or-better-${mode}`, title: `Most Eagles or Better - ${label}`, columnLabel: "TOTAL", rows: eagleRows, emptyMessage: "No eagles." },
+    { key: `holes-per-eagle-${mode}`, title: `Holes per Eagle - ${label}`, columnLabel: "HOLES", rows: holesPerEagleRows, emptyMessage: "No eagles." },
     ...([3, 4, 5] as const).map((par) => ({
       key: `par-${par}-birdie-or-better-${mode}`,
       title: `Par ${par} Birdie or Better - ${label}`,

@@ -133,7 +133,7 @@ export function StatPreviewCard({
 
       {top.length === 0 ? (
         <div className="flex flex-col items-center gap-1 bg-primary py-8 text-center">
-          <p className="text-sm text-primary-foreground/60">Nothing recorded yet.</p>
+          <p className="text-sm text-primary-foreground/60">{category.emptyMessage ?? "Nothing recorded yet."}</p>
         </div>
       ) : (
         [...top, ...(extra ? [extra] : [])].map((row) => isLeader(row) ? (
