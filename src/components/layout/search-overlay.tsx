@@ -1,46 +1,54 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, X } from "lucide-react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 import { Dialog, DialogPortal, DialogOverlay } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ARTICLES } from "@/data/articles";
-import { VENUES } from "@/data/venues";
-import { PLAYERS } from "@/data/players";
-import { playerSlug } from "@/lib/utils";
 
-interface SearchResult {
+/** One entry in the index served by /api/search, built from the real articles, venues and players in Payload. */
+export interface SearchResult {
   type: "Article" | "Venue" | "Player";
   title: string;
   href: string;
   meta: string;
 }
 
-function buildResults(query: string): SearchResult[] {
+// Up to five of each type, in the index's own order -- articles newest first, venues and players by name.
+// Venues also match on their location, so a town name finds the course there.
+function buildResults(index: SearchResult[], query: string): SearchResult[] {
   const q = query.trim().toLowerCase();
   if (q.length < 2) return [];
 
-  const articleResults: SearchResult[] = ARTICLES.filter((a) => a.title.toLowerCase().includes(q))
-    .slice(0, 5)
-    .map((a) => ({ type: "Article", title: a.title, href: `/latest/${a.slug}`, meta: a.category }));
-
-  const venueResults: SearchResult[] = VENUES.filter((v) => v.name.toLowerCase().includes(q))
-    .slice(0, 5)
-    .map((v) => ({ type: "Venue", title: v.name, href: `/venues/${v.slug}`, meta: v.location }));
-
-  const playerResults: SearchResult[] = PLAYERS.filter((p) => p.name.toLowerCase().includes(q))
-    .slice(0, 5)
-    .map((p) => ({ type: "Player", title: p.name, href: `/players/${playerSlug(p)}`, meta: p.country }));
-
-  return [...articleResults, ...venueResults, ...playerResults];
+  return (["Article", "Venue", "Player"] as const).flatMap((type) =>
+    index
+      .filter((r) => r.type === type && (r.title.toLowerCase().includes(q) || (type === "Venue" && r.meta.toLowerCase().includes(q))))
+      .slice(0, 5),
+  );
 }
 
 export function SearchOverlay({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const [query, setQuery] = useState("");
-  const results = useMemo(() => buildResults(query), [query]);
+  const [index, setIndex] = useState<SearchResult[] | null>(null);
+  const results = useMemo(() => buildResults(index ?? [], query), [index, query]);
+
+  // Loaded the first time the overlay opens rather than with every page, then kept for the rest of
+  // the visit. A failed load leaves it null, so the next open tries again.
+  useEffect(() => {
+    if (!open || index) return;
+    let cancelled = false;
+    fetch("/api/search")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: SearchResult[] | null) => {
+        if (!cancelled && data) setIndex(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [open, index]);
 
   return (
     <Dialog
@@ -75,7 +83,9 @@ export function SearchOverlay({ open, onOpenChange }: { open: boolean; onOpenCha
             </div>
 
             {query.trim().length >= 2 ? (
-              results.length > 0 ? (
+              !index ? (
+                <p className="border-t border-border py-6 text-center text-sm text-muted-foreground">Loading…</p>
+              ) : results.length > 0 ? (
                 <ul className="flex max-h-[60vh] flex-col gap-1 overflow-y-auto border-t border-border pt-3">
                   {results.map((result) => (
                     <li key={`${result.type}-${result.title}`}>
