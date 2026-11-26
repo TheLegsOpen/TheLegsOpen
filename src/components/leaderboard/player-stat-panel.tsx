@@ -74,6 +74,9 @@ function ScoringCards({
   const birdies = findRow(categories, `most-birdies-or-better-${mode}`, playerId);
   const bogeys = findRow(categories, `most-bogeys-or-worse-${mode}`, playerId);
   const strokesGained = findRow(categories, `strokes-gained-${mode}`, playerId);
+  const birdieRate = findRow(categories, `birdie-or-better-percentage-${mode}`, playerId);
+  const bogeyRate = findRow(categories, `bogey-avoidance-${mode}`, playerId);
+  const bounceBack = findRow(categories, `bounce-back-${mode}`, playerId);
 
   return (
     // These three stacked, which is what forced the popup to scroll: each card was 969px wide
@@ -93,6 +96,13 @@ function ScoringCards({
         <StatValue row={birdies} label="Birdies or Better" />
         <StatValue row={bogeys} label="Bogeys or Worse" />
       </StatCard>
+      {/* Shares of the holes played, so a no-return's shorter card compares fairly. Bounce Back is
+          missing for a player who never went over par on a hole with another after it. */}
+      <StatCard title="Hole rates">
+        <StatValue row={birdieRate} label="Birdie or Better" />
+        <StatValue row={bogeyRate} label="Bogey or Worse" />
+        <StatValue row={bounceBack} label="Bounce Back" />
+      </StatCard>
       <StatCard title="Strokes Gained">
         <StatValue row={strokesGained} useParColoring label={`Thru ${formatThru(thru)} of 18 holes`} />
       </StatCard>
@@ -104,9 +114,14 @@ function StreakCards({ categories, playerId }: { categories: StatCategory[]; pla
   const parOrBetter = findRow(categories, "longest-par-or-better-streak-nett", playerId);
   const parStreak = findRow(categories, "longest-par-streak-nett", playerId);
   const bogeyOrWorse = findRow(categories, "longest-bogey-or-worse-streak-nett", playerId);
+  // The under-par table lists only players with a hole under par, so a player who has a streak
+  // row but no under-par row simply never went under: that's 0, not a missing figure.
+  const underPar =
+    findRow(categories, "longest-under-par-streak-nett", playerId) ?? (parOrBetter ? { ...parOrBetter, value: 0, display: "0", position: undefined } : undefined);
 
   return (
     <StatCard title="Longest streaks">
+      <StatValue row={underPar} label="Under Par" />
       <StatValue row={parOrBetter} label="Par or Better" />
       <StatValue row={parStreak} label="Par" />
       <StatValue row={bogeyOrWorse} label="Bogey or Worse" />
