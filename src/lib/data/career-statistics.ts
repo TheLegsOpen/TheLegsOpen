@@ -10,6 +10,7 @@ import { mapPlayer } from "@/lib/data/players";
 import { allocateStrokes } from "@/lib/scoring";
 import {
   assignPositions,
+  birdieToBogeyRow,
   bounceBack,
   bounceBackRow,
   formatDecimalToPar,
@@ -162,6 +163,7 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
   const strokesGainedRows: StatRow[] = [];
   const bounceBackRows: StatRow[] = [];
   const reverseBounceBackRows: StatRow[] = [];
+  const birdieToBogeyRows: StatRow[] = [];
 
   for (const { player, entries } of groupByPlayer(scores).values()) {
     // Pooled over every year: the chances and bounces add up, then the rate is taken once.
@@ -227,6 +229,7 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
       birdieOrBetterRows.push({ player, value: birdieOrBetterCount, display: String(birdieOrBetterCount) });
       parCountRows.push({ player, value: parCount, display: String(parCount) });
       bogeyOrWorseRows.push({ player, value: bogeyOrWorseCount, display: String(bogeyOrWorseCount) });
+      if (birdieOrBetterCount + bogeyOrWorseCount > 0) birdieToBogeyRows.push(birdieToBogeyRow(player, birdieOrBetterCount, bogeyOrWorseCount));
     }
     if (holesPlayed > 0 && strokesGainedYears > 0) {
       strokesGainedRows.push({ player, value: -strokesGainedTotal, display: formatDecimalToPar(strokesGainedTotal) });
@@ -249,6 +252,8 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
   assignPositions(bounceBackRows);
   reverseBounceBackRows.sort((a, b) => a.value - b.value);
   assignPositions(reverseBounceBackRows);
+  birdieToBogeyRows.sort((a, b) => b.value - a.value);
+  assignPositions(birdieToBogeyRows);
 
   const label = mode === "nett" ? "Nett" : "Scratch";
   return [
@@ -260,6 +265,7 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
     { key: `most-bogeys-or-worse-${mode}`, title: "Most Bogeys or Worse", columnLabel: "TOTAL", rows: bogeyOrWorseRows },
     { key: `bounce-back-${mode}`, title: `Bounce Back - ${label}`, columnLabel: "RATE", rows: bounceBackRows },
     { key: `reverse-bounce-back-${mode}`, title: `Reverse Bounce Back - ${label}`, columnLabel: "RATE", rows: reverseBounceBackRows },
+    { key: `birdie-to-bogey-ratio-${mode}`, title: `Birdie to Bogey Ratio - ${label}`, columnLabel: "RATIO", rows: birdieToBogeyRows },
     { key: `strokes-gained-${mode}`, title: "Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
   ];
 }

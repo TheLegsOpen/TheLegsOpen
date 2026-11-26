@@ -95,6 +95,18 @@ export function bounceBackRow(player: Player, chances: number, bounced: number):
 }
 
 /**
+ * PGA Tour's Birdie to Bogey Ratio: birdies or better divided by bogeys or worse, higher is better.
+ * Shown with the counts behind it. A round without a bogey has no ratio to show, so it reads as the
+ * count alone and ranks above every ratio, more birdies first. Not Infinity: the career tables are
+ * cached as JSON, which would turn it into null.
+ */
+export function birdieToBogeyRow(player: Player, birdies: number, bogeys: number): StatRow {
+  if (bogeys === 0) return { player, value: 1000 + birdies, display: `${birdies} to 0` };
+  // Three decimals, not PGA Tour's two: at two, 1 to 12 and 1 to 13 both read 0.08 while ranked apart.
+  return { player, value: birdies / bogeys, display: `${(birdies / bogeys).toFixed(3)} (${birdies} to ${bogeys})` };
+}
+
+/**
  * A nine's score in relation to par -- holes 1-9 from `start` 0, holes 10-18 from 9 -- or
  * undefined unless every one of those nine holes has a score.
  */
@@ -199,6 +211,7 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   const backNineRows: StatRow[] = [];
   const bounceBackRows: StatRow[] = [];
   const reverseBounceBackRows: StatRow[] = [];
+  const birdieToBogeyRows: StatRow[] = [];
 
   for (const { player, scoreByHole, lostHoles } of playerScores) {
     const { chances, bounced } = bounceBack(scoreByHole, holeInfos);
@@ -259,6 +272,8 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
       birdieOrBetterRows.push({ player, value: birdieOrBetterCount, display: String(birdieOrBetterCount) });
       parCountRows.push({ player, value: parCount, display: String(parCount) });
       bogeyOrWorseRows.push({ player, value: bogeyOrWorseCount, display: String(bogeyOrWorseCount) });
+      // Only once something has happened: a run of pars alone has neither birdies nor bogeys to compare.
+      if (birdieOrBetterCount + bogeyOrWorseCount > 0) birdieToBogeyRows.push(birdieToBogeyRow(player, birdieOrBetterCount, bogeyOrWorseCount));
     }
     // Strokes gained is a total over the holes played, so the same rule: a lost hole leaves it short.
     if (holesPlayed > 0 && !lostHoles.some(Boolean)) {
@@ -289,6 +304,8 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   assignPositions(bounceBackRows);
   reverseBounceBackRows.sort((a, b) => a.value - b.value);
   assignPositions(reverseBounceBackRows);
+  birdieToBogeyRows.sort((a, b) => b.value - a.value);
+  assignPositions(birdieToBogeyRows);
 
   const label = mode === "nett" ? "Nett" : "Scratch";
   return [
@@ -302,6 +319,7 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
     { key: `most-bogeys-or-worse-${mode}`, title: "Most Bogeys or Worse", columnLabel: "TOTAL", rows: bogeyOrWorseRows },
     { key: `bounce-back-${mode}`, title: `Bounce Back - ${label}`, columnLabel: "RATE", rows: bounceBackRows },
     { key: `reverse-bounce-back-${mode}`, title: `Reverse Bounce Back - ${label}`, columnLabel: "RATE", rows: reverseBounceBackRows },
+    { key: `birdie-to-bogey-ratio-${mode}`, title: `Birdie to Bogey Ratio - ${label}`, columnLabel: "RATIO", rows: birdieToBogeyRows },
     { key: `strokes-gained-${mode}`, title: "Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
   ];
 }

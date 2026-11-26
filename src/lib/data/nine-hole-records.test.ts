@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { assignPositions, bounceBack, nineToPar, reverseBounceBack } from "@/lib/data/scoring-statistics";
+import { assignPositions, birdieToBogeyRow, bounceBack, nineToPar, reverseBounceBack } from "@/lib/data/scoring-statistics";
 import type { StatRow } from "@/lib/statistics";
 
 describe("assignPositions", () => {
@@ -31,6 +31,30 @@ describe("bounceBack", () => {
   it("gives no chance after the 18th or before a hole without a score", () => {
     const scores = pars.map((h, i) => (i === 17 ? h.par + 1 : i === 3 ? h.par + 1 : i === 4 ? undefined : h.par));
     expect(bounceBack(scores, pars)).toEqual({ chances: 0, bounced: 0 });
+  });
+});
+
+describe("birdieToBogeyRow", () => {
+  const player = { id: "1" } as unknown as StatRow["player"];
+
+  it("divides birdies by bogeys and shows the counts", () => {
+    expect(birdieToBogeyRow(player, 3, 7)).toMatchObject({ display: "0.429 (3 to 7)" });
+    expect(birdieToBogeyRow(player, 0, 9)).toMatchObject({ value: 0, display: "0.000 (0 to 9)" });
+  });
+
+  it("ranks a round without a bogey above every ratio, more birdies first", () => {
+    const rows = [birdieToBogeyRow(player, 2, 0), birdieToBogeyRow(player, 9, 1), birdieToBogeyRow(player, 4, 0), birdieToBogeyRow(player, 2, 0)];
+    expect(rows[0].display).toBe("2 to 0");
+    rows.sort((a, b) => b.value - a.value);
+    assignPositions(rows);
+    expect(rows.map((r) => [r.display, r.position, r.tied])).toEqual([
+      ["4 to 0", 1, false],
+      ["2 to 0", 2, true],
+      ["2 to 0", 2, true],
+      ["9.000 (9 to 1)", 4, false],
+    ]);
+    // Survives the JSON the career tables are cached in.
+    expect(JSON.parse(JSON.stringify(rows[0])).value).toBe(rows[0].value);
   });
 });
 
