@@ -68,11 +68,15 @@ export function nineToPar(scoreByHole: (number | undefined)[], holeInfos: { par:
 
 /** Assigns tie-aware rank (1st, 2nd, T2nd...) to an already-sorted (best-first) row list. */
 export function assignPositions(rows: StatRow[]): void {
+  // Strokes gained is a sum of fractional field averages, so two equal totals can differ in the
+  // last binary digit: three players on +2.72 in 2026 read 9th, T10 and T10. Anything closer than
+  // this is the same figure.
+  const same = (a: number, b: number) => Math.abs(a - b) < 1e-9;
   let position = 0;
   rows.forEach((row, index) => {
-    if (index === 0 || row.value !== rows[index - 1].value) position = index + 1;
+    if (index === 0 || !same(row.value, rows[index - 1].value)) position = index + 1;
     row.position = position;
-    row.tied = rows.filter((r) => r.value === row.value).length > 1;
+    row.tied = rows.filter((r) => same(r.value, row.value)).length > 1;
   });
 }
 

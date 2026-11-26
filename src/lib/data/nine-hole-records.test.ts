@@ -1,6 +1,22 @@
 import { describe, expect, it } from "vitest";
 
-import { nineToPar } from "@/lib/data/scoring-statistics";
+import { assignPositions, nineToPar } from "@/lib/data/scoring-statistics";
+import type { StatRow } from "@/lib/statistics";
+
+describe("assignPositions", () => {
+  it("ties values that differ only by floating-point error", () => {
+    // Strokes gained is a sum of field averages: three players on +2.72 came out as 9th, T10, T10.
+    const values = [-2.7200000000000006, -2.72, -2.7199999999999998, -1.72];
+    const rows = values.map((value, i) => ({ player: { id: String(i) }, value, display: "" }) as unknown as StatRow);
+    assignPositions(rows);
+    expect(rows.map((r) => [r.position, r.tied])).toEqual([
+      [1, true],
+      [1, true],
+      [1, true],
+      [4, false],
+    ]);
+  });
+});
 import { lowestWithEveryHolder, topWithTies, type ScoreEntry } from "@/lib/data/records";
 
 const pars = [4, 4, 3, 5, 4, 4, 3, 5, 4, 4, 4, 3, 5, 4, 4, 3, 5, 4].map((par) => ({ par }));
