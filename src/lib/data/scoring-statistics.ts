@@ -216,6 +216,7 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   const birdieToBogeyRows: StatRow[] = [];
   const birdieOrBetterPercentRows: StatRow[] = [];
   const bogeyAvoidanceRows: StatRow[] = [];
+  const parBirdieRows: Record<3 | 4 | 5, StatRow[]> = { 3: [], 4: [], 5: [] };
 
   for (const { player, scoreByHole, lostHoles } of playerScores) {
     const { chances, bounced } = bounceBack(scoreByHole, holeInfos);
@@ -235,6 +236,8 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
       4: { sum: 0, count: 0 },
       5: { sum: 0, count: 0 },
     };
+    // Birdies or better on each par, out of that par's holes played -- a share, so a no-return's holes count too.
+    const parBirdies: Record<3 | 4 | 5, { birdies: number; played: number }> = { 3: { birdies: 0, played: 0 }, 4: { birdies: 0, played: 0 }, 5: { birdies: 0, played: 0 } };
     let birdieOrBetterCount = 0;
     let parCount = 0;
     let bogeyOrWorseCount = 0;
@@ -253,6 +256,10 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
         parTotals[par].count += 1;
       }
 
+      if (par === 3 || par === 4 || par === 5) {
+        parBirdies[par].played += 1;
+        if (relative <= -1) parBirdies[par].birdies += 1;
+      }
       if (relative <= -1) birdieOrBetterCount += 1;
       else if (relative === 0) parCount += 1;
       else bogeyOrWorseCount += 1;
@@ -282,6 +289,10 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
       birdieOrBetterPercentRows.push(percentageRow(player, birdieOrBetterCount, holesPlayed));
       bogeyAvoidanceRows.push(percentageRow(player, bogeyOrWorseCount, holesPlayed));
     }
+    ([3, 4, 5] as const).forEach((par) => {
+      const { birdies, played } = parBirdies[par];
+      if (played > 0) parBirdieRows[par].push(percentageRow(player, birdies, played));
+    });
     // Strokes gained is a total over the holes played, so the same rule: a lost hole leaves it short.
     if (holesPlayed > 0 && !lostHoles.some(Boolean)) {
       // Stored negated so ascending sort (matching every other category here) still ranks best-first,
@@ -318,6 +329,10 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   // PGA Tour's Bogey Avoidance: the share of holes at bogey or worse, so lower is better.
   bogeyAvoidanceRows.sort((a, b) => a.value - b.value);
   assignPositions(bogeyAvoidanceRows);
+  ([3, 4, 5] as const).forEach((par) => {
+    parBirdieRows[par].sort((a, b) => b.value - a.value);
+    assignPositions(parBirdieRows[par]);
+  });
 
   const label = mode === "nett" ? "Nett" : "Scratch";
   return [
@@ -334,6 +349,12 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
     { key: `birdie-to-bogey-ratio-${mode}`, title: `Birdie to Bogey Ratio - ${label}`, columnLabel: "RATIO", rows: birdieToBogeyRows },
     { key: `birdie-or-better-percentage-${mode}`, title: `Birdie or Better % - ${label}`, columnLabel: "RATE", rows: birdieOrBetterPercentRows },
     { key: `bogey-avoidance-${mode}`, title: `Bogey Avoidance - ${label}`, columnLabel: "RATE", rows: bogeyAvoidanceRows },
+    ...([3, 4, 5] as const).map((par) => ({
+      key: `par-${par}-birdie-or-better-${mode}`,
+      title: `Par ${par} Birdie or Better - ${label}`,
+      columnLabel: "RATE",
+      rows: parBirdieRows[par],
+    })),
     { key: `strokes-gained-${mode}`, title: "Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
   ];
 }

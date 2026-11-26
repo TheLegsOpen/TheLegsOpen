@@ -166,6 +166,7 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
   const birdieToBogeyRows: StatRow[] = [];
   const birdieOrBetterPercentRows: StatRow[] = [];
   const bogeyAvoidanceRows: StatRow[] = [];
+  const parBirdieRows: Record<3 | 4 | 5, StatRow[]> = { 3: [], 4: [], 5: [] };
 
   for (const { player, entries } of groupByPlayer(scores).values()) {
     // Pooled over every year: the chances and bounces add up, then the rate is taken once.
@@ -184,6 +185,8 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
     if (pooledReverse.chances > 0) reverseBounceBackRows.push(percentageRow(player, pooledReverse.bounced, pooledReverse.chances));
 
     const parTotals: Record<3 | 4 | 5, { sum: number; count: number }> = { 3: { sum: 0, count: 0 }, 4: { sum: 0, count: 0 }, 5: { sum: 0, count: 0 } };
+    // Birdies or better on each par, out of that par's holes played -- a share, so a no-return's holes count too.
+    const parBirdies: Record<3 | 4 | 5, { birdies: number; played: number }> = { 3: { birdies: 0, played: 0 }, 4: { birdies: 0, played: 0 }, 5: { birdies: 0, played: 0 } };
     let birdieOrBetterCount = 0;
     let parCount = 0;
     let bogeyOrWorseCount = 0;
@@ -212,6 +215,10 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
           parTotals[par].count += 1;
         }
 
+        if (par === 3 || par === 4 || par === 5) {
+          parBirdies[par].played += 1;
+          if (relative <= -1) parBirdies[par].birdies += 1;
+        }
         if (relative <= -1) birdieOrBetterCount += 1;
         else if (relative === 0) parCount += 1;
         else bogeyOrWorseCount += 1;
@@ -236,6 +243,10 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
       birdieOrBetterPercentRows.push(percentageRow(player, birdieOrBetterCount, holesPlayed));
       bogeyAvoidanceRows.push(percentageRow(player, bogeyOrWorseCount, holesPlayed));
     }
+    ([3, 4, 5] as const).forEach((par) => {
+      const { birdies, played } = parBirdies[par];
+      if (played > 0) parBirdieRows[par].push(percentageRow(player, birdies, played));
+    });
     if (holesPlayed > 0 && strokesGainedYears > 0) {
       strokesGainedRows.push({ player, value: -strokesGainedTotal, display: formatDecimalToPar(strokesGainedTotal) });
     }
@@ -264,6 +275,10 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
   // PGA Tour's Bogey Avoidance: the share of holes at bogey or worse, so lower is better.
   bogeyAvoidanceRows.sort((a, b) => a.value - b.value);
   assignPositions(bogeyAvoidanceRows);
+  ([3, 4, 5] as const).forEach((par) => {
+    parBirdieRows[par].sort((a, b) => b.value - a.value);
+    assignPositions(parBirdieRows[par]);
+  });
 
   const label = mode === "nett" ? "Nett" : "Scratch";
   return [
@@ -278,6 +293,12 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
     { key: `birdie-to-bogey-ratio-${mode}`, title: `Birdie to Bogey Ratio - ${label}`, columnLabel: "RATIO", rows: birdieToBogeyRows },
     { key: `birdie-or-better-percentage-${mode}`, title: `Birdie or Better % - ${label}`, columnLabel: "RATE", rows: birdieOrBetterPercentRows },
     { key: `bogey-avoidance-${mode}`, title: `Bogey Avoidance - ${label}`, columnLabel: "RATE", rows: bogeyAvoidanceRows },
+    ...([3, 4, 5] as const).map((par) => ({
+      key: `par-${par}-birdie-or-better-${mode}`,
+      title: `Par ${par} Birdie or Better - ${label}`,
+      columnLabel: "RATE",
+      rows: parBirdieRows[par],
+    })),
     { key: `strokes-gained-${mode}`, title: "Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
   ];
 }
