@@ -1,10 +1,10 @@
 import type { MetadataRoute } from "next";
 
-import { PLAYERS } from "@/data/players";
 import { playerSlug } from "@/lib/utils";
 import { SITE } from "@/constants/site";
 import { getArticles } from "@/lib/data/articles";
 import { getVenues } from "@/lib/data/venues";
+import { getPlayers } from "@/lib/data/players";
 import { getChampionshipHistory } from "@/lib/data/championships";
 import { getLegalPages } from "@/lib/data/legal";
 
@@ -13,9 +13,10 @@ import { getLegalPages } from "@/lib/data/legal";
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [ARTICLES, VENUES, CHAMPIONSHIP_HISTORY, LEGAL_PAGES] = await Promise.all([
+  const [ARTICLES, VENUES, PLAYERS, CHAMPIONSHIP_HISTORY, LEGAL_PAGES] = await Promise.all([
     getArticles(),
     getVenues(),
+    getPlayers(),
     getChampionshipHistory(),
     getLegalPages(),
   ]);
