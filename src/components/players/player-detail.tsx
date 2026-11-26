@@ -13,6 +13,7 @@ import { ArticleCard } from "@/components/news/article-card";
 import { PlayerGallery } from "@/components/players/player-gallery";
 import { ResultsTab } from "@/components/players/results-tab";
 import { StatsTab } from "@/components/players/stats-tab";
+import { careerScoringAverage } from "@/lib/career-summary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getPlayerBySlug, getPlayerResults } from "@/lib/data/players";
 import { getCompetitionLeaderboard } from "@/lib/data/scorecards";
@@ -556,7 +557,7 @@ export async function PlayerDetail({ slug }: { slug: string }) {
           </TabsContent>
 
           <TabsContent value="stats" className="mt-0">
-            <StatsTab playerId={player.id} careerCategories={careerCategories} years={statsYears} />
+            <StatsTab playerId={player.id} careerCategories={careerCategories} years={statsYears} careerSummary={careerScoringAverage(results)} />
           </TabsContent>
         </div>
         </Container>

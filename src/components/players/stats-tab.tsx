@@ -4,6 +4,8 @@ import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 import { PlayerStatPanel } from "@/components/leaderboard/player-stat-panel";
+import { TILE_CLASS, NEUTRAL_TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
+import { formatAverageToPar, type CareerSummary } from "@/lib/career-summary";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { StatCategory } from "@/lib/statistics";
@@ -23,9 +25,36 @@ interface StatsTabProps {
   playerId: string;
   careerCategories: SixCategories;
   years: { year: number; championshipId: string }[];
+  /** His own career figures, shown in Career mode above the field-ranked ones. */
+  careerSummary?: CareerSummary;
 }
 
-export function StatsTab({ playerId, careerCategories, years }: StatsTabProps) {
+/** One career figure: the value in a tile, and what it is underneath. Same look as the stat panel's tiles. */
+function SummaryValue({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="flex flex-col items-start gap-1.5">
+      <span className={cn(TILE_CLASS, "min-w-[3rem]", NEUTRAL_TILE_CLASS)}>{value}</span>
+      <p className="text-xs uppercase tracking-wide text-surface-dark-foreground/50">{label}</p>
+    </div>
+  );
+}
+
+function CareerSummaryCard({ summary }: { summary: CareerSummary }) {
+  if (!summary.nett && !summary.gross) return null;
+  const rounds = (n: number) => `${n} round${n === 1 ? "" : "s"}`;
+  return (
+    <div className="border border-surface-dark-foreground/15 bg-surface-dark-foreground/5 p-4">
+      <p className="mb-3 font-display text-base font-bold">Scoring average</p>
+      <div className="flex flex-wrap gap-6">
+        {summary.nett ? <SummaryValue value={formatAverageToPar(summary.nett.average)} label={`Nett, ${rounds(summary.nett.rounds)}`} /> : null}
+        {summary.gross ? <SummaryValue value={formatAverageToPar(summary.gross.average)} label={`Gross, ${rounds(summary.gross.rounds)}`} /> : null}
+      </div>
+      <p className="mt-3 text-xs text-surface-dark-foreground/50">Completed rounds only, to par.</p>
+    </div>
+  );
+}
+
+export function StatsTab({ playerId, careerCategories, years, careerSummary }: StatsTabProps) {
   const [mode, setMode] = useState<Mode>("career");
   const [selectedChampionshipId, setSelectedChampionshipId] = useState<string | undefined>(undefined);
   const [cache, setCache] = useState<Record<string, SixCategories>>({});
@@ -110,7 +139,11 @@ export function StatsTab({ playerId, careerCategories, years }: StatsTabProps) {
           <Skeleton className="h-24 w-full" />
           <Skeleton className="h-24 w-full" />
         </div>
-      ) : active ? (
+      ) : null}
+
+      {mode === "career" && careerSummary ? <CareerSummaryCard summary={careerSummary} /> : null}
+
+      {isLoading ? null : active ? (
         <PlayerStatPanel
           playerId={playerId}
           nettCategories={active.nettCategories}
