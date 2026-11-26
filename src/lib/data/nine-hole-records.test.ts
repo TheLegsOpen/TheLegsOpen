@@ -1,7 +1,29 @@
 import { describe, expect, it } from "vitest";
 
-import { assignPositions, birdieToBogeyRow, bounceBack, nineToPar, reverseBounceBack } from "@/lib/data/scoring-statistics";
+import { assignPositions, birdieToBogeyRow, bounceBack, nineToPar, percentageRow, reverseBounceBack } from "@/lib/data/scoring-statistics";
+import { lowestWithEveryHolder, topWithTies, type ScoreEntry } from "@/lib/data/records";
 import type { StatRow } from "@/lib/statistics";
+
+describe("percentageRow", () => {
+  const player = { id: "1" } as unknown as StatRow["player"];
+
+  it("shows one decimal with the count behind it", () => {
+    expect(percentageRow(player, 3, 18).display).toBe("16.7% (3/18)");
+  });
+
+  it("ranks on the figure as shown, so two rates that read the same tie", () => {
+    // A career's worth of holes: 31/248 is 12.50% and 32/255 is 12.55%, both 12.5% on the page.
+    const rows = [percentageRow(player, 31, 248), percentageRow(player, 32, 255), percentageRow(player, 1, 18)];
+    expect(rows.slice(0, 2).map((r) => r.display.split(" ")[0])).toEqual(["12.5%", "12.5%"]);
+    rows.sort((a, b) => b.value - a.value);
+    assignPositions(rows);
+    expect(rows.map((r) => [r.position, r.tied])).toEqual([
+      [1, true],
+      [1, true],
+      [3, false],
+    ]);
+  });
+});
 
 describe("assignPositions", () => {
   it("ties values that differ only by floating-point error", () => {
@@ -17,7 +39,6 @@ describe("assignPositions", () => {
     ]);
   });
 });
-import { lowestWithEveryHolder, topWithTies, type ScoreEntry } from "@/lib/data/records";
 
 const pars = [4, 4, 3, 5, 4, 4, 3, 5, 4, 4, 4, 3, 5, 4, 4, 3, 5, 4].map((par) => ({ par }));
 

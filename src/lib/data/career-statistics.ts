@@ -12,7 +12,7 @@ import {
   assignPositions,
   birdieToBogeyRow,
   bounceBack,
-  bounceBackRow,
+  percentageRow,
   formatDecimalToPar,
   longestStreak,
   reverseBounceBack,
@@ -164,6 +164,8 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
   const bounceBackRows: StatRow[] = [];
   const reverseBounceBackRows: StatRow[] = [];
   const birdieToBogeyRows: StatRow[] = [];
+  const birdieOrBetterPercentRows: StatRow[] = [];
+  const bogeyAvoidanceRows: StatRow[] = [];
 
   for (const { player, entries } of groupByPlayer(scores).values()) {
     // Pooled over every year: the chances and bounces add up, then the rate is taken once.
@@ -178,8 +180,8 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
       pooledReverse.chances += reverse.chances;
       pooledReverse.bounced += reverse.bounced;
     }
-    if (pooled.chances > 0) bounceBackRows.push(bounceBackRow(player, pooled.chances, pooled.bounced));
-    if (pooledReverse.chances > 0) reverseBounceBackRows.push(bounceBackRow(player, pooledReverse.chances, pooledReverse.bounced));
+    if (pooled.chances > 0) bounceBackRows.push(percentageRow(player, pooled.bounced, pooled.chances));
+    if (pooledReverse.chances > 0) reverseBounceBackRows.push(percentageRow(player, pooledReverse.bounced, pooledReverse.chances));
 
     const parTotals: Record<3 | 4 | 5, { sum: number; count: number }> = { 3: { sum: 0, count: 0 }, 4: { sum: 0, count: 0 }, 5: { sum: 0, count: 0 } };
     let birdieOrBetterCount = 0;
@@ -230,6 +232,9 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
       parCountRows.push({ player, value: parCount, display: String(parCount) });
       bogeyOrWorseRows.push({ player, value: bogeyOrWorseCount, display: String(bogeyOrWorseCount) });
       if (birdieOrBetterCount + bogeyOrWorseCount > 0) birdieToBogeyRows.push(birdieToBogeyRow(player, birdieOrBetterCount, bogeyOrWorseCount));
+      // Shares of the holes actually played, so a no-return's shorter card is measured fairly.
+      birdieOrBetterPercentRows.push(percentageRow(player, birdieOrBetterCount, holesPlayed));
+      bogeyAvoidanceRows.push(percentageRow(player, bogeyOrWorseCount, holesPlayed));
     }
     if (holesPlayed > 0 && strokesGainedYears > 0) {
       strokesGainedRows.push({ player, value: -strokesGainedTotal, display: formatDecimalToPar(strokesGainedTotal) });
@@ -254,6 +259,11 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
   assignPositions(reverseBounceBackRows);
   birdieToBogeyRows.sort((a, b) => b.value - a.value);
   assignPositions(birdieToBogeyRows);
+  birdieOrBetterPercentRows.sort((a, b) => b.value - a.value);
+  assignPositions(birdieOrBetterPercentRows);
+  // PGA Tour's Bogey Avoidance: the share of holes at bogey or worse, so lower is better.
+  bogeyAvoidanceRows.sort((a, b) => a.value - b.value);
+  assignPositions(bogeyAvoidanceRows);
 
   const label = mode === "nett" ? "Nett" : "Scratch";
   return [
@@ -266,6 +276,8 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
     { key: `bounce-back-${mode}`, title: `Bounce Back - ${label}`, columnLabel: "RATE", rows: bounceBackRows },
     { key: `reverse-bounce-back-${mode}`, title: `Reverse Bounce Back - ${label}`, columnLabel: "RATE", rows: reverseBounceBackRows },
     { key: `birdie-to-bogey-ratio-${mode}`, title: `Birdie to Bogey Ratio - ${label}`, columnLabel: "RATIO", rows: birdieToBogeyRows },
+    { key: `birdie-or-better-percentage-${mode}`, title: `Birdie or Better % - ${label}`, columnLabel: "RATE", rows: birdieOrBetterPercentRows },
+    { key: `bogey-avoidance-${mode}`, title: `Bogey Avoidance - ${label}`, columnLabel: "RATE", rows: bogeyAvoidanceRows },
     { key: `strokes-gained-${mode}`, title: "Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
   ];
 }

@@ -86,12 +86,14 @@ function holeAfterHole(
 }
 
 /**
- * A Bounce Back row: ranked on the rate, shown as a percentage with the count behind it. One
- * decimal place, as PGA Tour shows it: whole numbers made 1/12 and 1/13 both read 8% while ranked
- * apart.
+ * A percentage row (Bounce Back, Birdie or Better %, Bogey Avoidance): shown to one decimal with
+ * the count behind it, and ranked on that same rounded figure. Whole numbers made 1/12 and 1/13
+ * both read 8% while ranked apart; ranking on the rounded figure means two rates that read the
+ * same on the page always share a place, even across a career's worth of holes.
  */
-export function bounceBackRow(player: Player, chances: number, bounced: number): StatRow {
-  return { player, value: bounced / chances, display: `${((bounced / chances) * 100).toFixed(1)}% (${bounced}/${chances})` };
+export function percentageRow(player: Player, count: number, total: number): StatRow {
+  const percent = Math.round((count / total) * 1000) / 10;
+  return { player, value: percent, display: `${percent.toFixed(1)}% (${count}/${total})` };
 }
 
 /**
@@ -212,12 +214,14 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   const bounceBackRows: StatRow[] = [];
   const reverseBounceBackRows: StatRow[] = [];
   const birdieToBogeyRows: StatRow[] = [];
+  const birdieOrBetterPercentRows: StatRow[] = [];
+  const bogeyAvoidanceRows: StatRow[] = [];
 
   for (const { player, scoreByHole, lostHoles } of playerScores) {
     const { chances, bounced } = bounceBack(scoreByHole, holeInfos);
-    if (chances > 0) bounceBackRows.push(bounceBackRow(player, chances, bounced));
+    if (chances > 0) bounceBackRows.push(percentageRow(player, bounced, chances));
     const reverse = reverseBounceBack(scoreByHole, holeInfos);
-    if (reverse.chances > 0) reverseBounceBackRows.push(bounceBackRow(player, reverse.chances, reverse.bounced));
+    if (reverse.chances > 0) reverseBounceBackRows.push(percentageRow(player, reverse.bounced, reverse.chances));
 
     // A nine counts once every hole in it has a score, even if the player picked up later in the
     // round: a no-return's completed front nine is a real front nine.
@@ -274,6 +278,9 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
       bogeyOrWorseRows.push({ player, value: bogeyOrWorseCount, display: String(bogeyOrWorseCount) });
       // Only once something has happened: a run of pars alone has neither birdies nor bogeys to compare.
       if (birdieOrBetterCount + bogeyOrWorseCount > 0) birdieToBogeyRows.push(birdieToBogeyRow(player, birdieOrBetterCount, bogeyOrWorseCount));
+      // Shares of the holes actually played, so a no-return's shorter card is measured fairly.
+      birdieOrBetterPercentRows.push(percentageRow(player, birdieOrBetterCount, holesPlayed));
+      bogeyAvoidanceRows.push(percentageRow(player, bogeyOrWorseCount, holesPlayed));
     }
     // Strokes gained is a total over the holes played, so the same rule: a lost hole leaves it short.
     if (holesPlayed > 0 && !lostHoles.some(Boolean)) {
@@ -306,6 +313,11 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   assignPositions(reverseBounceBackRows);
   birdieToBogeyRows.sort((a, b) => b.value - a.value);
   assignPositions(birdieToBogeyRows);
+  birdieOrBetterPercentRows.sort((a, b) => b.value - a.value);
+  assignPositions(birdieOrBetterPercentRows);
+  // PGA Tour's Bogey Avoidance: the share of holes at bogey or worse, so lower is better.
+  bogeyAvoidanceRows.sort((a, b) => a.value - b.value);
+  assignPositions(bogeyAvoidanceRows);
 
   const label = mode === "nett" ? "Nett" : "Scratch";
   return [
@@ -320,6 +332,8 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
     { key: `bounce-back-${mode}`, title: `Bounce Back - ${label}`, columnLabel: "RATE", rows: bounceBackRows },
     { key: `reverse-bounce-back-${mode}`, title: `Reverse Bounce Back - ${label}`, columnLabel: "RATE", rows: reverseBounceBackRows },
     { key: `birdie-to-bogey-ratio-${mode}`, title: `Birdie to Bogey Ratio - ${label}`, columnLabel: "RATIO", rows: birdieToBogeyRows },
+    { key: `birdie-or-better-percentage-${mode}`, title: `Birdie or Better % - ${label}`, columnLabel: "RATE", rows: birdieOrBetterPercentRows },
+    { key: `bogey-avoidance-${mode}`, title: `Bogey Avoidance - ${label}`, columnLabel: "RATE", rows: bogeyAvoidanceRows },
     { key: `strokes-gained-${mode}`, title: "Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
   ];
 }
