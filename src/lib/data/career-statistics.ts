@@ -8,7 +8,15 @@ import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecard
 import { isConcluded, formatToPar } from "@/lib/leaderboard";
 import { mapPlayer } from "@/lib/data/players";
 import { allocateStrokes } from "@/lib/scoring";
-import { assignPositions, bounceBack, bounceBackRow, formatDecimalToPar, longestStreak, type ScoringMode } from "@/lib/data/scoring-statistics";
+import {
+  assignPositions,
+  bounceBack,
+  bounceBackRow,
+  formatDecimalToPar,
+  longestStreak,
+  reverseBounceBack,
+  type ScoringMode,
+} from "@/lib/data/scoring-statistics";
 import type { StatCategory, StatRow } from "@/lib/statistics";
 import type { Player } from "@/types/player";
 import type { Player as PayloadPlayer, Venue as PayloadVenue, Scorecard as PayloadScorecard } from "@/payload-types";
@@ -153,17 +161,23 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
   const bogeyOrWorseRows: StatRow[] = [];
   const strokesGainedRows: StatRow[] = [];
   const bounceBackRows: StatRow[] = [];
+  const reverseBounceBackRows: StatRow[] = [];
 
   for (const { player, entries } of groupByPlayer(scores).values()) {
     // Pooled over every year: the chances and bounces add up, then the rate is taken once.
-    let bounceChances = 0;
-    let bounced = 0;
+    const pooled = { chances: 0, bounced: 0 };
+    const pooledReverse = { chances: 0, bounced: 0 };
     for (const entry of entries) {
-      const result = bounceBack(entry.scoreByHole, inputs.holeInfosByChampionship.get(entry.championshipId) ?? []);
-      bounceChances += result.chances;
-      bounced += result.bounced;
+      const holeInfos = inputs.holeInfosByChampionship.get(entry.championshipId) ?? [];
+      const result = bounceBack(entry.scoreByHole, holeInfos);
+      const reverse = reverseBounceBack(entry.scoreByHole, holeInfos);
+      pooled.chances += result.chances;
+      pooled.bounced += result.bounced;
+      pooledReverse.chances += reverse.chances;
+      pooledReverse.bounced += reverse.bounced;
     }
-    if (bounceChances > 0) bounceBackRows.push(bounceBackRow(player, bounceChances, bounced));
+    if (pooled.chances > 0) bounceBackRows.push(bounceBackRow(player, pooled.chances, pooled.bounced));
+    if (pooledReverse.chances > 0) reverseBounceBackRows.push(bounceBackRow(player, pooledReverse.chances, pooledReverse.bounced));
 
     const parTotals: Record<3 | 4 | 5, { sum: number; count: number }> = { 3: { sum: 0, count: 0 }, 4: { sum: 0, count: 0 }, 5: { sum: 0, count: 0 } };
     let birdieOrBetterCount = 0;
@@ -233,6 +247,8 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
   assignPositions(strokesGainedRows);
   bounceBackRows.sort((a, b) => b.value - a.value);
   assignPositions(bounceBackRows);
+  reverseBounceBackRows.sort((a, b) => a.value - b.value);
+  assignPositions(reverseBounceBackRows);
 
   const label = mode === "nett" ? "Nett" : "Scratch";
   return [
@@ -243,6 +259,7 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
     { key: `most-pars-${mode}`, title: "Most Pars", columnLabel: "TOTAL", rows: parCountRows },
     { key: `most-bogeys-or-worse-${mode}`, title: "Most Bogeys or Worse", columnLabel: "TOTAL", rows: bogeyOrWorseRows },
     { key: `bounce-back-${mode}`, title: `Bounce Back - ${label}`, columnLabel: "RATE", rows: bounceBackRows },
+    { key: `reverse-bounce-back-${mode}`, title: `Reverse Bounce Back - ${label}`, columnLabel: "RATE", rows: reverseBounceBackRows },
     { key: `strokes-gained-${mode}`, title: "Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
   ];
 }

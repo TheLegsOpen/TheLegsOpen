@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { assignPositions, bounceBack, nineToPar } from "@/lib/data/scoring-statistics";
+import { assignPositions, bounceBack, nineToPar, reverseBounceBack } from "@/lib/data/scoring-statistics";
 import type { StatRow } from "@/lib/statistics";
 
 describe("assignPositions", () => {
@@ -31,6 +31,14 @@ describe("bounceBack", () => {
   it("gives no chance after the 18th or before a hole without a score", () => {
     const scores = pars.map((h, i) => (i === 17 ? h.par + 1 : i === 3 ? h.par + 1 : i === 4 ? undefined : h.par));
     expect(bounceBack(scores, pars)).toEqual({ chances: 0, bounced: 0 });
+  });
+});
+
+describe("reverseBounceBack", () => {
+  it("counts an under-par hole followed by an over-par one", () => {
+    // Birdie at 1, bogey at 2; eagle at 5, par at 6; birdie at 18 has no next hole.
+    const scores = pars.map((h, i) => (i === 0 || i === 17 ? h.par - 1 : i === 4 ? h.par - 2 : i === 1 ? h.par + 1 : h.par));
+    expect(reverseBounceBack(scores, pars)).toEqual({ chances: 2, bounced: 1 });
   });
 });
 

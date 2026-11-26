@@ -58,14 +58,29 @@ export function formatDecimalToPar(value: number): string {
  * before a pick-up or one not reached yet.
  */
 export function bounceBack(scoreByHole: (number | undefined)[], holeInfos: { par: number }[]): { chances: number; bounced: number } {
+  return holeAfterHole(scoreByHole, holeInfos, (relative) => relative > 0, (relative) => relative < 0);
+}
+
+/** PGA Tour's Reverse Bounce Back: how often a hole under par is followed by one over par. Lower is better. */
+export function reverseBounceBack(scoreByHole: (number | undefined)[], holeInfos: { par: number }[]): { chances: number; bounced: number } {
+  return holeAfterHole(scoreByHole, holeInfos, (relative) => relative < 0, (relative) => relative > 0);
+}
+
+/** Counts the scored holes matching `first` that have a scored hole after them, and how many of those were followed by one matching `then`. */
+function holeAfterHole(
+  scoreByHole: (number | undefined)[],
+  holeInfos: { par: number }[],
+  first: (relative: number) => boolean,
+  then: (relative: number) => boolean,
+): { chances: number; bounced: number } {
   let chances = 0;
   let bounced = 0;
   for (let i = 0; i < holeInfos.length - 1; i++) {
     const score = scoreByHole[i];
     const next = scoreByHole[i + 1];
-    if (score == null || next == null || !holeInfos[i + 1] || score <= holeInfos[i].par) continue;
+    if (score == null || next == null || !holeInfos[i + 1] || !first(score - holeInfos[i].par)) continue;
     chances += 1;
-    if (next < holeInfos[i + 1].par) bounced += 1;
+    if (then(next - holeInfos[i + 1].par)) bounced += 1;
   }
   return { chances, bounced };
 }
@@ -183,10 +198,13 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   const frontNineRows: StatRow[] = [];
   const backNineRows: StatRow[] = [];
   const bounceBackRows: StatRow[] = [];
+  const reverseBounceBackRows: StatRow[] = [];
 
   for (const { player, scoreByHole, lostHoles } of playerScores) {
     const { chances, bounced } = bounceBack(scoreByHole, holeInfos);
     if (chances > 0) bounceBackRows.push(bounceBackRow(player, chances, bounced));
+    const reverse = reverseBounceBack(scoreByHole, holeInfos);
+    if (reverse.chances > 0) reverseBounceBackRows.push(bounceBackRow(player, reverse.chances, reverse.bounced));
 
     // A nine counts once every hole in it has a score, even if the player picked up later in the
     // round: a no-return's completed front nine is a real front nine.
@@ -269,6 +287,8 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   assignPositions(backNineRows);
   bounceBackRows.sort((a, b) => b.value - a.value);
   assignPositions(bounceBackRows);
+  reverseBounceBackRows.sort((a, b) => a.value - b.value);
+  assignPositions(reverseBounceBackRows);
 
   const label = mode === "nett" ? "Nett" : "Scratch";
   return [
@@ -281,6 +301,7 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
     { key: `most-pars-${mode}`, title: "Most Pars", columnLabel: "TOTAL", rows: parCountRows },
     { key: `most-bogeys-or-worse-${mode}`, title: "Most Bogeys or Worse", columnLabel: "TOTAL", rows: bogeyOrWorseRows },
     { key: `bounce-back-${mode}`, title: `Bounce Back - ${label}`, columnLabel: "RATE", rows: bounceBackRows },
+    { key: `reverse-bounce-back-${mode}`, title: `Reverse Bounce Back - ${label}`, columnLabel: "RATE", rows: reverseBounceBackRows },
     { key: `strokes-gained-${mode}`, title: "Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
   ];
 }
