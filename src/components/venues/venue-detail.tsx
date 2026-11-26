@@ -12,13 +12,16 @@ import { getSiteTheme } from "@/lib/data/site-theme";
 import { getPlayers } from "@/lib/data/players";
 import { getArticles } from "@/lib/data/articles";
 import { loadCourseGuide } from "@/lib/data/course-guide";
-import { cn, cutoutUrl } from "@/lib/utils";
+import { getCourseDifficulty } from "@/lib/data/course-difficulty";
+import { formatAverageToPar } from "@/lib/career-summary";
+import { cn, cutoutUrl, ordinal } from "@/lib/utils";
 import { VenueCourseCard, VenueFeaturedArticle, VenueGalleryAll, VenueHeroLine } from "@/components/venues/venue-sections";
 
 /**
  * The venue page at /venues/[slug]: the hero with its hosting line, the course blurb beside
- * Upcoming Venues and The Course, one featured article, the film band, every photo from here,
- * the championship strip and the champions. Course scoring lives on each Previous Opens page.
+ * Upcoming Venues, Course Difficulty and The Course, one featured article, the film band, every
+ * photo from here, the championship strip and the champions. Hole-by-hole course scoring lives on
+ * each Previous Opens page.
  */
 export async function VenueDetail({ slug }: { slug: string }) {
   const venue = await getVenueBySlug(slug);
@@ -62,7 +65,17 @@ export async function VenueDetail({ slug }: { slug: string }) {
   // strokesaver guide, and without pictures it is just the scorecard.
   const courseGuide = await loadCourseGuide(venue.slug, championshipsChronological);
   const showCourseCard = courseGuide.imageCount > 0;
-  const bandHasSidebar = showCourseCard || upcomingChampionships.length > 0 || hostingFacts.length > 0;
+  // PGA Tour's Toughest Course: the field's average over every completed round played here, ranked
+  // against the other venues on gross.
+  const difficulty = (await getCourseDifficulty()).get(venue.slug);
+  const difficultyFacts = difficulty
+    ? [
+        { label: "Scoring Average Gross", value: formatAverageToPar(difficulty.gross.average) },
+        ...(difficulty.nett ? [{ label: "Scoring Average Nett", value: formatAverageToPar(difficulty.nett.average) }] : []),
+        { label: "Toughest Course", value: `${difficulty.tied ? "T" : ""}${ordinal(difficulty.rank)} of ${difficulty.of}` },
+      ]
+    : [];
+  const bandHasSidebar = showCourseCard || upcomingChampionships.length > 0 || hostingFacts.length > 0 || difficultyFacts.length > 0;
 
 
   const playerByName = new Map(players.map((player) => [player.name, player]));
@@ -177,6 +190,23 @@ export async function VenueDetail({ slug }: { slug: string }) {
                   </li>
                 ))}
               </ul>
+            </div>
+          ) : null}
+          {difficulty ? (
+            <div className="flex flex-col gap-3">
+              <p className="font-sans text-[14px] font-bold uppercase leading-[16.1px] tracking-[0.9px] text-[#43524E]">Course Difficulty</p>
+              <ul className="flex flex-col divide-y divide-[#06051E]/15 border-y border-[#06051E]/15">
+                {difficultyFacts.map((fact) => (
+                  <li key={fact.label} className="flex items-center justify-between gap-3 py-4">
+                    <span className="font-menu text-[14px] font-bold uppercase leading-[16.1px] tracking-[1px] text-[#06051E]">{fact.label}</span>
+                    <span className="font-sans text-[14px] font-bold tracking-[1.2px] text-[#2269AB]">{fact.value}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="font-sans text-[13px] leading-[18px] text-[#43524E]">
+                The field&apos;s average, to par, over {difficulty.gross.rounds} completed round{difficulty.gross.rounds === 1 ? "" : "s"} here.
+                Ranked against the other {difficulty.of - 1} venues on gross.
+              </p>
             </div>
           ) : null}
           {showCourseCard ? <VenueCourseCard venue={venue} guide={courseGuide} /> : null}

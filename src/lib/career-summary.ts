@@ -26,7 +26,7 @@ export interface CareerSummary {
   teeTimes?: { nett?: TeeTimeAverages; gross?: TeeTimeAverages };
 }
 
-function average(rounds: (RoundResult | undefined)[]): CareerAverage | undefined {
+export function average(rounds: (RoundResult | undefined)[]): CareerAverage | undefined {
   // Completed rounds only. A no-return or a withdrawal is not a round's score, and counting the
   // holes it did have would compare a part-card with whole ones.
   const scores = rounds.filter((r): r is RoundResult & { toPar: number } => Boolean(r) && !r!.noReturn && !r!.withdrawn && r!.toPar !== undefined);
