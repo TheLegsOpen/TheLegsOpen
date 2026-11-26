@@ -5,7 +5,7 @@ import { mediaUrl, slugify } from "@/lib/utils";
 import { isConcluded } from "@/lib/leaderboard";
 import { getChampionshipHistory, getActiveChampionshipSummary } from "@/lib/data/championships";
 import { getCompetitionLeaderboardForChampionshipId, type Competition, type HoleScore } from "@/lib/data/scorecards";
-import { getPlayoffs, applyPlayoffToEntries } from "@/lib/data/playoffs";
+import { getPlayoffs, applyPlayoffToEntries, getEligibleStablefordChampion } from "@/lib/data/playoffs";
 import type { Player, PlayerWithChampionshipAge } from "@/types/player";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { ChampionshipWinner } from "@/types/championship";
@@ -91,6 +91,13 @@ export interface PlayerCompetitionResult {
   withdrawn?: boolean;
   /** Present only when hasScorecards is true on the parent PlayerYearResult. */
   holes?: HoleScore[];
+  /**
+   * Stableford only. The Main champion can't also take the Stableford, so the board's own order
+   * doesn't say who won it: Steven Leisegang's 2026 read "1" and Stevie Connelly's "2", though
+   * Connelly won. "won" marks the real Stableford winner and "ineligible" the Main champion, as
+   * the year's own Stableford board does.
+   */
+  stablefordTitle?: "won" | "ineligible";
 }
 
 export interface PlayerYearResult {
@@ -176,6 +183,9 @@ export async function getPlayerResults(player: Player): Promise<PlayerYearResult
       const finish = mainEntry.position === 1 ? "Winner" : mainEntry.tied ? `T${mainEntry.position}` : `${mainEntry.position}`;
       const stablefordEntry = byCompetition.stableford.find((e) => e.player.name === player.name);
       const scratchEntry = byCompetition.scratch.find((e) => e.player.name === player.name);
+      const stablefordWinner = getEligibleStablefordChampion(byCompetition.main, byCompetition.stableford);
+      const stablefordTitle =
+        stablefordEntry && stablefordWinner?.player.id === stablefordEntry.player.id ? "won" : finish === "Winner" ? "ineligible" : undefined;
 
       return {
         year: c.year,
@@ -187,7 +197,7 @@ export async function getPlayerResults(player: Player): Promise<PlayerYearResult
         position: mainEntry.position,
         hasScorecards: true,
         main: toResult(mainEntry),
-        stableford: stablefordEntry && toResult(stablefordEntry),
+        stableford: stablefordEntry && { ...toResult(stablefordEntry), stablefordTitle },
         scratch: scratchEntry && toResult(scratchEntry),
       };
     }),

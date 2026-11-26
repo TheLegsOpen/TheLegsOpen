@@ -41,6 +41,16 @@ function PosCell({ result }: { result: PlayerCompetitionResult | undefined }) {
     <td className="px-3 py-3 text-center font-bold tabular-nums">
       {result.tied ? "T" : ""}
       {result.position}
+      {result.stablefordTitle ? (
+        <span
+          className={cn(
+            "block text-[10px] uppercase tracking-wide",
+            result.stablefordTitle === "won" ? "text-accent" : "font-normal text-surface-dark-foreground/60",
+          )}
+        >
+          {result.stablefordTitle === "won" ? "Won" : "Ineligible"}
+        </span>
+      ) : null}
     </td>
   );
 }
