@@ -94,16 +94,18 @@ export function StatPreviewCard({
 }) {
   // The top three, but never fewer than every joint leader: four players tied for first all show,
   // rather than three of them and the fourth left to the full rankings.
-  const leaders = category.rows.filter((row) => row.position === 1).length;
+  // The preview is the ranked places; a player short of a table's minimum only appears when picked.
+  const rankedRows = category.rows.filter((row) => !row.unranked);
+  const leaders = rankedRows.filter((row) => row.position === 1).length;
   const cut = Math.max(PREVIEW_COUNT, leaders);
   // A tie at the cut stays together too: a plain slice showed two of three players tied 3rd and
   // left the third out as though he were 4th. Up to six rows that just means showing them all;
   // beyond that (twenty men on one birdie) the card says how many more share the place.
-  const cutPosition = category.rows[cut - 1]?.position;
+  const cutPosition = rankedRows[cut - 1]?.position;
   let tieEnd = cut;
-  while (cutPosition !== undefined && tieEnd < category.rows.length && category.rows[tieEnd].position === cutPosition) tieEnd++;
+  while (cutPosition !== undefined && tieEnd < rankedRows.length && rankedRows[tieEnd].position === cutPosition) tieEnd++;
   const keepTie = tieEnd <= MAX_TIE_ROWS;
-  const top = category.rows.slice(0, keepTie ? tieEnd : cut);
+  const top = rankedRows.slice(0, keepTie ? tieEnd : cut);
   const moreTied = keepTie ? 0 : tieEnd - cut;
   // Player ids reach the client as numbers (42), but a <select> hands back text ("42"), so compare
   // them as strings -- a strict number-to-string match is why the Player filter never matched anyone.
@@ -111,7 +113,7 @@ export function StatPreviewCard({
   const isFavourite = (row: StatRow) => favoriteIds.map(String).includes(String(row.player.id));
   // Everyone placed first gets the feature row, so a tie for first shows as joint leaders, each
   // with the large treatment ("T1st"), rather than one of them picked out by sort order.
-  const isLeader = (row: StatRow) => (row.position ?? 1) === 1;
+  const isLeader = (row: StatRow) => !row.unranked && (row.position ?? 1) === 1;
   const extra = highlightId && !top.some(isPicked) ? category.rows.find(isPicked) : undefined;
 
   return (
@@ -149,8 +151,7 @@ export function StatPreviewCard({
           >
             <div className="flex items-center gap-3 text-sm">
               <span className="w-8 tabular-nums">
-                {row.tied ? "T" : ""}
-                {row.position}
+                {row.unranked ? "—" : `${row.tied ? "T" : ""}${row.position}`}
               </span>
               <CountryFlag code={row.player.countryCode} className="h-3 w-4" />
               <button type="button" onClick={() => onSelectPlayer(row.player.id)} className="inline-flex items-center gap-1.5 font-medium hover:underline">

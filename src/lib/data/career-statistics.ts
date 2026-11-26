@@ -14,12 +14,18 @@ import {
   holesPerEagleRow,
   bounceBack,
   percentageRow,
+  rankRates,
+  bounceBackNote,
   formatDecimalToPar,
   longestStreak,
   reverseBounceBack,
   type ScoringMode,
 } from "@/lib/data/scoring-statistics";
 import type { StatCategory, StatRow } from "@/lib/statistics";
+
+/** About three championships' worth of Bounce Back chances, so one round's 4/8 can't lead a career table. */
+const CAREER_BOUNCE_BACK_MINIMUM = 15;
+const CAREER_REVERSE_BOUNCE_BACK_MINIMUM = 6;
 import type { Player } from "@/types/player";
 import type { Player as PayloadPlayer, Venue as PayloadVenue, Scorecard as PayloadScorecard } from "@/payload-types";
 
@@ -162,8 +168,8 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
   const parCountRows: StatRow[] = [];
   const bogeyOrWorseRows: StatRow[] = [];
   const strokesGainedRows: StatRow[] = [];
-  const bounceBackRows: StatRow[] = [];
-  const reverseBounceBackRows: StatRow[] = [];
+  const bounceBackRows: { row: StatRow; chances: number }[] = [];
+  const reverseBounceBackRows: { row: StatRow; chances: number }[] = [];
   const birdieToBogeyRows: StatRow[] = [];
   const birdieOrBetterPercentRows: StatRow[] = [];
   const bogeyAvoidanceRows: StatRow[] = [];
@@ -184,8 +190,10 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
       pooledReverse.chances += reverse.chances;
       pooledReverse.bounced += reverse.bounced;
     }
-    if (pooled.chances > 0) bounceBackRows.push(percentageRow(player, pooled.bounced, pooled.chances));
-    if (pooledReverse.chances > 0) reverseBounceBackRows.push(percentageRow(player, pooledReverse.bounced, pooledReverse.chances));
+    if (pooled.chances > 0) bounceBackRows.push({ row: percentageRow(player, pooled.bounced, pooled.chances), chances: pooled.chances });
+    if (pooledReverse.chances > 0) {
+      reverseBounceBackRows.push({ row: percentageRow(player, pooledReverse.bounced, pooledReverse.chances), chances: pooledReverse.chances });
+    }
 
     const parTotals: Record<3 | 4 | 5, { sum: number; count: number }> = { 3: { sum: 0, count: 0 }, 4: { sum: 0, count: 0 }, 5: { sum: 0, count: 0 } };
     // Birdies or better on each par, out of that par's holes played -- a share, so a no-return's holes count too.
@@ -274,10 +282,6 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
   assignPositions(bogeyOrWorseRows);
   strokesGainedRows.sort((a, b) => a.value - b.value);
   assignPositions(strokesGainedRows);
-  bounceBackRows.sort((a, b) => b.value - a.value);
-  assignPositions(bounceBackRows);
-  reverseBounceBackRows.sort((a, b) => a.value - b.value);
-  assignPositions(reverseBounceBackRows);
   birdieToBogeyRows.sort((a, b) => b.value - a.value);
   assignPositions(birdieToBogeyRows);
   birdieOrBetterPercentRows.sort((a, b) => b.value - a.value);
@@ -302,8 +306,22 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
     { key: `most-birdies-or-better-${mode}`, title: "Most Birdies or Better", columnLabel: "TOTAL", rows: birdieOrBetterRows },
     { key: `most-pars-${mode}`, title: "Most Pars", columnLabel: "TOTAL", rows: parCountRows },
     { key: `most-bogeys-or-worse-${mode}`, title: "Most Bogeys or Worse", columnLabel: "TOTAL", rows: bogeyOrWorseRows },
-    { key: `bounce-back-${mode}`, title: `Bounce Back - ${label}`, columnLabel: "RATE", rows: bounceBackRows },
-    { key: `reverse-bounce-back-${mode}`, title: `Reverse Bounce Back - ${label}`, columnLabel: "RATE", rows: reverseBounceBackRows },
+    {
+      key: `bounce-back-${mode}`,
+      title: `Bounce Back - ${label}`,
+      columnLabel: "RATE",
+      rows: rankRates(bounceBackRows, CAREER_BOUNCE_BACK_MINIMUM, "high"),
+      note: bounceBackNote(CAREER_BOUNCE_BACK_MINIMUM),
+      emptyMessage: `Nobody reached ${CAREER_BOUNCE_BACK_MINIMUM} chances.`,
+    },
+    {
+      key: `reverse-bounce-back-${mode}`,
+      title: `Reverse Bounce Back - ${label}`,
+      columnLabel: "RATE",
+      rows: rankRates(reverseBounceBackRows, CAREER_REVERSE_BOUNCE_BACK_MINIMUM, "low"),
+      note: bounceBackNote(CAREER_REVERSE_BOUNCE_BACK_MINIMUM),
+      emptyMessage: `Nobody reached ${CAREER_REVERSE_BOUNCE_BACK_MINIMUM} chances.`,
+    },
     { key: `birdie-to-bogey-ratio-${mode}`, title: `Birdie to Bogey Ratio - ${label}`, columnLabel: "RATIO", rows: birdieToBogeyRows },
     { key: `birdie-or-better-percentage-${mode}`, title: `Birdie or Better % - ${label}`, columnLabel: "RATE", rows: birdieOrBetterPercentRows },
     { key: `bogey-avoidance-${mode}`, title: `Bogey Avoidance - ${label}`, columnLabel: "RATE", rows: bogeyAvoidanceRows },

@@ -143,8 +143,7 @@ export function StatExplorer({
             >
               <div className="flex items-center gap-3 text-sm">
                 <span className="w-8 tabular-nums">
-                  {row.tied ? "T" : ""}
-                  {row.position}
+                  {row.unranked ? "—" : `${row.tied ? "T" : ""}${row.position}`}
                 </span>
                 <CountryFlag code={row.player.countryCode} className="h-3 w-4" />
                 <button type="button" onClick={() => setSelectedPlayerId(row.player.id)} className="font-medium hover:underline">
@@ -158,6 +157,7 @@ export function StatExplorer({
           ))
         )}
       </div>
+      {selected.note ? <p className="text-xs text-surface-dark-foreground/60">{selected.note}</p> : null}
 
       <PlayerPopup
         main={selectedMain}

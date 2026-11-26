@@ -6,6 +6,8 @@ export interface StatRow {
   display: string;
   position?: number;
   tied?: boolean;
+  /** Listed below the ranked players without a place, short of the table's minimum (Bounce Back's chances). */
+  unranked?: boolean;
 }
 
 export interface StatCategory {
@@ -17,6 +19,8 @@ export interface StatCategory {
   useParColoring?: boolean;
   /** What an empty table says. Defaults to "Nothing recorded yet.", which is wrong for a finished year that simply had no eagles. */
   emptyMessage?: string;
+  /** A line under the full rankings, e.g. the minimum a player needs to be ranked. */
+  note?: string;
 }
 
 /**

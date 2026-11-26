@@ -8,6 +8,7 @@ import {
   longestStreak,
   nineToPar,
   percentageRow,
+  rankRates,
   reverseBounceBack,
 } from "@/lib/data/scoring-statistics";
 import { lowestWithEveryHolder, topWithTies, type ScoreEntry } from "@/lib/data/records";
@@ -172,5 +173,45 @@ describe("topWithTies", () => {
     const entry = (year: number, value: number): ScoreEntry => ({ year, name: `P${year}`, venueName: "Course", value });
     const list = lowestWithEveryHolder([-4, -3, -2, -1, 0, 0, 0, 1].map((v, i) => entry(2013 + i, v)));
     expect(list.map((e) => e.value)).toEqual([-4, -3, -2, -1, 0, 0, 0]);
+  });
+});
+
+describe("rankRates", () => {
+  const p = (id: string) => ({ id }) as unknown as StatRow["player"];
+
+  it("ranks only players with the minimum number of chances, and lists the rest below, unranked", () => {
+    const rows = rankRates(
+      [
+        { row: percentageRow(p("a"), 2, 4), chances: 4 },
+        { row: percentageRow(p("b"), 4, 8), chances: 8 },
+        { row: percentageRow(p("c"), 3, 10), chances: 10 },
+        { row: percentageRow(p("d"), 0, 3), chances: 3 },
+      ],
+      5,
+      "high",
+    );
+    expect(rows.map((r) => [r.player.id, r.position, r.tied, r.unranked])).toEqual([
+      ["b", 1, false, undefined],
+      ["c", 2, false, undefined],
+      ["a", undefined, undefined, true],
+      ["d", undefined, undefined, true],
+    ]);
+  });
+
+  it("sorts lowest first for Reverse Bounce Back", () => {
+    const rows = rankRates(
+      [
+        { row: percentageRow(p("a"), 0, 1), chances: 1 },
+        { row: percentageRow(p("b"), 2, 4), chances: 4 },
+        { row: percentageRow(p("c"), 1, 4), chances: 4 },
+      ],
+      3,
+      "low",
+    );
+    expect(rows.map((r) => [r.player.id, r.position, r.unranked])).toEqual([
+      ["c", 1, undefined],
+      ["b", 2, undefined],
+      ["a", undefined, true],
+    ]);
   });
 });

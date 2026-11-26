@@ -91,6 +91,27 @@ function holeAfterHole(
  * both read 8% while ranked apart; ranking on the rounded figure means two rates that read the
  * same on the page always share a place, even across a career's worth of holes.
  */
+/**
+ * Ranks a rate table on only the players with at least `minimum` chances; the rest follow, in the
+ * same order, without a place. Without it a player who went over par once and parred the next led
+ * Bounce Back on 1/1, and one with a single birdie led Reverse Bounce Back on 0/1.
+ */
+export function rankRates(entries: { row: StatRow; chances: number }[], minimum: number, order: "high" | "low"): StatRow[] {
+  const byRate = (a: StatRow, b: StatRow) => (order === "high" ? b.value - a.value : a.value - b.value);
+  const ranked = entries.filter((e) => e.chances >= minimum).map((e) => e.row).sort(byRate);
+  assignPositions(ranked);
+  const unranked = entries.filter((e) => e.chances < minimum).map((e) => ({ ...e.row, unranked: true })).sort(byRate);
+  return [...ranked, ...unranked];
+}
+
+/** Bounce Back chances needed to be ranked in one championship's tables. */
+export const BOUNCE_BACK_MINIMUM = 5;
+export const REVERSE_BOUNCE_BACK_MINIMUM = 3;
+
+export function bounceBackNote(minimum: number): string {
+  return `Ranked from ${minimum} chances. Players with fewer follow the ranked ones, marked —.`;
+}
+
 export function percentageRow(player: Player, count: number, total: number): StatRow {
   const percent = Math.round((count / total) * 1000) / 10;
   return { player, value: percent, display: `${percent.toFixed(1)}% (${count}/${total})` };
@@ -220,8 +241,8 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   const strokesGainedRows: StatRow[] = [];
   const frontNineRows: StatRow[] = [];
   const backNineRows: StatRow[] = [];
-  const bounceBackRows: StatRow[] = [];
-  const reverseBounceBackRows: StatRow[] = [];
+  const bounceBackRows: { row: StatRow; chances: number }[] = [];
+  const reverseBounceBackRows: { row: StatRow; chances: number }[] = [];
   const birdieToBogeyRows: StatRow[] = [];
   const birdieOrBetterPercentRows: StatRow[] = [];
   const bogeyAvoidanceRows: StatRow[] = [];
@@ -231,9 +252,9 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
 
   for (const { player, scoreByHole, lostHoles } of playerScores) {
     const { chances, bounced } = bounceBack(scoreByHole, holeInfos);
-    if (chances > 0) bounceBackRows.push(percentageRow(player, bounced, chances));
+    if (chances > 0) bounceBackRows.push({ row: percentageRow(player, bounced, chances), chances });
     const reverse = reverseBounceBack(scoreByHole, holeInfos);
-    if (reverse.chances > 0) reverseBounceBackRows.push(percentageRow(player, reverse.bounced, reverse.chances));
+    if (reverse.chances > 0) reverseBounceBackRows.push({ row: percentageRow(player, reverse.bounced, reverse.chances), chances: reverse.chances });
 
     // A nine counts once every hole in it has a score, even if the player picked up later in the
     // round: a no-return's completed front nine is a real front nine.
@@ -336,10 +357,6 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   assignPositions(frontNineRows);
   backNineRows.sort((a, b) => a.value - b.value);
   assignPositions(backNineRows);
-  bounceBackRows.sort((a, b) => b.value - a.value);
-  assignPositions(bounceBackRows);
-  reverseBounceBackRows.sort((a, b) => a.value - b.value);
-  assignPositions(reverseBounceBackRows);
   birdieToBogeyRows.sort((a, b) => b.value - a.value);
   assignPositions(birdieToBogeyRows);
   birdieOrBetterPercentRows.sort((a, b) => b.value - a.value);
@@ -366,8 +383,22 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
     { key: `most-birdies-or-better-${mode}`, title: "Most Birdies or Better", columnLabel: "TOTAL", rows: birdieOrBetterRows },
     { key: `most-pars-${mode}`, title: "Most Pars", columnLabel: "TOTAL", rows: parCountRows },
     { key: `most-bogeys-or-worse-${mode}`, title: "Most Bogeys or Worse", columnLabel: "TOTAL", rows: bogeyOrWorseRows },
-    { key: `bounce-back-${mode}`, title: `Bounce Back - ${label}`, columnLabel: "RATE", rows: bounceBackRows },
-    { key: `reverse-bounce-back-${mode}`, title: `Reverse Bounce Back - ${label}`, columnLabel: "RATE", rows: reverseBounceBackRows },
+    {
+      key: `bounce-back-${mode}`,
+      title: `Bounce Back - ${label}`,
+      columnLabel: "RATE",
+      rows: rankRates(bounceBackRows, BOUNCE_BACK_MINIMUM, "high"),
+      note: bounceBackNote(BOUNCE_BACK_MINIMUM),
+      emptyMessage: `Nobody reached ${BOUNCE_BACK_MINIMUM} chances.`,
+    },
+    {
+      key: `reverse-bounce-back-${mode}`,
+      title: `Reverse Bounce Back - ${label}`,
+      columnLabel: "RATE",
+      rows: rankRates(reverseBounceBackRows, REVERSE_BOUNCE_BACK_MINIMUM, "low"),
+      note: bounceBackNote(REVERSE_BOUNCE_BACK_MINIMUM),
+      emptyMessage: `Nobody reached ${REVERSE_BOUNCE_BACK_MINIMUM} chances.`,
+    },
     { key: `birdie-to-bogey-ratio-${mode}`, title: `Birdie to Bogey Ratio - ${label}`, columnLabel: "RATIO", rows: birdieToBogeyRows },
     { key: `birdie-or-better-percentage-${mode}`, title: `Birdie or Better % - ${label}`, columnLabel: "RATE", rows: birdieOrBetterPercentRows },
     { key: `bogey-avoidance-${mode}`, title: `Bogey Avoidance - ${label}`, columnLabel: "RATE", rows: bogeyAvoidanceRows },
