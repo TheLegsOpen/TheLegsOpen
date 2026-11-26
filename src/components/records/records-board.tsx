@@ -375,7 +375,7 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
               courseHostCounts.map((e) => <RecordRow key={e.venueName} left={e.venueName} sub={e.years.join(", ")} right={e.count} />)
             )}
           </Category>
-          <Category value="playoffs" title="Play-offs at The Legs Open" count={playoffs.length}>
+          <Category value="playoffs" title="Playoffs at The Legs Open" count={playoffs.length}>
             {playoffs.length === 0 ? (
               <Empty>No playoff has occurred yet.</Empty>
             ) : (

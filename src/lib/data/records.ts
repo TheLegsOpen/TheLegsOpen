@@ -13,7 +13,7 @@ import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { ChampionshipWinner } from "@/types/championship";
 import type { PlayoffResult } from "@/lib/data/playoffs";
 
-/** "Alistair Campbell (-2) beat Bobby Ferguson (E)" -- the deciding tiebreak step's own scores for the winner and the best-placed non-winner, reusing the exact same countback resolution the live leaderboard shows during play. Undefined if the title genuinely ended up shared (every tiebreak step exhausted, still level). */
+/** "Alistair Campbell (-2) beat Bobby Ferguson (E)" -- the deciding tiebreak step's own scores for the winner and the best-placed non-winner, reusing the exact same playoff resolution the live leaderboard shows during play. Undefined if the title genuinely ended up shared (every tiebreak step exhausted, still level). */
 function formatPlayoffResult(result: PlayoffResult): string | undefined {
   if (!result.winner || result.steps.length === 0) return undefined;
   const decidingStep = result.steps[result.steps.length - 1];
@@ -261,7 +261,7 @@ export interface AutoFacts {
   ledOutrightAfter9: boolean;
   deficitAfter9?: number;
   largestLead?: LeadOnTheClock;
-  /** The Main competition's own tiebreak resolution, when it needed one -- reused by the Records "Play-offs" list so it doesn't have to re-derive the same countback a second time. */
+  /** The Main competition's own tiebreak resolution, when it needed one -- reused by the Records "Playoffs" list so it doesn't have to re-derive the same playoff a second time. */
   mainPlayoffResult?: PlayoffResult;
 }
 
