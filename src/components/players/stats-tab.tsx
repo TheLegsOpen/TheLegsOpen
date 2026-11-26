@@ -51,6 +51,13 @@ function CareerSummaryCard({ summary }: { summary: CareerSummary }) {
       return figure ? [{ key: `${mode}-${side}`, value: formatAverageToPar(figure.average), label: `${label}, ${nineCount(figure.rounds)}` }] : [];
     }),
   );
+  const teeTimeTiles = (["nett", "gross"] as const).flatMap((mode) =>
+    (["early", "late"] as const).flatMap((half) => {
+      const figure = summary.teeTimes?.[mode]?.[half];
+      const label = `${half === "early" ? "Early" : "Late"} ${mode}`;
+      return figure ? [{ key: `${mode}-${half}`, value: formatAverageToPar(figure.average), label: `${label}, ${rounds(figure.rounds)}` }] : [];
+    }),
+  );
   return (
     <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-3">
       <div className="border border-surface-dark-foreground/15 bg-surface-dark-foreground/5 p-4">
@@ -70,6 +77,20 @@ function CareerSummaryCard({ summary }: { summary: CareerSummary }) {
             ))}
           </div>
           <p className="mt-3 text-xs text-surface-dark-foreground/50">Every complete nine, to par, a no-return&apos;s finished nine included.</p>
+        </div>
+      ) : null}
+      {teeTimeTiles.length > 0 ? (
+        <div className="border border-surface-dark-foreground/15 bg-surface-dark-foreground/5 p-4">
+          <p className="mb-3 font-display text-base font-bold">Scoring average by tee time</p>
+          <div className="flex flex-wrap gap-6">
+            {teeTimeTiles.map((tile) => (
+              <SummaryValue key={tile.key} value={tile.value} label={tile.label} />
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-surface-dark-foreground/50">
+            Completed rounds, to par. Early is the first half of that year&apos;s groups off, late the second; the middle group of an odd
+            number is in neither.
+          </p>
         </div>
       ) : null}
       {subPar ? (

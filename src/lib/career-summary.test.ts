@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { careerScoringAverage, formatAverageToPar, nineAverages, subParRounds } from "@/lib/career-summary";
+import { careerScoringAverage, formatAverageToPar, nineAverages, subParRounds, teeHalf, teeTimeAverages } from "@/lib/career-summary";
 
 const round = (toPar: number, extra: { noReturn?: boolean; withdrawn?: boolean } = {}) => ({ position: 1, tied: false, toPar, ...extra });
 
@@ -74,5 +74,41 @@ describe("nineAverages", () => {
 
   it("leaves out a side with no complete nines", () => {
     expect(nineAverages([{ main: { toPar: 0, noReturn: true, holes: card(missingLast(2), missingLast(2)) } }])).toEqual({});
+  });
+});
+
+describe("teeHalf", () => {
+  it("splits a year's groups into the earlier and later half, on a 12-hour sheet with no am/pm", () => {
+    const field = ["12.40", "12.20", "1.05", "12.30", "12.20"];
+    // Groups in order: 12.20, 12.30, 12.40, 1.05.
+    expect(teeHalf("12.20", field)).toBe("early");
+    expect(teeHalf("12.30", field)).toBe("early");
+    expect(teeHalf("12.40", field)).toBe("late");
+    expect(teeHalf("1.05", field)).toBe("late");
+  });
+
+  it("puts the middle group of an odd number in neither half, and an unknown time nowhere", () => {
+    const field = ["11.00", "11.10", "11.20"];
+    expect(teeHalf("11.00", field)).toBe("early");
+    expect(teeHalf("11.10", field)).toBeUndefined();
+    expect(teeHalf("11.20", field)).toBe("late");
+    expect(teeHalf("", field)).toBeUndefined();
+  });
+});
+
+describe("teeTimeAverages", () => {
+  it("averages completed rounds to par by half of the field, nett and gross", () => {
+    const results = [
+      { teeHalf: "early" as const, main: round(2), scratch: round(14) },
+      { teeHalf: "early" as const, main: round(4), scratch: round(16) },
+      { teeHalf: "late" as const, main: round(-1), scratch: round(11) },
+      // A no-return, a middle group and a year with no tee sheet count for neither half.
+      { teeHalf: "late" as const, main: round(0, { noReturn: true }), scratch: round(0, { noReturn: true }) },
+      { main: round(9), scratch: round(20) },
+    ];
+    expect(teeTimeAverages(results)).toEqual({
+      nett: { early: { average: 3, rounds: 2 }, late: { average: -1, rounds: 1 } },
+      gross: { early: { average: 15, rounds: 2 }, late: { average: 11, rounds: 1 } },
+    });
   });
 });

@@ -4,6 +4,8 @@
  * results the Results tab lists.
  */
 
+import { parseTeeTimeMinutes } from "@/lib/data/tee-time-order";
+
 interface RoundResult {
   toPar?: number;
   noReturn?: boolean;
@@ -21,6 +23,7 @@ export interface CareerSummary {
   gross?: CareerAverage;
   subPar?: { nett: SubParRecord; gross: SubParRecord };
   nines?: { nett?: NineAverages; gross?: NineAverages };
+  teeTimes?: { nett?: TeeTimeAverages; gross?: TeeTimeAverages };
 }
 
 function average(rounds: (RoundResult | undefined)[]): CareerAverage | undefined {
@@ -107,6 +110,43 @@ export function nineAverages(results: { main: CardResult; scratch?: CardResult }
   const gross = sideAverages(results.map((r) => r.scratch));
   if (nett.front || nett.back) out.nett = nett;
   if (gross.front || gross.back) out.gross = gross;
+  return out;
+}
+
+export type TeeHalf = "early" | "late";
+
+/**
+ * Which half of that year's field a tee time went out in: the earlier half of the groups or the
+ * later. A Legs Open field goes off in one block, anywhere from 10.00 to 2.45, so it's the order
+ * within the year that counts, not the clock. The middle group of an odd number is in neither.
+ */
+export function teeHalf(teeTime: string, fieldTeeTimes: string[]): TeeHalf | undefined {
+  const groups = [...new Set(fieldTeeTimes.map(parseTeeTimeMinutes).filter(Number.isFinite))].sort((a, b) => a - b);
+  const index = groups.indexOf(parseTeeTimeMinutes(teeTime));
+  if (index === -1) return undefined;
+  if (index < Math.floor(groups.length / 2)) return "early";
+  if (index >= Math.ceil(groups.length / 2)) return "late";
+  return undefined;
+}
+
+export interface TeeTimeAverages {
+  early?: CareerAverage;
+  late?: CareerAverage;
+}
+
+/** PGA Tour's Early and Late Scoring Average, by half of the field rather than morning and afternoon. */
+export function teeTimeAverages(
+  results: { teeHalf?: TeeHalf; main: RoundResult; scratch?: RoundResult }[],
+): { nett?: TeeTimeAverages; gross?: TeeTimeAverages } {
+  const out: { nett?: TeeTimeAverages; gross?: TeeTimeAverages } = {};
+  for (const [mode, pick] of [["nett", (r: (typeof results)[number]) => r.main], ["gross", (r: (typeof results)[number]) => r.scratch]] as const) {
+    const halves: TeeTimeAverages = {};
+    for (const half of ["early", "late"] as const) {
+      const figure = average(results.filter((r) => r.teeHalf === half).map(pick));
+      if (figure) halves[half] = figure;
+    }
+    if (halves.early || halves.late) out[mode] = halves;
+  }
   return out;
 }
 

@@ -9,6 +9,7 @@ import { getPlayoffs, applyPlayoffToEntries, getEligibleStablefordChampion } fro
 import type { Player, PlayerWithChampionshipAge } from "@/types/player";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
 import type { ChampionshipWinner } from "@/types/championship";
+import { teeHalf, type TeeHalf } from "@/lib/career-summary";
 import type { Player as PayloadPlayer } from "@/payload-types";
 
 /**
@@ -112,6 +113,8 @@ export interface PlayerYearResult {
   position: number;
   /** True once real per-hole scorecard data (all three competitions) is available and trustworthy. */
   hasScorecards: boolean;
+  /** Which half of that year's field he went out in, from the tee sheet. Missing for the middle group of an odd number, or a year with no scorecards. */
+  teeHalf?: TeeHalf;
   main: PlayerCompetitionResult;
   stableford?: PlayerCompetitionResult;
   scratch?: PlayerCompetitionResult;
@@ -196,6 +199,7 @@ export async function getPlayerResults(player: Player): Promise<PlayerYearResult
         finish,
         position: mainEntry.position,
         hasScorecards: true,
+        teeHalf: teeHalf(mainEntry.teeTime, byCompetition.main.filter((e) => e.started).map((e) => e.teeTime)),
         main: toResult(mainEntry),
         stableford: stablefordEntry && { ...toResult(stablefordEntry), stablefordTitle },
         scratch: scratchEntry && toResult(scratchEntry),
