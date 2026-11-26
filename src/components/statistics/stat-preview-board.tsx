@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -10,7 +11,7 @@ import { ToughestHolesBoard } from "@/components/statistics/toughest-holes-board
 import { PlayoffsBoard } from "@/components/statistics/playoffs-board";
 import { PlayerPopup } from "@/components/leaderboard/player-popup";
 import { useFavorites } from "@/hooks/use-favorites";
-import type { StatCategory } from "@/lib/statistics";
+import { previewCategories, type StatCategory } from "@/lib/statistics";
 import type { HoleToughnessRow } from "@/lib/data/scoring-statistics";
 import type { PlayoffResult } from "@/lib/data/playoffs";
 import type { CompetitionEntry } from "@/lib/data/scorecards";
@@ -68,8 +69,11 @@ export function StatPreviewBoard(props: StatPreviewBoardProps) {
   } = props;
   const [highlightId, setHighlightId] = useState<string>("");
   const [section, setSection] = useState<StatSection>("nett");
-  const categories =
+  const allCategories =
     section === "course" || section === "playoffs" ? [] : (props[SECTION_CATEGORIES[section]] as StatCategory[]);
+  // Nett and Scratch preview the headline eight of their nineteen; the rest are a link away.
+  const categories = section === "nett" || section === "scratch" ? previewCategories(allCategories, section) : allCategories;
+  const moreCount = allCategories.length - categories.length;
 
   const { favorites, toggleFavorite } = useFavorites();
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
@@ -161,6 +165,20 @@ export function StatPreviewBoard(props: StatPreviewBoardProps) {
           ))}
         </div>
       )}
+
+      {/* The explorer's own dropdown lists every stat in the section, so this opens it on the
+          first one the previews leave out. */}
+      {moreCount > 0 ? (
+        <Link
+          href={(() => {
+            const key = allCategories.find((c) => !categories.includes(c))?.key;
+            return championshipYear ? `/statistics/${key}?year=${championshipYear}` : `/statistics/${key}`;
+          })()}
+          className="inline-flex w-fit items-center gap-1 self-center rounded-full border border-surface-dark-foreground/30 px-5 py-2 text-sm font-bold uppercase tracking-wide text-surface-dark-foreground transition-colors hover:border-accent hover:text-accent"
+        >
+          {moreCount} more {section === "nett" ? "nett" : "scratch"} statistics <ChevronRight className="h-4 w-4" />
+        </Link>
+      ) : null}
 
       <PlayerPopup
         main={selectedMain}
