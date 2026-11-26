@@ -19,6 +19,7 @@ export interface CareerAverage {
 export interface CareerSummary {
   nett?: CareerAverage;
   gross?: CareerAverage;
+  subPar?: { nett: SubParRecord; gross: SubParRecord };
 }
 
 function average(rounds: (RoundResult | undefined)[]): CareerAverage | undefined {
@@ -37,6 +38,35 @@ export function careerScoringAverage(results: { main: RoundResult; scratch?: Rou
   if (nett) summary.nett = nett;
   if (gross) summary.gross = gross;
   return summary;
+}
+
+export interface SubParRecord {
+  rounds: number;
+  /** Most championships in a row under par, counting only the ones he played. */
+  bestStreak: number;
+}
+
+function subPar(rounds: (RoundResult | undefined)[]): SubParRecord {
+  let count = 0;
+  let current = 0;
+  let best = 0;
+  for (const round of rounds) {
+    // Strictly under par. Level par, a no-return or a withdrawal ends a run; a year he didn't play
+    // isn't in the list at all, so it doesn't.
+    const under = Boolean(round) && !round!.noReturn && !round!.withdrawn && round!.toPar !== undefined && round!.toPar < 0;
+    if (under) {
+      count += 1;
+      current += 1;
+      best = Math.max(best, current);
+    } else current = 0;
+  }
+  return { rounds: count, bestStreak: best };
+}
+
+/** PGA Tour's Sub-Par Rounds and Best Sub-Par Rounds Streak, nett from the Main and gross from the Scratch. */
+export function subParRounds(results: { year: number; main: RoundResult; scratch?: RoundResult }[]): { nett: SubParRecord; gross: SubParRecord } {
+  const oldestFirst = [...results].sort((a, b) => a.year - b.year);
+  return { nett: subPar(oldestFirst.map((r) => r.main)), gross: subPar(oldestFirst.map((r) => r.scratch)) };
 }
 
 /** "+7.4", "-0.3", or "E" for anything that rounds to level. */

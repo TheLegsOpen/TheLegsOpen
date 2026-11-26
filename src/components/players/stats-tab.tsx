@@ -42,14 +42,37 @@ function SummaryValue({ value, label }: { value: string; label: string }) {
 function CareerSummaryCard({ summary }: { summary: CareerSummary }) {
   if (!summary.nett && !summary.gross) return null;
   const rounds = (n: number) => `${n} round${n === 1 ? "" : "s"}`;
+  const { subPar } = summary;
   return (
-    <div className="border border-surface-dark-foreground/15 bg-surface-dark-foreground/5 p-4">
-      <p className="mb-3 font-display text-base font-bold">Scoring average</p>
-      <div className="flex flex-wrap gap-6">
-        {summary.nett ? <SummaryValue value={formatAverageToPar(summary.nett.average)} label={`Nett, ${rounds(summary.nett.rounds)}`} /> : null}
-        {summary.gross ? <SummaryValue value={formatAverageToPar(summary.gross.average)} label={`Gross, ${rounds(summary.gross.rounds)}`} /> : null}
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-3">
+      <div className="border border-surface-dark-foreground/15 bg-surface-dark-foreground/5 p-4">
+        <p className="mb-3 font-display text-base font-bold">Scoring average</p>
+        <div className="flex flex-wrap gap-6">
+          {summary.nett ? <SummaryValue value={formatAverageToPar(summary.nett.average)} label={`Nett, ${rounds(summary.nett.rounds)}`} /> : null}
+          {summary.gross ? <SummaryValue value={formatAverageToPar(summary.gross.average)} label={`Gross, ${rounds(summary.gross.rounds)}`} /> : null}
+        </div>
+        <p className="mt-3 text-xs text-surface-dark-foreground/50">Completed rounds only, to par.</p>
       </div>
-      <p className="mt-3 text-xs text-surface-dark-foreground/50">Completed rounds only, to par.</p>
+      {subPar ? (
+        <div className="border border-surface-dark-foreground/15 bg-surface-dark-foreground/5 p-4">
+          <p className="mb-3 font-display text-base font-bold">Rounds under par</p>
+          <div className="flex flex-wrap gap-6">
+            <SummaryValue value={String(subPar.nett.rounds)} label="Nett" />
+            {/* A run only says something beyond the count once it reaches two. Through 2026 nobody
+                has been under par nett more than once (nine rounds in all, nine players), so until
+                someone does, this would only repeat the count. */}
+            {subPar.nett.bestStreak > 1 ? <SummaryValue value={String(subPar.nett.bestStreak)} label="Nett, most in a row" /> : null}
+            {/* Nobody has finished a Legs Open under par gross (the lowest round is a 74, two
+                over), so the gross figures only appear for a player who has. */}
+            {subPar.gross.rounds > 0 ? <SummaryValue value={String(subPar.gross.rounds)} label="Gross" /> : null}
+            {subPar.gross.bestStreak > 1 ? <SummaryValue value={String(subPar.gross.bestStreak)} label="Gross, most in a row" /> : null}
+          </div>
+          <p className="mt-3 text-xs text-surface-dark-foreground/50">
+            Completed rounds below par; level par doesn&apos;t count.
+            {subPar.nett.bestStreak > 1 || subPar.gross.bestStreak > 1 ? " A no-return ends a run." : ""}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
