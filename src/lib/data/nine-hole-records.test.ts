@@ -5,6 +5,7 @@ import {
   birdieToBogeyRow,
   bounceBack,
   holesPerEagleRow,
+  longestStreak,
   nineToPar,
   percentageRow,
   reverseBounceBack,
@@ -65,6 +66,21 @@ describe("assignPositions", () => {
 });
 
 const pars = [4, 4, 3, 5, 4, 4, 3, 5, 4, 4, 4, 3, 5, 4, 4, 3, 5, 4].map((par) => ({ par }));
+
+describe("longestStreak under par", () => {
+  const holes = pars.map((h) => ({ ...h, si: 1 }));
+
+  it("counts consecutive holes under par, an eagle included, and a par ends the run", () => {
+    // Birdies at 3 and 4, an eagle at 5, par at 6; birdies at 10 and 11.
+    const scores = holes.map((h, i) => (i === 2 || i === 3 || i === 9 || i === 10 ? h.par - 1 : i === 4 ? h.par - 2 : h.par));
+    expect(longestStreak(scores, holes, "under-par")).toBe(3);
+  });
+
+  it("is broken by a hole without a score", () => {
+    const scores = holes.map((h, i) => (i === 1 ? undefined : i < 3 ? h.par - 1 : h.par));
+    expect(longestStreak(scores, holes, "under-par")).toBe(1);
+  });
+});
 
 describe("bounceBack", () => {
   it("counts an over-par hole followed by an under-par one", () => {

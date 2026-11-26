@@ -332,11 +332,13 @@ async function getCareerStreakCategoriesForMode(mode: ScoringMode): Promise<Stat
   const scores = scoresForMode(mode, inputs);
   if (scores.length === 0) return [];
 
+  const underParRows: StatRow[] = [];
   const parOrBetterRows: StatRow[] = [];
   const parRows: StatRow[] = [];
   const bogeyOrWorseRows: StatRow[] = [];
 
   for (const { player, entries } of groupByPlayer(scores).values()) {
+    let bestUnderPar = 0;
     let bestParOrBetter = 0;
     let bestPar = 0;
     let bestBogeyOrWorse = 0;
@@ -347,24 +349,28 @@ async function getCareerStreakCategoriesForMode(mode: ScoringMode): Promise<Stat
       holesPlayed += entry.scoreByHole.filter((s) => s != null).length;
       // A streak can't span two different rounds -- each year's best run stands on its own, and a
       // player's career figure is simply the best of those, not a run concatenated across years.
+      bestUnderPar = Math.max(bestUnderPar, longestStreak(entry.scoreByHole, holeInfos, "under-par"));
       bestParOrBetter = Math.max(bestParOrBetter, longestStreak(entry.scoreByHole, holeInfos, "par-or-better"));
       bestPar = Math.max(bestPar, longestStreak(entry.scoreByHole, holeInfos, "par"));
       bestBogeyOrWorse = Math.max(bestBogeyOrWorse, longestStreak(entry.scoreByHole, holeInfos, "bogey-or-worse"));
     }
 
     if (holesPlayed === 0) continue;
+    // Only players with at least one hole under par: most of the gross field has none.
+    if (bestUnderPar > 0) underParRows.push({ player, value: bestUnderPar, display: String(bestUnderPar) });
     parOrBetterRows.push({ player, value: bestParOrBetter, display: String(bestParOrBetter) });
     parRows.push({ player, value: bestPar, display: String(bestPar) });
     bogeyOrWorseRows.push({ player, value: bestBogeyOrWorse, display: String(bestBogeyOrWorse) });
   }
 
-  [parOrBetterRows, parRows, bogeyOrWorseRows].forEach((rows) => {
+  [underParRows, parOrBetterRows, parRows, bogeyOrWorseRows].forEach((rows) => {
     rows.sort((a, b) => b.value - a.value);
     assignPositions(rows);
   });
 
   const label = mode === "nett" ? "Nett" : "Scratch";
   return [
+    { key: `longest-under-par-streak-${mode}`, title: `Longest ${label} Under Par Streak`, columnLabel: "TOTAL", rows: underParRows, emptyMessage: "No holes under par." },
     { key: `longest-par-or-better-streak-${mode}`, title: `Longest ${label} Par or Better Streak`, columnLabel: "TOTAL", rows: parOrBetterRows },
     { key: `longest-par-streak-${mode}`, title: `Longest ${label} Par Streak`, columnLabel: "TOTAL", rows: parRows },
     { key: `longest-bogey-or-worse-streak-${mode}`, title: `Longest ${label} Bogey or Worse Streak`, columnLabel: "TOTAL", rows: bogeyOrWorseRows },

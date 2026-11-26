@@ -391,7 +391,7 @@ export async function getScratchScoringCategories(championshipId?: string): Prom
   return getScoringCategories("scratch", championshipId);
 }
 
-type StreakKind = "par-or-better" | "par" | "bogey-or-worse";
+type StreakKind = "under-par" | "par-or-better" | "par" | "bogey-or-worse";
 
 /** Longest run of consecutive played holes (in hole order) matching the streak's condition. */
 export function longestStreak(scoreByHole: (number | undefined)[], holeInfos: HoleInfo[], kind: StreakKind): number {
@@ -404,7 +404,8 @@ export function longestStreak(scoreByHole: (number | undefined)[], holeInfos: Ho
       return;
     }
     const relative = score - info.par;
-    const matches = kind === "par-or-better" ? relative <= 0 : kind === "par" ? relative === 0 : relative >= 1;
+    const matches =
+      kind === "under-par" ? relative <= -1 : kind === "par-or-better" ? relative <= 0 : kind === "par" ? relative === 0 : relative >= 1;
     current = matches ? current + 1 : 0;
     if (current > longest) longest = current;
   });
@@ -415,6 +416,7 @@ async function getStreakCategoriesForMode(mode: ScoringMode, championshipId?: st
   const { holeInfos, playerScores } = await getPlayerScoresByMode(mode, championshipId);
   if (holeInfos.length === 0) return [];
 
+  const underParRows: StatRow[] = [];
   const parOrBetterRows: StatRow[] = [];
   const parRows: StatRow[] = [];
   const bogeyOrWorseRows: StatRow[] = [];
@@ -423,22 +425,26 @@ async function getStreakCategoriesForMode(mode: ScoringMode, championshipId?: st
     const holesPlayed = scoreByHole.filter((s) => s != null).length;
     if (holesPlayed === 0) continue;
 
+    const underPar = longestStreak(scoreByHole, holeInfos, "under-par");
     const parOrBetter = longestStreak(scoreByHole, holeInfos, "par-or-better");
     const parStreak = longestStreak(scoreByHole, holeInfos, "par");
     const bogeyOrWorse = longestStreak(scoreByHole, holeInfos, "bogey-or-worse");
 
+    // Only players with at least one hole under par: most of the gross field has none.
+    if (underPar > 0) underParRows.push({ player, value: underPar, display: String(underPar) });
     parOrBetterRows.push({ player, value: parOrBetter, display: String(parOrBetter) });
     parRows.push({ player, value: parStreak, display: String(parStreak) });
     bogeyOrWorseRows.push({ player, value: bogeyOrWorse, display: String(bogeyOrWorse) });
   }
 
-  [parOrBetterRows, parRows, bogeyOrWorseRows].forEach((rows) => {
+  [underParRows, parOrBetterRows, parRows, bogeyOrWorseRows].forEach((rows) => {
     rows.sort((a, b) => b.value - a.value);
     assignPositions(rows);
   });
 
   const label = mode === "nett" ? "Nett" : "Scratch";
   return [
+    { key: `longest-under-par-streak-${mode}`, title: `Longest ${label} Under Par Streak`, columnLabel: "TOTAL", rows: underParRows, emptyMessage: "No holes under par." },
     { key: `longest-par-or-better-streak-${mode}`, title: `Longest ${label} Par or Better Streak`, columnLabel: "TOTAL", rows: parOrBetterRows },
     { key: `longest-par-streak-${mode}`, title: `Longest ${label} Par Streak`, columnLabel: "TOTAL", rows: parRows },
     { key: `longest-bogey-or-worse-streak-${mode}`, title: `Longest ${label} Bogey or Worse Streak`, columnLabel: "TOTAL", rows: bogeyOrWorseRows },
