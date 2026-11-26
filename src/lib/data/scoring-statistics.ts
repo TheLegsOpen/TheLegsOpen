@@ -53,6 +53,33 @@ export function formatDecimalToPar(value: number): string {
 }
 
 /**
+ * PGA Tour's Bounce Back: how often a hole over par is followed by one under par. A chance is an
+ * over-par hole with a scored hole after it, so the 18th never counts, and nor does a hole
+ * before a pick-up or one not reached yet.
+ */
+export function bounceBack(scoreByHole: (number | undefined)[], holeInfos: { par: number }[]): { chances: number; bounced: number } {
+  let chances = 0;
+  let bounced = 0;
+  for (let i = 0; i < holeInfos.length - 1; i++) {
+    const score = scoreByHole[i];
+    const next = scoreByHole[i + 1];
+    if (score == null || next == null || !holeInfos[i + 1] || score <= holeInfos[i].par) continue;
+    chances += 1;
+    if (next < holeInfos[i + 1].par) bounced += 1;
+  }
+  return { chances, bounced };
+}
+
+/**
+ * A Bounce Back row: ranked on the rate, shown as a percentage with the count behind it. One
+ * decimal place, as PGA Tour shows it: whole numbers made 1/12 and 1/13 both read 8% while ranked
+ * apart.
+ */
+export function bounceBackRow(player: Player, chances: number, bounced: number): StatRow {
+  return { player, value: bounced / chances, display: `${((bounced / chances) * 100).toFixed(1)}% (${bounced}/${chances})` };
+}
+
+/**
  * A nine's score in relation to par -- holes 1-9 from `start` 0, holes 10-18 from 9 -- or
  * undefined unless every one of those nine holes has a score.
  */
@@ -155,8 +182,12 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   const strokesGainedRows: StatRow[] = [];
   const frontNineRows: StatRow[] = [];
   const backNineRows: StatRow[] = [];
+  const bounceBackRows: StatRow[] = [];
 
   for (const { player, scoreByHole, lostHoles } of playerScores) {
+    const { chances, bounced } = bounceBack(scoreByHole, holeInfos);
+    if (chances > 0) bounceBackRows.push(bounceBackRow(player, chances, bounced));
+
     // A nine counts once every hole in it has a score, even if the player picked up later in the
     // round: a no-return's completed front nine is a real front nine.
     for (const [rows, start] of [[frontNineRows, 0], [backNineRows, 9]] as const) {
@@ -236,6 +267,8 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   assignPositions(frontNineRows);
   backNineRows.sort((a, b) => a.value - b.value);
   assignPositions(backNineRows);
+  bounceBackRows.sort((a, b) => b.value - a.value);
+  assignPositions(bounceBackRows);
 
   const label = mode === "nett" ? "Nett" : "Scratch";
   return [
@@ -247,6 +280,7 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
     { key: `most-birdies-or-better-${mode}`, title: "Most Birdies or Better", columnLabel: "TOTAL", rows: birdieOrBetterRows },
     { key: `most-pars-${mode}`, title: "Most Pars", columnLabel: "TOTAL", rows: parCountRows },
     { key: `most-bogeys-or-worse-${mode}`, title: "Most Bogeys or Worse", columnLabel: "TOTAL", rows: bogeyOrWorseRows },
+    { key: `bounce-back-${mode}`, title: `Bounce Back - ${label}`, columnLabel: "RATE", rows: bounceBackRows },
     { key: `strokes-gained-${mode}`, title: "Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
   ];
 }

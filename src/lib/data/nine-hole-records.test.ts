@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { assignPositions, nineToPar } from "@/lib/data/scoring-statistics";
+import { assignPositions, bounceBack, nineToPar } from "@/lib/data/scoring-statistics";
 import type { StatRow } from "@/lib/statistics";
 
 describe("assignPositions", () => {
@@ -20,6 +20,19 @@ describe("assignPositions", () => {
 import { lowestWithEveryHolder, topWithTies, type ScoreEntry } from "@/lib/data/records";
 
 const pars = [4, 4, 3, 5, 4, 4, 3, 5, 4, 4, 4, 3, 5, 4, 4, 3, 5, 4].map((par) => ({ par }));
+
+describe("bounceBack", () => {
+  it("counts an over-par hole followed by an under-par one", () => {
+    // Bogey at 1, birdie at 2; double at 5, par at 6; bogey at 9, birdie at 10.
+    const scores = pars.map((h, i) => (i === 0 || i === 8 ? h.par + 1 : i === 4 ? h.par + 2 : i === 1 || i === 9 ? h.par - 1 : h.par));
+    expect(bounceBack(scores, pars)).toEqual({ chances: 3, bounced: 2 });
+  });
+
+  it("gives no chance after the 18th or before a hole without a score", () => {
+    const scores = pars.map((h, i) => (i === 17 ? h.par + 1 : i === 3 ? h.par + 1 : i === 4 ? undefined : h.par));
+    expect(bounceBack(scores, pars)).toEqual({ chances: 0, bounced: 0 });
+  });
+});
 
 describe("nineToPar", () => {
   it("totals each nine against its own par", () => {

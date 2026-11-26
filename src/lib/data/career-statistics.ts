@@ -8,7 +8,7 @@ import { getCompetitionLeaderboardForChampionshipId } from "@/lib/data/scorecard
 import { isConcluded, formatToPar } from "@/lib/leaderboard";
 import { mapPlayer } from "@/lib/data/players";
 import { allocateStrokes } from "@/lib/scoring";
-import { assignPositions, formatDecimalToPar, longestStreak, type ScoringMode } from "@/lib/data/scoring-statistics";
+import { assignPositions, bounceBack, bounceBackRow, formatDecimalToPar, longestStreak, type ScoringMode } from "@/lib/data/scoring-statistics";
 import type { StatCategory, StatRow } from "@/lib/statistics";
 import type { Player } from "@/types/player";
 import type { Player as PayloadPlayer, Venue as PayloadVenue, Scorecard as PayloadScorecard } from "@/payload-types";
@@ -152,8 +152,19 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
   const parCountRows: StatRow[] = [];
   const bogeyOrWorseRows: StatRow[] = [];
   const strokesGainedRows: StatRow[] = [];
+  const bounceBackRows: StatRow[] = [];
 
   for (const { player, entries } of groupByPlayer(scores).values()) {
+    // Pooled over every year: the chances and bounces add up, then the rate is taken once.
+    let bounceChances = 0;
+    let bounced = 0;
+    for (const entry of entries) {
+      const result = bounceBack(entry.scoreByHole, inputs.holeInfosByChampionship.get(entry.championshipId) ?? []);
+      bounceChances += result.chances;
+      bounced += result.bounced;
+    }
+    if (bounceChances > 0) bounceBackRows.push(bounceBackRow(player, bounceChances, bounced));
+
     const parTotals: Record<3 | 4 | 5, { sum: number; count: number }> = { 3: { sum: 0, count: 0 }, 4: { sum: 0, count: 0 }, 5: { sum: 0, count: 0 } };
     let birdieOrBetterCount = 0;
     let parCount = 0;
@@ -220,6 +231,8 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
   assignPositions(bogeyOrWorseRows);
   strokesGainedRows.sort((a, b) => a.value - b.value);
   assignPositions(strokesGainedRows);
+  bounceBackRows.sort((a, b) => b.value - a.value);
+  assignPositions(bounceBackRows);
 
   const label = mode === "nett" ? "Nett" : "Scratch";
   return [
@@ -229,6 +242,7 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
     { key: `most-birdies-or-better-${mode}`, title: "Most Birdies or Better", columnLabel: "TOTAL", rows: birdieOrBetterRows },
     { key: `most-pars-${mode}`, title: "Most Pars", columnLabel: "TOTAL", rows: parCountRows },
     { key: `most-bogeys-or-worse-${mode}`, title: "Most Bogeys or Worse", columnLabel: "TOTAL", rows: bogeyOrWorseRows },
+    { key: `bounce-back-${mode}`, title: `Bounce Back - ${label}`, columnLabel: "RATE", rows: bounceBackRows },
     { key: `strokes-gained-${mode}`, title: "Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
   ];
 }
