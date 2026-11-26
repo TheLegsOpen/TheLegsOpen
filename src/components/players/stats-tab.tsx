@@ -42,7 +42,15 @@ function SummaryValue({ value, label }: { value: string; label: string }) {
 function CareerSummaryCard({ summary }: { summary: CareerSummary }) {
   if (!summary.nett && !summary.gross) return null;
   const rounds = (n: number) => `${n} round${n === 1 ? "" : "s"}`;
-  const { subPar } = summary;
+  const { subPar, nines } = summary;
+  const nineCount = (n: number) => `${n} nine${n === 1 ? "" : "s"}`;
+  const nineTiles = (["nett", "gross"] as const).flatMap((mode) =>
+    (["front", "back"] as const).flatMap((side) => {
+      const figure = nines?.[mode]?.[side];
+      const label = `${side === "front" ? "Front" : "Back"} 9 ${mode === "nett" ? "nett" : "gross"}`;
+      return figure ? [{ key: `${mode}-${side}`, value: formatAverageToPar(figure.average), label: `${label}, ${nineCount(figure.rounds)}` }] : [];
+    }),
+  );
   return (
     <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-3">
       <div className="border border-surface-dark-foreground/15 bg-surface-dark-foreground/5 p-4">
@@ -53,6 +61,17 @@ function CareerSummaryCard({ summary }: { summary: CareerSummary }) {
         </div>
         <p className="mt-3 text-xs text-surface-dark-foreground/50">Completed rounds only, to par.</p>
       </div>
+      {nineTiles.length > 0 ? (
+        <div className="border border-surface-dark-foreground/15 bg-surface-dark-foreground/5 p-4">
+          <p className="mb-3 font-display text-base font-bold">Scoring average by nine</p>
+          <div className="flex flex-wrap gap-6">
+            {nineTiles.map((tile) => (
+              <SummaryValue key={tile.key} value={tile.value} label={tile.label} />
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-surface-dark-foreground/50">Every complete nine, to par, a no-return&apos;s finished nine included.</p>
+        </div>
+      ) : null}
       {subPar ? (
         <div className="border border-surface-dark-foreground/15 bg-surface-dark-foreground/5 p-4">
           <p className="mb-3 font-display text-base font-bold">Rounds under par</p>

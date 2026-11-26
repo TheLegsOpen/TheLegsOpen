@@ -20,6 +20,7 @@ export interface CareerSummary {
   nett?: CareerAverage;
   gross?: CareerAverage;
   subPar?: { nett: SubParRecord; gross: SubParRecord };
+  nines?: { nett?: NineAverages; gross?: NineAverages };
 }
 
 function average(rounds: (RoundResult | undefined)[]): CareerAverage | undefined {
@@ -67,6 +68,46 @@ function subPar(rounds: (RoundResult | undefined)[]): SubParRecord {
 export function subParRounds(results: { year: number; main: RoundResult; scratch?: RoundResult }[]): { nett: SubParRecord; gross: SubParRecord } {
   const oldestFirst = [...results].sort((a, b) => a.year - b.year);
   return { nett: subPar(oldestFirst.map((r) => r.main)), gross: subPar(oldestFirst.map((r) => r.scratch)) };
+}
+
+interface CardResult extends RoundResult {
+  holes?: { holeNumber: number; par: number; value?: number }[];
+}
+
+export interface NineAverages {
+  front?: CareerAverage;
+  back?: CareerAverage;
+}
+
+function nineToPar(holes: NonNullable<CardResult["holes"]>, first: number): number | undefined {
+  let total = 0;
+  for (let n = first; n < first + 9; n++) {
+    const hole = holes.find((h) => h.holeNumber === n);
+    if (hole?.value === undefined) return undefined;
+    total += hole.value - hole.par;
+  }
+  return total;
+}
+
+function sideAverages(cards: (CardResult | undefined)[]): NineAverages {
+  const sides: NineAverages = {};
+  for (const [side, first] of [["front", 1], ["back", 10]] as const) {
+    // Every complete nine, as the Statistics page's Best Front 9 and Best Back 9 count them: a
+    // no-return's finished front nine is a real front nine. A year with no scorecard has none.
+    const nines = cards.flatMap((card) => (card?.holes ? [nineToPar(card.holes, first)] : [])).filter((n): n is number => n !== undefined);
+    if (nines.length > 0) sides[side] = { average: nines.reduce((sum, n) => sum + n, 0) / nines.length, rounds: nines.length };
+  }
+  return sides;
+}
+
+/** Front 9 and back 9 scoring average to par, nett from the Main and gross from the Scratch. */
+export function nineAverages(results: { main: CardResult; scratch?: CardResult }[]): { nett?: NineAverages; gross?: NineAverages } {
+  const out: { nett?: NineAverages; gross?: NineAverages } = {};
+  const nett = sideAverages(results.map((r) => r.main));
+  const gross = sideAverages(results.map((r) => r.scratch));
+  if (nett.front || nett.back) out.nett = nett;
+  if (gross.front || gross.back) out.gross = gross;
+  return out;
 }
 
 /** "+7.4", "-0.3", or "E" for anything that rounds to level. */

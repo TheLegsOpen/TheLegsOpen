@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { careerScoringAverage, formatAverageToPar, subParRounds } from "@/lib/career-summary";
+import { careerScoringAverage, formatAverageToPar, nineAverages, subParRounds } from "@/lib/career-summary";
 
 const round = (toPar: number, extra: { noReturn?: boolean; withdrawn?: boolean } = {}) => ({ position: 1, tied: false, toPar, ...extra });
 
@@ -48,5 +48,31 @@ describe("formatAverageToPar", () => {
     expect(formatAverageToPar(7.43)).toBe("+7.4");
     expect(formatAverageToPar(-0.25)).toBe("-0.3");
     expect(formatAverageToPar(0.04)).toBe("E");
+  });
+});
+
+describe("nineAverages", () => {
+  // Par 4s throughout; each nine's holes given as scores to par.
+  const card = (front: (number | undefined)[], back: (number | undefined)[]) =>
+    [...front, ...back].map((toPar, i) => ({ holeNumber: i + 1, par: 4, value: toPar === undefined ? undefined : 4 + toPar, relative: toPar ?? 0 }));
+  const nine = (toPar: number) => [toPar, 0, 0, 0, 0, 0, 0, 0, 0];
+  const missingLast = (toPar: number) => [toPar, 0, 0, 0, 0, 0, 0, 0, undefined];
+
+  it("averages every complete nine to par, a no-return's finished front nine included", () => {
+    const results = [
+      { main: { toPar: 1, holes: card(nine(2), nine(-1)) }, scratch: { toPar: 19, holes: card(nine(9), nine(10)) } },
+      // Picked up on the 17th: his front nine still counts, his back nine doesn't.
+      { main: { toPar: 0, noReturn: true, holes: card(nine(4), missingLast(3)) }, scratch: { toPar: 0, noReturn: true, holes: card(nine(11), missingLast(9)) } },
+      // A winner's year with no scorecard has no nines to give.
+      { main: { toPar: -2 } },
+    ];
+    expect(nineAverages(results)).toEqual({
+      nett: { front: { average: 3, rounds: 2 }, back: { average: -1, rounds: 1 } },
+      gross: { front: { average: 10, rounds: 2 }, back: { average: 10, rounds: 1 } },
+    });
+  });
+
+  it("leaves out a side with no complete nines", () => {
+    expect(nineAverages([{ main: { toPar: 0, noReturn: true, holes: card(missingLast(2), missingLast(2)) } }])).toEqual({});
   });
 });
