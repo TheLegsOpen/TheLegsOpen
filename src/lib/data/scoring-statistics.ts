@@ -104,34 +104,15 @@ export function rankRates(entries: { row: StatRow; chances: number }[], minimum:
   return [...ranked, ...unranked];
 }
 
-/**
- * Which of one championship's rate tables a card is ranked in. A card that ended early -- a
- * no-return or a withdrawal -- topped them on a handful of holes: 0/1 led 2020's Bogey Avoidance,
- * and two 14-hole cards led 2026's Holes per Eagle on "1 in 14" because they stopped sooner. So:
- * the overall rates need a full nine, a par's birdie rate needs every hole of that par, and Holes
- * per Eagle needs the whole card. A hole not yet reached in a live round isn't lost, so a player
- * still out on the course stays ranked as the tables fill in.
- */
-export function rateEligibility(
-  scoreByHole: (number | undefined)[],
-  lostHoles: boolean[],
-  holeInfos: { par: number }[],
-): { nine: boolean; par: Record<3 | 4 | 5, boolean>; complete: boolean } {
-  const complete = !lostHoles.some(Boolean);
-  const holesPlayed = scoreByHole.filter((s) => s != null).length;
-  const parKept = (par: number) => !holeInfos.some((info, i) => info.par === par && lostHoles[i]);
-  return { nine: complete || holesPlayed >= 9, par: { 3: parKept(3), 4: parKept(4), 5: parKept(5) }, complete };
-}
-
-export function shortCardNote(rule: string): string {
-  return `Ranked on ${rule}. Cards that ended sooner follow the ranked ones, marked —.`;
-}
+/** Under one championship's rate tables: they rank completed cards only. */
+export const COMPLETED_CARDS_NOTE = "Ranked on completed cards. A no-return or withdrawal follows the ranked ones, marked —.";
 
 /** Bounce Back chances needed to be ranked in one championship's tables. */
 export const BOUNCE_BACK_MINIMUM = 5;
 export const REVERSE_BOUNCE_BACK_MINIMUM = 3;
 
-export function bounceBackNote(minimum: number): string {
+export function bounceBackNote(minimum: number, completedCardsOnly = false): string {
+  if (completedCardsOnly) return `Ranked on completed cards with ${minimum} chances or more. Anyone else follows the ranked ones, marked —.`;
   return `Ranked from ${minimum} chances. Players with fewer follow the ranked ones, marked —.`;
 }
 
@@ -274,12 +255,19 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
   const parBirdieRows: Record<3 | 4 | 5, { row: StatRow; chances: number }[]> = { 3: [], 4: [], 5: [] };
 
   for (const { player, scoreByHole, lostHoles } of playerScores) {
-    const eligible = rateEligibility(scoreByHole, lostHoles, holeInfos);
-    const ranked = (ok: boolean) => (ok ? 1 : 0);
+    // The rate tables rank completed cards only, as the Main and the Scratch do. A card that ended
+    // early topped them on a handful of holes: 0/1 led 2020's Bogey Avoidance, Campbell's 11-hole
+    // withdrawal led 2016's Birdie or Better %, and two 14-hole cards led 2026's Holes per Eagle
+    // because they stopped sooner. Those cards follow the ranked ones, unranked. A hole not yet
+    // reached in a live round isn't lost, so a player still out on the course stays ranked.
+    const complete = !lostHoles.some(Boolean);
+    const ranked = complete ? 1 : 0;
     const { chances, bounced } = bounceBack(scoreByHole, holeInfos);
-    if (chances > 0) bounceBackRows.push({ row: percentageRow(player, bounced, chances), chances });
+    if (chances > 0) bounceBackRows.push({ row: percentageRow(player, bounced, chances), chances: complete ? chances : 0 });
     const reverse = reverseBounceBack(scoreByHole, holeInfos);
-    if (reverse.chances > 0) reverseBounceBackRows.push({ row: percentageRow(player, reverse.bounced, reverse.chances), chances: reverse.chances });
+    if (reverse.chances > 0) {
+      reverseBounceBackRows.push({ row: percentageRow(player, reverse.bounced, reverse.chances), chances: complete ? reverse.chances : 0 });
+    }
 
     // A nine counts once every hole in it has a score, even if the player picked up later in the
     // round: a no-return's completed front nine is a real front nine.
@@ -344,20 +332,20 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
       bogeyOrWorseRows.push({ player, value: bogeyOrWorseCount, display: String(bogeyOrWorseCount) });
       // Only once something has happened: a run of pars alone has neither birdies nor bogeys to compare.
       if (birdieOrBetterCount + bogeyOrWorseCount > 0) {
-        birdieToBogeyRows.push({ row: birdieToBogeyRow(player, birdieOrBetterCount, bogeyOrWorseCount), chances: ranked(eligible.nine) });
+        birdieToBogeyRows.push({ row: birdieToBogeyRow(player, birdieOrBetterCount, bogeyOrWorseCount), chances: ranked });
       }
       // Shares of the holes actually played, so a no-return's shorter card is measured fairly.
-      birdieOrBetterPercentRows.push({ row: percentageRow(player, birdieOrBetterCount, holesPlayed), chances: ranked(eligible.nine) });
-      bogeyAvoidanceRows.push({ row: percentageRow(player, bogeyOrWorseCount, holesPlayed), chances: ranked(eligible.nine) });
+      birdieOrBetterPercentRows.push({ row: percentageRow(player, birdieOrBetterCount, holesPlayed), chances: ranked });
+      bogeyAvoidanceRows.push({ row: percentageRow(player, bogeyOrWorseCount, holesPlayed), chances: ranked });
       // Only players who made one: a table of the whole field on nought would say nothing.
       if (eagleCount > 0) {
         eagleRows.push({ player, value: eagleCount, display: String(eagleCount) });
-        holesPerEagleRows.push({ row: holesPerEagleRow(player, holesPlayed, eagleCount), chances: ranked(eligible.complete) });
+        holesPerEagleRows.push({ row: holesPerEagleRow(player, holesPlayed, eagleCount), chances: ranked });
       }
     }
     ([3, 4, 5] as const).forEach((par) => {
       const { birdies, played } = parBirdies[par];
-      if (played > 0) parBirdieRows[par].push({ row: percentageRow(player, birdies, played), chances: ranked(eligible.par[par]) });
+      if (played > 0) parBirdieRows[par].push({ row: percentageRow(player, birdies, played), chances: ranked });
     });
     // Strokes gained is a total over the holes played, so the same rule: a lost hole leaves it short.
     if (holesPlayed > 0 && !lostHoles.some(Boolean)) {
@@ -402,7 +390,7 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
       title: `Bounce Back - ${label}`,
       columnLabel: "RATE",
       rows: rankRates(bounceBackRows, BOUNCE_BACK_MINIMUM, "high"),
-      note: bounceBackNote(BOUNCE_BACK_MINIMUM),
+      note: bounceBackNote(BOUNCE_BACK_MINIMUM, true),
       emptyMessage: `Nobody reached ${BOUNCE_BACK_MINIMUM} chances.`,
     },
     {
@@ -410,7 +398,7 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
       title: `Reverse Bounce Back - ${label}`,
       columnLabel: "RATE",
       rows: rankRates(reverseBounceBackRows, REVERSE_BOUNCE_BACK_MINIMUM, "low"),
-      note: bounceBackNote(REVERSE_BOUNCE_BACK_MINIMUM),
+      note: bounceBackNote(REVERSE_BOUNCE_BACK_MINIMUM, true),
       emptyMessage: `Nobody reached ${REVERSE_BOUNCE_BACK_MINIMUM} chances.`,
     },
     {
@@ -418,14 +406,14 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
       title: `Birdie to Bogey Ratio - ${label}`,
       columnLabel: "RATIO",
       rows: rankRates(birdieToBogeyRows, 1, "high"),
-      note: shortCardNote("cards of at least nine holes"),
+      note: COMPLETED_CARDS_NOTE,
     },
     {
       key: `birdie-or-better-percentage-${mode}`,
       title: `Birdie or Better % - ${label}`,
       columnLabel: "RATE",
       rows: rankRates(birdieOrBetterPercentRows, 1, "high"),
-      note: shortCardNote("cards of at least nine holes"),
+      note: COMPLETED_CARDS_NOTE,
     },
     {
       key: `bogey-avoidance-${mode}`,
@@ -433,7 +421,7 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
       columnLabel: "RATE",
       // PGA Tour's Bogey Avoidance: the share of holes at bogey or worse, so lower is better.
       rows: rankRates(bogeyAvoidanceRows, 1, "low"),
-      note: shortCardNote("cards of at least nine holes"),
+      note: COMPLETED_CARDS_NOTE,
     },
     { key: `most-eagles-or-better-${mode}`, title: `Most Eagles or Better - ${label}`, columnLabel: "TOTAL", rows: eagleRows, emptyMessage: "No eagles." },
     {
@@ -441,7 +429,7 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
       title: `Holes per Eagle - ${label}`,
       columnLabel: "HOLES",
       rows: rankRates(holesPerEagleRows, 1, "low"),
-      note: shortCardNote("completed cards"),
+      note: COMPLETED_CARDS_NOTE,
       emptyMessage: "No eagles.",
     },
     ...([3, 4, 5] as const).map((par) => ({
@@ -449,7 +437,7 @@ async function getScoringCategories(mode: ScoringMode, championshipId?: string):
       title: `Par ${par} Birdie or Better - ${label}`,
       columnLabel: "RATE",
       rows: rankRates(parBirdieRows[par], 1, "high"),
-      note: shortCardNote(`cards with every par ${par} played`),
+      note: COMPLETED_CARDS_NOTE,
     })),
     { key: `strokes-gained-${mode}`, title: "Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
   ];

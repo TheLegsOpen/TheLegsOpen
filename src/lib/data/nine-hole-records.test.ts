@@ -9,7 +9,6 @@ import {
   nineToPar,
   percentageRow,
   rankRates,
-  rateEligibility,
   reverseBounceBack,
 } from "@/lib/data/scoring-statistics";
 import { lowestWithEveryHolder, topWithTies, type ScoreEntry } from "@/lib/data/records";
@@ -214,28 +213,5 @@ describe("rankRates", () => {
       ["b", 2, undefined],
       ["a", undefined, true],
     ]);
-  });
-});
-
-describe("rateEligibility", () => {
-  // Two par 3s (holes 1 and 10), the rest par 4.
-  const holeInfos = Array.from({ length: 18 }, (_, i) => ({ par: i === 0 || i === 9 ? 3 : 4 }));
-  const card = (played: number) => Array.from({ length: 18 }, (_, i) => (i < played ? 4 : undefined));
-  const lostAfter = (played: number) => Array.from({ length: 18 }, (_, i) => i >= played);
-
-  it("ranks a full card in every rate table", () => {
-    expect(rateEligibility(card(18), lostAfter(18), holeInfos)).toEqual({ nine: true, par: { 3: true, 4: true, 5: true }, complete: true });
-  });
-
-  it("keeps a card that ended after nine holes in the overall rates, but not the par 3s it missed or Holes per Eagle", () => {
-    expect(rateEligibility(card(9), lostAfter(9), holeInfos)).toEqual({ nine: true, par: { 3: false, 4: false, 5: true }, complete: false });
-  });
-
-  it("leaves a card that ended before nine holes out of the overall rates", () => {
-    expect(rateEligibility(card(1), lostAfter(1), holeInfos).nine).toBe(false);
-  });
-
-  it("ranks a player still out on the course: an unplayed hole in a live round isn't lost", () => {
-    expect(rateEligibility(card(4), Array(18).fill(false), holeInfos)).toEqual({ nine: true, par: { 3: true, 4: true, 5: true }, complete: true });
   });
 });
