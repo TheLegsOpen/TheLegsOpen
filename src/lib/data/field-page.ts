@@ -54,7 +54,8 @@ export async function loadFieldPage() {
    */
   const description = (() => {
     if (!fieldChampionship) return "The full field of players competing at The Legs Open.";
-    const event = `The ${ordinal(fieldChampionship.ordinal)} Legs Open at ${fieldChampionship.venueName}`;
+    // Lower-case "the": it always lands mid-sentence ("The field for the 15th Legs Open at ...").
+    const event = `the ${ordinal(fieldChampionship.ordinal)} Legs Open at ${fieldChampionship.venueName}`;
     const timing = { year: fieldChampionship.year, date: fieldChampionship.effectiveDate };
     if (isWithinLiveWindow(timing)) return `The following players are in the field at ${event}.`;
     return hasBeenPlayed(timing) ? `The field that contested ${event}.` : `The field for ${event}.`;
