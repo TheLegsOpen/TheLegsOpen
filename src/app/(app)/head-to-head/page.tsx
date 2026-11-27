@@ -7,6 +7,7 @@ import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { getPlayers, getPlayerResults, type PlayerYearResult } from "@/lib/data/players";
 import { formatToPar } from "@/lib/leaderboard";
 import { matchPlayHoles, matchPlayResult } from "@/lib/match-play";
+import { careerScoringAverage, formatAverageToPar } from "@/lib/career-summary";
 import { YearByYearRows } from "@/components/head-to-head/year-by-year";
 import { cn, cutoutUrl, playerSlug, splitSurnameFirst } from "@/lib/utils";
 import type { Player } from "@/types/player";
@@ -39,14 +40,19 @@ function summarise(player: Player, results: PlayerYearResult[]): Career {
     byLabel.set(label, [...(byLabel.get(label) ?? []), r.year]);
   }
   const bestFinish = byLabel.size ? [...byLabel].map(([label, years]) => `${label} (${years.join(", ")})`).join(", ") : undefined;
-  const nett = completed.map((r) => r.main.score).filter((s): s is number => s !== undefined);
   const stableford = results.map((r) => r.stableford?.score).filter((s): s is number => s !== undefined);
-  const gross = results.filter((r) => !r.scratch?.noReturn).map((r) => r.scratch?.score).filter((s): s is number => s !== undefined);
+  // Both to par, not in strokes: the courses' pars run from 69 (Carnwath) to 72, so strokes made a
+  // career at the short courses look better than the same golf elsewhere. Campbell's 72.3 nett
+  // average included his 65 at par-69 Carnwath. Completed rounds only, as the profile's Career card.
+  const gross = results
+    .filter((r) => r.scratch && !r.scratch.noReturn && !r.scratch.withdrawn && r.scratch.score !== undefined)
+    .map((r) => r.scratch!.toPar)
+    .filter((s): s is number => s !== undefined);
   return {
     appearances: player.previousOpens + results.length,
     wins: results.filter((r) => r.finish === "Winner").length,
     bestFinish,
-    averageNett: nett.length ? nett.reduce((a, b) => a + b, 0) / nett.length : undefined,
+    averageNett: careerScoringAverage(results).nett?.average,
     bestStableford: stableford.length ? Math.max(...stableford) : undefined,
     bestGross: gross.length ? Math.min(...gross) : undefined,
   };
@@ -130,18 +136,34 @@ export default async function HeadToHeadPreview({ searchParams }: { searchParams
   const matchA = matches.filter((m) => m.outcome === "won").length + matchHalves;
   const matchB = matches.filter((m) => m.outcome === "lost").length + matchHalves;
 
-  const rows: { label: string; a?: string | number; b?: string | number; better?: "low" | "high" }[] = [
+  // `value` is what's compared, where the shown text isn't a plain number ("+13.8", "E").
+  const rows: { label: string; a?: string | number; b?: string | number; valueA?: number; valueB?: number; better?: "low" | "high" }[] = [
     { label: "Appearances", a: ca?.appearances, b: cb?.appearances, better: "high" },
     { label: "Wins", a: ca?.wins, b: cb?.wins, better: "high" },
     { label: "Best finish", a: ca?.bestFinish, b: cb?.bestFinish },
-    { label: "Average nett", a: ca?.averageNett?.toFixed(1), b: cb?.averageNett?.toFixed(1), better: "low" },
+    {
+      label: "Average nett to par",
+      a: ca?.averageNett !== undefined ? formatAverageToPar(ca.averageNett) : undefined,
+      b: cb?.averageNett !== undefined ? formatAverageToPar(cb.averageNett) : undefined,
+      // Compared as shown, so two averages that both read +11.0 don't pick a winner.
+      valueA: ca?.averageNett !== undefined ? Math.round(ca.averageNett * 10) : undefined,
+      valueB: cb?.averageNett !== undefined ? Math.round(cb.averageNett * 10) : undefined,
+      better: "low",
+    },
     { label: "Best Stableford", a: ca?.bestStableford, b: cb?.bestStableford, better: "high" },
-    { label: "Best gross", a: ca?.bestGross, b: cb?.bestGross, better: "low" },
+    {
+      label: "Best gross to par",
+      a: ca?.bestGross !== undefined ? formatToPar(ca.bestGross) : undefined,
+      b: cb?.bestGross !== undefined ? formatToPar(cb.bestGross) : undefined,
+      valueA: ca?.bestGross,
+      valueB: cb?.bestGross,
+      better: "low",
+    },
   ];
   const wins = (row: (typeof rows)[number], side: "a" | "b") => {
     if (!row.better || row.a === undefined || row.b === undefined) return false;
-    const x = Number(row.a);
-    const y = Number(row.b);
+    const x = row.valueA ?? Number(row.a);
+    const y = row.valueB ?? Number(row.b);
     if (x === y) return false;
     return row.better === "high" ? (side === "a" ? x > y : y > x) : side === "a" ? x < y : y < x;
   };
