@@ -41,7 +41,7 @@ function summarise(player: Player, results: PlayerYearResult[]): Career {
   }
   const bestFinish = byLabel.size ? [...byLabel].map(([label, years]) => `${label} (${years.join(", ")})`).join(", ") : undefined;
   const stableford = results.map((r) => r.stableford?.score).filter((s): s is number => s !== undefined);
-  // Both to par, not in strokes: the courses' pars run from 69 (Carnwath) to 72, so strokes made a
+  // Both to par, not in strokes: the courses' pars run from 69 (Carnwath) to 73 (Dalmahoy), so strokes made a
   // career at the short courses look better than the same golf elsewhere. Campbell's 72.3 nett
   // average included his 65 at par-69 Carnwath. Completed rounds only, as the profile's Career card.
   const gross = results

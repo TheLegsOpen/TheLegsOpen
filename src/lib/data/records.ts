@@ -169,7 +169,6 @@ export interface RecordsData {
   mostAppearancesBeforeFirstVictory: { year: number; name: string; appearances: number }[];
   threeDecadeChampions: DecadeSpanEntry[];
   ledOutrightAfter9: YearVenueEntry[];
-  lowestScoreInRound: ScoreEntry[];
   lowestWinningToPar: ScoreEntry[];
   greatestComebackAfter9: ComebackEntry[];
   largestLeadByAnyPlayer: LargestLeadEntry[];
@@ -257,6 +256,7 @@ export interface AutoFacts {
   scratchWinnerScoreToPar?: number;
   runnerUpName?: string;
   runnerUpScore?: number;
+  runnerUpToPar?: number;
   marginStrokes?: number;
   ledOutrightAfter9: boolean;
   deficitAfter9?: number;
@@ -310,6 +310,7 @@ export async function computeAutoFacts(championship: ChampionshipWinner): Promis
   let runnerUp: ReturnType<typeof namesFor> = { names: "" };
   let runnerUpMain: CompetitionEntry | undefined;
   let marginStrokes: number | undefined;
+  let runnerUpToPar: number | undefined;
 
   if (mainWinnerConfirmed && winner) {
     runnerUp = namesFor(main, 2);
@@ -318,7 +319,7 @@ export async function computeAutoFacts(championship: ChampionshipWinner): Promis
     // so the Records page showed a nett runner-up beside a gross score -- 2026 read 91 for Stevie
     // Connelly, his gross, where his Main total was 77.
     runnerUpMain = runnerUp.playerId ? main.find((e) => e.player.id === runnerUp.playerId) : undefined;
-    const runnerUpToPar = main.find((e) => e.position === 2)?.toPar;
+    runnerUpToPar = main.find((e) => e.position === 2)?.toPar;
     marginStrokes = winner.toPar !== undefined && runnerUpToPar !== undefined ? runnerUpToPar - winner.toPar : undefined;
   }
 
@@ -347,6 +348,7 @@ export async function computeAutoFacts(championship: ChampionshipWinner): Promis
     scratchWinnerScoreToPar: scratchWinnerEntry?.toPar,
     runnerUpName: runnerUp.names || undefined,
     runnerUpScore: runnerUpMain?.score,
+    runnerUpToPar,
     marginStrokes,
     ledOutrightAfter9,
     deficitAfter9,
@@ -512,12 +514,6 @@ export async function getRecords(): Promise<RecordsData> {
     .filter((c) => autoFactsByYear.get(c.year)?.ledOutrightAfter9 ?? c.ledOutrightAfter9)
     .map((c) => ({ year: c.year, name: c.winnerName, venueName: c.venueName }));
 
-  const lowestScoreInRoundAll: ScoreEntry[] = played
-    .filter((c) => c.winningScore !== undefined)
-    .map((c) => ({ year: c.year, name: c.winnerName, venueName: c.venueName, value: c.winningScore! }))
-    .sort((a, b) => a.value - b.value);
-  const lowestScoreInRound = topWithTies(lowestScoreInRoundAll, (e) => e.value);
-
   const lowestWinningToParAll: ScoreEntry[] = played
     .filter((c) => c.scoreToPar !== undefined)
     .map((c) => ({ year: c.year, name: c.winnerName, venueName: c.venueName, value: c.scoreToPar! }))
@@ -562,7 +558,11 @@ export async function getRecords(): Promise<RecordsData> {
     .map((c) => {
       const auto = autoFactsByYear.get(c.year);
       const name = auto?.runnerUpName ?? c.runnerUpName;
-      const value = auto?.runnerUpScore ?? c.runnerUpScore;
+      // To par, not in strokes: the courses' pars run from 69 to 73, so strokes ranked Howieson's 71 at
+      // par-70 Panmure level with Spiers's 71 at par-72 Blairgowrie, two shots better. A year without
+      // the scorecards to say takes the par from its own winning score.
+      const par = c.winningScore !== undefined && c.scoreToPar !== undefined ? c.winningScore - c.scoreToPar : undefined;
+      const value = auto?.runnerUpToPar ?? (c.runnerUpScore !== undefined && par !== undefined ? c.runnerUpScore - par : undefined);
       return name && value !== undefined ? { year: c.year, name, venueName: c.venueName, value } : undefined;
     })
     .filter((e): e is ScoreEntry => Boolean(e))
@@ -633,7 +633,6 @@ export async function getRecords(): Promise<RecordsData> {
     mostAppearancesBeforeFirstVictory,
     threeDecadeChampions,
     ledOutrightAfter9,
-    lowestScoreInRound,
     lowestWinningToPar,
     greatestComebackAfter9,
     largestLeadByAnyPlayer,

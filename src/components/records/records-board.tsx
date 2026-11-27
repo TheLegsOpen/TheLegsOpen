@@ -71,7 +71,6 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
     mostAppearancesBeforeFirstVictory,
     threeDecadeChampions,
     ledOutrightAfter9,
-    lowestScoreInRound,
     lowestWinningToPar,
     greatestComebackAfter9,
     largestLeadByAnyPlayer,
@@ -167,13 +166,6 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
 
       <Section title="Scoring Records" description="Main competition only.">
         <Accordion type="multiple">
-          <Category value="lowest-round" title="Lowest score in a round by a champion" count={lowestScoreInRound.length}>
-            {lowestScoreInRound.length === 0 ? (
-              <Empty />
-            ) : (
-              lowestScoreInRound.map((e) => <RecordRow key={e.year} left={e.name} sub={`${e.venueName} · ${e.year}`} right={e.value} />)
-            )}
-          </Category>
           <Category value="lowest-to-par" title="Lowest winning total in relation to par" count={lowestWinningToPar.length}>
             {lowestWinningToPar.length === 0 ? (
               <Empty />
@@ -183,11 +175,11 @@ export function RecordsBoard({ records }: { records: RecordsData }) {
               ))
             )}
           </Category>
-          <Category value="lowest-runner-up" title="Lowest total by a runner-up" count={lowestRunnerUpTotal.length}>
+          <Category value="lowest-runner-up" title="Lowest runner-up total in relation to par" count={lowestRunnerUpTotal.length}>
             {lowestRunnerUpTotal.length === 0 ? (
               <Empty />
             ) : (
-              lowestRunnerUpTotal.map((e) => <RecordRow key={e.year} left={e.name} sub={`${e.venueName} · ${e.year}`} right={e.value} />)
+              lowestRunnerUpTotal.map((e) => <RecordRow key={e.year} left={e.name} sub={`${e.venueName} · ${e.year}`} right={formatToPar(e.value)} />)
             )}
           </Category>
           <Category value="lowest-front-9" title="Lowest front 9 score" count={lowestFrontNine.length}>
