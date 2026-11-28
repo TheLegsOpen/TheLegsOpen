@@ -117,3 +117,19 @@ export function computeScorecardTotals(
 export function formatHandicap(handicap: number): string {
   return handicap < 0 ? `+${-handicap}` : String(handicap);
 }
+
+/**
+ * The handicap a tee sheet shows beside a player. For a championship round it is the one stored on
+ * that year's card, the figure the round was scored off: today's handicap on a past sheet put Mark
+ * Alston at 13 in 2013, when he played off 24. Before a card exists (a sheet published ahead of the
+ * day), it is today's Championship Handicap. A practice round keeps the practice handicap, as the
+ * practice card is scored from it.
+ */
+export function teeSheetHandicap(
+  roundType: "Practice" | "Championship",
+  player: { championshipHandicap?: number; practiceHandicap?: number },
+  championshipEntry: { playingHandicap?: number } | undefined,
+): number | undefined {
+  if (roundType === "Practice") return player.practiceHandicap ?? player.championshipHandicap;
+  return championshipEntry?.playingHandicap ?? player.championshipHandicap;
+}

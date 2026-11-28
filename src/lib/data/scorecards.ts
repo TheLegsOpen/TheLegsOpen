@@ -45,6 +45,8 @@ export interface CompetitionEntry {
   thru: string;
   /** Raw tee time (e.g. "12.00") from the Championship-round tee sheet, empty if not found. */
   teeTime: string;
+  /** The handicap this card was scored off: the one stored on it, else the player's current one. */
+  playingHandicap?: number;
   holes: HoleScore[];
   /** The player left the course without finishing (injury, illness). Unlike a no return this isn't
    * a scoring decision, so it applies to every competition -- Stableford included -- and sorts
@@ -196,7 +198,8 @@ function buildLeaderboardFromDocs(
     const thru = started ? (finished ? "F" : String(holesCompleted)) : "-";
     const teeTimeMinutes = parseTeeTimeMinutes(teeTime);
 
-    const strokesReceived = allocateStrokes(getHandicap(player, doc), holeInfos);
+    const playingHandicap = getHandicap(player, doc);
+    const strokesReceived = allocateStrokes(playingHandicap, holeInfos);
     /** The stored stamp as minutes past midnight, in the championship's own local time. */
     const recordedMinutes = (i: number): number | undefined => {
       const iso = doc.holes?.[i]?.recordedAt;
@@ -251,6 +254,7 @@ function buildLeaderboardFromDocs(
         started,
         teeTimeMinutes,
         teeTime,
+        playingHandicap,
         thru,
         holes,
         noReturn,
@@ -268,6 +272,7 @@ function buildLeaderboardFromDocs(
         started,
         teeTimeMinutes,
         teeTime,
+        playingHandicap,
         thru,
         holes,
         noReturn,
@@ -284,6 +289,7 @@ function buildLeaderboardFromDocs(
       started,
       teeTimeMinutes,
       teeTime,
+      playingHandicap,
       thru,
       holes,
       noReturn,
@@ -348,6 +354,7 @@ function buildLeaderboardFromDocs(
       started: row.started,
       thru: row.thru,
       teeTime: row.teeTime,
+      playingHandicap: row.playingHandicap,
       holes: row.holes,
       noReturn: row.noReturn,
       withdrawn: row.withdrawn,

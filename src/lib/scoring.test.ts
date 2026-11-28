@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { allocateStrokes, computeScorecardTotals, formatHandicap, stablefordPoints, type HoleInfo } from "@/lib/scoring";
+import { allocateStrokes, computeScorecardTotals, formatHandicap, stablefordPoints, teeSheetHandicap, type HoleInfo } from "@/lib/scoring";
 
 /** 18 holes, all par 4, stroke indices 1-18 -- a simple, deterministic course for the tests below. */
 const FLAT_HOLES: HoleInfo[] = Array.from({ length: 18 }, (_, i) => ({ par: 4, si: i + 1 }));
@@ -157,5 +157,23 @@ describe("formatHandicap", () => {
 
   it("does not write negative zero as a plus", () => {
     expect(formatHandicap(-0)).toBe("0");
+  });
+});
+
+describe("teeSheetHandicap", () => {
+  const player = { championshipHandicap: 13, practiceHandicap: 15 };
+
+  it("shows the handicap stored on that year's card, not today's", () => {
+    // Mark Alston played the 2013 championship off 24; he is 13 now.
+    expect(teeSheetHandicap("Championship", player, { playingHandicap: 24 })).toBe(24);
+  });
+
+  it("falls back to today's championship handicap before a card exists", () => {
+    expect(teeSheetHandicap("Championship", player, undefined)).toBe(13);
+  });
+
+  it("keeps the practice handicap for a practice round", () => {
+    expect(teeSheetHandicap("Practice", player, { playingHandicap: 24 })).toBe(15);
+    expect(teeSheetHandicap("Practice", { championshipHandicap: 13 }, undefined)).toBe(13);
   });
 });

@@ -3,7 +3,7 @@ import { ChevronRight, Star } from "lucide-react";
 import { PlaceholderArt } from "@/components/shared/placeholder-art";
 import { CountryFlag } from "@/components/shared/country-flag";
 import { formatToPar } from "@/lib/leaderboard";
-import { formatHandicap } from "@/lib/scoring";
+import { formatHandicap, teeSheetHandicap } from "@/lib/scoring";
 import { cn, cutoutUrl, splitSurnameFirst } from "@/lib/utils";
 import { scorePillClass, TILE_CLASS } from "@/components/leaderboard/leaderboard-table";
 import type { TeeTimeEntry } from "@/types/championship";
@@ -45,9 +45,8 @@ export function MatchupCard({
           const { firstName, surname } = splitSurnameFirst(player.name);
           const entry = mainEntries.find((e) => e.player.id === player.id);
           const fav = favorites.includes(player.id);
-          // Mirrors the fallback used when scoring a practice card (see Scorecards.ts) so the number
-          // shown is always the one their score is actually calculated from.
-          const handicap = roundType === "Practice" ? (player.practiceHandicap ?? player.championshipHandicap) : player.championshipHandicap;
+          // The number their score is actually calculated from: that year's card on a past sheet.
+          const handicap = teeSheetHandicap(roundType, player, entry);
           return (
             <div
               key={player.id}
