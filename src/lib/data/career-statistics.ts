@@ -303,9 +303,9 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
     { key: `par-3-scoring-${mode}`, title: `Par 3 Scoring - ${label}`, columnLabel: "TOTAL", rows: parBuckets[3], useParColoring: true },
     { key: `par-4-scoring-${mode}`, title: `Par 4 Scoring - ${label}`, columnLabel: "TOTAL", rows: parBuckets[4], useParColoring: true },
     { key: `par-5-scoring-${mode}`, title: `Par 5 Scoring - ${label}`, columnLabel: "TOTAL", rows: parBuckets[5], useParColoring: true },
-    { key: `most-birdies-or-better-${mode}`, title: "Most Birdies or Better", columnLabel: "TOTAL", rows: birdieOrBetterRows },
-    { key: `most-pars-${mode}`, title: "Most Pars", columnLabel: "TOTAL", rows: parCountRows },
-    { key: `most-bogeys-or-worse-${mode}`, title: "Most Bogeys or Worse", columnLabel: "TOTAL", rows: bogeyOrWorseRows },
+    { key: `most-birdies-or-better-${mode}`, title: `Most Birdies or Better - ${label}`, columnLabel: "TOTAL", rows: birdieOrBetterRows },
+    { key: `most-pars-${mode}`, title: `Most Pars - ${label}`, columnLabel: "TOTAL", rows: parCountRows },
+    { key: `most-bogeys-or-worse-${mode}`, title: `Most Bogeys or Worse - ${label}`, columnLabel: "TOTAL", rows: bogeyOrWorseRows },
     {
       key: `bounce-back-${mode}`,
       title: `Bounce Back - ${label}`,
@@ -333,7 +333,7 @@ async function getCareerScoringCategories(mode: ScoringMode): Promise<StatCatego
       columnLabel: "RATE",
       rows: parBirdieRows[par],
     })),
-    { key: `strokes-gained-${mode}`, title: "Strokes Gained", columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
+    { key: `strokes-gained-${mode}`, title: `Strokes Gained - ${label}`, columnLabel: "TOTAL", rows: strokesGainedRows, useParColoring: true },
   ];
 }
 
